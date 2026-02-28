@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPORT_DIR="${COVERAGE_REPORT_DIR:-$(mktemp -d /tmp/movieswiftui-coverage.XXXXXX)}"
-BACKEND_MIN="${BACKEND_MIN_LINE_COVERAGE:-76.0}"
-FLUX_MIN="${FLUX_MIN_LINE_COVERAGE:-52.0}"
+BACKEND_MIN="${BACKEND_MIN_LINE_COVERAGE:-76.1}"
+FLUX_MIN="${FLUX_MIN_LINE_COVERAGE:-52.2}"
 
 mkdir -p "$REPORT_DIR"
 SUMMARY_FILE="$REPORT_DIR/summary.txt"

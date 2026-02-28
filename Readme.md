@@ -88,7 +88,7 @@ xcodebuild \
 Optional overrides:
 
 ```bash
-BACKEND_MIN_LINE_COVERAGE=76.0 FLUX_MIN_LINE_COVERAGE=52.0 ./scripts/ci/check_coverage.sh
+BACKEND_MIN_LINE_COVERAGE=76.1 FLUX_MIN_LINE_COVERAGE=52.2 ./scripts/ci/check_coverage.sh
 ```
 
 ### Run CI-style iOS simulator tests locally
