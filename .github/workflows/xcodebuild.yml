@@ -16,7 +16,7 @@ jobs:
     env:
       BACKEND_MIN_LINE_COVERAGE: "76.1"
       FLUX_MIN_LINE_COVERAGE: "52.2"
-      COVERAGE_REPORT_DIR: ${{ runner.temp }}/coverage
+      COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage
 
     steps:
       - uses: actions/checkout@v4
@@ -38,8 +38,8 @@ jobs:
     needs: package-tests
     runs-on: macos-latest
     env:
-      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift.xcresult
-      XCODE_DERIVED_DATA_PATH: ${{ runner.temp }}/derived-data
+      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift.xcresult
+      XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
       IOS_SIMULATOR_FAMILY: iPhone
       IOS_TEST_ITERATIONS: "2"
 
@@ -70,8 +70,8 @@ jobs:
     needs: package-tests
     runs-on: macos-latest
     env:
-      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift-iPad.xcresult
-      XCODE_DERIVED_DATA_PATH: ${{ runner.temp }}/derived-data-ipad
+      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift-iPad.xcresult
+      XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data-ipad
       IOS_SIMULATOR_FAMILY: iPad
       IOS_TEST_ITERATIONS: "1"
 
