@@ -50,7 +50,8 @@ struct MoviesList: ConnectedView {
     
     // MARK: - Computed views
     private func moviesRows(props: Props) -> some View {
-        ForEach(isSearching ? props.searchedMovies ?? [] : movies, id: \.self) { id in
+        let movieIds = isSearching ? props.searchedMovies ?? [] : movies
+        return ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
             NavigationLink(destination: MovieDetail(movieId: id)) {
                 MovieRow(movieId: id)
             }
