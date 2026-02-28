@@ -39,7 +39,7 @@ public struct PopularityBadge : View {
                       to: isDisplayed ? CGFloat(score) / 100 : 0)
                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [1]))
                 .foregroundColor(scoreColor)
-                .animation(Animation.interpolatingSpring(stiffness: 60, damping: 10).delay(0.1))
+                .animation(Animation.interpolatingSpring(stiffness: 60, damping: 10).delay(0.1), value: isDisplayed)
         }
         .rotationEffect(.degrees(-90))
         .onAppear {

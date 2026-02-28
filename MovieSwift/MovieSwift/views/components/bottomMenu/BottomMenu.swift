@@ -8,6 +8,11 @@
 
 import SwiftUI
 
+private struct BottomMenuAnimationState: Equatable {
+    let isPresented: Bool
+    let translation: CGSize
+}
+
 struct BottomMenu<Content>: View where Content: View {
     
     enum DragState {
@@ -73,7 +78,7 @@ struct BottomMenu<Content>: View where Content: View {
                         self.onDismiss()
                     }
                 })
-            .animation(.spring())
+            .animation(.spring(), value: BottomMenuAnimationState(isPresented: self.isPresented.wrappedValue, translation: self.dragState.translation))
         }
     }
 

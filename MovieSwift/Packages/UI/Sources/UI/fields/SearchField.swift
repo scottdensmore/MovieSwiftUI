@@ -54,7 +54,7 @@ public struct SearchField : View {
                         Text(self.dismissButtonTitle).foregroundColor(.pink)
                     })
                     .buttonStyle(BorderlessButtonStyle())
-                    .animation(.easeInOut)
+                    .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
             }
             .preference(key: OffsetTopPreferenceKey.self,

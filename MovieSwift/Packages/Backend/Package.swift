@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "Backend",
     platforms: [
-        .iOS(.v13),
-        .macOS(.v10_15),
-        .tvOS(.v13),
-        .watchOS(.v6)
+        .iOS("26.0"),
+        .macOS("26.0"),
+        .tvOS("26.0"),
+        .watchOS("26.0")
     ],
     products: [
         .library(name: "Backend", targets: ["Backend"]),
@@ -17,7 +17,7 @@ let package = Package(
     targets: [
         .target(name: "Backend", dependencies: [])
     ],
-    swiftLanguageVersions: [
-        .version("5.2")
+    swiftLanguageModes: [
+        .v5
     ]
 )

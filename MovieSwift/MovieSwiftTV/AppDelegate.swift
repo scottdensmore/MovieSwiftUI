@@ -9,16 +9,22 @@
 import UIKit
 import SwiftUI
 import SwiftUIFlux
+import AppIntents
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        let window = UIWindow(frame: UIScreen.main.bounds)
+    private func configureWindowIfNeeded(for application: UIApplication) {
+        guard window == nil else { return }
+        guard let windowScene = application.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first else {
+            return
+        }
+
+        let window = UIWindow(windowScene: windowScene)
         let controller = UIHostingController(rootView:
             StoreProvider(store: store) {
                 HomeView()
@@ -26,7 +32,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window.rootViewController = controller
         self.window = window
         window.makeKeyAndVisible()
+    }
+    
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        configureWindowIfNeeded(for: application)
         return true
+    }
+    
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        configureWindowIfNeeded(for: application)
     }
 }
 
@@ -50,5 +65,3 @@ let sampleStore = Store<AppState>(reducer: appStateReducer,
                                                                              peoplesMovies: [:],
                                                                              search: [:])))
 #endif
-
-

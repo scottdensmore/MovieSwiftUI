@@ -25,7 +25,7 @@ struct MovieBackdropImage : View {
                     .resizable()
                     .renderingMode(.original)
                     .frame(width: 280, height: displayMode == .normal ? 168 : 50)
-                    .animation(.easeInOut)
+                    .animation(.easeInOut, value: self.imageLoader.image != nil)
                     .onAppear{
                         DispatchQueue.main.async {
                             self.isImageLoaded = true

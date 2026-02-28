@@ -63,6 +63,7 @@ struct DraggableCover : View {
     @State private var predictedEndLocation: CGPoint? = nil
     @State private var hasMoved = false
     @State private var delayedIsActive = false
+    @State private var viewWidth: CGFloat = 0
     @EnvironmentObject private var store: Store<AppState>
     @GestureState private var dragState = DragState.inactive
     private let hapticFeedback = UISelectionFeedbackGenerator()
@@ -143,7 +144,7 @@ struct DraggableCover : View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         self.endGestureHandler(.left)
                     }
-                } else if endLocation.x > UIScreen.main.bounds.width - 50 {
+                } else if endLocation.x > max(self.viewWidth - 50, 0) {
                     self.predictedEndLocation = endLocation
                     self.willEndGesture(self.gestureViewState.translation)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -159,7 +160,7 @@ struct DraggableCover : View {
         return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
                                                                                  size: .medium))
             .offset(computedOffset())
-            .animation(delayedIsActive ? coverSpringAnimation : nil)
+            .animation(delayedIsActive ? coverSpringAnimation : nil, value: computedOffset())
             .opacity(predictedEndLocation != nil ? 0 : 1)
             .rotationEffect(computeAngle())
             .scaleEffect(dragState.isActive ? 1.03: 1)
@@ -167,13 +168,24 @@ struct DraggableCover : View {
                     radius: dragState.isActive ? shadowRadius : 0,
                     x: dragState.isActive ? shadowSize : 0,
                     y: dragState.isActive ? shadowSize : 0)
-            .animation(coverSpringAnimation)
+            .animation(coverSpringAnimation, value: dragState.translation)
             .gesture(longPressDrag)
             .simultaneousGesture(TapGesture(count: 1).onEnded({ _ in
                 if !self.hasMoved {
                     self.onTapGesture()
                 }
             }))
+            .background(
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear {
+                            self.viewWidth = proxy.size.width
+                        }
+                        .onChange(of: proxy.size.width) { _, newWidth in
+                            self.viewWidth = newWidth
+                        }
+                }
+            )
             .onAppear{
                 self.hapticFeedback.prepare()
         }

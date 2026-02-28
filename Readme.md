@@ -22,6 +22,41 @@ MovieSwiftUI is in pure Swift UI, the goal is to see how far SwiftUI can go in i
 
 It'll evolve with SwiftUI, every time Apple edits existing or adds new features to the framework.
 
+## Local Setup (Code Signing + TMDB API Key)
+
+This project is configured so each developer can use their own Apple Developer signing settings without modifying tracked project files.
+
+### Option 1: Use setup script
+
+Run:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+The script creates a local `DeveloperSettings.xcconfig` (gitignored) with your Team ID, organization identifier, and TMDB API key.
+
+### Option 2: Manual setup
+
+Copy the template:
+
+```bash
+cp DeveloperSettings.template.xcconfig DeveloperSettings.xcconfig
+```
+
+Then update:
+
+```xcconfig
+CODE_SIGN_IDENTITY = Apple Development
+DEVELOPMENT_TEAM = <YOUR_TEAM_ID>
+CODE_SIGN_STYLE = Automatic
+ORGANIZATION_IDENTIFIER = <YOUR_REVERSED_DOMAIN>
+TMDB_API_KEY = <YOUR_TMDB_V3_API_KEY>
+```
+
+After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift` or `MovieSwiftTV`.
+
 ## Platforms
 
 Currently MovieSwiftUI runs on iPhone, iPad, and macOS. 

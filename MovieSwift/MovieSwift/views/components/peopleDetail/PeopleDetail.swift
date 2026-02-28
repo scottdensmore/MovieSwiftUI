@@ -65,7 +65,7 @@ struct PeopleDetail: ConnectedView {
                 .foregroundColor(props.isInFanClub.wrappedValue ? .steam_gold : .primary)
                 .scaleEffect(props.isInFanClub.wrappedValue ? 1.2 : 1.0)
                 .frame(width: 25, height: 25)
-                .animation(.spring())
+                .animation(.spring(), value: props.isInFanClub.wrappedValue)
         })
     }
     
@@ -82,7 +82,7 @@ struct PeopleDetail: ConnectedView {
                 .transition(.scale)
                 .animation(Animation
                     .interpolatingSpring(stiffness: 70, damping: 7)
-                .delay(0.3))
+                .delay(0.3), value: isFanScoreUpdated)
                 .onTapGesture {
                     self.isFanScoreUpdated = false
                 }
@@ -96,7 +96,7 @@ struct PeopleDetail: ConnectedView {
             .scaleEffect(selectedPoster != nil ? 1.0 : 1.2)
             .blur(radius: selectedPoster != nil ? 0 : 10)
             .opacity(selectedPoster != nil ? 1 : 0)
-            .animation(.spring())
+            .animation(.spring(), value: selectedPoster != nil)
     }
     
     func body(props: Props) -> some View {
@@ -128,14 +128,16 @@ struct PeopleDetail: ConnectedView {
                     self.moviesSection(props: props, year: year)
                 })
             }
-            .animation(nil)
+            .transaction { transaction in
+                transaction.animation = nil
+            }
             .blur(radius: selectedPoster != nil || isFanScoreUpdated ? 30 : 0)
             .scaleEffect(selectedPoster != nil ? 0.8 : 1)
-            .animation(.interactiveSpring())
+            .animation(.interactiveSpring(), value: selectedPoster != nil || isFanScoreUpdated)
             imagesCarouselView(props: props)
             scoreUpdateView(props: props)
         }
-        .animation(.spring())
+        .animation(.spring(), value: isFanScoreUpdated)
         .navigationBarItems(trailing: barbuttons(props: props))
         .navigationBarTitle(props.people.name)
         .onAppear {

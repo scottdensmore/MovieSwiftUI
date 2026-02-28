@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -123,6 +123,7 @@
 		69DEA9A622B9027200DFF551 /* CustomListForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DEA9A522B9027200DFF551 /* CustomListForm.swift */; };
 		69DEA9A822B904CB00DFF551 /* CustomList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DEA9A722B904CB00DFF551 /* CustomList.swift */; };
 		69E3260222D1DE81003749B1 /* PeopleDetailMovieRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E3260122D1DE81003749B1 /* PeopleDetailMovieRow.swift */; };
+		69E4D1012B0A111100A1B2C3 /* Backend in Frameworks */ = {isa = PBXBuildFile; productRef = 69E4D1022B0A111100A1B2C3 /* Backend */; };
 		69E7DD4B23DF22BF00DEAEA9 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E7DD4A23DF22BF00DEAEA9 /* Video.swift */; };
 		69EE5F1722B638CA0053A84A /* MovieTopBackdropImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69EE5F1622B638CA0053A84A /* MovieTopBackdropImage.swift */; };
 		69F336CD22EDA77500282CE3 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69F336CC22EDA77500282CE3 /* CloudKit.framework */; };
@@ -192,7 +193,7 @@
 		69414A1523C33FC10056FBDF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		69414A1823C33FC10056FBDF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		69414A1A23C33FC10056FBDF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		69414A3D23C35C190056FBDF /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS13.2.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
+		69414A3D23C35C190056FBDF /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		69414A5523C360C90056FBDF /* MoviesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesView.swift; sourceTree = "<group>"; };
 		694219F922CF3D3B008004A2 /* BottomMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomMenu.swift; sourceTree = "<group>"; };
 		6953B50622D36A9900859723 /* LoggingMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingMiddleware.swift; sourceTree = "<group>"; };
@@ -247,6 +248,7 @@
 		69DEA9A522B9027200DFF551 /* CustomListForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomListForm.swift; sourceTree = "<group>"; };
 		69DEA9A722B904CB00DFF551 /* CustomList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomList.swift; sourceTree = "<group>"; };
 		69E3260122D1DE81003749B1 /* PeopleDetailMovieRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeopleDetailMovieRow.swift; sourceTree = "<group>"; };
+		69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MovieSwiftConfig.xcconfig; sourceTree = "<group>"; };
 		69E7DD4A23DF22BF00DEAEA9 /* Video.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
 		69EE5F1622B638CA0053A84A /* MovieTopBackdropImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieTopBackdropImage.swift; sourceTree = "<group>"; };
 		69F336CC22EDA77500282CE3 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
@@ -276,6 +278,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				69414A3E23C35C1A0056FBDF /* CloudKit.framework in Frameworks */,
+				69E4D1012B0A111100A1B2C3 /* Backend in Frameworks */,
 				69414A4023C35C1D0056FBDF /* SwiftUIFlux in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -687,6 +690,7 @@
 				69FFAF7E22A99F1100801F3C /* MovieSwift */,
 				69414A0D23C33FBE0056FBDF /* MovieSwiftTV */,
 				69414A2423C35BBB0056FBDF /* Shared */,
+				69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */,
 				69D3320E23ED605500C8A20C /* Packages */,
 				69FFAF7D22A99F1100801F3C /* Products */,
 				69305F6322CFBF9900C4FE07 /* Frameworks */,
@@ -810,6 +814,7 @@
 			);
 			name = MovieSwiftTV;
 			packageProductDependencies = (
+				69E4D1022B0A111100A1B2C3 /* Backend */,
 				69414A3F23C35C1D0056FBDF /* SwiftUIFlux */,
 			);
 			productName = MovieSwiftTV;
@@ -845,8 +850,9 @@
 		69FFAF7422A99F1100801F3C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1200;
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2630;
 				ORGANIZATIONNAME = "Thomas Ricouard";
 				TargetAttributes = {
 					69414A0B23C33FBE0056FBDF = {
@@ -1065,50 +1071,49 @@
 /* Begin XCBuildConfiguration section */
 		69414A1B23C33FC10056FBDF /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
-				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MovieSwiftTV/Preview Content\"";
-				DEVELOPMENT_TEAM = Z6P74P6T99;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwiftTV/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.thomasricouard.MovieSwiftTV;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswifttv";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.2;
+				TVOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
 		69414A1C23C33FC10056FBDF /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
-				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MovieSwiftTV/Preview Content\"";
-				DEVELOPMENT_TEAM = Z6P74P6T99;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwiftTV/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.thomasricouard.MovieSwiftTV;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswifttv";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 13.2;
+				TVOS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
 		69FFAF8E22A99F1200801F3C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1142,8 +1147,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 27ZDER873F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1158,11 +1165,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1170,6 +1178,7 @@
 		};
 		69FFAF8F22A99F1200801F3C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1203,8 +1212,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 27ZDER873F;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1213,10 +1224,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -1225,68 +1237,64 @@
 		};
 		69FFAF9122A99F1200801F3C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MovieSwift/MovieSwift.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1400;
 				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "MovieSwift/Preview\\ Content";
-				DEVELOPMENT_TEAM = Z6P74P6T99;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.7;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.thomasricouard.film-o-matic";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "maccatalyst.com.thomasricouard.film-o-matic";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswift";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "maccatalyst.$(ORGANIZATION_IDENTIFIER).movieswift";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MovieSwift/MovieSwift-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Debug;
 		};
 		69FFAF9222A99F1200801F3C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MovieSwift/MovieSwift.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1400;
 				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "MovieSwift/Preview\\ Content";
-				DEVELOPMENT_TEAM = Z6P74P6T99;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwift/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.7;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.thomasricouard.film-o-matic";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "maccatalyst.com.thomasricouard.film-o-matic";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswift";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "maccatalyst.$(ORGANIZATION_IDENTIFIER).movieswift";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MovieSwift/MovieSwift-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Release;
@@ -1347,6 +1355,10 @@
 		69D3321123ED608400C8A20C /* UI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = UI;
+		};
+		69E4D1022B0A111100A1B2C3 /* Backend */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Backend;
 		};
 		69FB7D7A22E7957200C55F01 /* SwiftUIFlux */ = {
 			isa = XCSwiftPackageProductDependency;

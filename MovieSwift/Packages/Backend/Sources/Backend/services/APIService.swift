@@ -10,11 +10,22 @@ import Foundation
 
 public struct APIService {
     let baseURL = URL(string: "https://api.themoviedb.org/3")!
-    let apiKey = "1d9b898a212ea52e283351e521e17871"
     public static let shared = APIService()
     let decoder = JSONDecoder()
     
+    private var apiKey: String? {
+        guard let rawAPIKey = Bundle.main.object(forInfoDictionaryKey: "TMDB_API_KEY") as? String else {
+            return nil
+        }
+        let value = rawAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty && value != "$(TMDB_API_KEY)" else {
+            return nil
+        }
+        return value
+    }
+    
     public enum APIError: Error {
+        case missingAPIKey
         case noResponse
         case jsonDecodingError(error: Error)
         case networkError(error: Error)
@@ -81,6 +92,16 @@ public struct APIService {
     public func GET<T: Codable>(endpoint: Endpoint,
                          params: [String: String]?,
                          completionHandler: @escaping (Result<T, APIError>) -> Void) {
+        guard let apiKey = apiKey else {
+            #if DEBUG
+            print("Missing TMDB_API_KEY. Set it in DeveloperSettings.xcconfig.")
+            #endif
+            DispatchQueue.main.async {
+                completionHandler(.failure(.missingAPIKey))
+            }
+            return
+        }
+        
         let queryURL = baseURL.appendingPathComponent(endpoint.path())
         var components = URLComponents(url: queryURL, resolvingAgainstBaseURL: true)!
         components.queryItems = [
@@ -125,4 +146,3 @@ public struct APIService {
     }
     
 }
-

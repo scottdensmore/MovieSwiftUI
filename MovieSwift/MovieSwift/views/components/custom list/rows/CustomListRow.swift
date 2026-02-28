@@ -48,7 +48,7 @@ struct SmallMoviePosterImage : View {
                     .cornerRadius(3)
                     .opacity(isImageLoaded ? 1 : 0.1)
                     .shadow(radius: 2)
-                    .animation(.easeInOut)
+                    .animation(.easeInOut, value: self.isImageLoaded)
                     .onAppear{
                         self.isImageLoaded = true
                 }

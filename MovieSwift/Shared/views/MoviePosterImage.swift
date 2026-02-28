@@ -11,7 +11,6 @@ import Backend
 
 struct MoviePosterImage: View {
     @ObservedObject var imageLoader: ImageLoader
-    @State var isImageLoaded = false
     let posterSize: PosterStyle.Size
     
     var body: some View {
@@ -20,10 +19,7 @@ struct MoviePosterImage: View {
                 .resizable()
                 .renderingMode(.original)
                 .posterStyle(loaded: true, size: posterSize)
-                .onAppear{
-                    isImageLoaded = true
-                }
-                .animation(.easeInOut)
+                .animation(.easeInOut, value: imageLoader.image != nil)
                 .transition(.opacity)
         } else {
             Rectangle()

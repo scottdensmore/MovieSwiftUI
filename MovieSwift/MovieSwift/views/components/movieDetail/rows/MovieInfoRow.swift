@@ -28,13 +28,13 @@ struct MovieInfoRow : View {
             if let runtime = movie.runtime {
                 Text("• \(runtime) minutes")
                     .font(.subheadline)
-                    .animation(asyncTextAnimation)
+                    .animation(asyncTextAnimation, value: movie.runtime)
                     .transition(asyncTextTransition)
             }
             if let status = movie.status {
                 Text("• \(status)")
                     .font(.subheadline)
-                    .animation(asyncTextAnimation)
+                    .animation(asyncTextAnimation, value: movie.status)
                     .transition(asyncTextTransition)
             }
         }

@@ -29,7 +29,6 @@ struct PeopleRow : ConnectedView {
             .foregroundColor(.steam_gold)
             .transition(AnyTransition.scale
                 .combined(with: .opacity))
-            .animation(.interpolatingSpring(stiffness: 80, damping: 10))
     }
     
     func body(props: Props) -> some View {
@@ -44,8 +43,8 @@ struct PeopleRow : ConnectedView {
                         .titleStyle()
                         .foregroundColor(.steam_gold)
                         .lineLimit(1)
-                        .animation(.spring())
                 }
+                .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
                 Text(props.people.knownForText ?? "")
                     .foregroundColor(.secondary)
                     .font(.subheadline)

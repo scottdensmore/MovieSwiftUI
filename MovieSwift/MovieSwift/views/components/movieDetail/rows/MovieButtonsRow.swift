@@ -67,7 +67,7 @@ struct MovieButtonsRow: ConnectedView {
                            })
         }
         .padding(.vertical, 8)
-        .animation(.spring())
+        .animation(.spring(), value: props.isInWishlist || props.isInSeenlist || props.isInCustomList)
     }
 }
 

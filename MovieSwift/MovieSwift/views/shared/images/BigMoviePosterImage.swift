@@ -21,7 +21,7 @@ struct BigMoviePosterImage : View {
                     .renderingMode(.original)
                     .posterStyle(loaded: true, size: .big)
                     .scaleEffect(self.isImageLoaded ? 1 : 0.6)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.isImageLoaded)
                     .onAppear{
                         self.isImageLoaded = true
                 }

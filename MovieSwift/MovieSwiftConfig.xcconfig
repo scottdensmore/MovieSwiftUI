@@ -1,0 +1,10 @@
+// Shared project defaults. Local developers override these via
+// ../DeveloperSettings.xcconfig, which is gitignored.
+
+DEVELOPMENT_TEAM =
+CODE_SIGN_IDENTITY = Apple Development
+CODE_SIGN_STYLE = Automatic
+ORGANIZATION_IDENTIFIER = com.example
+TMDB_API_KEY =
+
+#include? "../DeveloperSettings.xcconfig"

@@ -40,9 +40,10 @@ struct MoviesActions {
         let movie: Int
         
         func execute(state: FluxState?, dispatch: @escaping DispatchFunction) {
+            let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
             APIService.shared.GET(endpoint: .movieDetail(movie: movie),
                                   params: ["append_to_response": "keywords,images",
-                                           "include_image_language": "\(Locale.current.languageCode ?? "en"),en,null"])
+                                           "include_image_language": "\(languageCode),en,null"])
             {
                 (result: Result<Movie, APIService.APIError>) in
                 switch result {

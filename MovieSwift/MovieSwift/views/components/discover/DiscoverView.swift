@@ -114,7 +114,7 @@ struct DiscoverView: ConnectedView {
                     .lineLimit(2)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .offset(x: 0, y: -15)
-                    .animation(.easeInOut)
+                    .animation(.easeInOut, value: self.draggedViewState.isDragging)
                 
                 Circle()
                     .strokeBorder(Color.pink, lineWidth: 1)
@@ -122,7 +122,7 @@ struct DiscoverView: ConnectedView {
                     .frame(width: 50, height: 50)
                     .offset(x: -70, y: 0)
                     .opacity(self.draggedViewState.isDragging ? 0.3 + Double(self.leftZoneResistance()) : 0)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.draggedViewState.translation)
                 
                 Circle()
                     .strokeBorder(Color.green, lineWidth: 1)
@@ -130,7 +130,7 @@ struct DiscoverView: ConnectedView {
                     .frame(width: 50, height: 50)
                     .offset(x: 70, y: 0)
                     .opacity(self.draggedViewState.isDragging ? 0.3 + Double(self.rightZoneResistance()) : 0)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.draggedViewState.translation)
                 
                 
                 Circle()
@@ -139,7 +139,7 @@ struct DiscoverView: ConnectedView {
                     .frame(width: 50, height: 50)
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.draggedViewState.isDragging)
                     .onTapGesture {
                         self.hapticFeedback.impactOccurred(intensity: 0.5)
                         self.previousMovie = props.currentMovie!.id
@@ -155,7 +155,7 @@ struct DiscoverView: ConnectedView {
                 }) .frame(width: 50, height: 50)
                     .offset(x: -60, y: 30)
                     .opacity(self.previousMovie != nil && !self.draggedViewState.isActive ? 1 : 0)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.previousMovie != nil && !self.draggedViewState.isActive)
                 
                 Button(action: {
                     props.dispatch(MoviesActions.ResetRandomDiscover())
@@ -167,7 +167,7 @@ struct DiscoverView: ConnectedView {
                     .frame(width: 50, height: 50)
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
-                    .animation(.spring())
+                    .animation(.spring(), value: self.draggedViewState.isDragging)
             }
         }
     }
@@ -202,7 +202,8 @@ struct DiscoverView: ConnectedView {
                         .padding(.bottom, CGFloat(props.movies.reversed().firstIndex(of: id)! * 16) - self.dragResistance())
                         .animation(self.draggedViewState.isActive ?
                             .easeIn(duration: 0) :
-                            .spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0))
+                            .spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0),
+                                   value: self.draggedViewState.translation)
                 }
             }
         }
@@ -226,7 +227,7 @@ struct DiscoverView: ConnectedView {
                                                                                               size: .original))
             .allowsHitTesting(false)
             .transition(.opacity)
-            .animation(.easeInOut))
+            .animation(.easeInOut, value: props.currentMovie?.poster_path))
         .onAppear {
             self.hapticFeedback.prepare()
             self.fetchRandomMovies(props: props, force: false, filter: props.filter)

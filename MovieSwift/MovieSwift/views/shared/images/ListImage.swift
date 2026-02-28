@@ -47,7 +47,7 @@ struct ListImage: ConnectedView {
                     .position(x: 13, y: 15)
                     .transition(AnyTransition.scale
                         .combined(with: .opacity))
-                    .animation(.interpolatingSpring(stiffness: 80, damping: 10))
+                    .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: icon(props: props))
             }
         }
     }

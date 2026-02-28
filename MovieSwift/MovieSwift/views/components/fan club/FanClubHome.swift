@@ -57,7 +57,7 @@ struct FanClubHome: ConnectedView {
                 }
             }
             .navigationBarTitle("Fan Club")
-            .animation(.spring())
+            .animation(.spring(), value: props.peoples.count + props.popular.count)
         }
         .onAppear {
             if self.currentPage == 1{

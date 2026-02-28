@@ -26,7 +26,7 @@ struct MovieTopBackdropImage : View {
                 .onAppear{
                     isImageLoaded = true
                 }
-                .animation(.easeInOut)
+                .animation(.easeInOut, value: imageLoader.image != nil)
                 .transition(.opacity)
         } else {
             Rectangle()

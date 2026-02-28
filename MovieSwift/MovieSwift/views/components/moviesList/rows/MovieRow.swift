@@ -41,7 +41,6 @@ struct MovieRow: ConnectedView {
                 }
             }
             .fixedSize()
-            .animation(.spring())
             VStack(alignment: .leading, spacing: 8) {
                 Text(props.movie.userTitle)
                     .titleStyle()
@@ -76,4 +75,3 @@ struct MovieRow_Previews : PreviewProvider {
     }
 }
 #endif
-
