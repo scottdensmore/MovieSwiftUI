@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PROJECT_PATH="$ROOT_DIR/MovieSwift/MovieSwift.xcodeproj"
 SCHEME_NAME="MovieSwift"
 RESULT_BUNDLE_PATH="${XCODE_TEST_RESULT_BUNDLE_PATH:-}"
+DERIVED_DATA_PATH="${XCODE_DERIVED_DATA_PATH:-}"
+IOS_TEST_ITERATIONS="${IOS_TEST_ITERATIONS:-1}"
 SIMULATOR_UDID="${IOS_SIMULATOR_UDID:-}"
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
@@ -54,13 +56,13 @@ fi
 
 SIMULATOR_NAME="$(xcrun simctl list devices available | awk -F '[()]' -v udid="$SIMULATOR_UDID" '$2 == udid { gsub(/^ +| +$/, "", $1); print $1; exit }')"
 echo "Running tests on simulator: ${SIMULATOR_NAME:-Unknown} ($SIMULATOR_UDID)"
+echo "Test iterations: $IOS_TEST_ITERATIONS"
 
 XCODEBUILD_CMD=(
   xcodebuild
   -project "$PROJECT_PATH"
   -scheme "$SCHEME_NAME"
   -destination "id=$SIMULATOR_UDID"
-  test
 )
 
 if [[ -n "$RESULT_BUNDLE_PATH" ]]; then
@@ -68,4 +70,27 @@ if [[ -n "$RESULT_BUNDLE_PATH" ]]; then
   XCODEBUILD_CMD+=( -resultBundlePath "$RESULT_BUNDLE_PATH" )
 fi
 
-"${XCODEBUILD_CMD[@]}"
+if [[ -n "$DERIVED_DATA_PATH" ]]; then
+  mkdir -p "$DERIVED_DATA_PATH"
+  XCODEBUILD_CMD+=( -derivedDataPath "$DERIVED_DATA_PATH" )
+fi
+
+if [[ "$IOS_TEST_ITERATIONS" -gt 1 ]]; then
+  XCODEBUILD_CMD+=( -retry-tests-on-failure -test-iterations "$IOS_TEST_ITERATIONS" )
+fi
+
+XCODEBUILD_CMD+=( test )
+
+print_failure_diagnostics() {
+  if [[ -n "$RESULT_BUNDLE_PATH" && -d "$RESULT_BUNDLE_PATH" ]]; then
+    echo "xcodebuild test failed. Diagnostic snippet from xcresult:"
+    xcrun xcresulttool get --path "$RESULT_BUNDLE_PATH" --format json 2>/dev/null \
+      | rg -n '"testStatus"|"message"|"issueType"|"name"' \
+      | head -n 200 || true
+  fi
+}
+
+if ! "${XCODEBUILD_CMD[@]}"; then
+  print_failure_diagnostics
+  exit 1
+fi

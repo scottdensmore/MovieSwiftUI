@@ -39,6 +39,8 @@ jobs:
     runs-on: macos-latest
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift.xcresult
+      XCODE_DERIVED_DATA_PATH: ${{ runner.temp }}/derived-data
+      IOS_TEST_ITERATIONS: "2"
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +57,13 @@ jobs:
         with:
           name: ios-test-results
           path: ${{ env.XCODE_TEST_RESULT_BUNDLE_PATH }}
+
+      - name: Upload test diagnostics logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-logs
+          path: ${{ env.XCODE_DERIVED_DATA_PATH }}/Logs/Test
 
   app-build:
     needs: package-tests
