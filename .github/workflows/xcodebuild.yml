@@ -13,6 +13,10 @@ concurrency:
 jobs:
   package-tests:
     runs-on: macos-latest
+    env:
+      BACKEND_MIN_LINE_COVERAGE: "75.0"
+      FLUX_MIN_LINE_COVERAGE: "50.0"
+      COVERAGE_REPORT_DIR: ${{ runner.temp }}/coverage
 
     steps:
       - uses: actions/checkout@v4
@@ -20,13 +24,15 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: Backend package tests
-        working-directory: MovieSwift/Packages/Backend
-        run: swift test
+      - name: Package tests + coverage gate
+        run: ./scripts/ci/check_coverage.sh
 
-      - name: Flux harness tests
-        working-directory: MovieSwift
-        run: swift test
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: ${{ env.COVERAGE_REPORT_DIR }}
 
   app-build:
     needs: package-tests
