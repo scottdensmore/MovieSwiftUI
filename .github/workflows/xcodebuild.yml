@@ -1,25 +1,56 @@
-name: Xcode build
+name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: macOS-latest
+  package-tests:
+    runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
-        
-    - name: Select Xcode
-      run: sudo xcode-select -switch /Applications/Xcode_12.app
+      - uses: actions/checkout@v4
 
-    - name: Xcode version
-      run: /usr/bin/xcodebuild -version
-      
-    - name: Xcode build
-      run: |
-        cd MovieSwift/
-        xcodebuild clean build -scheme MovieSwift -destination 'platform=iOS Simulator,name=iPhone 11,OS=14.0'
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: Backend package tests
+        working-directory: MovieSwift/Packages/Backend
+        run: swift test
+
+      - name: Flux harness tests
+        working-directory: MovieSwift
+        run: swift test
+
+  app-build:
+    needs: package-tests
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: iOS app build
+        run: |
+          xcodebuild \
+            -project MovieSwift/MovieSwift.xcodeproj \
+            -scheme MovieSwift \
+            -destination "generic/platform=iOS Simulator" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: tvOS app build
+        run: |
+          xcodebuild \
+            -project MovieSwift/MovieSwift.xcodeproj \
+            -scheme MovieSwiftTV \
+            -destination "generic/platform=tvOS Simulator" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build
