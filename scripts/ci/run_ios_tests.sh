@@ -8,6 +8,12 @@ RESULT_BUNDLE_PATH="${XCODE_TEST_RESULT_BUNDLE_PATH:-}"
 DERIVED_DATA_PATH="${XCODE_DERIVED_DATA_PATH:-}"
 IOS_TEST_ITERATIONS="${IOS_TEST_ITERATIONS:-1}"
 SIMULATOR_UDID="${IOS_SIMULATOR_UDID:-}"
+SIMULATOR_FAMILY="${IOS_SIMULATOR_FAMILY:-iPhone}"
+
+if [[ "$SIMULATOR_FAMILY" != "iPhone" && "$SIMULATOR_FAMILY" != "iPad" ]]; then
+  echo "Unsupported IOS_SIMULATOR_FAMILY '$SIMULATOR_FAMILY'; falling back to iPhone."
+  SIMULATOR_FAMILY="iPhone"
+fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
   SHOW_DESTINATIONS="$(
@@ -17,8 +23,8 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
       -showdestinations 2>/dev/null || true
   )"
   SIMULATOR_UDID="$(
-    awk -F'id:' '
-      /platform:iOS Simulator/ && /name:iPhone/ && $0 !~ /placeholder/ {
+    awk -F'id:' -v family="$SIMULATOR_FAMILY" '
+      /platform:iOS Simulator/ && $0 ~ ("name:" family) && $0 !~ /placeholder/ {
         split($2, parts, ",")
         gsub(/^[[:space:]]+|[[:space:]]+$/, "", parts[1])
         print parts[1]
@@ -42,6 +48,10 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' -v family="$SIMULATOR_FAMILY" '$0 ~ family { print $2; exit }')"
+fi
+
+if [[ -z "$SIMULATOR_UDID" ]]; then
   SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
 fi
 
@@ -56,6 +66,7 @@ fi
 
 SIMULATOR_NAME="$(xcrun simctl list devices available | awk -F '[()]' -v udid="$SIMULATOR_UDID" '$2 == udid { gsub(/^ +| +$/, "", $1); print $1; exit }')"
 echo "Running tests on simulator: ${SIMULATOR_NAME:-Unknown} ($SIMULATOR_UDID)"
+echo "Preferred simulator family: $SIMULATOR_FAMILY"
 echo "Test iterations: $IOS_TEST_ITERATIONS"
 
 XCODEBUILD_CMD=(

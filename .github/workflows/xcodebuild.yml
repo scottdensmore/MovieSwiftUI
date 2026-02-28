@@ -40,6 +40,7 @@ jobs:
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ runner.temp }}/derived-data
+      IOS_SIMULATOR_FAMILY: iPhone
       IOS_TEST_ITERATIONS: "2"
 
     steps:
@@ -63,6 +64,38 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-test-logs
+          path: ${{ env.XCODE_DERIVED_DATA_PATH }}/Logs/Test
+
+  app-tests-ipad:
+    needs: package-tests
+    runs-on: macos-latest
+    env:
+      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift-iPad.xcresult
+      XCODE_DERIVED_DATA_PATH: ${{ runner.temp }}/derived-data-ipad
+      IOS_SIMULATOR_FAMILY: iPad
+      IOS_TEST_ITERATIONS: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: iPad app tests (XCTest + UI smoke)
+        run: ./scripts/ci/run_ios_tests.sh
+
+      - name: Upload iPad test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results-ipad
+          path: ${{ env.XCODE_TEST_RESULT_BUNDLE_PATH }}
+
+      - name: Upload iPad test diagnostics logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-logs-ipad
           path: ${{ env.XCODE_DERIVED_DATA_PATH }}/Logs/Test
 
   app-build:

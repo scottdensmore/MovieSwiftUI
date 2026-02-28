@@ -1,6 +1,8 @@
 import XCTest
 
 final class MovieSwiftUITests: XCTestCase {
+    private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
@@ -13,8 +15,17 @@ final class MovieSwiftUITests: XCTestCase {
         return app
     }
 
+    private func navigationButton(_ title: String, in app: XCUIApplication) -> XCUIElement {
+        let tabBarButton = app.tabBars.buttons[title]
+        if tabBarButton.exists {
+            return tabBarButton
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label == %@", title)).firstMatch
+    }
+
     private func openTab(_ title: String, in app: XCUIApplication) {
-        let tabButton = app.tabBars.buttons[title]
+        let tabButton = navigationButton(title, in: app)
         XCTAssertTrue(tabButton.waitForExistence(timeout: 5))
         tabButton.tap()
     }
@@ -22,12 +33,12 @@ final class MovieSwiftUITests: XCTestCase {
     func testLaunchShowsMainTabs() {
         let app = launchApp()
 
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 5))
-        XCTAssertTrue(tabBar.buttons["Movies"].exists)
-        XCTAssertTrue(tabBar.buttons["Discover"].exists)
-        XCTAssertTrue(tabBar.buttons["Fan Club"].exists)
-        XCTAssertTrue(tabBar.buttons["My Lists"].exists)
+        for destination in Self.primaryDestinations {
+            XCTAssertTrue(
+                navigationButton(destination, in: app).waitForExistence(timeout: 5),
+                "Expected to find primary navigation item '\(destination)'"
+            )
+        }
     }
 
     func testSelectingFirstMovieOpensDetailScreen() {
