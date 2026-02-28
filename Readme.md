@@ -57,6 +57,51 @@ TMDB_API_KEY = <YOUR_TMDB_V3_API_KEY>
 
 After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift` or `MovieSwiftTV`.
 
+## Testing and Coverage
+
+### Run package tests locally
+
+```bash
+cd MovieSwift/Packages/Backend
+swift test
+
+cd ../../
+swift test
+```
+
+### Run app tests locally (Xcode target tests + UI smoke)
+
+```bash
+xcodebuild \
+  -project MovieSwift/MovieSwift.xcodeproj \
+  -scheme MovieSwift \
+  -destination "platform=iOS Simulator,name=iPhone 17,OS=26.2" \
+  test
+```
+
+### Run coverage gate locally
+
+```bash
+./scripts/ci/check_coverage.sh
+```
+
+Optional overrides:
+
+```bash
+BACKEND_MIN_LINE_COVERAGE=76.0 FLUX_MIN_LINE_COVERAGE=52.0 ./scripts/ci/check_coverage.sh
+```
+
+### Run CI-style iOS simulator tests locally
+
+```bash
+./scripts/ci/run_ios_tests.sh
+```
+
+The GitHub Actions CI workflow (`.github/workflows/xcodebuild.yml`) enforces:
+- Package tests + coverage thresholds.
+- iOS simulator tests (XCTest + UI smoke tests).
+- iOS and tvOS app build verification.
+
 ## Platforms
 
 Currently MovieSwiftUI runs on iPhone, iPad, and macOS. 
