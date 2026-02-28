@@ -34,6 +34,28 @@ jobs:
           name: coverage-reports
           path: ${{ env.COVERAGE_REPORT_DIR }}
 
+  app-tests:
+    needs: package-tests
+    runs-on: macos-latest
+    env:
+      XCODE_TEST_RESULT_BUNDLE_PATH: ${{ runner.temp }}/test-results/MovieSwift.xcresult
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: iOS app tests (XCTest + UI smoke)
+        run: ./scripts/ci/run_ios_tests.sh
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: ${{ env.XCODE_TEST_RESULT_BUNDLE_PATH }}
+
   app-build:
     needs: package-tests
     runs-on: macos-latest
