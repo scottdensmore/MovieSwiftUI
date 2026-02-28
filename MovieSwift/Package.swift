@@ -26,7 +26,9 @@ let package = Package(
             ],
             path: "Shared",
             exclude: [
-                "extensions",
+                "extensions/ActionSheet.swift",
+                "extensions/Color.swift",
+                "extensions/Font.swift",
                 "fonts",
                 "flux/actions/PeopleActions.swift",
                 "flux/state/AppState.swift",
@@ -55,7 +57,7 @@ let package = Package(
                 "flux/state/PeoplesState.swift",
                 "flux/testing/ActionStubs.swift",
                 "flux/testing/AppStateStub.swift",
-                "flux/testing/MoviesSortStub.swift",
+                "extensions/Collection.swift",
                 "views/MoviesMenu.swift"
             ]
         ),
