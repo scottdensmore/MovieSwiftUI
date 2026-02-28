@@ -14,8 +14,8 @@ jobs:
   package-tests:
     runs-on: macos-latest
     env:
-      BACKEND_MIN_LINE_COVERAGE: "75.0"
-      FLUX_MIN_LINE_COVERAGE: "50.0"
+      BACKEND_MIN_LINE_COVERAGE: "76.0"
+      FLUX_MIN_LINE_COVERAGE: "52.0"
       COVERAGE_REPORT_DIR: ${{ runner.temp }}/coverage
 
     steps:
