@@ -60,7 +60,7 @@ public struct URLSessionNetworkSession: NetworkSession {
 }
 
 public struct APIService {
-    public static let shared = APIService()
+    public static var shared = APIService()
     let baseURL: URL
     let decoder: JSONDecoder
     private let apiKeyProvider: APIKeyProviding

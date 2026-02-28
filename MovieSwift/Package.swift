@@ -28,13 +28,14 @@ let package = Package(
             exclude: [
                 "extensions",
                 "fonts",
-                "flux/actions",
-                "flux/middlewares",
+                "flux/actions/PeopleActions.swift",
                 "flux/state/AppState.swift",
                 "views/MoviePosterImage.swift",
                 "views/modifiers"
             ],
             sources: [
+                "flux/actions/MoviesActions.swift",
+                "flux/middlewares/LoggingMiddleware.swift",
                 "flux/models/CastResponse.swift",
                 "flux/models/CustomList.swift",
                 "flux/models/DiscoverFilter.swift",
@@ -54,6 +55,7 @@ let package = Package(
                 "flux/state/PeoplesState.swift",
                 "flux/testing/ActionStubs.swift",
                 "flux/testing/AppStateStub.swift",
+                "flux/testing/MoviesSortStub.swift",
                 "views/MoviesMenu.swift"
             ]
         ),
@@ -61,5 +63,8 @@ let package = Package(
             name: "MovieSwiftFluxCoreTests",
             dependencies: ["MovieSwiftFluxCore"]
         )
+    ],
+    swiftLanguageModes: [
+        .v5
     ]
 )
