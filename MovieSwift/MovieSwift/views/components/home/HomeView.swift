@@ -12,9 +12,19 @@ import AppIntents
 
 // MARK:- Shared View
 
-let store = Store<AppState>(reducer: appStateReducer,
-                            middleware: [loggingMiddleware],
-                            state: AppState())
+private func makeAppStore() -> Store<AppState> {
+#if DEBUG
+    // UI smoke tests should not depend on live API/network availability.
+    if ProcessInfo.processInfo.arguments.contains("--ui-smoke-tests") {
+        return sampleStore
+    }
+#endif
+    return Store<AppState>(reducer: appStateReducer,
+                           middleware: [loggingMiddleware],
+                           state: AppState())
+}
+
+let store = makeAppStore()
 
 @main
 struct HomeView: App {
