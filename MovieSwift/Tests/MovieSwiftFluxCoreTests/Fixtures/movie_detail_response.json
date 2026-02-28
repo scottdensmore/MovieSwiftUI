@@ -1,0 +1,39 @@
+{
+  "id": 205,
+  "original_title": "Detailed Original",
+  "title": "Detailed Title",
+  "overview": "A full detail payload.",
+  "poster_path": "/detail-poster.jpg",
+  "backdrop_path": "/detail-backdrop.jpg",
+  "popularity": 88.9,
+  "vote_average": 8.1,
+  "vote_count": 444,
+  "release_date": "2022-09-10",
+  "genres": [
+    { "id": 18, "name": "Drama" },
+    { "id": 12, "name": "Adventure" }
+  ],
+  "runtime": 134,
+  "status": "Released",
+  "video": false,
+  "keywords": {
+    "keywords": [
+      { "id": 501, "name": "space" },
+      { "id": 502, "name": "future" }
+    ]
+  },
+  "images": {
+    "posters": [
+      { "aspect_ratio": 0.67, "file_path": "/poster-a.jpg", "height": 1500, "width": 1000 }
+    ],
+    "backdrops": [
+      { "aspect_ratio": 1.78, "file_path": "/backdrop-a.jpg", "height": 1080, "width": 1920 }
+    ]
+  },
+  "production_countries": [
+    { "name": "United States of America" },
+    { "name": "Canada" }
+  ],
+  "character": null,
+  "department": null
+}

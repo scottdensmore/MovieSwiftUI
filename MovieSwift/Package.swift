@@ -63,7 +63,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MovieSwiftFluxCoreTests",
-            dependencies: ["MovieSwiftFluxCore"]
+            dependencies: ["MovieSwiftFluxCore"],
+            resources: [
+                .process("Fixtures")
+            ]
         )
     ],
     swiftLanguageModes: [

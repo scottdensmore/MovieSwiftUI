@@ -1,0 +1,6 @@
+{
+  "genres": [
+    { "id": 27, "name": "Horror" },
+    { "id": 35, "name": "Comedy" }
+  ]
+}
