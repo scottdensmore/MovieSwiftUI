@@ -59,6 +59,22 @@ final class ReducerTests: XCTestCase {
         XCTAssertEqual(reduced.discoverFilter?.region, filter.region)
     }
 
+    func testMoviesReducerSetRandomDiscoverDoesNotPrependWhenAtLimit() {
+        var state = MoviesState()
+        state.discover = Array(1...10)
+        let filter = DiscoverFilter(year: 1990, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
+        let response = paginated([makeMovie(id: 99)])
+
+        let reduced = moviesStateReducer(
+            state: state,
+            action: MoviesActions.SetRandomDiscover(filter: filter, response: response)
+        )
+
+        XCTAssertEqual(reduced.discover, Array(1...10))
+        XCTAssertEqual(reduced.movies[99]?.id, 99)
+        XCTAssertEqual(reduced.discoverFilter?.year, 1990)
+    }
+
     func testMoviesReducerSetGenresInsertsRandomGenreFirst() {
         let genres = [Genre(id: 7, name: "Drama"), Genre(id: 8, name: "Comedy")]
 
@@ -67,6 +83,39 @@ final class ReducerTests: XCTestCase {
         XCTAssertEqual(reduced.genres.first?.id, -1)
         XCTAssertEqual(reduced.genres.first?.name, "Random")
         XCTAssertEqual(reduced.genres.dropFirst().map(\.id), [7, 8])
+    }
+
+    func testMoviesReducerAddMoviesToCustomListMergesIntoExistingList() {
+        let existing = CustomList(id: 9, name: "Favorites", cover: nil, movies: [1, 2])
+        var state = MoviesState()
+        state.customLists[9] = existing
+
+        let reduced = moviesStateReducer(
+            state: state,
+            action: MoviesActions.AddMoviesToCustomList(list: 9, movies: [2, 3, 4])
+        )
+
+        XCTAssertEqual(reduced.customLists[9]?.movies, Set([1, 2, 3, 4]))
+    }
+
+    func testMoviesReducerEditCustomListUpdatesOnlyProvidedFields() {
+        let existing = CustomList(id: 4, name: "Weekend", cover: 7, movies: [7, 8])
+        var state = MoviesState()
+        state.customLists[4] = existing
+
+        let renamed = moviesStateReducer(
+            state: state,
+            action: MoviesActions.EditCustomList(list: 4, title: "Weeknight", cover: nil)
+        )
+        XCTAssertEqual(renamed.customLists[4]?.name, "Weeknight")
+        XCTAssertEqual(renamed.customLists[4]?.cover, 7)
+
+        let recoved = moviesStateReducer(
+            state: renamed,
+            action: MoviesActions.EditCustomList(list: 4, title: nil, cover: 11)
+        )
+        XCTAssertEqual(recoved.customLists[4]?.name, "Weeknight")
+        XCTAssertEqual(recoved.customLists[4]?.cover, 11)
     }
 
     func testPeopleReducerSetDetailPreservesExistingMetadataFields() {
