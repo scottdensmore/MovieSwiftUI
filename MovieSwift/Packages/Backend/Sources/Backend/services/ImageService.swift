@@ -9,7 +9,6 @@
 import Foundation
 import SwiftUI
 import Combine
-import UIKit
 
 public class ImageService {
     public static let shared = ImageService()
@@ -29,10 +28,10 @@ public class ImageService {
         case decodingError
     }
     
-    public func fetchImage(poster: String, size: Size) -> AnyPublisher<UIImage?, Never> {
+    public func fetchImage(poster: String, size: Size) -> AnyPublisher<PlatformImage?, Never> {
         return URLSession.shared.dataTaskPublisher(for: size.path(poster: poster))
-            .tryMap { (data, response) -> UIImage? in
-                return UIImage(data: data)
+            .tryMap { (data, response) -> PlatformImage? in
+                return PlatformImage(data: data)
         }.catch { error in
             return Just(nil)
         }

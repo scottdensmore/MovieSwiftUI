@@ -15,7 +15,8 @@ let package = Package(
         .library(name: "Backend", targets: ["Backend"]),
     ],
     targets: [
-        .target(name: "Backend", dependencies: [])
+        .target(name: "Backend", dependencies: []),
+        .testTarget(name: "BackendTests", dependencies: ["Backend"])
     ],
     swiftLanguageModes: [
         .v5

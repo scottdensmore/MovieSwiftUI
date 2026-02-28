@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import UIKit
 import Combine
 
 public class ImageLoaderCache {
@@ -30,22 +29,15 @@ public class ImageLoaderCache {
 public final class ImageLoader: ObservableObject {
     public let path: String?
     public let size: ImageService.Size
-    
-    public var objectWillChange: AnyPublisher<UIImage?, Never> = Publishers.Sequence<[UIImage?], Never>(sequence: []).eraseToAnyPublisher()
-    
-    @Published public var image: UIImage? = nil
+
+    @Published public var image: PlatformImage? = nil
     
     public var cancellable: AnyCancellable?
         
     public init(path: String?, size: ImageService.Size) {
         self.size = size
         self.path = path
-        
-        self.objectWillChange = $image.handleEvents(receiveSubscription: { [weak self] sub in
-            self?.loadImage()
-        }, receiveCancel: { [weak self] in
-            self?.cancellable?.cancel()
-        }).eraseToAnyPublisher()
+        loadImage()
     }
     
     private func loadImage() {

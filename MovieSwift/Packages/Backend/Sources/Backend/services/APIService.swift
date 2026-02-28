@@ -8,13 +8,19 @@
 
 import Foundation
 
-public struct APIService {
-    let baseURL = URL(string: "https://api.themoviedb.org/3")!
-    public static let shared = APIService()
-    let decoder = JSONDecoder()
+public protocol APIKeyProviding {
+    func apiKey() -> String?
+}
+
+public struct BundleAPIKeyProvider: APIKeyProviding {
+    private let bundle: Bundle
     
-    private var apiKey: String? {
-        guard let rawAPIKey = Bundle.main.object(forInfoDictionaryKey: "TMDB_API_KEY") as? String else {
+    public init(bundle: Bundle = .main) {
+        self.bundle = bundle
+    }
+    
+    public func apiKey() -> String? {
+        guard let rawAPIKey = bundle.object(forInfoDictionaryKey: "TMDB_API_KEY") as? String else {
             return nil
         }
         let value = rawAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -22,6 +28,61 @@ public struct APIService {
             return nil
         }
         return value
+    }
+}
+
+public protocol NetworkDataTask {
+    func resume()
+}
+
+extension URLSessionDataTask: NetworkDataTask {}
+
+public protocol NetworkSession {
+    func dataTask(
+        with request: URLRequest,
+        completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) -> NetworkDataTask
+}
+
+public struct URLSessionNetworkSession: NetworkSession {
+    private let session: URLSession
+    
+    public init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
+    public func dataTask(
+        with request: URLRequest,
+        completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) -> NetworkDataTask {
+        session.dataTask(with: request, completionHandler: completionHandler)
+    }
+}
+
+public struct APIService {
+    public static let shared = APIService()
+    let baseURL: URL
+    let decoder: JSONDecoder
+    private let apiKeyProvider: APIKeyProviding
+    private let session: NetworkSession
+    private let callbackQueue: DispatchQueue
+    
+    public init(
+        baseURL: URL = URL(string: "https://api.themoviedb.org/3")!,
+        decoder: JSONDecoder = JSONDecoder(),
+        apiKeyProvider: APIKeyProviding = BundleAPIKeyProvider(),
+        session: NetworkSession = URLSessionNetworkSession(),
+        callbackQueue: DispatchQueue = .main
+    ) {
+        self.baseURL = baseURL
+        self.decoder = decoder
+        self.apiKeyProvider = apiKeyProvider
+        self.session = session
+        self.callbackQueue = callbackQueue
+    }
+    
+    private var apiKey: String? {
+        apiKeyProvider.apiKey()
     }
     
     public enum APIError: Error {
@@ -96,7 +157,7 @@ public struct APIService {
             #if DEBUG
             print("Missing TMDB_API_KEY. Set it in DeveloperSettings.xcconfig.")
             #endif
-            DispatchQueue.main.async {
+            callbackQueue.async {
                 completionHandler(.failure(.missingAPIKey))
             }
             return
@@ -115,26 +176,26 @@ public struct APIService {
         }
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+        let task = session.dataTask(with: request) { (data, response, error) in
             guard let data = data else {
-                DispatchQueue.main.async {
+                callbackQueue.async {
                     completionHandler(.failure(.noResponse))
                 }
                 return
             }
             guard error == nil else {
-                DispatchQueue.main.async {
+                callbackQueue.async {
                     completionHandler(.failure(.networkError(error: error!)))
                 }
                 return
             }
             do {
                 let object = try self.decoder.decode(T.self, from: data)
-                DispatchQueue.main.async {
+                callbackQueue.async {
                     completionHandler(.success(object))
                 }
             } catch let error {
-                DispatchQueue.main.async {
+                callbackQueue.async {
                     #if DEBUG
                     print("JSON Decoding Error: \(error)")
                     #endif
