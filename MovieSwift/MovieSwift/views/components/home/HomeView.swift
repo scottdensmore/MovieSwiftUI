@@ -14,8 +14,10 @@ import AppIntents
 
 private func makeAppStore() -> Store<AppState> {
 #if DEBUG
+    let processInfo = ProcessInfo.processInfo
     // UI smoke tests should not depend on live API/network availability.
-    if ProcessInfo.processInfo.arguments.contains("--ui-smoke-tests") {
+    if processInfo.arguments.contains("--ui-smoke-tests")
+        || processInfo.environment["UI_SMOKE_TESTS"] == "1" {
         return sampleStore
     }
 #endif

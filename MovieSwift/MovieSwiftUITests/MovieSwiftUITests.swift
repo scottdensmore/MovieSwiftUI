@@ -11,7 +11,8 @@ final class MovieSwiftUITests: XCTestCase {
     @discardableResult
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-smoke-tests"]
+        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
+        app.launchEnvironment["UI_SMOKE_TESTS"] = "1"
         app.launch()
         return app
     }
@@ -44,6 +45,7 @@ final class MovieSwiftUITests: XCTestCase {
 
     func testSelectingFirstMovieOpensDetailScreen() {
         let app = launchApp()
+        openTab("Movies", in: app)
 
         let firstCell = app.cells.firstMatch
         XCTAssertTrue(firstCell.waitForExistence(timeout: uiWaitTimeout))
@@ -72,6 +74,7 @@ final class MovieSwiftUITests: XCTestCase {
 
     func testMoviesSearchShowsCancelAndFilterControls() {
         let app = launchApp()
+        openTab("Movies", in: app)
 
         let searchField = app.textFields["Search any movies or person"]
         XCTAssertTrue(searchField.waitForExistence(timeout: uiWaitTimeout))
