@@ -11,6 +11,23 @@ SIMULATOR_UDID="${IOS_SIMULATOR_UDID:-}"
 SIMULATOR_FAMILY="${IOS_SIMULATOR_FAMILY:-iPhone}"
 SIMULATOR_NAME_PREFERENCE="${IOS_SIMULATOR_NAME:-}"
 ONLY_TESTING="${XCODE_ONLY_TESTING:-}"
+APP_MIN_LINE_COVERAGE="${APP_MIN_LINE_COVERAGE:-}"
+APP_COVERAGE_TARGET="${APP_COVERAGE_TARGET:-MovieSwift.app}"
+XCODE_ENABLE_CODE_COVERAGE="${XCODE_ENABLE_CODE_COVERAGE:-0}"
+APP_COVERAGE_REPORT_DIR="${COVERAGE_REPORT_DIR:-}"
+
+if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+  XCODE_ENABLE_CODE_COVERAGE="1"
+fi
+
+if [[ "$XCODE_ENABLE_CODE_COVERAGE" == "1" && -z "$RESULT_BUNDLE_PATH" ]]; then
+  TEMP_RESULT_BUNDLE_DIR="$(mktemp -d /tmp/movieswiftui-xcresult.XXXXXX)"
+  RESULT_BUNDLE_PATH="$TEMP_RESULT_BUNDLE_DIR/MovieSwift.xcresult"
+fi
+
+if [[ -n "$APP_MIN_LINE_COVERAGE" && -z "$APP_COVERAGE_REPORT_DIR" ]]; then
+  APP_COVERAGE_REPORT_DIR="$(mktemp -d /tmp/movieswiftui-app-coverage.XXXXXX)"
+fi
 
 if [[ "$SIMULATOR_FAMILY" != "iPhone" && "$SIMULATOR_FAMILY" != "iPad" ]]; then
   echo "Unsupported IOS_SIMULATOR_FAMILY '$SIMULATOR_FAMILY'; falling back to iPhone."
@@ -163,6 +180,12 @@ echo "Test iterations: $IOS_TEST_ITERATIONS"
 if [[ -n "$ONLY_TESTING" ]]; then
   echo "Only testing: $ONLY_TESTING"
 fi
+if [[ "$XCODE_ENABLE_CODE_COVERAGE" == "1" ]]; then
+  echo "Code coverage collection is enabled."
+fi
+if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+  echo "App coverage gate: $APP_COVERAGE_TARGET >= ${APP_MIN_LINE_COVERAGE}%"
+fi
 
 XCODEBUILD_CMD=(
   xcodebuild
@@ -191,6 +214,10 @@ if [[ "$IOS_TEST_ITERATIONS" -gt 1 ]]; then
   XCODEBUILD_CMD+=( -retry-tests-on-failure -test-iterations "$IOS_TEST_ITERATIONS" )
 fi
 
+if [[ "$XCODE_ENABLE_CODE_COVERAGE" == "1" ]]; then
+  XCODEBUILD_CMD+=( -enableCodeCoverage YES )
+fi
+
 if [[ -n "$ONLY_TESTING" ]]; then
   IFS=',' read -r -a ONLY_TESTING_TARGETS <<<"$ONLY_TESTING"
   for target in "${ONLY_TESTING_TARGETS[@]}"; do
@@ -202,6 +229,78 @@ if [[ -n "$ONLY_TESTING" ]]; then
 fi
 
 XCODEBUILD_CMD+=( test )
+
+assert_threshold() {
+  local label="$1"
+  local actual="$2"
+  local minimum="$3"
+
+  if awk -v actual="$actual" -v minimum="$minimum" 'BEGIN { exit !(actual + 0 >= minimum + 0) }'; then
+    printf '%s line coverage %.2f%% meets threshold %.2f%%\n' "$label" "$actual" "$minimum"
+  else
+    printf '%s line coverage %.2f%% is below threshold %.2f%%\n' "$label" "$actual" "$minimum" >&2
+    return 1
+  fi
+}
+
+extract_target_line_coverage() {
+  local report_text="$1"
+  local target_name="$2"
+  awk -v target_name="$target_name" '
+    $1 == target_name {
+      gsub("%", "", $2)
+      print $2
+      exit
+    }
+  ' <<<"$report_text"
+}
+
+evaluate_app_coverage() {
+  if [[ -z "$RESULT_BUNDLE_PATH" || ! -d "$RESULT_BUNDLE_PATH" ]]; then
+    if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+      echo "App coverage gating requires a valid xcresult bundle." >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  local coverage_report
+  coverage_report="$(xcrun xccov view --report "$RESULT_BUNDLE_PATH" 2>/dev/null || true)"
+  if [[ -z "$coverage_report" ]]; then
+    if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+      echo "Failed to read app coverage report from $RESULT_BUNDLE_PATH." >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  if [[ -n "$APP_COVERAGE_REPORT_DIR" ]]; then
+    mkdir -p "$APP_COVERAGE_REPORT_DIR"
+    printf '%s\n' "$coverage_report" > "$APP_COVERAGE_REPORT_DIR/app-coverage.txt"
+  fi
+
+  local target_coverage
+  target_coverage="$(extract_target_line_coverage "$coverage_report" "$APP_COVERAGE_TARGET")"
+  if [[ -z "$target_coverage" && "$APP_COVERAGE_TARGET" == *.app ]]; then
+    target_coverage="$(extract_target_line_coverage "$coverage_report" "${APP_COVERAGE_TARGET%.app}")"
+  fi
+  if [[ -z "$target_coverage" && "$APP_COVERAGE_TARGET" != *.app ]]; then
+    target_coverage="$(extract_target_line_coverage "$coverage_report" "${APP_COVERAGE_TARGET}.app")"
+  fi
+
+  if [[ -z "$target_coverage" ]]; then
+    if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+      echo "Could not locate coverage target '$APP_COVERAGE_TARGET' in xccov report." >&2
+      return 1
+    fi
+    return 0
+  fi
+
+  printf 'App target %s line coverage %.2f%%\n' "$APP_COVERAGE_TARGET" "$target_coverage"
+  if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
+    assert_threshold "App target $APP_COVERAGE_TARGET" "$target_coverage" "$APP_MIN_LINE_COVERAGE"
+  fi
+}
 
 print_failure_diagnostics() {
   if [[ -n "$RESULT_BUNDLE_PATH" && -d "$RESULT_BUNDLE_PATH" ]]; then
@@ -221,4 +320,8 @@ print_failure_diagnostics() {
 if ! "${XCODEBUILD_CMD[@]}"; then
   print_failure_diagnostics
   exit 1
+fi
+
+if [[ "$XCODE_ENABLE_CODE_COVERAGE" == "1" || -n "$APP_MIN_LINE_COVERAGE" ]]; then
+  evaluate_app_coverage
 fi

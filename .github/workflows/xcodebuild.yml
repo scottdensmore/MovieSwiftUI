@@ -40,10 +40,13 @@ jobs:
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
+      COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage-app
       IOS_SIMULATOR_FAMILY: iPhone
       IOS_SIMULATOR_NAME: "iPhone 16e"
       IOS_TEST_ITERATIONS: "1"
       XCODE_ONLY_TESTING: MovieSwiftTests
+      APP_COVERAGE_TARGET: "MovieSwift.app"
+      APP_MIN_LINE_COVERAGE: "5.0"
 
     steps:
       - uses: actions/checkout@v4
@@ -67,6 +70,13 @@ jobs:
         with:
           name: ios-test-logs
           path: ${{ env.XCODE_DERIVED_DATA_PATH }}/Logs/Test
+
+      - name: Upload app coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-coverage-reports
+          path: ${{ env.COVERAGE_REPORT_DIR }}
 
   app-tests-ipad:
     needs: package-tests
