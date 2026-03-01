@@ -2,6 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+COVERAGE_THRESHOLDS_FILE="${COVERAGE_THRESHOLDS_FILE:-$ROOT_DIR/scripts/ci/coverage_thresholds.env}"
+
+if [[ -f "$COVERAGE_THRESHOLDS_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$COVERAGE_THRESHOLDS_FILE"
+fi
+
 PROJECT_PATH="$ROOT_DIR/MovieSwift/MovieSwift.xcodeproj"
 SCHEME_NAME="MovieSwift"
 RESULT_BUNDLE_PATH="${XCODE_TEST_RESULT_BUNDLE_PATH:-}"
@@ -15,6 +22,8 @@ APP_MIN_LINE_COVERAGE="${APP_MIN_LINE_COVERAGE:-}"
 APP_COVERAGE_TARGET="${APP_COVERAGE_TARGET:-MovieSwift.app}"
 XCODE_ENABLE_CODE_COVERAGE="${XCODE_ENABLE_CODE_COVERAGE:-0}"
 APP_COVERAGE_REPORT_DIR="${COVERAGE_REPORT_DIR:-}"
+APP_RATCHET_STEP="${COVERAGE_RATCHET_STEP:-0.5}"
+APP_RATCHET_ENFORCE="${APP_COVERAGE_RATCHET_ENFORCE:-0}"
 
 if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
   XCODE_ENABLE_CODE_COVERAGE="1"
@@ -299,6 +308,18 @@ evaluate_app_coverage() {
   printf 'App target %s line coverage %.2f%%\n' "$APP_COVERAGE_TARGET" "$target_coverage"
   if [[ -n "$APP_MIN_LINE_COVERAGE" ]]; then
     assert_threshold "App target $APP_COVERAGE_TARGET" "$target_coverage" "$APP_MIN_LINE_COVERAGE"
+
+    if awk -v actual="$target_coverage" -v minimum="$APP_MIN_LINE_COVERAGE" -v step="$APP_RATCHET_STEP" 'BEGIN { exit !(actual + 0 >= minimum + step) }'; then
+      local suggested
+      suggested="$(awk -v minimum="$APP_MIN_LINE_COVERAGE" -v step="$APP_RATCHET_STEP" 'BEGIN { printf "%.2f", minimum + step }')"
+      if [[ "$APP_RATCHET_ENFORCE" == "1" ]]; then
+        printf 'App target %s line coverage %.2f%% exceeded threshold %.2f%% by %.2f%%; ratchet requires at least %.2f%%\n' \
+          "$APP_COVERAGE_TARGET" "$target_coverage" "$APP_MIN_LINE_COVERAGE" "$APP_RATCHET_STEP" "$suggested" >&2
+        return 1
+      fi
+      printf 'Ratchet suggestion for app target %s: raise threshold from %.2f%% to %.2f%%\n' \
+        "$APP_COVERAGE_TARGET" "$APP_MIN_LINE_COVERAGE" "$suggested"
+    fi
   fi
 }
 

@@ -10,12 +10,14 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  COVERAGE_THRESHOLDS_FILE: ${{ github.workspace }}/scripts/ci/coverage_thresholds.env
+
 jobs:
   package-tests:
     runs-on: macos-latest
     env:
-      BACKEND_MIN_LINE_COVERAGE: "76.1"
-      FLUX_MIN_LINE_COVERAGE: "52.2"
+      COVERAGE_RATCHET_ENFORCE: "1"
       COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage
 
     steps:
@@ -45,8 +47,6 @@ jobs:
       IOS_SIMULATOR_NAME: "iPhone 16e"
       IOS_TEST_ITERATIONS: "1"
       XCODE_ONLY_TESTING: MovieSwiftTests
-      APP_COVERAGE_TARGET: "MovieSwift.app"
-      APP_MIN_LINE_COVERAGE: "5.0"
 
     steps:
       - uses: actions/checkout@v4
