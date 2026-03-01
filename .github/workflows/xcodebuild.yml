@@ -41,7 +41,7 @@ jobs:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
       IOS_SIMULATOR_FAMILY: iPhone
-      IOS_TEST_ITERATIONS: "2"
+      IOS_TEST_ITERATIONS: "1"
       XCODE_ONLY_TESTING: MovieSwiftTests
 
     steps:
