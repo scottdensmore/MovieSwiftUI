@@ -142,10 +142,11 @@ let sampleCustomList = CustomList(id: 0,
                                   name: "TestName",
                                   cover: 0,
                                   movies: [0])
+let sampleMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
 let sampleStore = Store<AppState>(reducer: appStateReducer,
                                   state: AppState(moviesState:
                                                     MoviesState(movies: [0: sampleMovie],
-                                                                moviesList: [MoviesMenu.popular: [0]],
+                                                                moviesList: sampleMoviesMenuState,
                                                                 recommended: [0: [0]],
                                                                 similar: [0: [0]],
                                                                 customLists: [0: sampleCustomList]),
