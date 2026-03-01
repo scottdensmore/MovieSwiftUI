@@ -33,6 +33,12 @@ pick_simulator_uuid_from_simctl() {
   '
 }
 
+simulator_udid_is_available() {
+  local udid="$1"
+  [[ -n "$udid" ]] || return 1
+  xcrun simctl list devices available | grep -Fq "$udid"
+}
+
 if [[ -z "$SIMULATOR_UDID" ]]; then
   SHOW_DESTINATIONS="$(
     xcodebuild \
@@ -42,7 +48,7 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
   )"
   SIMULATOR_UDID="$(
     awk -v family="$SIMULATOR_FAMILY" -v preferred_name="$SIMULATOR_NAME_PREFERENCE" '
-      /platform:iOS Simulator/ && $0 ~ ("name:" family) && $0 !~ /placeholder/ {
+      /platform:iOS Simulator/ && $0 ~ ("name:" family) && $0 !~ /placeholder/ && $0 !~ /error:/ {
         if (preferred_name != "" && index($0, "name:" preferred_name) == 0) {
           next
         }
@@ -70,6 +76,11 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
       }
     ' <<<"$SHOW_DESTINATIONS"
   )"
+fi
+
+if [[ -n "$SIMULATOR_UDID" ]] && ! simulator_udid_is_available "$SIMULATOR_UDID"; then
+  echo "Ignoring simulator selected from showdestinations because it is not available via simctl: $SIMULATOR_UDID"
+  SIMULATOR_UDID=""
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
@@ -189,9 +200,15 @@ XCODEBUILD_CMD+=( test )
 print_failure_diagnostics() {
   if [[ -n "$RESULT_BUNDLE_PATH" && -d "$RESULT_BUNDLE_PATH" ]]; then
     echo "xcodebuild test failed. Diagnostic snippet from xcresult:"
-    xcrun xcresulttool get --path "$RESULT_BUNDLE_PATH" --format json 2>/dev/null \
-      | rg -n '"testStatus"|"message"|"issueType"|"name"' \
-      | head -n 200 || true
+    if command -v rg >/dev/null 2>&1; then
+      xcrun xcresulttool get --path "$RESULT_BUNDLE_PATH" --format json 2>/dev/null \
+        | rg -n '"testStatus"|"message"|"issueType"|"name"' \
+        | head -n 200 || true
+    else
+      xcrun xcresulttool get --path "$RESULT_BUNDLE_PATH" --format json 2>/dev/null \
+        | grep -En '"testStatus"|"message"|"issueType"|"name"' \
+        | head -n 200 || true
+    fi
   fi
 }
 
