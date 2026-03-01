@@ -77,6 +77,7 @@ jobs:
       IOS_SIMULATOR_FAMILY: iPad
       IOS_SIMULATOR_NAME: "iPad (A16)"
       IOS_TEST_ITERATIONS: "1"
+      XCODE_ONLY_TESTING: MovieSwiftUITests/MovieSwiftUITests/testLaunchShowsMainTabs,MovieSwiftTests
 
     steps:
       - uses: actions/checkout@v4
