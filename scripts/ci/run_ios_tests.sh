@@ -168,8 +168,14 @@ XCODEBUILD_CMD=(
   xcodebuild
   -project "$PROJECT_PATH"
   -scheme "$SCHEME_NAME"
-  -destination "id=$SIMULATOR_UDID"
 )
+
+if [[ -n "$SIMULATOR_NAME_PREFERENCE" ]]; then
+  XCODEBUILD_CMD+=( -destination "platform=iOS Simulator,name=$SIMULATOR_NAME_PREFERENCE" )
+  echo "Using name-based destination: $SIMULATOR_NAME_PREFERENCE"
+else
+  XCODEBUILD_CMD+=( -destination "id=$SIMULATOR_UDID" )
+fi
 
 if [[ -n "$RESULT_BUNDLE_PATH" ]]; then
   mkdir -p "$(dirname "$RESULT_BUNDLE_PATH")"
