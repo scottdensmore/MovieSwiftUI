@@ -27,11 +27,15 @@ struct OutlineRow : View {
             Text(item.title)
                 .font(.FjallaOne(size: 24))
                 .foregroundColor(isSelected ? .steam_gold : .primary)
-            }
-            .padding()
-            .onTapGesture {
-                self.selectedMenu = self.item
-            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(isSelected ? Color.secondary.opacity(0.1) : .clear)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            self.selectedMenu = self.item
+        }
     }
 }
 

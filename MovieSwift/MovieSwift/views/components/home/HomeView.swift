@@ -119,15 +119,8 @@ struct SplitView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading) {
                     ForEach(OutlineMenu.allCases) { menu in
-                        ZStack(alignment: .leading) {
-                            OutlineRow(item: menu, selectedMenu: self.$selectedMenu)
-                                .frame(height: 50)
-                            if menu == self.selectedMenu {
-                                Rectangle()
-                                    .foregroundColor(Color.secondary.opacity(0.1))
-                                    .frame(height: 50)
-                            }
-                        }
+                        OutlineRow(item: menu, selectedMenu: self.$selectedMenu)
+                            .frame(height: 50)
                     }
                 }
                 .padding(.top, 32)
