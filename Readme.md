@@ -1,4 +1,4 @@
-![Xcode build](https://github.com/Dimillian/MovieSwiftUI/workflows/Xcode%20build/badge.svg?branch=master)
+[![CI](https://github.com/scottdensmore/MovieSwiftUI/actions/workflows/xcodebuild.yml/badge.svg?branch=main)](https://github.com/scottdensmore/MovieSwiftUI/actions/workflows/xcodebuild.yml)
 
 # MovieSwiftUI
 
@@ -69,13 +69,14 @@ cd ../../
 swift test
 ```
 
-### Run app tests locally (Xcode target tests + UI smoke)
+### Run app tests locally (XCTest target tests)
 
 ```bash
 xcodebuild \
   -project MovieSwift/MovieSwift.xcodeproj \
   -scheme MovieSwift \
-  -destination "platform=iOS Simulator,name=iPhone 17,OS=26.2" \
+  -destination "platform=iOS Simulator,name=iPhone 16e" \
+  -only-testing:MovieSwiftTests \
   test
 ```
 
@@ -88,7 +89,13 @@ xcodebuild \
 Optional overrides:
 
 ```bash
-BACKEND_MIN_LINE_COVERAGE=76.1 FLUX_MIN_LINE_COVERAGE=52.2 ./scripts/ci/check_coverage.sh
+BACKEND_MIN_LINE_COVERAGE=76.1 FLUX_MIN_LINE_COVERAGE=52.2 COVERAGE_RATCHET_ENFORCE=1 ./scripts/ci/check_coverage.sh
+```
+
+Threshold and ratchet defaults are tracked in:
+
+```bash
+scripts/ci/coverage_thresholds.env
 ```
 
 ### Run CI-style iOS simulator tests locally
@@ -97,13 +104,25 @@ BACKEND_MIN_LINE_COVERAGE=76.1 FLUX_MIN_LINE_COVERAGE=52.2 ./scripts/ci/check_co
 ./scripts/ci/run_ios_tests.sh
 ```
 
+iPhone unit suite + app coverage gate:
+
+```bash
+IOS_SIMULATOR_NAME="iPhone 16e" XCODE_ONLY_TESTING="MovieSwiftTests" APP_MIN_LINE_COVERAGE=5.0 ./scripts/ci/run_ios_tests.sh
+```
+
+iPad smoke + unit suite:
+
+```bash
+IOS_SIMULATOR_FAMILY="iPad" IOS_SIMULATOR_NAME="iPad (A16)" XCODE_ONLY_TESTING="MovieSwiftUITests/MovieSwiftUITests/testLaunchShowsMainTabs,MovieSwiftTests" ./scripts/ci/run_ios_tests.sh
+```
+
 The GitHub Actions CI workflow (`.github/workflows/xcodebuild.yml`) enforces:
 - Package tests + coverage thresholds.
-- iOS simulator tests (XCTest + UI smoke tests).
+- Package coverage ratchet policy checks.
+- iOS simulator tests for iPhone unit suite and iPad UI smoke coverage.
+- App target coverage gate for `MovieSwift.app`.
 - iOS and tvOS app build verification.
 
 ## Platforms
 
 Currently MovieSwiftUI runs on iPhone, iPad, and macOS. 
-
-Follow me on [Twitter](https://twitter.com/dimillian) to get the latest update about features, code and SwiftUI tips and tricks! 
