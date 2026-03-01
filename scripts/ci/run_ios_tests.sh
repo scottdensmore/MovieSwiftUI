@@ -15,6 +15,18 @@ if [[ "$SIMULATOR_FAMILY" != "iPhone" && "$SIMULATOR_FAMILY" != "iPad" ]]; then
   SIMULATOR_FAMILY="iPhone"
 fi
 
+pick_simulator_uuid_from_simctl() {
+  local family="$1"
+  xcrun simctl list devices available | awk -v family="$family" '
+    $0 ~ family {
+      if (match($0, /[0-9A-F-]{36}/)) {
+        print substr($0, RSTART, RLENGTH)
+        exit
+      }
+    }
+  '
+}
+
 if [[ -z "$SIMULATOR_UDID" ]]; then
   SHOW_DESTINATIONS="$(
     xcodebuild \
@@ -35,6 +47,18 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "$SIMULATOR_FAMILY")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPhone")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPad")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" ]]; then
   SIMULATOR_UDID="$(
     awk -F'id:' '
       /platform:iOS Simulator/ && $0 !~ /placeholder/ {
@@ -48,23 +72,22 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
-  SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' -v family="$SIMULATOR_FAMILY" '$0 ~ family { print $2; exit }')"
-fi
-
-if [[ -z "$SIMULATOR_UDID" ]]; then
-  SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ { print $2; exit }')"
-fi
-
-if [[ -z "$SIMULATOR_UDID" ]]; then
-  SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' '/iPad/ { print $2; exit }')"
-fi
-
-if [[ -z "$SIMULATOR_UDID" ]]; then
   echo "Could not find an available iOS simulator device." >&2
   exit 1
 fi
 
-SIMULATOR_NAME="$(xcrun simctl list devices available | awk -F '[()]' -v udid="$SIMULATOR_UDID" '$2 == udid { gsub(/^ +| +$/, "", $1); print $1; exit }')"
+SIMULATOR_NAME="$(
+  xcrun simctl list devices available | awk -v udid="$SIMULATOR_UDID" '
+    index($0, udid) {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+\(.*/, "", line)
+      gsub(/[[:space:]]+$/, "", line)
+      print line
+      exit
+    }
+  '
+)"
 echo "Running tests on simulator: ${SIMULATOR_NAME:-Unknown} ($SIMULATOR_UDID)"
 echo "Preferred simulator family: $SIMULATOR_FAMILY"
 echo "Test iterations: $IOS_TEST_ITERATIONS"
