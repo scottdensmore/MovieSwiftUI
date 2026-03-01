@@ -9,6 +9,7 @@ DERIVED_DATA_PATH="${XCODE_DERIVED_DATA_PATH:-}"
 IOS_TEST_ITERATIONS="${IOS_TEST_ITERATIONS:-1}"
 SIMULATOR_UDID="${IOS_SIMULATOR_UDID:-}"
 SIMULATOR_FAMILY="${IOS_SIMULATOR_FAMILY:-iPhone}"
+SIMULATOR_NAME_PREFERENCE="${IOS_SIMULATOR_NAME:-}"
 ONLY_TESTING="${XCODE_ONLY_TESTING:-}"
 
 if [[ "$SIMULATOR_FAMILY" != "iPhone" && "$SIMULATOR_FAMILY" != "iPad" ]]; then
@@ -18,8 +19,12 @@ fi
 
 pick_simulator_uuid_from_simctl() {
   local family="$1"
-  xcrun simctl list devices available | awk -v family="$family" '
+  local preferred_name="${2:-}"
+  xcrun simctl list devices available | awk -v family="$family" -v preferred_name="$preferred_name" '
     $0 ~ family {
+      if (preferred_name != "" && index($0, preferred_name) == 0) {
+        next
+      }
       if (match($0, /[0-9A-F-]{36}/)) {
         print substr($0, RSTART, RLENGTH)
         exit
@@ -36,8 +41,11 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
       -showdestinations 2>/dev/null || true
   )"
   SIMULATOR_UDID="$(
-    awk -v family="$SIMULATOR_FAMILY" '
+    awk -v family="$SIMULATOR_FAMILY" -v preferred_name="$SIMULATOR_NAME_PREFERENCE" '
       /platform:iOS Simulator/ && $0 ~ ("name:" family) && $0 !~ /placeholder/ {
+        if (preferred_name != "" && index($0, "name:" preferred_name) == 0) {
+          next
+        }
         id = ""
         os = "0"
         if (match($0, /id:[^,}]+/)) {
@@ -65,14 +73,26 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "$SIMULATOR_FAMILY" "$SIMULATOR_NAME_PREFERENCE")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" && -n "$SIMULATOR_NAME_PREFERENCE" ]]; then
   SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "$SIMULATOR_FAMILY")"
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPhone" "$SIMULATOR_NAME_PREFERENCE")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" && -n "$SIMULATOR_NAME_PREFERENCE" ]]; then
   SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPhone")"
 fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
+  SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPad" "$SIMULATOR_NAME_PREFERENCE")"
+fi
+
+if [[ -z "$SIMULATOR_UDID" && -n "$SIMULATOR_NAME_PREFERENCE" ]]; then
   SIMULATOR_UDID="$(pick_simulator_uuid_from_simctl "iPad")"
 fi
 
@@ -125,6 +145,9 @@ SIMULATOR_NAME="$(
 )"
 echo "Running tests on simulator: ${SIMULATOR_NAME:-Unknown} ($SIMULATOR_UDID)"
 echo "Preferred simulator family: $SIMULATOR_FAMILY"
+if [[ -n "$SIMULATOR_NAME_PREFERENCE" ]]; then
+  echo "Preferred simulator name: $SIMULATOR_NAME_PREFERENCE"
+fi
 echo "Test iterations: $IOS_TEST_ITERATIONS"
 if [[ -n "$ONLY_TESTING" ]]; then
   echo "Only testing: $ONLY_TESTING"
