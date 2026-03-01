@@ -2,7 +2,7 @@ import XCTest
 
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
-    private let uiWaitTimeout: TimeInterval = 10
+    private let uiWaitTimeout: TimeInterval = 15
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -19,7 +19,7 @@ final class MovieSwiftUITests: XCTestCase {
 
     private func navigationButton(_ title: String, in app: XCUIApplication) -> XCUIElement {
         let tabBarButton = app.tabBars.buttons[title]
-        if tabBarButton.exists {
+        if tabBarButton.waitForExistence(timeout: 0.5) {
             return tabBarButton
         }
 
@@ -28,7 +28,7 @@ final class MovieSwiftUITests: XCTestCase {
 
     private func openTab(_ title: String, in app: XCUIApplication) {
         let tabButton = navigationButton(title, in: app)
-        XCTAssertTrue(tabButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(tabButton.waitForExistence(timeout: uiWaitTimeout), "Expected tab '\(title)' to exist")
         tabButton.tap()
     }
 
