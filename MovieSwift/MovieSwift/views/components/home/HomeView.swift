@@ -135,6 +135,7 @@ struct SplitView: View {
             }
             .background(Color.primary.opacity(0.1))
             selectedMenu.contentView
+                .padding(.leading, 12)
         }
     }
 }

@@ -23,12 +23,6 @@ struct MovieDetail: ConnectedView {
     }
     
     let movieId: Int
-
-    #if targetEnvironment(macCatalyst)
-    private let detailTitleDisplayMode: NavigationBarItem.TitleDisplayMode = .inline
-    #else
-    private let detailTitleDisplayMode: NavigationBarItem.TitleDisplayMode = .large
-    #endif
     
     // MARK: View States
     @State var isAddSheetPresented = false
@@ -188,7 +182,7 @@ struct MovieDetail: ConnectedView {
                 topSection(props: props)
                 bottomSection(props: props)
             }
-            .navigationBarTitle(Text(props.movie.userTitle), displayMode: detailTitleDisplayMode)
+            .navigationBarTitle(Text(props.movie.userTitle), displayMode: .large)
             .navigationBarItems(trailing: Button(action: onAddButton) {
                 Image(systemName: "text.badge.plus").imageScale(.large)
             })
