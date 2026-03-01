@@ -35,12 +35,29 @@ if [[ -z "$SIMULATOR_UDID" ]]; then
       -showdestinations 2>/dev/null || true
   )"
   SIMULATOR_UDID="$(
-    awk -F'id:' -v family="$SIMULATOR_FAMILY" '
+    awk -v family="$SIMULATOR_FAMILY" '
       /platform:iOS Simulator/ && $0 ~ ("name:" family) && $0 !~ /placeholder/ {
-        split($2, parts, ",")
-        gsub(/^[[:space:]]+|[[:space:]]+$/, "", parts[1])
-        print parts[1]
-        exit
+        id = ""
+        os = "0"
+        if (match($0, /id:[^,}]+/)) {
+          id = substr($0, RSTART + 3, RLENGTH - 3)
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", id)
+        }
+        if (match($0, /OS:[^,}]+/)) {
+          os = substr($0, RSTART + 3, RLENGTH - 3)
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", os)
+        }
+        split(os, versionParts, ".")
+        score = (versionParts[1] + 0) * 10000 + (versionParts[2] + 0) * 100 + (versionParts[3] + 0)
+        if (id != "" && score >= bestScore) {
+          bestScore = score
+          bestId = id
+        }
+      }
+      END {
+        if (bestId != "") {
+          print bestId
+        }
       }
     ' <<<"$SHOW_DESTINATIONS"
   )"
@@ -60,12 +77,29 @@ fi
 
 if [[ -z "$SIMULATOR_UDID" ]]; then
   SIMULATOR_UDID="$(
-    awk -F'id:' '
+    awk '
       /platform:iOS Simulator/ && $0 !~ /placeholder/ {
-        split($2, parts, ",")
-        gsub(/^[[:space:]]+|[[:space:]]+$/, "", parts[1])
-        print parts[1]
-        exit
+        id = ""
+        os = "0"
+        if (match($0, /id:[^,}]+/)) {
+          id = substr($0, RSTART + 3, RLENGTH - 3)
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", id)
+        }
+        if (match($0, /OS:[^,}]+/)) {
+          os = substr($0, RSTART + 3, RLENGTH - 3)
+          gsub(/^[[:space:]]+|[[:space:]]+$/, "", os)
+        }
+        split(os, versionParts, ".")
+        score = (versionParts[1] + 0) * 10000 + (versionParts[2] + 0) * 100 + (versionParts[3] + 0)
+        if (id != "" && score >= bestScore) {
+          bestScore = score
+          bestId = id
+        }
+      }
+      END {
+        if (bestId != "") {
+          print bestId
+        }
       }
     ' <<<"$SHOW_DESTINATIONS"
   )"
