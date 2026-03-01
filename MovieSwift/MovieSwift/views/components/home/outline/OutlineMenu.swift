@@ -48,8 +48,11 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
     
     private func moviesList(menu: MoviesMenu) -> some View {
-        NavigationView{ MoviesHomeList(menu: .constant(menu),
-                                       pageListener: MoviesMenuListPageListener(menu: menu)) }
+        NavigationView {
+            MoviesHomeList(menu: .constant(menu),
+                           pageListener: MoviesMenuListPageListener(menu: menu))
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     @ViewBuilder
@@ -60,7 +63,9 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .upcoming:   moviesList(menu: .upcoming)
         case .nowPlaying: moviesList(menu: .nowPlaying)
         case .trending:   moviesList(menu: .trending)
-        case .genres:     NavigationView { GenresList() }
+        case .genres:
+            NavigationView { GenresList() }
+                .navigationViewStyle(StackNavigationViewStyle())
         case .fanClub:    FanClubHome()
         case .discover:   DiscoverView()
         case .myLists:    MyLists()
@@ -68,4 +73,3 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         }
     }
 }
-
