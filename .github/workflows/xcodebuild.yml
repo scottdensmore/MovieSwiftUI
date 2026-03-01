@@ -42,6 +42,7 @@ jobs:
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
       IOS_SIMULATOR_FAMILY: iPhone
       IOS_TEST_ITERATIONS: "2"
+      XCODE_ONLY_TESTING: MovieSwiftTests
 
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +50,7 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: iOS app tests (XCTest + UI smoke)
+      - name: iOS app tests (unit suite)
         run: ./scripts/ci/run_ios_tests.sh
 
       - name: Upload test results

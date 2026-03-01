@@ -9,6 +9,7 @@ DERIVED_DATA_PATH="${XCODE_DERIVED_DATA_PATH:-}"
 IOS_TEST_ITERATIONS="${IOS_TEST_ITERATIONS:-1}"
 SIMULATOR_UDID="${IOS_SIMULATOR_UDID:-}"
 SIMULATOR_FAMILY="${IOS_SIMULATOR_FAMILY:-iPhone}"
+ONLY_TESTING="${XCODE_ONLY_TESTING:-}"
 
 if [[ "$SIMULATOR_FAMILY" != "iPhone" && "$SIMULATOR_FAMILY" != "iPad" ]]; then
   echo "Unsupported IOS_SIMULATOR_FAMILY '$SIMULATOR_FAMILY'; falling back to iPhone."
@@ -125,6 +126,9 @@ SIMULATOR_NAME="$(
 echo "Running tests on simulator: ${SIMULATOR_NAME:-Unknown} ($SIMULATOR_UDID)"
 echo "Preferred simulator family: $SIMULATOR_FAMILY"
 echo "Test iterations: $IOS_TEST_ITERATIONS"
+if [[ -n "$ONLY_TESTING" ]]; then
+  echo "Only testing: $ONLY_TESTING"
+fi
 
 XCODEBUILD_CMD=(
   xcodebuild
@@ -145,6 +149,16 @@ fi
 
 if [[ "$IOS_TEST_ITERATIONS" -gt 1 ]]; then
   XCODEBUILD_CMD+=( -retry-tests-on-failure -test-iterations "$IOS_TEST_ITERATIONS" )
+fi
+
+if [[ -n "$ONLY_TESTING" ]]; then
+  IFS=',' read -r -a ONLY_TESTING_TARGETS <<<"$ONLY_TESTING"
+  for target in "${ONLY_TESTING_TARGETS[@]}"; do
+    trimmed_target="$(echo "$target" | xargs)"
+    if [[ -n "$trimmed_target" ]]; then
+      XCODEBUILD_CMD+=( "-only-testing:$trimmed_target" )
+    fi
+  done
 fi
 
 XCODEBUILD_CMD+=( test )
