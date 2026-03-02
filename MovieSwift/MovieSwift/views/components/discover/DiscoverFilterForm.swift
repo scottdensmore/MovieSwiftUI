@@ -150,18 +150,37 @@ struct DiscoverFilterForm : View {
             if !savedFilters.isEmpty {
                 Section(header: Text("Saved filters"), content: {
                     ForEach(0 ..< self.savedFilters.count, id: \.self) { index in
-                        Text(self.savedFilters[index].toText(genres: self.store.state.moviesState.genres))
-                            .onTapGesture {
-                                self.presentationMode.wrappedValue.dismiss()
-                                self.store.dispatch(action: MoviesActions.ResetRandomDiscover())
-                                self.store.dispatch(action: MoviesActions.FetchRandomDiscover(filter: self.savedFilters[index]))
+                        Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                            self.store.dispatch(action: MoviesActions.ResetRandomDiscover())
+                            self.store.dispatch(action: MoviesActions.FetchRandomDiscover(filter: self.savedFilters[index]))
+                        }, label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                    .foregroundColor(.steam_blue)
+                                Text(self.savedFilters[index].toText(genres: self.store.state.moviesState.genres))
+                                    .foregroundColor(.primary)
+                                    .font(.body)
+                                    .lineLimit(1)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 6)
+                            .contentShape(Rectangle())
+                        })
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    Button(action: {
+                        self.store.dispatch(action: MoviesActions.ClearSavedDiscoverFilters())
+                    }, label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "trash")
+                            Text("Delete saved filters")
                         }
-                    }
-                    Text("Delete saved filters")
                         .foregroundColor(.red)
-                        .onTapGesture {
-                            self.store.dispatch(action: MoviesActions.ClearSavedDiscoverFilters())
-                    }
+                    })
                 })
             }
         }

@@ -69,7 +69,7 @@ struct MoviesHome : View {
     }
         
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 switch homeMode {
                 case .list:
@@ -78,15 +78,20 @@ struct MoviesHome : View {
                     homeAsGrid
                 }
             }
-            .navigationBarTitle(selectedMenu.menu.title())
+            .navigationTitle(selectedMenu.menu.title())
             .navigationBarTitleDisplayMode(homeMode == .list ? .inline : .automatic)
-            .navigationBarItems(trailing:
-                                    HStack {
-                                        swapHomeButton
-                                        settingButton
-                                    }
-            ).sheet(isPresented: $isSettingPresented,
-                    content: { SettingsForm() })
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    swapHomeButton
+                    settingButton
+                }
+            }
+            .fullScreenCover(isPresented: $isSettingPresented,
+                             content: {
+                                 SettingsForm(onClose: {
+                                     isSettingPresented = false
+                                 })
+                             })
         }
     }
 }

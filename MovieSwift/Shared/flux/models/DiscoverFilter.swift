@@ -64,21 +64,21 @@ struct DiscoverFilter: Codable {
     }
     
     func toText(genres: [Genre]) -> String {
-        var text = String("")
+        var parts: [String] = []
         if let startYear = startYear, let endYear = endYear {
-            text = text + "\(startYear)-\(endYear)"
+            parts.append("\(startYear)-\(endYear)")
         } else {
-            text = text + " · Random"
+            parts.append("Random")
         }
         if let genre = genre,
             let stateGenre = genres.first(where: { (realGenre) -> Bool in
                 realGenre.id == genre
             }) {
-            text = text + " · \(stateGenre.name)"
+            parts.append(stateGenre.name)
         }
         if let region = region {
-            text = text + " · \(region)"
+            parts.append(region)
         }
-        return text
+        return parts.joined(separator: " · ")
     }
 }

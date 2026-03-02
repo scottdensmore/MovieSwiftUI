@@ -81,6 +81,19 @@ final class ModelUtilityTests: XCTestCase {
 
         XCTAssertEqual(filter.toText(genres: genres), "1990-1995 · Adventure · FR")
     }
+    
+    func testDiscoverFilterToTextRandomDoesNotStartWithSeparator() {
+        let filter = DiscoverFilter(
+            year: 2005,
+            startYear: nil,
+            endYear: nil,
+            sort: "popularity.desc",
+            genre: nil,
+            region: "US"
+        )
+        
+        XCTAssertEqual(filter.toText(genres: []), "Random · US")
+    }
 
     func testMovieUserTitleRespectsAlwaysOriginalTitlePreference() {
         let original = AppUserDefaults.alwaysOriginalTitle

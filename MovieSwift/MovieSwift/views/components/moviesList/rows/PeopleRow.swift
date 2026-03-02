@@ -17,6 +17,7 @@ struct PeopleRow : ConnectedView {
     }
     
     let peopleId: Int
+    var isSelected = false
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(people: state.peoplesState.peoples[peopleId]!,
@@ -26,7 +27,7 @@ struct PeopleRow : ConnectedView {
     private var fanClubIcon: some View {
         Image(systemName: "star.circle")
             .imageScale(.large)
-            .foregroundColor(.steam_gold)
+            .foregroundColor(isSelected ? .primary : .steam_gold)
             .transition(AnyTransition.scale
                 .combined(with: .opacity))
     }
@@ -41,12 +42,12 @@ struct PeopleRow : ConnectedView {
                     }
                     Text(props.people.name)
                         .titleStyle()
-                        .foregroundColor(.steam_gold)
+                        .foregroundColor(isSelected ? .primary : .steam_gold)
                         .lineLimit(1)
                 }
                 .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
                 Text(props.people.knownForText ?? "")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isSelected ? .primary.opacity(0.8) : .secondary)
                     .font(.subheadline)
                     .lineLimit(3)
                     .truncationMode(.tail)

@@ -17,6 +17,7 @@ struct FanClubHome: ConnectedView {
     }
     
     @State private var currentPage = 1
+    @State private var selectedPeopleId: Int? = nil
     
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
         Props(peoples: state.peoplesState.fanClub.map{ $0 }.sorted(),
@@ -26,14 +27,27 @@ struct FanClubHome: ConnectedView {
               dispatch: dispatch)
     }
     
+    @ViewBuilder
+    private func peopleNavigationLink(people: Int) -> some View {
+        #if targetEnvironment(macCatalyst)
+        NavigationLink(tag: people, selection: $selectedPeopleId) {
+            PeopleDetail(peopleId: people)
+        } label: {
+            PeopleRow(peopleId: people, isSelected: selectedPeopleId == people)
+        }
+        #else
+        NavigationLink(destination: PeopleDetail(peopleId: people)) {
+            PeopleRow(peopleId: people)
+        }
+        #endif
+    }
+    
     func body(props: Props) -> some View {
         NavigationView {
             List {
                 Section {
                     ForEach(props.peoples, id: \.self) { people in
-                        NavigationLink(destination: PeopleDetail(peopleId: people)) {
-                            PeopleRow(peopleId: people)
-                        }
+                        peopleNavigationLink(people: people)
                     }.onDelete(perform: { index in
                         props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
                     })
@@ -41,9 +55,7 @@ struct FanClubHome: ConnectedView {
             
                 Section(header: Text("Popular people to add to your Fan Club")) {
                     ForEach(props.popular, id: \.self) { people in
-                        NavigationLink(destination: PeopleDetail(peopleId: people)) {
-                            PeopleRow(peopleId: people)
-                        }
+                        peopleNavigationLink(people: people)
                     }
                 }
                 

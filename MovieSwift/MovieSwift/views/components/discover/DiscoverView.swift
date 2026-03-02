@@ -176,25 +176,19 @@ struct DiscoverView: ConnectedView {
         ForEach(props.movies, id: \.self) { id in
             Group {
                 if props.movies.reversed().firstIndex(of: id) == 0 {
-                    DraggableCover(movieId: id,
-                                   gestureViewState: self.$draggedViewState,
-                                   onTapGesture: {
-                                    self.presentedMovie = props.currentMovie
-                    },
-                                   willEndGesture: { position in
-                                    self.willEndPosition = position
-                    },
-                                   endGestureHandler: { handler in
-                                    self.draggableCoverEndGestureHandler(props: props, handler: handler)
-                    })
-                        .sheet(item: self.$presentedMovie, onDismiss: {
-                            self.presentedMovie = nil
-                        }, content: { movie in
-                            NavigationView {
-                                MovieDetail(movieId: movie.id)
-                            }.navigationViewStyle(StackNavigationViewStyle())
-                                .environmentObject(store)
+                    presentMovieDetails(
+                        DraggableCover(movieId: id,
+                                       gestureViewState: self.$draggedViewState,
+                                       onTapGesture: {
+                                        self.presentedMovie = props.currentMovie
+                        },
+                                       willEndGesture: { position in
+                                        self.willEndPosition = position
+                        },
+                                       endGestureHandler: { handler in
+                                        self.draggableCoverEndGestureHandler(props: props, handler: handler)
                         })
+                    )
                 } else {
                     DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.posters[id],
                                                                                       size: .medium))
@@ -207,6 +201,34 @@ struct DiscoverView: ConnectedView {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private func presentMovieDetails<Content: View>(_ content: Content) -> some View {
+        #if targetEnvironment(macCatalyst)
+        content
+            .popover(item: self.$presentedMovie,
+                     attachmentAnchor: .rect(.bounds),
+                     arrowEdge: .bottom) { movie in
+                NavigationView {
+                    MovieDetail(movieId: movie.id)
+                }
+                .navigationViewStyle(StackNavigationViewStyle())
+                .environmentObject(store)
+                .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
+                       minHeight: 760, idealHeight: 860, maxHeight: 980)
+            }
+        #else
+        content
+            .sheet(item: self.$presentedMovie, onDismiss: {
+                self.presentedMovie = nil
+            }, content: { movie in
+                NavigationView {
+                    MovieDetail(movieId: movie.id)
+                }.navigationViewStyle(StackNavigationViewStyle())
+                    .environmentObject(store)
+            })
+        #endif
     }
     
     func body(props: Props) -> some View {

@@ -11,19 +11,32 @@ import Foundation
 import Backend
 
 struct SettingsForm : View {
-    @State var selectedRegion: Int = 0
+    private struct RegionOption: Identifiable {
+        let code: String
+        let name: String
+        var id: String { code }
+    }
+
+    @State var selectedRegionCode: String = AppUserDefaults.region
     @State var alwaysOriginalTitle: Bool = false
-    @Environment(\.presentationMode) var presentationMode
+    var onClose: (() -> Void)? = nil
+    @Environment(\.dismiss) private var dismiss
+
+    private var isModalPresentation: Bool {
+        onClose != nil
+    }
     
-    var countries: [String] {
+    private var regions: [RegionOption] {
         get {
-            var countries: [String] = []
+            var regions: [RegionOption] = []
             for code in NSLocale.isoCountryCodes {
                 let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
-                let name = NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id)!
-                countries.append(name)
+                if let name = NSLocale(localeIdentifier: "en_US")
+                    .displayName(forKey: NSLocale.Key.identifier, value: id) {
+                    regions.append(RegionOption(code: code, name: name))
+                }
             }
-            return countries
+            return regions.sorted { $0.name < $1.name }
         }
     }
     
@@ -34,9 +47,68 @@ struct SettingsForm : View {
             Text(info).font(.body).foregroundColor(.secondary)
         }
     }
+
+    private func loadCurrentPreferences() {
+        if regions.contains(where: { $0.code == AppUserDefaults.region }) {
+            selectedRegionCode = AppUserDefaults.region
+        } else if let firstRegion = regions.first {
+            selectedRegionCode = firstRegion.code
+        }
+        alwaysOriginalTitle = AppUserDefaults.alwaysOriginalTitle
+    }
+
+    private func savePreferences() {
+        let previousRegion = AppUserDefaults.region
+        AppUserDefaults.region = selectedRegionCode
+        AppUserDefaults.alwaysOriginalTitle = alwaysOriginalTitle
+
+        if previousRegion != selectedRegionCode {
+            for menu in MoviesMenu.allCases {
+                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
+            }
+        }
+    }
+
+    private func close() {
+        if let onClose {
+            onClose()
+        } else {
+            dismiss()
+        }
+    }
+
+    private func cancelAction() {
+        close()
+    }
+
+    @ViewBuilder
+    private var actionBar: some View {
+        HStack(spacing: 12) {
+            Button("Cancel") {
+                cancelAction()
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
+
+            Button("Save") {
+                savePreferences()
+                if isModalPresentation {
+                    close()
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.steam_gold)
+            .foregroundColor(.black)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .background(.ultraThinMaterial)
+    }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("Region preferences"),
                         footer: Text("Region is used to display a more accurate movies list"),
@@ -44,11 +116,11 @@ struct SettingsForm : View {
                         Toggle(isOn: $alwaysOriginalTitle) {
                             Text("Always show original title")
                         }
-                        Picker(selection: $selectedRegion,
+                        Picker(selection: $selectedRegionCode,
                                label: Text("Region"),
                                content: {
-                                ForEach(0 ..< self.countries.count, id: \.self) {
-                                    Text(self.countries[$0]).tag($0)
+                                ForEach(regions) { region in
+                                    Text(region.name).tag(region.code)
                                 }
                         })
                 })
@@ -67,27 +139,30 @@ struct SettingsForm : View {
 
                 }
                 }
-            .onAppear{
-                    if let index = NSLocale.isoCountryCodes.firstIndex(of: AppUserDefaults.region) {
-                        self.selectedRegion = index
+            .onAppear(perform: loadCurrentPreferences)
+                .onChange(of: selectedRegionCode) { _, _ in
+                    if !isModalPresentation {
+                        savePreferences()
                     }
-                    self.alwaysOriginalTitle = AppUserDefaults.alwaysOriginalTitle
-            }
-            .navigationBarItems(
-                leading: Button(action: {
-                    self.presentationMode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Cancel").foregroundColor(.red)
-                }),
-                trailing: Button(action: {
-                    AppUserDefaults.region = NSLocale.isoCountryCodes[self.selectedRegion]
-                    AppUserDefaults.alwaysOriginalTitle = self.alwaysOriginalTitle
-                    self.presentationMode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Save")
-                }))
-                .navigationBarTitle(Text("Settings"))
+                }
+                .onChange(of: alwaysOriginalTitle) { _, _ in
+                    if !isModalPresentation {
+                        savePreferences()
+                    }
+                }
+                .navigationTitle("Settings")
+                .navigationBarTitleDisplayMode(.large)
+                .tint(.steam_gold)
+                .scrollContentBackground(.hidden)
+                .background(Color.steam_background)
+                .safeAreaInset(edge: .bottom) {
+                    if isModalPresentation {
+                        actionBar
+                    }
+                }
+                .safeAreaPadding(.horizontal, isModalPresentation ? 0 : 12)
         }
+        .background(Color.steam_background.ignoresSafeArea())
     }
 }
 
