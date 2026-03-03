@@ -30,11 +30,12 @@ struct FanClubHome: ConnectedView {
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
         #if targetEnvironment(macCatalyst)
-        NavigationLink(tag: people, selection: $selectedPeopleId) {
-            PeopleDetail(peopleId: people)
-        } label: {
+        NavigationLink(destination: PeopleDetail(peopleId: people)) {
             PeopleRow(peopleId: people, isSelected: selectedPeopleId == people)
         }
+        .simultaneousGesture(TapGesture().onEnded {
+            self.selectedPeopleId = people
+        })
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people)) {
             PeopleRow(peopleId: people)
