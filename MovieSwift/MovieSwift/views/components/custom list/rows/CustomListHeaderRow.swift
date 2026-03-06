@@ -25,21 +25,35 @@ struct CustomListHeaderRow : View {
         return store.state.moviesState.movies[id]
     }
     
-    var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverBackdropMovie?.backdrop_path ?? coverBackdropMovie?.poster_path,
-                                                                                 size: .original),
-                                  height: 200)
-            VStack(alignment: .leading, spacing: 8) {
-                Text(list.name)
-                    .font(.FjallaOne(size: 40))
-                    .foregroundColor(.steam_gold)
-                Text("\(list.movies.count) movies sorted \(sorting.title())")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-            }.padding()
+    private var headerText: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(list.name)
+                .font(.FjallaOne(size: 40))
+                .foregroundColor(.steam_gold)
+            Text("\(list.movies.count) movies sorted \(sorting.title())")
+                .font(.subheadline)
+                .foregroundColor(.white)
         }
-        .frame(height: 200)
+        .padding()
+    }
+    
+    var body: some View {
+        Group {
+            if coverBackdropMovie != nil {
+                ZStack(alignment: .bottomLeading) {
+                    MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverBackdropMovie?.backdrop_path ?? coverBackdropMovie?.poster_path,
+                                                                                         size: .original),
+                                          height: 200)
+                    headerText
+                }
+                .frame(height: 200)
+            } else {
+                headerText
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+                    .background(Color.clear)
+            }
+        }
         .listRowInsets(EdgeInsets())
     }
 }

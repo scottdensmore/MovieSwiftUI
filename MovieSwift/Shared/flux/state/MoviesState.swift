@@ -41,6 +41,6 @@ struct MoviesState: FluxState, Codable {
     var genres: [Genre] = []
     
     enum CodingKeys: String, CodingKey {
-        case movies, wishlist, seenlist, customLists, moviesUserMeta, savedDiscoverFilters
+        case movies, wishlist, seenlist, customLists, moviesUserMeta, savedDiscoverFilters, discoverFilter
     }
 }

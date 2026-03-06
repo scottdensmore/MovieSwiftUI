@@ -58,13 +58,27 @@ struct HomeView: App {
     #endif
     
     private func setupApperance() {
-        UINavigationBar.appearance().largeTitleTextAttributes = [
-            NSAttributedString.Key.foregroundColor: UIColor(named: "steam_gold")!,
-            NSAttributedString.Key.font: UIFont(name: "FjallaOne-Regular", size: 40)!]
-        
-        UINavigationBar.appearance().titleTextAttributes = [
-            NSAttributedString.Key.foregroundColor: UIColor(named: "steam_gold")!,
-            NSAttributedString.Key.font: UIFont(name: "FjallaOne-Regular", size: 18)!]
+        let titleTextAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor(named: "steam_gold")!,
+            .font: UIFont(name: "FjallaOne-Regular", size: 22)!
+        ]
+        let largeTitleTextAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor(named: "steam_gold")!,
+            .font: UIFont(name: "FjallaOne-Regular", size: 40)!
+        ]
+
+        let navigationAppearance = UINavigationBarAppearance()
+        navigationAppearance.configureWithTransparentBackground()
+        navigationAppearance.titleTextAttributes = titleTextAttributes
+        navigationAppearance.largeTitleTextAttributes = largeTitleTextAttributes
+
+        UINavigationBar.appearance().titleTextAttributes = titleTextAttributes
+        UINavigationBar.appearance().largeTitleTextAttributes = largeTitleTextAttributes
+        UINavigationBar.appearance().standardAppearance = navigationAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navigationAppearance
+        UINavigationBar.appearance().compactAppearance = navigationAppearance
+        UINavigationBar.appearance().compactScrollEdgeAppearance = navigationAppearance
+        UINavigationBar.appearance().prefersLargeTitles = true
         
         UIBarButtonItem.appearance().setTitleTextAttributes([
                                                                 NSAttributedString.Key.foregroundColor: UIColor(named: "steam_gold")!,
@@ -72,6 +86,14 @@ struct HomeView: App {
                                                             for: .normal)
         
         UIWindow.appearance().tintColor = UIColor(named: "steam_gold")
+
+        #if targetEnvironment(macCatalyst)
+        // Avoid saturated system selection colors and let our row styles drive selection visuals.
+        let softTint = (UIColor(named: "steam_white") ?? .white).withAlphaComponent(0.35)
+        UITableViewCell.appearance().selectionStyle = .none
+        UITableView.appearance().tintColor = softTint
+        UICollectionView.appearance().tintColor = softTint
+        #endif
     }
 }
 
@@ -111,25 +133,35 @@ struct TabbarView: View {
 
 // MARK: - MacOS implementation
 struct SplitView: View {
-    @State var selectedMenu: OutlineMenu = .popular
+    @State private var selectedMenu: OutlineMenu? = .popular
     
     @ViewBuilder
     var body: some View {
-        HStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading) {
-                    ForEach(OutlineMenu.allCases) { menu in
-                        OutlineRow(item: menu, selectedMenu: self.$selectedMenu)
-                            .frame(height: 50)
-                    }
+        NavigationSplitView {
+            List(selection: $selectedMenu) {
+                ForEach(OutlineMenu.allCases, id: \.self) { menu in
+                    OutlineRow(item: menu, isSelected: selectedMenu == menu)
+                        .frame(height: 50)
+                        .tag(menu)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedMenu = menu
+                        }
                 }
-                .padding(.top, 32)
-                .frame(width: 300)
             }
-            .background(Color.primary.opacity(0.1))
-            selectedMenu.contentView
-                .padding(.leading, selectedMenu == .settings ? 0 : 12)
+            .listStyle(.sidebar)
+            .navigationTitle("Movies")
+            .frame(minWidth: 260, idealWidth: 300)
+        } detail: {
+            if let selectedMenu {
+                selectedMenu.contentView
+                    .padding(.leading, selectedMenu == .settings ? 0 : 12)
+            } else {
+                Text("Select a section")
+                    .foregroundColor(.secondary)
+            }
         }
+        .navigationSplitViewStyle(.balanced)
     }
 }
 

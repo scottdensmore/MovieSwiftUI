@@ -18,6 +18,7 @@ public struct SearchField : View {
     @Binding var isSearching: Bool
     var dismissButtonTitle: String
     var dismissButtonCallback: (() -> Void)?
+    var focused: FocusState<Bool>.Binding?
     
     private var searchCancellable: Cancellable? = nil
     
@@ -25,12 +26,14 @@ public struct SearchField : View {
          placeholder: String,
          isSearching: Binding<Bool>,
          dismissButtonTitle: String = "Cancel",
-         dismissButtonCallback: (() -> Void)? = nil) {
+         dismissButtonCallback: (() -> Void)? = nil,
+         focused: FocusState<Bool>.Binding? = nil) {
         self.searchTextWrapper = searchTextWrapper
         self.placeholder = placeholder
         self._isSearching = isSearching
         self.dismissButtonTitle = dismissButtonTitle
         self.dismissButtonCallback = dismissButtonCallback
+        self.focused = focused
         
         self.searchCancellable = searchTextWrapper.searchSubject.sink(receiveValue: { value in
             isSearching.wrappedValue = !value.isEmpty
@@ -41,10 +44,18 @@ public struct SearchField : View {
         GeometryReader { reader in
             HStack(alignment: .center, spacing: 0) {
                 Image(systemName: "magnifyingglass")
-                TextField(self.placeholder,
-                          text: self.$searchTextWrapper.searchText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding(.horizontal)
+                if let focused {
+                    TextField(self.placeholder,
+                              text: self.$searchTextWrapper.searchText)
+                        .focused(focused)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                } else {
+                    TextField(self.placeholder,
+                              text: self.$searchTextWrapper.searchText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                }
                 if !self.searchTextWrapper.searchText.isEmpty {
                     Button(action: {
                         self.searchTextWrapper.searchText = ""

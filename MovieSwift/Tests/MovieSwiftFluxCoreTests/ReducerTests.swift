@@ -74,6 +74,22 @@ final class ReducerTests: XCTestCase {
         XCTAssertEqual(reduced.movies[99]?.id, 99)
         XCTAssertEqual(reduced.discoverFilter?.year, 1990)
     }
+    
+    func testMoviesReducerSetActiveDiscoverFilterUpdatesFilterImmediately() {
+        var state = MoviesState()
+        state.discoverFilter = nil
+        let filter = DiscoverFilter(year: 2001, startYear: 1990, endYear: 1999, sort: "popularity.desc", genre: 28, region: "US")
+        
+        let reduced = moviesStateReducer(
+            state: state,
+            action: MoviesActions.SetActiveDiscoverFilter(filter: filter)
+        )
+        
+        XCTAssertEqual(reduced.discoverFilter?.startYear, 1990)
+        XCTAssertEqual(reduced.discoverFilter?.endYear, 1999)
+        XCTAssertEqual(reduced.discoverFilter?.genre, 28)
+        XCTAssertEqual(reduced.discoverFilter?.region, "US")
+    }
 
     func testMoviesReducerSetGenresInsertsRandomGenreFirst() {
         let genres = [Genre(id: 7, name: "Drama"), Genre(id: 8, name: "Comedy")]

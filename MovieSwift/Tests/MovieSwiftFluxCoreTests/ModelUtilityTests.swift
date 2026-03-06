@@ -45,6 +45,7 @@ final class ModelUtilityTests: XCTestCase {
         XCTAssertNil(params["primary_release_date.lte"])
         XCTAssertEqual(params["with_genres"], "28")
         XCTAssertEqual(params["region"], "US")
+        XCTAssertEqual(params["with_origin_country"], "US")
         XCTAssertEqual(params["sort_by"], "popularity.desc")
         XCTAssertEqual(params["language"], "en-US")
         XCTAssertNotNil(params["page"])
@@ -62,8 +63,8 @@ final class ModelUtilityTests: XCTestCase {
 
         let params = filter.toParams()
 
-        XCTAssertEqual(params["primary_release_date.gte"], "1990")
-        XCTAssertEqual(params["primary_release_date.lte"], "1999")
+        XCTAssertEqual(params["primary_release_date.gte"], "1990-01-01")
+        XCTAssertEqual(params["primary_release_date.lte"], "1999-12-31")
         XCTAssertNil(params["year"])
         XCTAssertEqual(params["sort_by"], "vote_average.desc")
     }

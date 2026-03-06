@@ -14,13 +14,13 @@ struct DiscoverFilterForm : View {
     @Environment(\.presentationMode) var presentationMode
     
     let datesText = ["Random",
-                     "1950-1960",
-                     "1960-1970",
-                     "1970-1980",
-                     "1980-1990",
-                     "1990-2000",
-                     "2000-2010",
-                     "2010-2020"]
+                     "1950-1959",
+                     "1960-1969",
+                     "1970-1979",
+                     "1980-1989",
+                     "1990-1999",
+                     "2000-2009",
+                     "2010-2019"]
     let datesInt = [0, 1950, 1960, 1970, 1980, 1990, 2000, 2010]
     
     @State var selectedDate: Int = 0
@@ -42,7 +42,7 @@ struct DiscoverFilterForm : View {
         
         if selectedDate > 0 {
             startDate = datesInt[selectedDate]
-            endDtate = startDate! + 10
+            endDtate = startDate! + 9
         }
         if selectedGenre > 0 {
             genre = genres![selectedGenre].id
@@ -78,6 +78,37 @@ struct DiscoverFilterForm : View {
         }
     }
     
+    private func syncSelectionsFromCurrentFilter() {
+        guard let filter = currentFilter else {
+            self.selectedCountry = 0
+            self.selectedDate = 0
+            self.selectedGenre = 0
+            return
+        }
+        
+        if let startYear = filter.startYear,
+           let dateIndex = self.datesInt.firstIndex(of: startYear) {
+            self.selectedDate = dateIndex
+        } else {
+            self.selectedDate = 0
+        }
+        
+        if let genreId = filter.genre,
+           let genres = self.genres,
+           let genreIndex = genres.firstIndex(where: { $0.id == genreId }) {
+            self.selectedGenre = genreIndex
+        } else {
+            self.selectedGenre = 0
+        }
+        
+        if let region = filter.region,
+           let countryIndex = NSLocale.isoCountryCodes.firstIndex(of: region) {
+            self.selectedCountry = countryIndex + 1
+        } else {
+            self.selectedCountry = 0
+        }
+    }
+    
     private var settingsSection: some View {
         Section(header: Text("Filter settings"), content: {
             Picker(selection: $selectedDate,
@@ -99,7 +130,7 @@ struct DiscoverFilterForm : View {
             }
             
             Picker(selection: $selectedCountry,
-                   label: Text("Country"),
+                   label: Text("Country of origin"),
                    content: {
                     ForEach(0 ..< self.countries.count, id: \.self) {
                         Text(self.countries[$0]).tag($0)
@@ -118,6 +149,7 @@ struct DiscoverFilterForm : View {
                     }
                     let filter = self.formFilter ?? DiscoverFilter.randomFilter()
                     self.store.dispatch(action: MoviesActions.ResetRandomDiscover())
+                    self.store.dispatch(action: MoviesActions.SetActiveDiscoverFilter(filter: filter))
                     self.store.dispatch(action: MoviesActions.FetchRandomDiscover(filter: filter))
                 }, label: {
                     Text("Save and filter movies").foregroundColor(.green)
@@ -153,6 +185,7 @@ struct DiscoverFilterForm : View {
                         Button(action: {
                             self.presentationMode.wrappedValue.dismiss()
                             self.store.dispatch(action: MoviesActions.ResetRandomDiscover())
+                            self.store.dispatch(action: MoviesActions.SetActiveDiscoverFilter(filter: self.savedFilters[index]))
                             self.store.dispatch(action: MoviesActions.FetchRandomDiscover(filter: self.savedFilters[index]))
                         }, label: {
                             HStack(spacing: 10) {
@@ -195,17 +228,13 @@ struct DiscoverFilterForm : View {
             }
             .navigationBarTitle(Text("Discover filter"))
             .onAppear {
-                if let startYear = self.currentFilter?.startYear {
-                    self.selectedDate = self.datesInt.firstIndex(of: startYear) ?? 0
+                self.syncSelectionsFromCurrentFilter()
+                if self.store.state.moviesState.genres.isEmpty {
+                    self.store.dispatch(action: MoviesActions.FetchGenres())
                 }
-                if let genre = self.currentFilter?.genre {
-                    self.selectedGenre = self.genres?.firstIndex{ $0.id == genre } ?? 0
-                }
-                if let region = self.currentFilter?.region,
-                    let index = NSLocale.isoCountryCodes.firstIndex(of: region) {
-                    self.selectedCountry = index + 1
-                }
-                self.store.dispatch(action: MoviesActions.FetchGenres())
+            }
+            .onChange(of: self.store.state.moviesState.genres.count) { _ in
+                self.syncSelectionsFromCurrentFilter()
             }
         }.navigationViewStyle(StackNavigationViewStyle())
     }

@@ -27,7 +27,7 @@ struct PeopleRow : ConnectedView {
     private var fanClubIcon: some View {
         Image(systemName: "star.circle")
             .imageScale(.large)
-            .foregroundColor(isSelected ? .primary : .steam_gold)
+            .foregroundColor(.steam_gold)
             .transition(AnyTransition.scale
                 .combined(with: .opacity))
     }
@@ -42,21 +42,23 @@ struct PeopleRow : ConnectedView {
                     }
                     Text(props.people.name)
                         .titleStyle()
-                        .foregroundColor(isSelected ? .primary : .steam_gold)
+                        .foregroundColor(.primary)
                         .lineLimit(1)
                 }
                 .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
                 Text(props.people.knownForText ?? "")
-                    .foregroundColor(isSelected ? .primary.opacity(0.8) : .secondary)
+                    .foregroundColor(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)
                     .truncationMode(.tail)
                     .frame(height: 40)
             }
             .padding(.leading, 8)
+            Spacer(minLength: 0)
         }.padding(.top)
         .padding(.bottom)
-        .contextMenu{ PeopleContextMenu(people: peopleId) }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
         .redacted(reason: peopleId == 0 ? .placeholder : [])
     }
 }

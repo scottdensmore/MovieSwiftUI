@@ -10,11 +10,7 @@ import SwiftUI
 
 struct OutlineRow : View {
     let item: OutlineMenu
-    @Binding var selectedMenu: OutlineMenu
-    
-    var isSelected: Bool {
-        selectedMenu == item
-    }
+    let isSelected: Bool
     
     var body: some View {
         HStack {
@@ -31,18 +27,15 @@ struct OutlineRow : View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(isSelected ? Color.secondary.opacity(0.1) : .clear)
+        .padding(.horizontal, 8)
         .contentShape(Rectangle())
-        .onTapGesture {
-            self.selectedMenu = self.item
-        }
     }
 }
 
 #if DEBUG
 struct OutlineRow_Previews : PreviewProvider {
     static var previews: some View {
-        OutlineRow(item: .popular, selectedMenu: .constant(.popular))
+        OutlineRow(item: .popular, isSelected: true)
     }
 }
 #endif

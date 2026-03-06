@@ -347,6 +347,10 @@ struct MoviesActions {
         let response: PaginatedResponse<Movie>
     }
     
+    struct SetActiveDiscoverFilter: Action {
+        let filter: DiscoverFilter
+    }
+    
     struct PushRandomDiscover: Action {
         let movie: Int
     }

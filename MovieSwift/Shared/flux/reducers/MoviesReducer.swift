@@ -103,6 +103,9 @@ func moviesStateReducer(state: MoviesState, action: Action) -> MoviesState {
         state = mergeMovies(movies: action.response.results, state: state)
         state.discoverFilter = action.filter
         
+    case let action as MoviesActions.SetActiveDiscoverFilter:
+        state.discoverFilter = action.filter
+        
     case let action as MoviesActions.SetMovieReviews:
         state.reviews[action.movie] = action.response.results
         

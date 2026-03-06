@@ -85,7 +85,7 @@ struct CustomListDetail : View {
     }
     
     var body: some View {
-        List(selection: $selectedMovies) {
+        List {
             if !isSearching {
                 CustomListHeaderRow(sorting: $selectedMoviesSort,  listId: listId)
             }
@@ -105,7 +105,16 @@ struct CustomListDetail : View {
                         Text("Searching...")
                     } else {
                         ForEach(searchedMovies!, id: \.self) { movie in
-                            MovieRow(movieId: movie, displayListImage: false)
+                            HStack {
+                                MovieRow(movieId: movie, displayListImage: false)
+                                Spacer(minLength: 0)
+                                if self.selectedMovies.contains(movie) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.steam_white)
+                                        .opacity(0.9)
+                                }
+                            }
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 if self.selectedMovies.contains(movie) {
                                     self.selectedMovies.remove(movie)
@@ -113,6 +122,7 @@ struct CustomListDetail : View {
                                     self.selectedMovies.insert(movie)
                                 }
                             }
+                            .listRowBackground(self.selectedMovies.contains(movie) ? Color.steam_selection : Color.clear)
                         }
                     }
                 } else {
@@ -120,6 +130,7 @@ struct CustomListDetail : View {
                         NavigationLink(destination: MovieDetail(movieId: movie)) {
                             MovieRow(movieId: movie, displayListImage: false)
                         }
+                        .buttonStyle(SoftSelectionButtonStyle())
                     }.onDelete { (index) in
                         self.store.dispatch(action: MoviesActions.RemoveMovieFromCustomList(list: self.listId, movie: self.movies[index.first!]))
                     }
@@ -127,15 +138,14 @@ struct CustomListDetail : View {
             }
             
         }
-            .navigationBarTitle(Text(""),
-                                displayMode: isSearching ? .inline : .automatic)
+            .navigationTitle(isSearching ? "Add Movies" : "")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: navbarButtons)
             .edgesIgnoringSafeArea(isSearching ? .leading : .top)
             .actionSheet(isPresented: $isSortActionSheetPresented, content: { sortActionSheet })
             .sheet(isPresented: $isEditingFormPresented,
                    content: { CustomListForm(editingListId: self.listId).environmentObject(self.store)
             })
-            .environment(\.editMode, .constant(isSearching ? .active : .inactive))
     }
 }
 

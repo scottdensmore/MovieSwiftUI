@@ -53,6 +53,26 @@ extension Color {
     public static var steam_background: Color {
         Color("steam_background", bundle: nil)
     }
+
+    public static var steam_selection: Color {
+        Color.steam_white.opacity(0.12)
+    }
 }
 
+extension View {
+    func softSelectionRow(_ isSelected: Bool,
+                          cornerRadius: CGFloat = 10) -> some View {
+        self.background(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(isSelected ? Color.steam_selection : .clear)
+        )
+    }
+}
 
+struct SoftSelectionButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .softSelectionRow(configuration.isPressed)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}

@@ -30,6 +30,10 @@ struct MoviesList: ConnectedView {
     @State private var searchFilter: Int = SearchFilter.movies.rawValue
     @State private var searchTextWrapper = MoviesSearchTextWrapper()
     @State private var isSearching = false
+    @FocusState private var isSearchFieldFocused: Bool
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedMovieId: Int?
+    #endif
     
     // MARK: - Public var
     let movies: [Int]
@@ -52,9 +56,17 @@ struct MoviesList: ConnectedView {
     private func moviesRows(props: Props) -> some View {
         let movieIds = isSearching ? props.searchedMovies ?? [] : movies
         return ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
+            #if targetEnvironment(macCatalyst)
+            Button(action: { selectedMovieId = id }) {
+                MovieRow(movieId: id)
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            #else
             NavigationLink(destination: MovieDetail(movieId: id)) {
                 MovieRow(movieId: id)
             }
+            #endif
         }
     }
     
@@ -95,6 +107,7 @@ struct MoviesList: ConnectedView {
                     NavigationLink(destination: PeopleDetail(peopleId: id)) {
                         PeopleRow(peopleId: id)
                     }
+                    .contextMenu { PeopleContextMenu(people: id) }
                 }
             }
         }
@@ -111,12 +124,20 @@ struct MoviesList: ConnectedView {
     }
         
     private var searchField: some View {
+        #if targetEnvironment(macCatalyst)
         SearchField(searchTextWrapper: searchTextWrapper,
                     placeholder: "Search any movies or person",
-                    isSearching: $isSearching)
-        .onPreferenceChange(OffsetTopPreferenceKey.self) { _ in
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        }
+                    isSearching: $isSearching,
+                    focused: $isSearchFieldFocused)
+        #else
+        SearchField(searchTextWrapper: searchTextWrapper,
+                    placeholder: "Search any movies or person",
+                    isSearching: $isSearching,
+                    focused: $isSearchFieldFocused)
+            .onPreferenceChange(OffsetTopPreferenceKey.self) { _ in
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
+        #endif
     }
     
     private var searchFilterView: some View {
@@ -126,46 +147,145 @@ struct MoviesList: ConnectedView {
         }.pickerStyle(SegmentedPickerStyle())
     }
     
+    // MARK: - List content
+    @ViewBuilder
+    private func listContent(props: Props) -> some View {
+        if isSearching {
+            searchFilterView
+            if props.searchedKeywords != nil && searchFilter == SearchFilter.movies.rawValue {
+                keywordsSection(props: props)
+            }
+        }
+
+        if isSearching && searchFilter == SearchFilter.peoples.rawValue {
+            peoplesSection(props: props)
+        } else {
+            movieSection(props: props)
+        }
+
+        /// The pagination is done by appending a invisible rectancle at the bottom of the list, and trigerining the next page load as it appear.
+        /// Hacky way for now, hope it'll be possible to find a better solution in a future version of SwiftUI.
+        /// Could be possible to do with GeometryReader.
+        if !movies.isEmpty || props.searchedMovies?.isEmpty == false {
+            Rectangle()
+                .foregroundColor(.clear)
+                .onAppear {
+                    if self.isSearching && props.searchedMovies?.isEmpty == false {
+                        self.searchTextWrapper.searchPageListener.currentPage += 1
+                    } else if self.pageListener != nil && !self.isSearching && !self.movies.isEmpty {
+                        self.pageListener?.currentPage += 1
+                    }
+                }
+        }
+    }
+
     // MARK: - Body
     func body(props: Props) -> some View {
+        #if targetEnvironment(macCatalyst)
+        VStack(spacing: 0) {
+            if displaySearch {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    CatalystSearchField(
+                        searchTextWrapper: searchTextWrapper,
+                        placeholder: "Search any movies or person",
+                        isSearching: $isSearching,
+                        focused: $isSearchFieldFocused
+                    )
+                    .frame(height: 36)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            List {
+                listContent(props: props)
+            }
+            .listStyle(PlainListStyle())
+            .navigationDestination(item: $selectedMovieId) { id in
+                MovieDetail(movieId: id)
+            }
+        }
+        #else
         List {
             if displaySearch {
                 Section {
                     searchField
                 }
             }
-            
-            if isSearching {
-                searchFilterView
-                if props.searchedKeywords != nil && searchFilter == SearchFilter.movies.rawValue {
-                    keywordsSection(props: props)
-                }
-            }
-            
-            if isSearching && searchFilter == SearchFilter.peoples.rawValue {
-                peoplesSection(props: props)
-            } else {
-                movieSection(props: props)
-            }
-            
-            /// The pagination is done by appending a invisible rectancle at the bottom of the list, and trigerining the next page load as it appear.
-            /// Hacky way for now, hope it'll be possible to find a better solution in a future version of SwiftUI.
-            /// Could be possible to do with GeometryReader.
-            if !movies.isEmpty || props.searchedMovies?.isEmpty == false {
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .onAppear {
-                        if self.isSearching && props.searchedMovies?.isEmpty == false {
-                            self.searchTextWrapper.searchPageListener.currentPage += 1
-                        } else if self.pageListener != nil && !self.isSearching && !self.movies.isEmpty {
-                            self.pageListener?.currentPage += 1
-                        }
-                    }
-            }
+            listContent(props: props)
         }
         .listStyle(PlainListStyle())
+        .defaultFocus($isSearchFieldFocused, true, priority: .userInitiated)
+        #endif
     }
 }
+
+// MARK: - Native UITextField for Mac Catalyst Tab navigation
+#if targetEnvironment(macCatalyst)
+/// SwiftUI's TextField inside a hosting-view hierarchy is not reachable via
+/// the Tab key on Mac Catalyst. This thin UIViewRepresentable wraps a real
+/// UITextField so UIKit's keyboard-navigation system can find it directly.
+struct CatalystSearchField: UIViewRepresentable {
+    @ObservedObject var searchTextWrapper: SearchTextObservable
+    let placeholder: String
+    @Binding var isSearching: Bool
+    var focused: FocusState<Bool>.Binding?
+
+    func makeUIView(context: Context) -> UITextField {
+        let tf = UITextField()
+        tf.placeholder = placeholder
+        tf.borderStyle = .roundedRect
+        tf.font = .systemFont(ofSize: 16)
+        tf.clearButtonMode = .whileEditing
+        tf.returnKeyType = .search
+        tf.autocorrectionType = .no
+        tf.delegate = context.coordinator
+        tf.addTarget(context.coordinator,
+                     action: #selector(Coordinator.textChanged(_:)),
+                     for: .editingChanged)
+        return tf
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        if uiView.text != searchTextWrapper.searchText {
+            uiView.text = searchTextWrapper.searchText
+        }
+        if let focused, focused.wrappedValue, !uiView.isFirstResponder {
+            uiView.becomeFirstResponder()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UITextFieldDelegate {
+        var parent: CatalystSearchField
+        init(_ parent: CatalystSearchField) { self.parent = parent }
+
+        @objc func textChanged(_ tf: UITextField) {
+            let text = tf.text ?? ""
+            parent.searchTextWrapper.searchText = text
+            parent.isSearching = !text.isEmpty
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            parent.focused?.wrappedValue = true
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            parent.focused?.wrappedValue = false
+            if (textField.text ?? "").isEmpty {
+                parent.isSearching = false
+            }
+        }
+
+        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+            textField.resignFirstResponder()
+            return true
+        }
+    }
+}
+#endif
 
 #if DEBUG
 struct MoviesList_Previews : PreviewProvider {

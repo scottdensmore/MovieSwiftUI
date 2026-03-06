@@ -133,19 +133,26 @@ struct DiscoverView: ConnectedView {
                     .animation(.spring(), value: self.draggedViewState.translation)
                 
                 
-                Circle()
-                    .strokeBorder(Color.red, lineWidth: 1)
-                    .background(Image(systemName: "xmark").foregroundColor(.red))
+                Button(action: {
+                    self.hapticFeedback.impactOccurred(intensity: 0.5)
+                    self.previousMovie = props.currentMovie!.id
+                    props.dispatch(MoviesActions.PopRandromDiscover())
+                    self.fetchRandomMovies(props: props, force: false, filter: props.filter)
+                }, label: {
+                    ZStack {
+                        Circle()
+                            .strokeBorder(Color.red, lineWidth: 1)
+                        Image(systemName: "xmark")
+                            .foregroundColor(.red)
+                    }
                     .frame(width: 50, height: 50)
+                    .padding(12)
+                    .contentShape(Rectangle())
+                })
+                    .buttonStyle(PlainButtonStyle())
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
-                    .onTapGesture {
-                        self.hapticFeedback.impactOccurred(intensity: 0.5)
-                        self.previousMovie = props.currentMovie!.id
-                        props.dispatch(MoviesActions.PopRandromDiscover())
-                        self.fetchRandomMovies(props: props, force: false, filter: props.filter)
-                }
                 
                 Button(action: {
                     props.dispatch(MoviesActions.PushRandomDiscover(movie: self.previousMovie!))
@@ -168,6 +175,24 @@ struct DiscoverView: ConnectedView {
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
+            }
+        }
+    }
+    
+    private func swipeHintView(props: Props) -> some View {
+        Group {
+            if props.currentMovie != nil {
+                Text("Swipe left to add to wishlist. Swipe right to add to seenlist.")
+                    .font(.footnote)
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.45))
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    )
             }
         }
     }
@@ -240,6 +265,9 @@ struct DiscoverView: ConnectedView {
                               y: reader.frame(in: .local).minY + reader.safeAreaInsets.top + 10)
                     .frame(height: 50)
                     .sheet(isPresented: self.$isFilterFormPresented, content: { DiscoverFilterForm().environmentObject(store) })
+                self.swipeHintView(props: props)
+                    .position(x: reader.frame(in: .local).midX,
+                              y: reader.frame(in: .local).maxY - reader.safeAreaInsets.bottom - self.bottomSafeInsetFix - 85)
                 self.actionsButtons(props: props)
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).maxY - reader.safeAreaInsets.bottom - self.bottomSafeInsetFix)

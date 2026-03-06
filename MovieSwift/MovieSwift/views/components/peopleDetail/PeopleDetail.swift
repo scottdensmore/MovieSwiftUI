@@ -30,6 +30,12 @@ struct PeopleDetail: ConnectedView {
     @State var selectedPoster: ImageData?
     @State var isFanScoreUpdated = false
     
+    private func fetchPeopleData(props: Props) {
+        props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
+        props.dispatch(PeopleActions.FetchImages(people: self.peopleId))
+        props.dispatch(PeopleActions.FetchPeopleCredits(people: self.peopleId))
+    }
+    
     //MARK: - Views
     private func toggleScoreUpdate() {
         withAnimation {
@@ -141,9 +147,12 @@ struct PeopleDetail: ConnectedView {
         .navigationBarItems(trailing: barbuttons(props: props))
         .navigationBarTitle(props.people.name)
         .onAppear {
-            props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
-            props.dispatch(PeopleActions.FetchImages(people: self.peopleId))
-            props.dispatch(PeopleActions.FetchPeopleCredits(people: self.peopleId))
+            self.fetchPeopleData(props: props)
+        }
+        .onChange(of: self.peopleId) { _, _ in
+            self.selectedPoster = nil
+            self.isFanScoreUpdated = false
+            self.fetchPeopleData(props: props)
         }
     }
 }

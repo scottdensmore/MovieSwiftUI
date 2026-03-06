@@ -19,6 +19,8 @@ struct SettingsForm : View {
 
     @State var selectedRegionCode: String = AppUserDefaults.region
     @State var alwaysOriginalTitle: Bool = false
+    var embedInNavigationStack = true
+    var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
@@ -107,60 +109,79 @@ struct SettingsForm : View {
         .background(.ultraThinMaterial)
     }
     
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Region preferences"),
-                        footer: Text("Region is used to display a more accurate movies list"),
-                        content: {
-                        Toggle(isOn: $alwaysOriginalTitle) {
-                            Text("Always show original title")
-                        }
-                        Picker(selection: $selectedRegionCode,
-                               label: Text("Region"),
-                               content: {
-                                ForEach(regions) { region in
-                                    Text(region.name).tag(region.code)
-                                }
-                        })
-                })
-                Section(header: Text("App data"), footer: Text("None of those action are working yet ;)"), content: {
-                    Text("Export my data")
-                    Text("Backup to iCloud")
-                    Text("Restore from iCloud")
-                    Text("Reset application data").foregroundColor(.red)
-                })
-                
-                Section(header: Text("Debug info")) {
-                    debugInfoView(title: "Movies in state",
-                                  info: "\(store.state.moviesState.movies.count)")
-                    debugInfoView(title: "Archived state size",
-                                  info: "\(store.state.sizeOfArchivedState())")
+    private var formContent: some View {
+        Form {
+            Section(header: Text("Region preferences"),
+                    footer: Text("Region is used to display a more accurate movies list"),
+                    content: {
+                    Toggle(isOn: $alwaysOriginalTitle) {
+                        Text("Always show original title")
+                    }
+                    Picker(selection: $selectedRegionCode,
+                           label: Text("Region"),
+                           content: {
+                            ForEach(regions) { region in
+                                Text(region.name).tag(region.code)
+                            }
+                    })
+            })
+            Section(header: Text("App data"), footer: Text("None of those action are working yet ;)"), content: {
+                Text("Export my data")
+                Text("Backup to iCloud")
+                Text("Restore from iCloud")
+                Text("Reset application data").foregroundColor(.red)
+            })
+            
+            Section(header: Text("Debug info")) {
+                debugInfoView(title: "Movies in state",
+                              info: "\(store.state.moviesState.movies.count)")
+                debugInfoView(title: "Archived state size",
+                              info: "\(store.state.sizeOfArchivedState())")
 
+            }
+        }
+        .onAppear(perform: loadCurrentPreferences)
+            .onChange(of: selectedRegionCode) { _, _ in
+                if !isModalPresentation {
+                    savePreferences()
                 }
+            }
+            .onChange(of: alwaysOriginalTitle) { _, _ in
+                if !isModalPresentation {
+                    savePreferences()
                 }
-            .onAppear(perform: loadCurrentPreferences)
-                .onChange(of: selectedRegionCode) { _, _ in
-                    if !isModalPresentation {
-                        savePreferences()
-                    }
+            }
+            .tint(.steam_gold)
+            .scrollContentBackground(.hidden)
+            .background(Color.steam_background)
+            .safeAreaInset(edge: .bottom) {
+                if isModalPresentation {
+                    actionBar
                 }
-                .onChange(of: alwaysOriginalTitle) { _, _ in
-                    if !isModalPresentation {
-                        savePreferences()
-                    }
-                }
+            }
+            .safeAreaPadding(.horizontal, isModalPresentation ? 0 : 12)
+    }
+    
+    @ViewBuilder
+    private var screen: some View {
+        if showNavigationTitle {
+            formContent
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
-                .tint(.steam_gold)
-                .scrollContentBackground(.hidden)
-                .background(Color.steam_background)
-                .safeAreaInset(edge: .bottom) {
-                    if isModalPresentation {
-                        actionBar
-                    }
+        } else {
+            formContent
+        }
+    }
+    
+    var body: some View {
+        Group {
+            if embedInNavigationStack {
+                NavigationStack {
+                    screen
                 }
-                .safeAreaPadding(.horizontal, isModalPresentation ? 0 : 12)
+            } else {
+                screen
+            }
         }
         .background(Color.steam_background.ignoresSafeArea())
     }

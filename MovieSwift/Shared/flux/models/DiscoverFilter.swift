@@ -46,8 +46,8 @@ struct DiscoverFilter: Codable {
     func toParams() -> [String: String] {
         var params: [String: String] = [:]
         if let startYear = startYear, let endYear = endYear {
-            params["primary_release_date.gte"] = "\(startYear)"
-            params["primary_release_date.lte"] = "\(endYear)"
+            params["primary_release_date.gte"] = "\(startYear)-01-01"
+            params["primary_release_date.lte"] = "\(endYear)-12-31"
         } else {
             params["year"] = "\(year)"
         }
@@ -56,6 +56,8 @@ struct DiscoverFilter: Codable {
         }
         if let region = region {
             params["region"] = region
+            // Restrict to movies originating from the selected country.
+            params["with_origin_country"] = region
         }
         params["page"] = "\(DiscoverFilter.randomPage())"
         params["sort_by"] = sort

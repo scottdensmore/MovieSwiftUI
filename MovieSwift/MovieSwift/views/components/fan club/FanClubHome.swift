@@ -16,8 +16,12 @@ struct FanClubHome: ConnectedView {
         let dispatch: DispatchFunction
     }
     
+    var embedInNavigationStack = true
+    var showNavigationTitle = true
     @State private var currentPage = 1
-    @State private var selectedPeopleId: Int? = nil
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedPeopleId: Int?
+    #endif
     
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
         Props(peoples: state.peoplesState.fanClub.map{ $0 }.sorted(),
@@ -30,47 +34,72 @@ struct FanClubHome: ConnectedView {
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
         #if targetEnvironment(macCatalyst)
-        NavigationLink(destination: PeopleDetail(peopleId: people)) {
-            PeopleRow(peopleId: people, isSelected: selectedPeopleId == people)
-        }
-        .simultaneousGesture(TapGesture().onEnded {
-            self.selectedPeopleId = people
-        })
-        #else
-        NavigationLink(destination: PeopleDetail(peopleId: people)) {
+        Button(action: { selectedPeopleId = people }) {
             PeopleRow(peopleId: people)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(SoftSelectionButtonStyle())
+        .focusable(false)
+        #else
+        NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
+            PeopleRow(peopleId: people)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(SoftSelectionButtonStyle())
+        #endif
+    }
+    
+    private func listView(props: Props) -> some View {
+        List {
+            Section {
+                ForEach(props.peoples, id: \.self) { people in
+                    peopleNavigationLink(people: people)
+                }.onDelete(perform: { index in
+                    props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
+                })
+            }
+        
+            Section(header: Text("Popular people to add to your Fan Club")) {
+                ForEach(props.popular, id: \.self) { people in
+                    peopleNavigationLink(people: people)
+                }
+            }
+            
+            if !props.popular.isEmpty {
+                Rectangle()
+                    .foregroundColor(.clear)
+                    .onAppear {
+                        self.currentPage += 1
+                        props.dispatch(PeopleActions.FetchPopular(page: self.currentPage))
+                }
+            }
+        }
+        .animation(.spring(), value: props.peoples.count + props.popular.count)
+        #if targetEnvironment(macCatalyst)
+        .navigationDestination(item: $selectedPeopleId) { id in
+            PeopleDetail(peopleId: id)
         }
         #endif
     }
     
+    @ViewBuilder
+    private func screen(props: Props) -> some View {
+        if showNavigationTitle {
+            listView(props: props).navigationTitle("Fan Club")
+        } else {
+            listView(props: props)
+        }
+    }
+    
     func body(props: Props) -> some View {
-        NavigationView {
-            List {
-                Section {
-                    ForEach(props.peoples, id: \.self) { people in
-                        peopleNavigationLink(people: people)
-                    }.onDelete(perform: { index in
-                        props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
-                    })
+        Group {
+            if embedInNavigationStack {
+                NavigationStack {
+                    screen(props: props)
                 }
-            
-                Section(header: Text("Popular people to add to your Fan Club")) {
-                    ForEach(props.popular, id: \.self) { people in
-                        peopleNavigationLink(people: people)
-                    }
-                }
-                
-                if !props.popular.isEmpty {
-                    Rectangle()
-                        .foregroundColor(.clear)
-                        .onAppear {
-                            self.currentPage += 1
-                            props.dispatch(PeopleActions.FetchPopular(page: self.currentPage))
-                    }
-                }
+            } else {
+                screen(props: props)
             }
-            .navigationBarTitle("Fan Club")
-            .animation(.spring(), value: props.peoples.count + props.popular.count)
         }
         .onAppear {
             if self.currentPage == 1{

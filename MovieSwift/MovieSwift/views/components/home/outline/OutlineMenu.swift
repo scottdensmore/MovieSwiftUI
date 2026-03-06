@@ -27,7 +27,7 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .genres:     return "Genres"
         case .fanClub:    return "Fan Club"
         case .discover:   return "Discover"
-        case .myLists:    return "MyLists"
+        case .myLists:    return "My Lists"
         case .settings:   return "Settings"
         }
     }
@@ -47,12 +47,53 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         }
     }
     
+    private func detailRoot<Content: View>(title: String,
+                                           @ViewBuilder content: () -> Content) -> some View {
+        NavigationStack {
+            content()
+                .navigationTitle(title)
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    
     private func moviesList(menu: MoviesMenu) -> some View {
-        NavigationView {
+        detailRoot(title: menu.title()) {
             MoviesHomeList(menu: .constant(menu),
                            pageListener: MoviesMenuListPageListener(menu: menu))
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    private var genresList: some View {
+        detailRoot(title: "Genres") {
+            GenresList()
+        }
+    }
+    
+    private var discoverList: some View {
+        detailRoot(title: "Discover") {
+            DiscoverView()
+        }
+    }
+    
+    private var fanClubList: some View {
+        detailRoot(title: "Fan Club") {
+            FanClubHome(embedInNavigationStack: false,
+                        showNavigationTitle: false)
+        }
+    }
+    
+    private var myListsList: some View {
+        detailRoot(title: "My Lists") {
+            MyLists(embedInNavigationStack: false,
+                    showNavigationTitle: false)
+        }
+    }
+    
+    private var settingsList: some View {
+        detailRoot(title: "Settings") {
+            SettingsForm(embedInNavigationStack: false,
+                         showNavigationTitle: false)
+        }
     }
     
     @ViewBuilder
@@ -63,13 +104,11 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .upcoming:   moviesList(menu: .upcoming)
         case .nowPlaying: moviesList(menu: .nowPlaying)
         case .trending:   moviesList(menu: .trending)
-        case .genres:
-            NavigationView { GenresList() }
-                .navigationViewStyle(StackNavigationViewStyle())
-        case .fanClub:    FanClubHome()
-        case .discover:   DiscoverView()
-        case .myLists:    MyLists()
-        case .settings:   SettingsForm()
+        case .genres:     genresList
+        case .fanClub:    fanClubList
+        case .discover:   discoverList
+        case .myLists:    myListsList
+        case .settings:   settingsList
         }
     }
 }
