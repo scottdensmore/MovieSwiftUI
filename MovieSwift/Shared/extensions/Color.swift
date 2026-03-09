@@ -76,3 +76,26 @@ struct SoftSelectionButtonStyle: ButtonStyle {
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
+
+#if targetEnvironment(macCatalyst)
+/// Replaces SwiftUI's default blue focus ring with a sidebar-style
+/// rounded-rectangle highlight on Mac Catalyst.
+struct CatalystFocusHighlight: ViewModifier {
+    @Environment(\.isFocused) private var isFocused
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isFocused ? Color.accentColor.opacity(0.25) : .clear)
+            )
+            .focusEffectDisabled()
+    }
+}
+
+extension View {
+    func catalystFocusHighlight() -> some View {
+        self.modifier(CatalystFocusHighlight())
+    }
+}
+#endif

@@ -23,7 +23,7 @@ struct GenresList: View {
                     Text(genre.name)
                 }
                 .buttonStyle(.plain)
-                .focusable(false)
+                .focusable()
                 #else
                 NavigationLink(destination: MoviesGenreList(genre: genre)) {
                     Text(genre.name)

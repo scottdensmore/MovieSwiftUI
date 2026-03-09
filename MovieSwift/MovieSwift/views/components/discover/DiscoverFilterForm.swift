@@ -233,7 +233,7 @@ struct DiscoverFilterForm : View {
                     self.store.dispatch(action: MoviesActions.FetchGenres())
                 }
             }
-            .onChange(of: self.store.state.moviesState.genres.count) { _ in
+            .onChange(of: self.store.state.moviesState.genres.count) {
                 self.syncSelectionsFromCurrentFilter()
             }
         }.navigationViewStyle(StackNavigationViewStyle())

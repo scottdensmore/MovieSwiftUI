@@ -39,7 +39,7 @@ struct FanClubHome: ConnectedView {
                 .contentShape(Rectangle())
         }
         .buttonStyle(SoftSelectionButtonStyle())
-        .focusable(false)
+        .focusable()
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)

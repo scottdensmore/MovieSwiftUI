@@ -59,9 +59,11 @@ struct MoviesList: ConnectedView {
             #if targetEnvironment(macCatalyst)
             Button(action: { selectedMovieId = id }) {
                 MovieRow(movieId: id)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
-            .focusable(false)
+            .focusable()
+            .catalystFocusHighlight()
             #else
             NavigationLink(destination: MovieDetail(movieId: id)) {
                 MovieRow(movieId: id)
@@ -184,24 +186,14 @@ struct MoviesList: ConnectedView {
         #if targetEnvironment(macCatalyst)
         VStack(spacing: 0) {
             if displaySearch {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    CatalystSearchField(
-                        searchTextWrapper: searchTextWrapper,
-                        placeholder: "Search any movies or person",
-                        isSearching: $isSearching,
-                        focused: $isSearchFieldFocused
-                    )
-                    .frame(height: 36)
+                searchField
+            }
+            ScrollView {
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    listContent(props: props)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 4)
             }
-            List {
-                listContent(props: props)
-            }
-            .listStyle(PlainListStyle())
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
             }
@@ -220,72 +212,6 @@ struct MoviesList: ConnectedView {
         #endif
     }
 }
-
-// MARK: - Native UITextField for Mac Catalyst Tab navigation
-#if targetEnvironment(macCatalyst)
-/// SwiftUI's TextField inside a hosting-view hierarchy is not reachable via
-/// the Tab key on Mac Catalyst. This thin UIViewRepresentable wraps a real
-/// UITextField so UIKit's keyboard-navigation system can find it directly.
-struct CatalystSearchField: UIViewRepresentable {
-    @ObservedObject var searchTextWrapper: SearchTextObservable
-    let placeholder: String
-    @Binding var isSearching: Bool
-    var focused: FocusState<Bool>.Binding?
-
-    func makeUIView(context: Context) -> UITextField {
-        let tf = UITextField()
-        tf.placeholder = placeholder
-        tf.borderStyle = .roundedRect
-        tf.font = .systemFont(ofSize: 16)
-        tf.clearButtonMode = .whileEditing
-        tf.returnKeyType = .search
-        tf.autocorrectionType = .no
-        tf.delegate = context.coordinator
-        tf.addTarget(context.coordinator,
-                     action: #selector(Coordinator.textChanged(_:)),
-                     for: .editingChanged)
-        return tf
-    }
-
-    func updateUIView(_ uiView: UITextField, context: Context) {
-        if uiView.text != searchTextWrapper.searchText {
-            uiView.text = searchTextWrapper.searchText
-        }
-        if let focused, focused.wrappedValue, !uiView.isFirstResponder {
-            uiView.becomeFirstResponder()
-        }
-    }
-
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-
-    final class Coordinator: NSObject, UITextFieldDelegate {
-        var parent: CatalystSearchField
-        init(_ parent: CatalystSearchField) { self.parent = parent }
-
-        @objc func textChanged(_ tf: UITextField) {
-            let text = tf.text ?? ""
-            parent.searchTextWrapper.searchText = text
-            parent.isSearching = !text.isEmpty
-        }
-
-        func textFieldDidBeginEditing(_ textField: UITextField) {
-            parent.focused?.wrappedValue = true
-        }
-
-        func textFieldDidEndEditing(_ textField: UITextField) {
-            parent.focused?.wrappedValue = false
-            if (textField.text ?? "").isEmpty {
-                parent.isSearching = false
-            }
-        }
-
-        func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-            textField.resignFirstResponder()
-            return true
-        }
-    }
-}
-#endif
 
 #if DEBUG
 struct MoviesList_Previews : PreviewProvider {

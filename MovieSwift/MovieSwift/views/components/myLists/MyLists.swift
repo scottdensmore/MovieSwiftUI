@@ -61,7 +61,7 @@ struct MyLists : ConnectedView {
                     CustomListRow(list: list)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
-                .focusable(false)
+                .focusable()
                 #else
                 NavigationLink(destination: CustomListDetail(listId: list.id)) {
                     CustomListRow(list: list)
@@ -84,7 +84,7 @@ struct MyLists : ConnectedView {
                     MovieRow(movieId: id, displayListImage: false)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
-                .focusable(false)
+                .focusable()
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)
@@ -108,7 +108,7 @@ struct MyLists : ConnectedView {
                     MovieRow(movieId: id, displayListImage: false)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
-                .focusable(false)
+                .focusable()
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)
