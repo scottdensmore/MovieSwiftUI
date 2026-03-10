@@ -63,6 +63,8 @@ struct MoviesList: ConnectedView {
             }
             .buttonStyle(.plain)
             .focusable()
+            .onKeyPress(.return) { selectedMovieId = id; return .handled }
+            .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovieId = id; return .handled }
             .catalystFocusHighlight()
             #else
             NavigationLink(destination: MovieDetail(movieId: id)) {

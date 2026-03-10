@@ -62,6 +62,8 @@ struct MyLists : ConnectedView {
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
+                .onKeyPress(.return) { selectedCustomList = CustomListNav(id: list.id); return .handled }
+                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedCustomList = CustomListNav(id: list.id); return .handled }
                 #else
                 NavigationLink(destination: CustomListDetail(listId: list.id)) {
                     CustomListRow(list: list)
@@ -85,6 +87,8 @@ struct MyLists : ConnectedView {
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
+                .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
+                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)
@@ -109,6 +113,8 @@ struct MyLists : ConnectedView {
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
+                .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
+                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)

@@ -24,6 +24,8 @@ struct GenresList: View {
                 }
                 .buttonStyle(.plain)
                 .focusable()
+                .onKeyPress(.return) { selectedGenre = genre; return .handled }
+                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedGenre = genre; return .handled }
                 #else
                 NavigationLink(destination: MoviesGenreList(genre: genre)) {
                     Text(genre.name)

@@ -40,6 +40,8 @@ struct FanClubHome: ConnectedView {
         }
         .buttonStyle(SoftSelectionButtonStyle())
         .focusable()
+        .onKeyPress(.return) { selectedPeopleId = people; return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedPeopleId = people; return .handled }
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)
