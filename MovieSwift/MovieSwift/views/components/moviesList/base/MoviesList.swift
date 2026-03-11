@@ -198,6 +198,9 @@ struct MoviesList: ConnectedView {
             }
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
+                    .background {
+                        CatalystBackNavigationView { selectedMovieId = nil }
+                    }
             }
         }
         #else
@@ -214,6 +217,58 @@ struct MoviesList: ConnectedView {
         #endif
     }
 }
+
+// MARK: - Mac Catalyst detail focus & back navigation
+#if targetEnvironment(macCatalyst)
+/// A UIKit view that automatically becomes first responder when the detail
+/// view appears, keeping focus in the detail pane (not the sidebar).
+/// Handles Escape, Left Arrow, and Delete to navigate back.
+struct CatalystBackNavigationView: UIViewRepresentable {
+    var onBack: () -> Void
+
+    func makeUIView(context: Context) -> KeyHandlingView {
+        let view = KeyHandlingView()
+        view.onBack = onBack
+        return view
+    }
+
+    func updateUIView(_ uiView: KeyHandlingView, context: Context) {
+        uiView.onBack = onBack
+    }
+
+    class KeyHandlingView: UIView {
+        var onBack: (() -> Void)?
+
+        override var canBecomeFirstResponder: Bool { true }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            if window != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.becomeFirstResponder()
+                }
+            }
+        }
+
+        override var keyCommands: [UIKeyCommand]? {
+            let esc = UIKeyCommand(input: UIKeyCommand.inputEscape,
+                                   modifierFlags: [], action: #selector(handleBack))
+            esc.wantsPriorityOverSystemBehavior = true
+            let left = UIKeyCommand(input: UIKeyCommand.inputLeftArrow,
+                                    modifierFlags: [], action: #selector(handleBack))
+            left.wantsPriorityOverSystemBehavior = true
+            let del = UIKeyCommand(input: "\u{8}",
+                                   modifierFlags: [], action: #selector(handleBack))
+            del.wantsPriorityOverSystemBehavior = true
+            return [esc, left, del]
+        }
+
+        @objc private func handleBack() {
+            onBack?()
+        }
+    }
+}
+#endif
 
 #if DEBUG
 struct MoviesList_Previews : PreviewProvider {
