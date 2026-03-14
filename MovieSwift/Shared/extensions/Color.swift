@@ -81,11 +81,10 @@ struct SoftSelectionButtonStyle: ButtonStyle {
 /// Replaces SwiftUI's default blue focus ring with a sidebar-style
 /// rounded-rectangle highlight on Mac Catalyst.
 struct CatalystFocusHighlight: ViewModifier {
-    @FocusState private var isFocused: Bool
+    var isFocused: Bool
 
     func body(content: Content) -> some View {
         content
-            .focused($isFocused)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(isFocused ? Color.accentColor.opacity(0.25) : .clear)
@@ -95,8 +94,8 @@ struct CatalystFocusHighlight: ViewModifier {
 }
 
 extension View {
-    func catalystFocusHighlight() -> some View {
-        self.modifier(CatalystFocusHighlight())
+    func catalystFocusHighlight(isFocused: Bool) -> some View {
+        self.modifier(CatalystFocusHighlight(isFocused: isFocused))
     }
 }
 #endif

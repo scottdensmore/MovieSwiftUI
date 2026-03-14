@@ -33,6 +33,8 @@ struct MoviesList: ConnectedView {
     @FocusState private var isSearchFieldFocused: Bool
     #if targetEnvironment(macCatalyst)
     @State private var selectedMovieId: Int?
+    @State private var highlightedMovieId: Int?
+    @FocusState private var focusedMovieId: Int?
     #endif
     
     // MARK: - Public var
@@ -63,9 +65,10 @@ struct MoviesList: ConnectedView {
             }
             .buttonStyle(.plain)
             .focusable()
+            .focused($focusedMovieId, equals: id)
             .onKeyPress(.return) { selectedMovieId = id; return .handled }
             .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovieId = id; return .handled }
-            .catalystFocusHighlight()
+            .catalystFocusHighlight(isFocused: focusedMovieId == id || highlightedMovieId == id)
             #else
             NavigationLink(destination: MovieDetail(movieId: id)) {
                 MovieRow(movieId: id)
@@ -199,8 +202,17 @@ struct MoviesList: ConnectedView {
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
                     .background {
-                        CatalystBackNavigationView { selectedMovieId = nil }
+                        CatalystBackNavigationView {
+                            let returningId = id
+                            selectedMovieId = nil
+                            highlightedMovieId = returningId
+                        }
                     }
+            }
+            .onChange(of: focusedMovieId) { _, newValue in
+                if newValue != nil {
+                    highlightedMovieId = nil
+                }
             }
         }
         #else
