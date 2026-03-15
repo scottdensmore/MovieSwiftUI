@@ -11,7 +11,11 @@ import Backend
 
 struct MovieBackdropsRow : View {
     let backdrops: [ImageData]
-    
+
+    #if targetEnvironment(macCatalyst)
+    @FocusState private var focusedBackdropId: String?
+    #endif
+
     var body: some View {
         VStack(alignment: .leading) {
             Text("Images")
@@ -20,8 +24,20 @@ struct MovieBackdropsRow : View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(self.backdrops) { backdrop in
+                        #if targetEnvironment(macCatalyst)
                         MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.file_path,
                                                                                           size: .original))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(focusedBackdropId == backdrop.file_path ? Color.accentColor : .clear, lineWidth: 3)
+                            )
+                            .focusable()
+                            .focused($focusedBackdropId, equals: backdrop.file_path)
+                            .focusEffectDisabled()
+                        #else
+                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.file_path,
+                                                                                          size: .original))
+                        #endif
                     }
                 }.padding(.leading)
             }
