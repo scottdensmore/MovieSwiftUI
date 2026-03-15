@@ -12,7 +12,11 @@ import Backend
 struct MoviePostersRow : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
-    
+
+    #if targetEnvironment(macCatalyst)
+    @FocusState private var focusedPosterId: String?
+    #endif
+
     var body: some View {
         VStack(alignment: .leading) {
             Text("Other posters")
@@ -21,6 +25,28 @@ struct MoviePostersRow : View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 32) {
                     ForEach(self.posters) { poster in
+                        #if targetEnvironment(macCatalyst)
+                        Button {
+                            withAnimation {
+                                selectedPoster = poster
+                            }
+                        } label: {
+                            MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
+                                                                                            size: .medium),
+                                             posterSize: .medium)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(focusedPosterId == poster.file_path ? Color.accentColor : .clear, lineWidth: 3)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .focusable()
+                        .focused($focusedPosterId, equals: poster.file_path)
+                        .onKeyPress(.return) { withAnimation { selectedPoster = poster }; return .handled }
+                        .onKeyPress(characters: .init(charactersIn: " ")) { _ in withAnimation { selectedPoster = poster }; return .handled }
+                        .focusEffectDisabled()
+                        .padding(.vertical)
+                        #else
                         MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
                                                                                         size: .medium),
                                          posterSize: .medium)
@@ -30,6 +56,7 @@ struct MoviePostersRow : View {
                                 }
                         }
                         .padding(.vertical)
+                        #endif
                     }
                 }
                 .padding(.leading)
