@@ -98,4 +98,25 @@ extension View {
         self.modifier(CatalystFocusHighlight(isFocused: isFocused))
     }
 }
+
+/// A reusable wrapper that replaces NavigationLink with a focusable,
+/// keyboard-navigable Button on Mac Catalyst.
+struct CatalystFocusableLink<Label: View, ID: Hashable>: View {
+    let id: ID
+    var focusedId: FocusState<ID?>.Binding
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        Button(action: action) {
+            label()
+        }
+        .buttonStyle(.plain)
+        .focusable()
+        .focused(focusedId, equals: id)
+        .onKeyPress(.return) { action(); return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in action(); return .handled }
+        .catalystFocusHighlight(isFocused: focusedId.wrappedValue == id)
+    }
+}
 #endif

@@ -29,6 +29,13 @@ struct MovieDetail: ConnectedView {
     @State var isCreateListFormPresented = false
     @State var isAddedToListBadgePresented = false
     @State var selectedPoster: ImageData?
+
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedPeopleId: Int?
+    @State private var selectedReviewMovieId: Int?
+    @FocusState private var focusedDetailItem: Int?
+    private let reviewsSentinel = -998
+    #endif
         
     // MARK: Computed Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
@@ -113,12 +120,23 @@ struct MovieDetail: ConnectedView {
     func peopleRow(role: String, people: People?) -> some View {
         Group {
             if people != nil {
+                #if targetEnvironment(macCatalyst)
+                CatalystFocusableLink(id: people!.id, focusedId: $focusedDetailItem) {
+                    selectedPeopleId = people!.id
+                } label: {
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(role + ": ").font(.callout)
+                        Text(people!.name).font(.body).foregroundColor(.secondary)
+                    }
+                }
+                #else
                 NavigationLink(destination: PeopleDetail(peopleId: people!.id)) {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
                 }
+                #endif
             }
         }
     }
@@ -134,11 +152,21 @@ struct MovieDetail: ConnectedView {
             MovieCoverRow(movieId: movieId)
             MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
             if props.reviewsCount ?? 0 > 0 {
+                #if targetEnvironment(macCatalyst)
+                CatalystFocusableLink(id: reviewsSentinel, focusedId: $focusedDetailItem) {
+                    selectedReviewMovieId = movieId
+                } label: {
+                    Text("\(props.reviewsCount!) reviews")
+                        .foregroundColor(.steam_blue)
+                        .lineLimit(1)
+                }
+                #else
                 NavigationLink(destination: MovieReviews(movie: self.movieId)) {
                     Text("\(props.reviewsCount!) reviews")
                         .foregroundColor(.steam_blue)
                         .lineLimit(1)
                 }
+                #endif
             }
             if !props.movie.overview.isEmpty {
                 MovieOverview(movie: props.movie)
@@ -196,6 +224,14 @@ struct MovieDetail: ConnectedView {
             .disabled(selectedPoster != nil)
             .blur(radius: selectedPoster != nil ? 30 : 0)
             .scaleEffect(selectedPoster != nil ? 0.8 : 1)
+            #if targetEnvironment(macCatalyst)
+            .navigationDestination(item: $selectedPeopleId) { id in
+                PeopleDetail(peopleId: id)
+            }
+            .navigationDestination(item: $selectedReviewMovieId) { id in
+                MovieReviews(movie: id)
+            }
+            #endif
             
             NotificationBadge(text: "Added successfully",
                               color: .blue,

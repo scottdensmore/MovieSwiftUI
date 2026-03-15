@@ -24,7 +24,12 @@ struct CustomListDetail : View {
     @State private var isEditingFormPresented = false
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
-    
+
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedMovieId: Int?
+    @FocusState private var focusedMovieId: Int?
+    #endif
+
     let listId: Int
     
     private var list: CustomList {
@@ -127,10 +132,20 @@ struct CustomListDetail : View {
                     }
                 } else {
                     ForEach(movies, id: \.self) { movie in
+                        #if targetEnvironment(macCatalyst)
+                        CatalystFocusableLink(id: movie, focusedId: $focusedMovieId) {
+                            selectedMovieId = movie
+                        } label: {
+                            MovieRow(movieId: movie, displayListImage: false)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .contextMenu { MovieContextMenu(movieId: movie) }
+                        #else
                         NavigationLink(destination: MovieDetail(movieId: movie)) {
                             MovieRow(movieId: movie, displayListImage: false)
                         }
                         .buttonStyle(SoftSelectionButtonStyle())
+                        #endif
                     }.onDelete { (index) in
                         self.store.dispatch(action: MoviesActions.RemoveMovieFromCustomList(list: self.listId, movie: self.movies[index.first!]))
                     }
@@ -138,6 +153,11 @@ struct CustomListDetail : View {
             }
             
         }
+            #if targetEnvironment(macCatalyst)
+            .navigationDestination(item: $selectedMovieId) { id in
+                MovieDetail(movieId: id)
+            }
+            #endif
             .navigationTitle(isSearching ? "Add Movies" : "")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: navbarButtons)

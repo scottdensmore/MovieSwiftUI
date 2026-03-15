@@ -13,15 +13,20 @@ import UI
 
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
-    
+
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedGenre: Genre?
+    @FocusState private var focusedGenreId: Int?
+    #endif
+
     struct Props {
         let movie: Movie
     }
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(movie: state.moviesState.movies[movieId]!)
     }
-    
+
     func body(props: Props) -> some View {
         ZStack {
             MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.movie.backdrop_path ?? props.movie.poster_path,
@@ -54,14 +59,28 @@ struct MovieCoverRow : ConnectedView {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 ForEach(props.movie.genres ?? fakeGenres) { genre in
+                    #if targetEnvironment(macCatalyst)
+                    CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
+                        selectedGenre = genre
+                    } label: {
+                        RoundedBadge(text: genre.name, color: .steam_background)
+                    }
+                    .disabled(props.movie.genres == nil)
+                    #else
                     NavigationLink(destination: MoviesGenreList(genre: genre)) {
                         RoundedBadge(text: genre.name, color: .steam_background)
                     }.disabled(props.movie.genres == nil)
+                    #endif
                 }
             }
             .padding(.leading, 16)
             .redacted(reason: props.movie.genres == nil ? .placeholder : [])
         }
+        #if targetEnvironment(macCatalyst)
+        .navigationDestination(item: $selectedGenre) { genre in
+            MoviesGenreList(genre: genre)
+        }
+        #endif
     }
 }
 

@@ -26,9 +26,14 @@ struct PeopleDetail: ConnectedView {
     }
     
     let peopleId: Int
-    
+
     @State var selectedPoster: ImageData?
     @State var isFanScoreUpdated = false
+
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedMovieId: Int?
+    @FocusState private var focusedMovieId: Int?
+    #endif
     
     private func fetchPeopleData(props: Props) {
         props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
@@ -51,6 +56,18 @@ struct PeopleDetail: ConnectedView {
     private func moviesSection(props: Props, year: String) -> some View {
         Section(header: Text(year)) {
             ForEach(props.movieByYears[year]!) { meta in
+                #if targetEnvironment(macCatalyst)
+                CatalystFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
+                    selectedMovieId = meta.id
+                } label: {
+                    PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
+                        if props.isInFanClub.wrappedValue {
+                            self.toggleScoreUpdate()
+                        }
+                    })
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                #else
                 NavigationLink(destination: MovieDetail(movieId: meta.id)) {
                     PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
                         if props.isInFanClub.wrappedValue {
@@ -58,6 +75,7 @@ struct PeopleDetail: ConnectedView {
                         }
                     })
                 }
+                #endif
             }
         }
     }
@@ -140,6 +158,11 @@ struct PeopleDetail: ConnectedView {
             .blur(radius: selectedPoster != nil || isFanScoreUpdated ? 30 : 0)
             .scaleEffect(selectedPoster != nil ? 0.8 : 1)
             .animation(.interactiveSpring(), value: selectedPoster != nil || isFanScoreUpdated)
+            #if targetEnvironment(macCatalyst)
+            .navigationDestination(item: $selectedMovieId) { id in
+                MovieDetail(movieId: id)
+            }
+            #endif
             imagesCarouselView(props: props)
             scoreUpdateView(props: props)
         }

@@ -11,7 +11,12 @@ import UI
 
 struct MovieKeywords : View {
     let keywords: [Keyword]
-    
+
+    #if targetEnvironment(macCatalyst)
+    @State private var selectedKeyword: Keyword?
+    @FocusState private var focusedKeywordId: Int?
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Keywords")
@@ -19,16 +24,29 @@ struct MovieKeywords : View {
                 .padding(.leading)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(keywords) {keyword in
+                    ForEach(keywords) { keyword in
+                        #if targetEnvironment(macCatalyst)
+                        CatalystFocusableLink(id: keyword.id, focusedId: $focusedKeywordId) {
+                            selectedKeyword = keyword
+                        } label: {
+                            RoundedBadge(text: keyword.name, color: .steam_background)
+                        }
+                        #else
                         NavigationLink(destination: MovieKeywordList(keyword: keyword)) {
                             RoundedBadge(text: keyword.name, color: .steam_background)
                         }
+                        #endif
                     }
                 }.padding(.leading)
             }
         }
-            .listRowInsets(EdgeInsets())
-            .padding(.vertical)
+        .listRowInsets(EdgeInsets())
+        .padding(.vertical)
+        #if targetEnvironment(macCatalyst)
+        .navigationDestination(item: $selectedKeyword) { keyword in
+            MovieKeywordList(keyword: keyword)
+        }
+        #endif
     }
 }
 
