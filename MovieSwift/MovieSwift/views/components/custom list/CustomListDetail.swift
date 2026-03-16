@@ -26,6 +26,7 @@ struct CustomListDetail : View {
     @State private var isSortActionSheetPresented = false
 
     #if targetEnvironment(macCatalyst)
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -157,6 +158,7 @@ struct CustomListDetail : View {
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
             }
+            .onKeyPress(.escape) { dismiss(); return .handled }
             #endif
             .navigationTitle(isSearching ? "Add Movies" : "")
             .navigationBarTitleDisplayMode(.inline)

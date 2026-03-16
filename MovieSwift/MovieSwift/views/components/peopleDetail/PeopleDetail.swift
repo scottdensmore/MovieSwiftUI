@@ -31,6 +31,7 @@ struct PeopleDetail: ConnectedView {
     @State var isFanScoreUpdated = false
 
     #if targetEnvironment(macCatalyst)
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -167,6 +168,9 @@ struct PeopleDetail: ConnectedView {
             scoreUpdateView(props: props)
         }
         .animation(.spring(), value: isFanScoreUpdated)
+        #if targetEnvironment(macCatalyst)
+        .onKeyPress(.escape) { dismiss(); return .handled }
+        #endif
         .navigationBarItems(trailing: barbuttons(props: props))
         .navigationBarTitle(props.people.name)
         .onAppear {

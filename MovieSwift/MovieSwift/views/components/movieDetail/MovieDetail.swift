@@ -31,6 +31,7 @@ struct MovieDetail: ConnectedView {
     @State var selectedPoster: ImageData?
 
     #if targetEnvironment(macCatalyst)
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedPeopleId: Int?
     @State private var selectedReviewMovieId: Int?
     @FocusState private var focusedDetailItem: Int?
@@ -242,6 +243,9 @@ struct MovieDetail: ConnectedView {
                 .scaleEffect(selectedPoster != nil ? 1 : 1.2)
                 .opacity(selectedPoster != nil ? 1 : 0)
         }
+        #if targetEnvironment(macCatalyst)
+        .onKeyPress(.escape) { dismiss(); return .handled }
+        #endif
     }
     
     
