@@ -25,6 +25,8 @@ struct GenresList: View {
                 } label: {
                     Text(genre.name)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
                 }
                 #else
                 NavigationLink(destination: MoviesGenreList(genre: genre)) {
