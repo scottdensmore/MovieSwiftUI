@@ -57,9 +57,11 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
     
     private func moviesList(menu: MoviesMenu) -> some View {
-        detailRoot(title: menu.title()) {
+        let listener = MoviesMenuListPageListener(menu: menu, loadOnInit: false)
+        return detailRoot(title: menu.title()) {
             MoviesHomeList(menu: .constant(menu),
-                           pageListener: MoviesMenuListPageListener(menu: menu))
+                           pageListener: listener)
+                .onAppear { listener.loadPage() }
         }
     }
     

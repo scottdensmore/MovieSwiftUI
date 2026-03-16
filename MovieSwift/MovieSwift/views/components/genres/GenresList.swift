@@ -13,19 +13,19 @@ struct GenresList: View {
     @EnvironmentObject private var store: Store<AppState>
     #if targetEnvironment(macCatalyst)
     @State private var selectedGenre: Genre?
+    @FocusState private var focusedGenreId: Int?
     #endif
 
     var body: some View {
         List {
             ForEach(store.state.moviesState.genres) { genre in
                 #if targetEnvironment(macCatalyst)
-                Button(action: { selectedGenre = genre }) {
+                CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
+                    selectedGenre = genre
+                } label: {
                     Text(genre.name)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.plain)
-                .focusable()
-                .onKeyPress(.return) { selectedGenre = genre; return .handled }
-                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedGenre = genre; return .handled }
                 #else
                 NavigationLink(destination: MoviesGenreList(genre: genre)) {
                     Text(genre.name)

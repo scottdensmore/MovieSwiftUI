@@ -214,6 +214,16 @@ struct MoviesList: ConnectedView {
                     highlightedMovieId = nil
                 }
             }
+            .onAppear {
+                if focusedMovieId == nil, let firstMovie = movies.first {
+                    focusedMovieId = firstMovie
+                }
+            }
+            .onChange(of: movies) { _, newMovies in
+                if focusedMovieId == nil, let firstMovie = newMovies.first {
+                    focusedMovieId = firstMovie
+                }
+            }
         }
         #else
         List {
