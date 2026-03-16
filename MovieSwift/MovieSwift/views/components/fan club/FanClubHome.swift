@@ -21,6 +21,7 @@ struct FanClubHome: ConnectedView {
     @State private var currentPage = 1
     #if targetEnvironment(macCatalyst)
     @State private var selectedPeopleId: Int?
+    @FocusState private var focusedPeopleId: Int?
     #endif
     
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
@@ -34,14 +35,13 @@ struct FanClubHome: ConnectedView {
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
         #if targetEnvironment(macCatalyst)
-        Button(action: { selectedPeopleId = people }) {
+        CatalystFocusableLink(id: people, focusedId: $focusedPeopleId) {
+            selectedPeopleId = people
+        } label: {
             PeopleRow(peopleId: people)
                 .contentShape(Rectangle())
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .buttonStyle(SoftSelectionButtonStyle())
-        .focusable()
-        .onKeyPress(.return) { selectedPeopleId = people; return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedPeopleId = people; return .handled }
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)
