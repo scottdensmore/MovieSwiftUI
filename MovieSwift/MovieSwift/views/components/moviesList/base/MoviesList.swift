@@ -62,6 +62,7 @@ struct MoviesList: ConnectedView {
             Button(action: { selectedMovieId = id }) {
                 MovieRow(movieId: id)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(6)
             }
             .buttonStyle(.plain)
             .focusable()
