@@ -83,40 +83,29 @@ struct SettingsForm : View {
         close()
     }
 
-    @ViewBuilder
-    private var actionBar: some View {
-        HStack(spacing: 12) {
-            Button("Cancel") {
-                cancelAction()
+    private var originalTitlePreferenceRow: some View {
+        Button {
+            alwaysOriginalTitle.toggle()
+        } label: {
+            HStack {
+                Text("Always show original title")
+                Spacer()
+                Toggle("", isOn: $alwaysOriginalTitle)
+                    .labelsHidden()
+                    .allowsHitTesting(false)
+                    .accessibilityIdentifier("settings.alwaysOriginalTitleToggle")
             }
-            .buttonStyle(.bordered)
-            .tint(.red)
-
-            Button("Save") {
-                savePreferences()
-                if isModalPresentation {
-                    close()
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.steam_gold)
-            .foregroundColor(.black)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 12)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .background(.ultraThinMaterial)
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
     }
-    
+
     private var formContent: some View {
         Form {
             Section(header: Text("Region preferences"),
                     footer: Text("Region is used to display a more accurate movies list"),
                     content: {
-                    Toggle(isOn: $alwaysOriginalTitle) {
-                        Text("Always show original title")
-                    }
+                    originalTitlePreferenceRow
                     Picker(selection: $selectedRegionCode,
                            label: Text("Region"),
                            content: {
@@ -154,11 +143,6 @@ struct SettingsForm : View {
             .tint(.steam_gold)
             .scrollContentBackground(.hidden)
             .background(Color.steam_background)
-            .safeAreaInset(edge: .bottom) {
-                if isModalPresentation {
-                    actionBar
-                }
-            }
             .safeAreaPadding(.horizontal, isModalPresentation ? 0 : 12)
     }
     
@@ -168,6 +152,21 @@ struct SettingsForm : View {
             formContent
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    if isModalPresentation {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("Cancel", action: cancelAction)
+                                .accessibilityIdentifier("settings.cancelButton")
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Save") {
+                                savePreferences()
+                                close()
+                            }
+                            .accessibilityIdentifier("settings.saveButton")
+                        }
+                    }
+                }
         } else {
             formContent
         }

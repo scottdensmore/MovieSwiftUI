@@ -11,13 +11,21 @@ import SwiftUIFlux
 
 struct MoviesCrewList : View {
     @EnvironmentObject var store: Store<AppState>
+    @State private var navigationRoute: MoviesListNavigationRoute?
     let crew: People
 
     var body: some View {
-        MoviesList(movies: store.state.moviesState.withCrew[crew.id] ?? [], displaySearch: false)
-            .navigationBarTitle(Text(crew.name))
-            .onAppear {
-                self.store.dispatch(action: MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
+        VStack(spacing: 0) {
+            MoviesList(movies: store.state.moviesState.withCrew[crew.id] ?? [],
+                       displaySearch: false,
+                       navigationRoute: $navigationRoute)
+        }
+        .navigationBarTitle(Text(crew.name))
+        .navigationDestination(item: $navigationRoute) { route in
+            moviesListDestinationView(for: route)
+        }
+        .onAppear {
+            self.store.dispatch(action: MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
         }
     }
 }

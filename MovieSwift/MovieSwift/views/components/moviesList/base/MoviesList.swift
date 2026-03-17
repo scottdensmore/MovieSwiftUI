@@ -12,6 +12,62 @@ import Combine
 import UI
 import Backend
 
+enum MoviesListNavigationRoute: Identifiable, Hashable {
+    case movie(Int)
+    case people(Int)
+    case keyword(Keyword)
+
+    var id: String {
+        switch self {
+        case .movie(let id):
+            return "movie-\(id)"
+        case .people(let id):
+            return "people-\(id)"
+        case .keyword(let keyword):
+            return "keyword-\(keyword.id)"
+        }
+    }
+
+    static func == (lhs: MoviesListNavigationRoute, rhs: MoviesListNavigationRoute) -> Bool {
+        switch (lhs, rhs) {
+        case let (.movie(lhsId), .movie(rhsId)):
+            return lhsId == rhsId
+        case let (.people(lhsId), .people(rhsId)):
+            return lhsId == rhsId
+        case let (.keyword(lhsKeyword), .keyword(rhsKeyword)):
+            return lhsKeyword.id == rhsKeyword.id
+        default:
+            return false
+        }
+    }
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
+        case .movie(let id):
+            hasher.combine(0)
+            hasher.combine(id)
+        case .people(let id):
+            hasher.combine(1)
+            hasher.combine(id)
+        case .keyword(let keyword):
+            hasher.combine(2)
+            hasher.combine(keyword.id)
+        }
+    }
+}
+
+@ViewBuilder
+func moviesListDestinationView(for route: MoviesListNavigationRoute) -> some View {
+    switch route {
+    case .movie(let id):
+        MovieDetail(movieId: id)
+    case .people(let id):
+        PeopleDetail(peopleId: id)
+    case .keyword(let keyword):
+        MovieKeywordList(keyword: keyword)
+    }
+}
+
 // MARK: - Movies List
 struct MoviesList: ConnectedView {
     struct Props {
@@ -20,7 +76,7 @@ struct MoviesList: ConnectedView {
         let searcherdPeoples: [Int]?
         let recentSearches: [String]
     }
-    
+
     enum SearchFilter: Int {
         case movies, peoples
     }
@@ -32,7 +88,6 @@ struct MoviesList: ConnectedView {
     @State private var isSearching = false
     @FocusState private var isSearchFieldFocused: Bool
     #if targetEnvironment(macCatalyst)
-    @State private var selectedMovieId: Int?
     @State private var highlightedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -41,6 +96,7 @@ struct MoviesList: ConnectedView {
     let movies: [Int]
     let displaySearch: Bool
     var pageListener: MoviesPagesListener?
+    @Binding var navigationRoute: MoviesListNavigationRoute?
     
     // MARK: - Private var
     // MARK: - Computed Props
@@ -58,22 +114,21 @@ struct MoviesList: ConnectedView {
     private func moviesRows(props: Props) -> some View {
         let movieIds = isSearching ? props.searchedMovies ?? [] : movies
         return ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
-            #if targetEnvironment(macCatalyst)
-            Button(action: { selectedMovieId = id }) {
+            Button(action: { navigationRoute = .movie(id) }) {
                 MovieRow(movieId: id)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if targetEnvironment(macCatalyst)
                     .padding(6)
+                    #endif
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("moviesList.movie.\(id)")
+            #if targetEnvironment(macCatalyst)
             .focusable()
             .focused($focusedMovieId, equals: id)
-            .onKeyPress(.return) { selectedMovieId = id; return .handled }
-            .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovieId = id; return .handled }
+            .onKeyPress(.return) { navigationRoute = .movie(id); return .handled }
+            .onKeyPress(characters: .init(charactersIn: " ")) { _ in navigationRoute = .movie(id); return .handled }
             .catalystFocusHighlight(isFocused: focusedMovieId == id || highlightedMovieId == id)
-            #else
-            NavigationLink(destination: MovieDetail(movieId: id)) {
-                MovieRow(movieId: id)
-            }
             #endif
         }
     }
@@ -112,9 +167,11 @@ struct MoviesList: ConnectedView {
                 Text("No results")
             } else {
                 ForEach(props.searcherdPeoples ?? [], id: \.self) { id in
-                    NavigationLink(destination: PeopleDetail(peopleId: id)) {
+                    Button(action: { navigationRoute = .people(id) }) {
                         PeopleRow(peopleId: id)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .buttonStyle(.plain)
                     .contextMenu { PeopleContextMenu(people: id) }
                 }
             }
@@ -124,9 +181,11 @@ struct MoviesList: ConnectedView {
     private func keywordsSection(props: Props) -> some View {
         Section(header: Text("Keywords")) {
             ForEach(props.searchedKeywords ?? []) {keyword in
-                NavigationLink(destination: MovieKeywordList(keyword: keyword)) {
+                Button(action: { navigationRoute = .keyword(keyword) }) {
                     Text(keyword.name)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -189,55 +248,49 @@ struct MoviesList: ConnectedView {
 
     // MARK: - Body
     func body(props: Props) -> some View {
-        #if targetEnvironment(macCatalyst)
-        VStack(spacing: 0) {
-            if displaySearch {
-                searchField
-            }
-            ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    listContent(props: props)
-                }
-                .padding(.horizontal, 4)
-            }
-            .navigationDestination(item: $selectedMovieId) { id in
-                MovieDetail(movieId: id)
-                    .background {
-                        CatalystBackNavigationView {
-                            let returningId = id
-                            selectedMovieId = nil
-                            highlightedMovieId = returningId
-                        }
-                    }
-            }
-            .onChange(of: focusedMovieId) { _, newValue in
-                if newValue != nil {
-                    highlightedMovieId = nil
-                }
-            }
-            .onAppear {
-                if focusedMovieId == nil, let firstMovie = movies.first {
-                    focusedMovieId = firstMovie
-                }
-            }
-            .onChange(of: movies) { _, newMovies in
-                if focusedMovieId == nil, let firstMovie = newMovies.first {
-                    focusedMovieId = firstMovie
-                }
-            }
-        }
-        #else
-        List {
-            if displaySearch {
-                Section {
+        ZStack {
+            #if targetEnvironment(macCatalyst)
+            VStack(spacing: 0) {
+                if displaySearch {
                     searchField
                 }
+                ScrollView {
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        listContent(props: props)
+                    }
+                    .padding(.horizontal, 4)
+                }
+                .onChange(of: focusedMovieId) { _, newValue in
+                    if newValue != nil {
+                        highlightedMovieId = nil
+                    }
+                }
+                .onAppear {
+                    if focusedMovieId == nil, let firstMovie = movies.first {
+                        focusedMovieId = firstMovie
+                    }
+                }
+                .onChange(of: movies) { _, newMovies in
+                    if focusedMovieId == nil, let firstMovie = newMovies.first {
+                        focusedMovieId = firstMovie
+                    }
+                }
             }
-            listContent(props: props)
+            #else
+            VStack(spacing: 0) {
+                List {
+                    if displaySearch {
+                        Section {
+                            searchField
+                        }
+                    }
+                    listContent(props: props)
+                }
+                .listStyle(PlainListStyle())
+                .defaultFocus($isSearchFieldFocused, true, priority: .userInitiated)
+            }
+            #endif
         }
-        .listStyle(PlainListStyle())
-        .defaultFocus($isSearchFieldFocused, true, priority: .userInitiated)
-        #endif
     }
 }
 
@@ -296,7 +349,10 @@ struct CatalystBackNavigationView: UIViewRepresentable {
 #if DEBUG
 struct MoviesList_Previews : PreviewProvider {
     static var previews: some View {
-        MoviesList(movies: [sampleMovie.id], displaySearch: true).environmentObject(sampleStore)
+        MoviesList(movies: [sampleMovie.id],
+                   displaySearch: true,
+                   navigationRoute: .constant(nil))
+            .environmentObject(sampleStore)
     }
 }
 #endif

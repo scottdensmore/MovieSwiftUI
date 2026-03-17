@@ -57,11 +57,8 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
     
     private func moviesList(menu: MoviesMenu) -> some View {
-        let listener = MoviesMenuListPageListener(menu: menu, loadOnInit: false)
         return detailRoot(title: menu.title()) {
-            MoviesHomeList(menu: .constant(menu),
-                           pageListener: listener)
-                .onAppear { listener.loadPage() }
+            OutlineMoviesMenuList(menu: menu)
         }
     }
     
@@ -112,5 +109,30 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .myLists:    myListsList
         case .settings:   settingsList
         }
+    }
+}
+
+private struct OutlineMoviesMenuList: View {
+    let menu: MoviesMenu
+    private let listener: MoviesMenuListPageListener
+    @State private var navigationRoute: MoviesListNavigationRoute?
+
+    init(menu: MoviesMenu) {
+        self.menu = menu
+        self.listener = MoviesMenuListPageListener(menu: menu, loadOnInit: false)
+    }
+
+    var body: some View {
+        MoviesHomeList(menu: .constant(menu),
+                       navigationRoute: $navigationRoute,
+                       pageListener: listener)
+            .navigationDestination(item: $navigationRoute) { route in
+                moviesListDestinationView(for: route)
+            }
+            .onAppear {
+                if !isRunningUISmokeTests {
+                    listener.loadPage()
+                }
+            }
     }
 }

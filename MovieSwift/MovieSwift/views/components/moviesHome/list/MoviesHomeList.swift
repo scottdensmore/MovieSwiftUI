@@ -16,6 +16,7 @@ struct MoviesHomeList: ConnectedView {
     }
     
     @Binding var menu: MoviesMenu
+    let navigationRoute: Binding<MoviesListNavigationRoute?>
     
     let pageListener: MoviesMenuListPageListener
 
@@ -24,9 +25,12 @@ struct MoviesHomeList: ConnectedView {
     }
     
     func body(props: Props) -> some View {
-        MoviesList(movies: props.movies,
-                   displaySearch: true,
-                   pageListener: pageListener)
+        VStack(spacing: 0) {
+            MoviesList(movies: props.movies,
+                       displaySearch: true,
+                       pageListener: pageListener,
+                       navigationRoute: navigationRoute)
+        }
     }
 }
 
@@ -35,6 +39,7 @@ struct MoviesHomeList_Previews : PreviewProvider {
     static var previews: some View {
         NavigationView {
             MoviesHomeList(menu: .constant(.popular),
+                           navigationRoute: .constant(nil),
                            pageListener: MoviesMenuListPageListener(menu: .popular))
                 .environmentObject(sampleStore)
         }

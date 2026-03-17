@@ -29,11 +29,12 @@ struct MovieDetail: ConnectedView {
     @State var isCreateListFormPresented = false
     @State var isAddedToListBadgePresented = false
     @State var selectedPoster: ImageData?
+    @State private var selectedPeopleId: Int?
+    @State private var selectedReviewMovieId: Int?
+    @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedPeopleId: Int?
-    @State private var selectedReviewMovieId: Int?
     @FocusState private var focusedDetailItem: Int?
     private let reviewsSentinel = -998
     #endif
@@ -67,6 +68,9 @@ struct MovieDetail: ConnectedView {
     
     // MARK: - Fetch
     func fetchMovieDetails() {
+        if isRunningUISmokeTests {
+            return
+        }
         store.dispatch(action: MoviesActions.FetchDetail(movie: movieId))
         store.dispatch(action: PeopleActions.FetchMovieCasts(movie: movieId))
         store.dispatch(action: MoviesActions.FetchRecommended(movie: movieId))
@@ -85,6 +89,16 @@ struct MovieDetail: ConnectedView {
     
     func onAddButton() {
         isAddSheetPresented.toggle()
+    }
+
+    private func selectPeople(_ id: Int) {
+        selectedPeopleId = id
+    }
+
+    private func primaryPeopleCredit(props: Props) -> People? {
+        props.credits?.first(where: {
+            ($0.department ?? "").localizedCaseInsensitiveContains("direct")
+        })
     }
     
     // MARK: - Computed views
@@ -121,22 +135,35 @@ struct MovieDetail: ConnectedView {
     func peopleRow(role: String, people: People?) -> some View {
         Group {
             if people != nil {
+                let accessibilityId = "movieDetail.topPerson.\(people!.id)"
                 #if targetEnvironment(macCatalyst)
                 CatalystFocusableLink(id: people!.id, focusedId: $focusedDetailItem) {
-                    selectedPeopleId = people!.id
+                    selectPeople(people!.id)
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
+                    .contentShape(Rectangle())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(role): \(people!.name)")
+                    .accessibilityIdentifier(accessibilityId)
                 }
                 #else
-                NavigationLink(destination: PeopleDetail(peopleId: people!.id)) {
+                Button(action: {
+                    selectPeople(people!.id)
+                }) {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
+                    .contentShape(Rectangle())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(role): \(people!.name)")
+                    .accessibilityIdentifier(accessibilityId)
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(accessibilityId)
                 #endif
             }
         }
@@ -144,14 +171,32 @@ struct MovieDetail: ConnectedView {
     
     func peopleRows(props: Props) -> some View {
         Group {
-            peopleRow(role: "Director", people: props.credits?.filter{ $0.department == "Directing" }.first)
+            peopleRow(role: "Director", people: primaryPeopleCredit(props: props))
         }
+    }
+
+    @ViewBuilder
+    func smokeTestTopPersonShortcut(props: Props) -> some View {
+        #if DEBUG
+        if isRunningUISmokeTests,
+           let people = primaryPeopleCredit(props: props) ?? props.characters?.first ?? props.credits?.first {
+            Button(action: {
+                selectPeople(people.id)
+            }) {
+                Text("Open person: \(people.name)")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("movieDetail.topPersonShortcut")
+        }
+        #endif
     }
 
     func topSection(props: Props) -> some View {
         Section {
             MovieCoverRow(movieId: movieId)
             MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
+            smokeTestTopPersonShortcut(props: props)
             if props.reviewsCount ?? 0 > 0 {
                 #if targetEnvironment(macCatalyst)
                 CatalystFocusableLink(id: reviewsSentinel, focusedId: $focusedDetailItem) {
@@ -162,12 +207,18 @@ struct MovieDetail: ConnectedView {
                         .lineLimit(1)
                 }
                 #else
-                NavigationLink(destination: MovieReviews(movie: self.movieId)) {
+                Button(action: {
+                    selectedReviewMovieId = movieId
+                }) {
                     Text("\(props.reviewsCount!) reviews")
                         .foregroundColor(.steam_blue)
                         .lineLimit(1)
                 }
+                .buttonStyle(.plain)
                 #endif
+            }
+            if props.credits?.isEmpty == false {
+                peopleRows(props: props)
             }
             if !props.movie.overview.isEmpty {
                 MovieOverview(movie: props.movie)
@@ -185,15 +236,18 @@ struct MovieDetail: ConnectedView {
                                         peoples: props.characters ?? [])
             }
             if props.credits?.isEmpty == false {
-                peopleRows(props: props)
                 MovieCrosslinePeopleRow(title: "Crew",
                                         peoples: props.credits ?? [])
             }
             if props.similar?.isEmpty == false {
-                MovieCrosslineRow(title: "Similar Movies", movies: props.similar ?? [])
+                MovieCrosslineRow(title: "Similar Movies",
+                                  movies: props.similar ?? [],
+                                  navigationRoute: $selectedCrosslineRoute)
             }
             if  props.recommended?.isEmpty == false {
-                MovieCrosslineRow(title: "Recommended Movies", movies: props.recommended ?? [])
+                MovieCrosslineRow(title: "Recommended Movies",
+                                  movies: props.recommended ?? [],
+                                  navigationRoute: $selectedCrosslineRoute)
             }
             if props.movie.images?.posters?.isEmpty == false {
                 MoviePostersRow(posters: props.movie.images!.posters!.prefix(8).map{ $0 },
@@ -214,7 +268,8 @@ struct MovieDetail: ConnectedView {
             .navigationBarTitle(Text(props.movie.userTitle), displayMode: .large)
             .navigationBarItems(trailing: Button(action: onAddButton) {
                 Image(systemName: "text.badge.plus").imageScale(.large)
-            })
+            }
+            .accessibilityIdentifier("movieDetail.addToListButton"))
             .onAppear {
                 self.fetchMovieDetails()
             }
@@ -225,14 +280,6 @@ struct MovieDetail: ConnectedView {
             .disabled(selectedPoster != nil)
             .blur(radius: selectedPoster != nil ? 30 : 0)
             .scaleEffect(selectedPoster != nil ? 0.8 : 1)
-            #if targetEnvironment(macCatalyst)
-            .navigationDestination(item: $selectedPeopleId) { id in
-                PeopleDetail(peopleId: id)
-            }
-            .navigationDestination(item: $selectedReviewMovieId) { id in
-                MovieReviews(movie: id)
-            }
-            #endif
             
             NotificationBadge(text: "Added successfully",
                               color: .blue,
@@ -242,6 +289,15 @@ struct MovieDetail: ConnectedView {
                 .blur(radius: selectedPoster != nil ? 0 : 10)
                 .scaleEffect(selectedPoster != nil ? 1 : 1.2)
                 .opacity(selectedPoster != nil ? 1 : 0)
+        }
+        .navigationDestination(item: $selectedPeopleId) { id in
+            PeopleDetail(peopleId: id)
+        }
+        .navigationDestination(item: $selectedReviewMovieId) { id in
+            MovieReviews(movie: id)
+        }
+        .navigationDestination(item: $selectedCrosslineRoute) { route in
+            moviesListDestinationView(for: route)
         }
         #if targetEnvironment(macCatalyst)
         .onKeyPress(.escape) { dismiss(); return .handled }

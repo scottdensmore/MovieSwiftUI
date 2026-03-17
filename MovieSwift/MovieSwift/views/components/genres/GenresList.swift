@@ -42,7 +42,9 @@ struct GenresList: View {
         }
         #endif
         .onAppear {
-            self.store.dispatch(action: MoviesActions.FetchGenres())
+            if !isRunningUISmokeTests {
+                self.store.dispatch(action: MoviesActions.FetchGenres())
+            }
         }
     }
 }

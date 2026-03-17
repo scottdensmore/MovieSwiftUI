@@ -16,24 +16,39 @@ fileprivate let decoder = JSONDecoder()
 struct AppState: FluxState, Codable {
     var moviesState: MoviesState
     var peoplesState: PeoplesState
-    
-    
-    init() {
-        do {
-            let icloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)
-            let documentDirectory = try FileManager.default.url(for: .documentDirectory,
-                                                                in: .userDomainMask,
-                                                                appropriateFor: nil,
-                                                                create: false)
-            if let icloudDirectory = icloudDirectory {
-                try FileManager.default.startDownloadingUbiquitousItem(at: icloudDirectory)
-            }
-            
-            savePath = (icloudDirectory ?? documentDirectory).appendingPathComponent("userData")
-        } catch let error {
-            fatalError("Couldn't create save state data with error: \(error)")
+
+    private static func resolvedSavePath() throws -> URL {
+        let icloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)
+        let documentDirectory = try FileManager.default.url(for: .documentDirectory,
+                                                            in: .userDomainMask,
+                                                            appropriateFor: nil,
+                                                            create: false)
+        if let icloudDirectory = icloudDirectory {
+            try FileManager.default.startDownloadingUbiquitousItem(at: icloudDirectory)
         }
-        
+
+        return (icloudDirectory ?? documentDirectory).appendingPathComponent("userData")
+    }
+
+    private static func ensureSavePath() -> URL? {
+        if let savePath {
+            return savePath
+        }
+
+        do {
+            let path = try resolvedSavePath()
+            savePath = path
+            return path
+        } catch {
+            return nil
+        }
+    }
+
+    init() {
+        guard Self.ensureSavePath() != nil else {
+            fatalError("Couldn't create save state data")
+        }
+
         if let data = try? Data(contentsOf: savePath),
             let savedState = try? decoder.decode(AppState.self, from: data) {
             self.moviesState = savedState.moviesState
@@ -49,6 +64,9 @@ struct AppState: FluxState, Codable {
     }
     
     func archiveState() {
+        guard let resolvedSavePath = Self.ensureSavePath() else {
+            return
+        }
         let moviesState = self.moviesState
         let peoplesState = self.peoplesState
         DispatchQueue.global().async {
@@ -69,7 +87,7 @@ struct AppState: FluxState, Codable {
                 return
             }
             do {
-                try data.write(to: savePath)
+                try data.write(to: resolvedSavePath)
             } catch let error {
                 print("Error while saving app state :\(error)")
             }
@@ -78,8 +96,11 @@ struct AppState: FluxState, Codable {
     }
     
     func sizeOfArchivedState() -> String {
+        guard let resolvedSavePath = Self.ensureSavePath() else {
+            return "0 KB"
+        }
         do {
-            let resources = try savePath.resourceValues(forKeys:[.fileSizeKey])
+            let resources = try resolvedSavePath.resourceValues(forKeys:[.fileSizeKey])
             let formatter = ByteCountFormatter()
             formatter.allowedUnits = .useKB
             formatter.countStyle = .file

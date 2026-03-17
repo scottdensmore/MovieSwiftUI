@@ -21,6 +21,7 @@ final class KeywordPageListener: MoviesPagesListener {
 struct MovieKeywordList : View {
     @EnvironmentObject var store: Store<AppState>
     @State var pageListener = KeywordPageListener()
+    @State private var navigationRoute: MoviesListNavigationRoute?
     let keyword: Keyword
     
     var movies: [Int] {
@@ -28,11 +29,19 @@ struct MovieKeywordList : View {
     }
     
     var body: some View {
-        MoviesList(movies: movies, displaySearch: false, pageListener: pageListener)
-            .navigationBarTitle(Text(keyword.name.capitalized))
-            .onAppear {
-                self.pageListener.keyword = self.keyword.id
-                self.pageListener.loadPage()
+        VStack(spacing: 0) {
+            MoviesList(movies: movies,
+                       displaySearch: false,
+                       pageListener: pageListener,
+                       navigationRoute: $navigationRoute)
+        }
+        .navigationBarTitle(Text(keyword.name.capitalized))
+        .navigationDestination(item: $navigationRoute) { route in
+            moviesListDestinationView(for: route)
+        }
+        .onAppear {
+            self.pageListener.keyword = self.keyword.id
+            self.pageListener.loadPage()
         }
     }
 }

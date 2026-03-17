@@ -16,6 +16,9 @@ final class MoviesMenuListPageListener: MoviesPagesListener {
     }
     
     override func loadPage() {
+        if isRunningUISmokeTests {
+            return
+        }
         store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: currentPage))
     }
     

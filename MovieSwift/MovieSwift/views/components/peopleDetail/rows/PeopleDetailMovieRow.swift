@@ -32,11 +32,15 @@ struct PeopleDetailMovieRow : View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
+                    .accessibilityIdentifier("peopleDetail.movie.\(movieId)")
                 Text(role)
                     .foregroundColor(.secondary)
                     .font(.subheadline)
             }
-        }.contextMenu{ MovieContextMenu(movieId: movieId, onAction: onMovieContextMenu) }
+        }
+        .accessibilityIdentifier("peopleDetail.movie.\(movieId)")
+        .accessibilityElement(children: .combine)
+        .contextMenu{ MovieContextMenu(movieId: movieId, onAction: onMovieContextMenu) }
     }
 }
 

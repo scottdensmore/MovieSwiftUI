@@ -14,16 +14,18 @@ struct MovieCrosslinePeopleRow : View {
     let title: String
     let peoples: [People]
 
-    #if targetEnvironment(macCatalyst)
     @State private var selectedPeopleId: Int?
     @State private var showSeeAll = false
+    #if targetEnvironment(macCatalyst)
     @FocusState private var focusedPeopleId: Int?
     private let seeAllSentinel = -999
     #endif
 
     private var peoplesListView: some View {
         List(peoples) { cast in
-            PeopleListItem(people: cast)
+            PeopleListItem(people: cast) {
+                selectedPeopleId = cast.id
+            }
         }.navigationBarTitle(title)
     }
 
@@ -33,51 +35,44 @@ struct MovieCrosslinePeopleRow : View {
                 Text(title)
                     .titleStyle()
                     .padding(.leading)
-                #if targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: seeAllSentinel, focusedId: $focusedPeopleId) {
+                Spacer()
+                Button(action: {
                     showSeeAll = true
-                } label: {
+                }) {
                     Text("See all").foregroundColor(.steam_blue)
                 }
-                #else
-                NavigationLink(destination: peoplesListView,
-                               label: {
-                    Text("See all").foregroundColor(.steam_blue)
-                })
+                .buttonStyle(.plain)
+                #if targetEnvironment(macCatalyst)
+                .focused($focusedPeopleId, equals: seeAllSentinel)
                 #endif
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
                     ForEach(peoples) { cast in
-                        #if targetEnvironment(macCatalyst)
                         PeopleRowItem(people: cast) {
                             selectedPeopleId = cast.id
                         }
-                        #else
-                        PeopleRowItem(people: cast)
-                        #endif
                     }
                 }.padding(.leading)
             }
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
-        #if targetEnvironment(macCatalyst)
         .navigationDestination(item: $selectedPeopleId) { id in
             PeopleDetail(peopleId: id)
         }
         .navigationDestination(isPresented: $showSeeAll) {
             peoplesListView
         }
-        #endif
     }
 }
 
 struct PeopleListItem: View {
     let people: People
+    var onSelect: () -> Void
 
     var body: some View {
-        NavigationLink(destination: PeopleDetail(peopleId: people.id)) {
+        Button(action: onSelect) {
             HStack {
                 PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
                                                      size: .cast))
@@ -91,36 +86,43 @@ struct PeopleListItem: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
-            }.contextMenu{ PeopleContextMenu(people: people.id) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(people.name)
+        .accessibilityValue(people.character ?? people.department ?? "")
+        .contextMenu{ PeopleContextMenu(people: people.id) }
     }
 }
 
 struct PeopleRowItem: View {
     let people: People
+    var onSelect: () -> Void
 
     #if targetEnvironment(macCatalyst)
-    var onSelect: (() -> Void)? = nil
     @FocusState private var isFocused: Bool
     #endif
 
     var body: some View {
-        #if targetEnvironment(macCatalyst)
-        Button(action: { onSelect?() }) {
+        Button(action: onSelect) {
             peopleContent
         }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(people.name)
+        .accessibilityValue(people.character ?? people.department ?? "")
+        .accessibilityIdentifier("movieDetail.person.\(people.id)")
         .buttonStyle(.plain)
+        #if targetEnvironment(macCatalyst)
         .focusable()
         .focused($isFocused)
-        .onKeyPress(.return) { onSelect?(); return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect?(); return .handled }
+        .onKeyPress(.return) { onSelect(); return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect(); return .handled }
         .catalystFocusHighlight(isFocused: isFocused)
-        .contextMenu { PeopleContextMenu(people: people.id) }
-        #else
-        NavigationLink(destination: PeopleDetail(peopleId: people.id)) {
-            peopleContent
-        }
         #endif
+        .contextMenu { PeopleContextMenu(people: people.id) }
     }
 
     private var peopleContent: some View {

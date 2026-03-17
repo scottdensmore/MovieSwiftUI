@@ -25,6 +25,7 @@ struct MoviesHome : View {
     @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: MoviesMenu.allCases.first!)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
+    @State private var navigationRoute: MoviesListNavigationRoute?
         
     private var settingButton: some View {
         Button(action: {
@@ -34,6 +35,8 @@ struct MoviesHome : View {
                 Image(systemName: "wrench").imageScale(.medium)
             }.frame(width: 30, height: 30)
         }
+        .accessibilityLabel("Settings")
+        .accessibilityIdentifier("moviesHome.settingsButton")
     }
     
     private var swapHomeButton: some View {
@@ -44,6 +47,8 @@ struct MoviesHome : View {
                 Image(systemName: self.homeMode.icon()).imageScale(.medium)
             }.frame(width: 30, height: 30)
         }
+        .accessibilityLabel("Toggle layout")
+        .accessibilityIdentifier("moviesHome.toggleLayoutButton")
     }
     
     @ViewBuilder
@@ -55,6 +60,7 @@ struct MoviesHome : View {
                         .tag(menu)
                 } else {
                     MoviesHomeList(menu: .constant(menu),
+                                   navigationRoute: $navigationRoute,
                                    pageListener: selectedMenu.pageListener)
                         .tag(menu)
                 }
@@ -65,7 +71,7 @@ struct MoviesHome : View {
     }
     
     private var homeAsGrid: some View {
-        MoviesHomeGrid()
+        MoviesHomeGrid(navigationRoute: $navigationRoute)
     }
         
     var body: some View {
@@ -85,6 +91,9 @@ struct MoviesHome : View {
                     swapHomeButton
                     settingButton
                 }
+            }
+            .navigationDestination(item: $navigationRoute) { route in
+                moviesListDestinationView(for: route)
             }
             .fullScreenCover(isPresented: $isSettingPresented,
                              content: {

@@ -29,17 +29,28 @@ struct PeopleDetail: ConnectedView {
 
     @State var selectedPoster: ImageData?
     @State var isFanScoreUpdated = false
+    @State private var selectedMovieId: Int?
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
     
     private func fetchPeopleData(props: Props) {
+        if isRunningUISmokeTests {
+            return
+        }
         props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
         props.dispatch(PeopleActions.FetchImages(people: self.peopleId))
         props.dispatch(PeopleActions.FetchPeopleCredits(people: self.peopleId))
+    }
+
+    private func selectMovie(_ id: Int) {
+        selectedMovieId = id
+    }
+
+    private func movieAccessibilityIdentifier(_ id: Int) -> String {
+        "peopleDetail.movie.\(id)"
     }
     
     //MARK: - Views
@@ -59,7 +70,7 @@ struct PeopleDetail: ConnectedView {
             ForEach(props.movieByYears[year]!) { meta in
                 #if targetEnvironment(macCatalyst)
                 CatalystFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
-                    selectedMovieId = meta.id
+                    selectMovie(meta.id)
                 } label: {
                     PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
                         if props.isInFanClub.wrappedValue {
@@ -69,13 +80,17 @@ struct PeopleDetail: ConnectedView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 #else
-                NavigationLink(destination: MovieDetail(movieId: meta.id)) {
+                Button(action: {
+                    selectMovie(meta.id)
+                }) {
                     PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
                         if props.isInFanClub.wrappedValue {
                             self.toggleScoreUpdate()
                         }
                     })
                 }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(movieAccessibilityIdentifier(meta.id))
                 #endif
             }
         }
@@ -159,15 +174,13 @@ struct PeopleDetail: ConnectedView {
             .blur(radius: selectedPoster != nil || isFanScoreUpdated ? 30 : 0)
             .scaleEffect(selectedPoster != nil ? 0.8 : 1)
             .animation(.interactiveSpring(), value: selectedPoster != nil || isFanScoreUpdated)
-            #if targetEnvironment(macCatalyst)
-            .navigationDestination(item: $selectedMovieId) { id in
-                MovieDetail(movieId: id)
-            }
-            #endif
             imagesCarouselView(props: props)
             scoreUpdateView(props: props)
         }
         .animation(.spring(), value: isFanScoreUpdated)
+        .navigationDestination(item: $selectedMovieId) { id in
+            MovieDetail(movieId: id)
+        }
         #if targetEnvironment(macCatalyst)
         .onKeyPress(.escape) { dismiss(); return .handled }
         #endif

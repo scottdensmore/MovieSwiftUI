@@ -43,6 +43,7 @@ struct MoviesGenreList: ConnectedView {
     
     @State var isSortSheetPresented = false
     @State var selectedSort: MoviesSort = .byPopularity
+    @State private var navigationRoute: MoviesListNavigationRoute?
     
     init(genre: Genre) {
         self.genre = genre
@@ -55,28 +56,36 @@ struct MoviesGenreList: ConnectedView {
     }
     
     func body(props: Props) -> some View {
-        MoviesList(movies: props.movies, displaySearch: false, pageListener: pageListener)
-            .navigationBarItems(trailing: (
-                Button(action: {
-                    self.isSortSheetPresented.toggle()
-                }, label: {
-                    Image(systemName: "line.horizontal.3.decrease.circle")
-                        .imageScale(.large)
-                        .foregroundColor(.steam_gold)
-                })
-            ))
-            .navigationBarTitle(Text(genre.name))
-            .actionSheet(isPresented: $isSortSheetPresented,
-                         content: { ActionSheet.sortActionSheet(onAction: { sort in
-                            if let sort = sort {
-                                self.selectedSort = sort
-                                self.pageListener.sort = sort
-                            }
-                         })
+        VStack(spacing: 0) {
+            MoviesList(movies: props.movies,
+                       displaySearch: false,
+                       pageListener: pageListener,
+                       navigationRoute: $navigationRoute)
+        }
+        .navigationBarItems(trailing: (
+            Button(action: {
+                self.isSortSheetPresented.toggle()
+            }, label: {
+                Image(systemName: "line.horizontal.3.decrease.circle")
+                    .imageScale(.large)
+                    .foregroundColor(.steam_gold)
             })
-            .onAppear {
-                self.pageListener.dispatch = props.dispatch
-                self.pageListener.loadPage()
+        ))
+        .navigationBarTitle(Text(genre.name))
+        .navigationDestination(item: $navigationRoute) { route in
+            moviesListDestinationView(for: route)
+        }
+        .actionSheet(isPresented: $isSortSheetPresented,
+                     content: { ActionSheet.sortActionSheet(onAction: { sort in
+                        if let sort = sort {
+                            self.selectedSort = sort
+                            self.pageListener.sort = sort
+                        }
+                     })
+        })
+        .onAppear {
+            self.pageListener.dispatch = props.dispatch
+            self.pageListener.loadPage()
         }
     }
 }

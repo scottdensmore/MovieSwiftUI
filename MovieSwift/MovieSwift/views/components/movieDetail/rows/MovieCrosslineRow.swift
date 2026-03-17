@@ -14,10 +14,11 @@ import UI
 struct MovieCrosslineRow : View {
     let title: String
     let movies: [Movie]
+    @Binding var navigationRoute: MoviesListNavigationRoute?
 
-    #if targetEnvironment(macCatalyst)
     @State private var selectedMovieId: Int?
     @State private var showSeeAll = false
+    #if targetEnvironment(macCatalyst)
     @FocusState private var focusedId: Int?
     private let seeAllSentinel = -999
     #endif
@@ -25,7 +26,9 @@ struct MovieCrosslineRow : View {
     private var listView: some View {
         MoviesList(movies: movies.map{ $0.id },
                    displaySearch: false,
-                   pageListener: nil).navigationBarTitle(title)
+                   pageListener: nil,
+                   navigationRoute: $navigationRoute)
+            .navigationBarTitle(title)
     }
 
     var body: some View {
@@ -34,72 +37,60 @@ struct MovieCrosslineRow : View {
                 Text(title)
                     .titleStyle()
                     .padding(.leading)
-                #if targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: seeAllSentinel, focusedId: $focusedId) {
+                Spacer()
+                Button(action: {
                     showSeeAll = true
-                } label: {
+                }) {
                     Text("See all")
                         .foregroundColor(.steam_blue)
                 }
-                #else
-                NavigationLink(destination: listView) {
-                    Text("See all")
-                        .foregroundColor(.steam_blue)
-                }
+                .buttonStyle(.plain)
+                #if targetEnvironment(macCatalyst)
+                .focused($focusedId, equals: seeAllSentinel)
                 #endif
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 32) {
                     ForEach(self.movies) { movie in
-                        #if targetEnvironment(macCatalyst)
                         MovieDetailRowItem(movie: movie) {
                             selectedMovieId = movie.id
                         }
-                        #else
-                        MovieDetailRowItem(movie: movie)
-                        #endif
                     }
                 }.padding(.leading)
             }
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
-        #if targetEnvironment(macCatalyst)
         .navigationDestination(item: $selectedMovieId) { id in
             MovieDetail(movieId: id)
         }
         .navigationDestination(isPresented: $showSeeAll) {
             listView
         }
-        #endif
     }
 }
 
 struct MovieDetailRowItem: View {
     let movie: Movie
+    var onSelect: () -> Void
 
     #if targetEnvironment(macCatalyst)
-    var onSelect: (() -> Void)? = nil
     @FocusState private var isFocused: Bool
     #endif
 
     var body: some View {
-        #if targetEnvironment(macCatalyst)
-        Button(action: { onSelect?() }) {
+        Button(action: onSelect) {
             movieContent
         }
         .buttonStyle(.plain)
+        #if targetEnvironment(macCatalyst)
         .focusable()
         .focused($isFocused)
-        .onKeyPress(.return) { onSelect?(); return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect?(); return .handled }
+        .onKeyPress(.return) { onSelect(); return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect(); return .handled }
         .catalystFocusHighlight(isFocused: isFocused)
-        .contextMenu { MovieContextMenu(movieId: movie.id) }
-        #else
-        NavigationLink(destination: MovieDetail(movieId: movie.id)) {
-            movieContent
-        }.contextMenu{ MovieContextMenu(movieId: movie.id) }
         #endif
+        .contextMenu{ MovieContextMenu(movieId: movie.id) }
     }
 
     private var movieContent: some View {
@@ -124,7 +115,9 @@ struct MovieDetailRowItem: View {
 struct MovieDetailRow_Previews : PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieCrosslineRow(title: "Sample", movies: [sampleMovie, sampleMovie])
+            MovieCrosslineRow(title: "Sample",
+                              movies: [sampleMovie, sampleMovie],
+                              navigationRoute: .constant(nil))
         }
     }
 }
