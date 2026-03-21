@@ -11,8 +11,6 @@ import SwiftUI
 import SwiftUIFlux
 import AppIntents
 
-private let defaultTVAppEnvironment = appEnvironment
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -21,8 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private let store: Store<AppState>
 
     override init() {
-        self.environment = defaultTVAppEnvironment
-        self.store = defaultTVAppEnvironment.store
+        let environment = AppEnvironment.current()
+        self.environment = environment
+        self.store = environment.store
         super.init()
         environment.runtime.startArchiving(store: store)
     }

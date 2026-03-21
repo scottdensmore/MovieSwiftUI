@@ -30,17 +30,13 @@ extension EnvironmentValues {
     }
 }
 
-// MARK:- Shared View
-
-private let defaultAppEnvironment = appEnvironment
-
 @main
 struct HomeView: App {
     private let environment: AppEnvironment
     private let store: Store<AppState>
 
     init() {
-        self.init(environment: defaultAppEnvironment)
+        self.init(environment: AppEnvironment.current())
     }
 
     init(environment: AppEnvironment) {
