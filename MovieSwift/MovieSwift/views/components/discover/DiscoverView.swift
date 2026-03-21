@@ -69,7 +69,7 @@ struct DiscoverEmptyStatePresentation: Equatable {
 
 enum DiscoverEmptyStateContent {
     static func presentation(filter: DiscoverFilter?, isRunningUISmokeTests: Bool) -> DiscoverEmptyStatePresentation {
-        if filter != nil {
+        if filter?.hasExplicitConstraints == true {
             return DiscoverEmptyStatePresentation(title: "No more discover movies",
                                                  message: "Undo the last action, reset the filter, or refill this queue.",
                                                  showsRefill: !isRunningUISmokeTests)
@@ -78,6 +78,18 @@ enum DiscoverEmptyStateContent {
         return DiscoverEmptyStatePresentation(title: "No more discover movies",
                                              message: "Undo the last action or refill to keep browsing.",
                                              showsRefill: !isRunningUISmokeTests)
+    }
+}
+
+struct DiscoverRefillPlan {
+    let forceFetch: Bool
+    let filter: DiscoverFilter?
+}
+
+enum DiscoverRefillActionPlan {
+    static func plan(currentFilter: DiscoverFilter?, isRunningUISmokeTests: Bool) -> DiscoverRefillPlan? {
+        guard !isRunningUISmokeTests else { return nil }
+        return DiscoverRefillPlan(forceFetch: true, filter: currentFilter)
     }
 }
 
@@ -307,7 +319,10 @@ struct DiscoverView: ConnectedView {
                                        systemImageName: "arrow.clockwise",
                                        color: .steam_blue,
                                        isOn: false) {
-                            self.fetchRandomMovies(props: props, force: true, filter: props.filter)
+                            if let plan = DiscoverRefillActionPlan.plan(currentFilter: props.filter,
+                                                                        isRunningUISmokeTests: isRunningUISmokeTests) {
+                                self.fetchRandomMovies(props: props, force: plan.forceFetch, filter: plan.filter)
+                            }
                         }
                         .accessibilityIdentifier("discover.refillButton")
                     }

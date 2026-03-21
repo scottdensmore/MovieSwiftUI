@@ -44,6 +44,7 @@ struct FanClubHome: ConnectedView {
                 .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .accessibilityIdentifier("fanClub.person.\(people)")
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)
@@ -52,6 +53,7 @@ struct FanClubHome: ConnectedView {
                 .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(SoftSelectionButtonStyle())
+        .accessibilityIdentifier("fanClub.person.\(people)")
         #endif
     }
     

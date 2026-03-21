@@ -16,6 +16,10 @@ struct DiscoverFilter: Codable {
     let sort: String
     let genre: Int?
     let region: String?
+
+    var hasExplicitConstraints: Bool {
+        startYear != nil || endYear != nil || genre != nil || region != nil
+    }
     
     static func randomFilter() -> DiscoverFilter {
         return DiscoverFilter(year: randomYear(),

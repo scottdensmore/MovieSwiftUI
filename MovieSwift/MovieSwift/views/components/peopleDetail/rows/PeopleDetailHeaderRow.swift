@@ -19,6 +19,7 @@ struct PeopleDetailHeaderRow : View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Known for")
                     .titleStyle()
+                    .accessibilityIdentifier("peopleDetail.knownFor")
                 if people.known_for_department != nil{
                     Text(people.known_for_department!)
                 }

@@ -130,6 +130,19 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Popular people to add to your Fan Club"].exists)
     }
 
+    func testFanClubPersonOpensPeopleDetailScreen() {
+        let app = launchApp()
+        openTab("Fan Club", in: app)
+
+        let personRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
+            .firstMatch
+        XCTAssertTrue(personRow.waitForExistence(timeout: uiWaitTimeout))
+        personRow.tap()
+
+        XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
     func testMyListsTabShowsCreateAndSortControls() {
         let app = launchApp()
         openTab("My Lists", in: app)

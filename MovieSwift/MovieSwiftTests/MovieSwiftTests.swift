@@ -308,6 +308,20 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertTrue(unfiltered.message.contains("refill to keep browsing"))
     }
 
+    func testDiscoverEmptyStateContentTreatsRandomFilterAsUnfiltered() {
+        let randomFilter = DiscoverFilter(year: 1955,
+                                          startYear: nil,
+                                          endYear: nil,
+                                          sort: "popularity.desc",
+                                          genre: nil,
+                                          region: nil)
+        let presentation = DiscoverEmptyStateContent.presentation(filter: randomFilter,
+                                                                  isRunningUISmokeTests: false)
+
+        XCTAssertFalse(randomFilter.hasExplicitConstraints)
+        XCTAssertFalse(presentation.message.contains("reset the filter"))
+    }
+
     func testDiscoverEmptyStateContentHidesRefillDuringUISmokeTests() {
         let filter = DiscoverFilter(year: 1955,
                                     startYear: 1950,
@@ -317,6 +331,24 @@ final class MovieSwiftTests: XCTestCase {
                                     region: "US")
         XCTAssertFalse(DiscoverEmptyStateContent.presentation(filter: filter,
                                                               isRunningUISmokeTests: true).showsRefill)
+    }
+
+    func testDiscoverRefillActionPlanRetainsCurrentFilterOutsideUISmokeTests() {
+        let filter = DiscoverFilter(year: 1955,
+                                    startYear: 1950,
+                                    endYear: 1959,
+                                    sort: "popularity.desc",
+                                    genre: 35,
+                                    region: "US")
+        let plan = DiscoverRefillActionPlan.plan(currentFilter: filter, isRunningUISmokeTests: false)
+
+        XCTAssertEqual(plan?.forceFetch, true)
+        XCTAssertEqual(plan?.filter?.genre, 35)
+        XCTAssertEqual(plan?.filter?.region, "US")
+    }
+
+    func testDiscoverRefillActionPlanSkipsDuringUISmokeTests() {
+        XCTAssertNil(DiscoverRefillActionPlan.plan(currentFilter: nil, isRunningUISmokeTests: true))
     }
 
     func testDiscoverUndoStateOnlyShowsUndoWhenNotDraggingAndMovieExists() {
