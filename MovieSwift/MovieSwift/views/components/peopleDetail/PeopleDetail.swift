@@ -16,6 +16,40 @@ enum PeopleDetailFetchPolicy {
     }
 }
 
+enum PeopleDetailState {
+    static func people(for peopleId: Int, from state: AppState) -> People {
+        state.peoplesState.peoples[peopleId] ?? People(id: peopleId,
+                                                       name: "Unknown person",
+                                                       character: nil,
+                                                       department: nil,
+                                                       profile_path: nil,
+                                                       known_for_department: nil,
+                                                       known_for: nil,
+                                                       also_known_as: nil,
+                                                       birthDay: nil,
+                                                       deathDay: nil,
+                                                       place_of_birth: nil,
+                                                       biography: nil,
+                                                       popularity: nil,
+                                                       images: nil)
+    }
+
+    static func shouldShowBiographySection(for people: People) -> Bool {
+        let biography = people.biography?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return biography?.isEmpty == false ||
+            people.birthDay != nil ||
+            people.place_of_birth != nil ||
+            people.deathDay != nil
+    }
+
+    static func shouldShowImagesSection(for images: [ImageData]?) -> Bool {
+        guard let images else {
+            return false
+        }
+        return !images.isEmpty
+    }
+}
+
 enum PeopleDetailMovieGrouping {
     static func group(credits: [Int: String], movies: [Int: Movie]) -> [String: [PeopleDetail.MovieRole]] {
         var years: [String: [PeopleDetail.MovieRole]] = [:]
@@ -178,10 +212,7 @@ struct PeopleDetail: ConnectedView {
             List {
                 Section {
                     PeopleDetailHeaderRow(people: props.people)
-                    if props.people.birthDay != nil ||
-                        props.people.birthDay != nil ||
-                        props.people.place_of_birth != nil ||
-                        props.people.deathDay != nil {
+                    if PeopleDetailState.shouldShowBiographySection(for: props.people) {
                         PeopleDetailBiographyRow(biography: props.people.biography,
                                                  birthDate: props.people.birthDay,
                                                  deathDate: props.people.deathDay,
@@ -194,8 +225,8 @@ struct PeopleDetail: ConnectedView {
                             PopularityBadge(score: props.movieScore ?? 0)
                         }
                     }
-                    if props.people.images != nil {
-                        PeopleDetailImagesRow(images: props.people.images!, selectedPoster: $selectedPoster)
+                    if PeopleDetailState.shouldShowImagesSection(for: props.people.images) {
+                        PeopleDetailImagesRow(images: props.people.images ?? [], selectedPoster: $selectedPoster)
                     }
                 }
                 ForEach(sortedYears(props: props), id: \.self, content: { year in
@@ -266,7 +297,7 @@ extension PeopleDetail {
         }
         
         return Props(dispatch: dispatch,
-                     people: state.peoplesState.peoples[peopleId]!,
+                     people: PeopleDetailState.people(for: peopleId, from: state),
                      movieByYears: years,
                      isInFanClub: isInFanClub,
                      movieScore: movieScore)

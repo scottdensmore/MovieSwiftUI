@@ -2,6 +2,73 @@ import XCTest
 @testable import MovieSwift
 
 final class MovieSwiftTests: XCTestCase {
+    func testPeopleRowStateReturnsNilWhenPersonIsMissing() {
+        let state = AppState()
+
+        XCTAssertNil(PeopleRowState.people(for: 999, from: state))
+    }
+
+    func testFanClubStateSkipsMissingPopularPeople() {
+        var state = AppState()
+        state.peoplesState.popular = [2, 1]
+        state.peoplesState.peoples[1] = People(id: 1,
+                                               name: "Known Person",
+                                               character: nil,
+                                               department: nil,
+                                               profile_path: nil,
+                                               known_for_department: nil,
+                                               known_for: nil,
+                                               also_known_as: nil,
+                                               birthDay: nil,
+                                               deathDay: nil,
+                                               place_of_birth: nil,
+                                               biography: nil,
+                                               popularity: nil,
+                                               images: nil)
+
+        XCTAssertEqual(FanClubState.popularPeople(from: state), [1])
+    }
+
+    func testPeopleDetailBiographyStateShowsToggleOnlyForNonEmptyBiography() {
+        XCTAssertFalse(PeopleDetailBiographyState.shouldShowBiographyToggle(nil))
+        XCTAssertFalse(PeopleDetailBiographyState.shouldShowBiographyToggle("   "))
+        XCTAssertTrue(PeopleDetailBiographyState.shouldShowBiographyToggle("Biography"))
+    }
+
+    func testPeopleDetailBiographyStateUsesCorrectDeathLabel() {
+        XCTAssertEqual(PeopleDetailBiographyState.deathLabel, "Day of death")
+    }
+
+    func testPeopleDetailStateReturnsFallbackPersonWhenMissing() {
+        let state = AppState()
+
+        XCTAssertEqual(PeopleDetailState.people(for: 999, from: state).name, "Unknown person")
+    }
+
+    func testPeopleDetailStateShowsBiographySectionWhenOnlyBiographyExists() {
+        let people = People(id: 1,
+                            name: "Test Person",
+                            character: nil,
+                            department: nil,
+                            profile_path: nil,
+                            known_for_department: nil,
+                            known_for: nil,
+                            also_known_as: nil,
+                            birthDay: nil,
+                            deathDay: nil,
+                            place_of_birth: nil,
+                            biography: "Bio only",
+                            popularity: nil,
+                            images: nil)
+
+        XCTAssertTrue(PeopleDetailState.shouldShowBiographySection(for: people))
+    }
+
+    func testPeopleDetailStateHidesImagesSectionForEmptyImages() {
+        XCTAssertFalse(PeopleDetailState.shouldShowImagesSection(for: nil))
+        XCTAssertFalse(PeopleDetailState.shouldShowImagesSection(for: []))
+    }
+
     func testAppLaunchModeDetectsPreviewEnvironment() {
         XCTAssertEqual(AppLaunchMode.from(arguments: [], environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]), .preview)
     }

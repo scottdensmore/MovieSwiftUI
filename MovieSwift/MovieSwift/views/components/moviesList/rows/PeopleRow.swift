@@ -10,9 +10,15 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 
+enum PeopleRowState {
+    static func people(for peopleId: Int, from state: AppState) -> People? {
+        state.peoplesState.peoples[peopleId]
+    }
+}
+
 struct PeopleRow : ConnectedView {
     struct Props {
-        let people: People
+        let people: People?
         let isInFanClub: Bool
     }
     
@@ -20,7 +26,7 @@ struct PeopleRow : ConnectedView {
     var isSelected = false
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(people: state.peoplesState.peoples[peopleId]!,
+        Props(people: PeopleRowState.people(for: peopleId, from: state),
               isInFanClub: state.peoplesState.fanClub.contains(peopleId))
     }
     
@@ -34,19 +40,19 @@ struct PeopleRow : ConnectedView {
     
     func body(props: Props) -> some View {
         HStack {
-            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.people.profile_path, size: .cast))
+            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.people?.profile_path, size: .cast))
             VStack(alignment: .leading) {
                 HStack {
                     if props.isInFanClub {
                         fanClubIcon
                     }
-                    Text(props.people.name)
+                    Text(props.people?.name ?? "Unknown person")
                         .titleStyle()
                         .foregroundColor(.primary)
                         .lineLimit(1)
                 }
                 .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
-                Text(props.people.knownForText ?? "")
+                Text(props.people?.knownForText ?? "")
                     .foregroundColor(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)

@@ -9,6 +9,17 @@
 import SwiftUI
 import SwiftUIFlux
 
+enum PeopleDetailBiographyState {
+    static let deathLabel = "Day of death"
+
+    static func shouldShowBiographyToggle(_ biography: String?) -> Bool {
+        guard let biography else {
+            return false
+        }
+        return !biography.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
+
 struct PeopleDetailBiographyRow : View {
     let biography: String?
     let birthDate: String?
@@ -18,19 +29,19 @@ struct PeopleDetailBiographyRow : View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if biography != nil {
+            if let biography, PeopleDetailBiographyState.shouldShowBiographyToggle(biography) {
                 Text("Biography")
                     .titleStyle()
                     .lineLimit(1)
-                Text(biography!)
+                Text(biography)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(isExpanded ? 1000 : 4)
-            }
-            Button(action: {
-                self.isExpanded.toggle()
-            }) {
-                Text(isExpanded ? "Less": "Read more").foregroundColor(.steam_blue)
+                Button(action: {
+                    self.isExpanded.toggle()
+                }) {
+                    Text(isExpanded ? "Less": "Read more").foregroundColor(.steam_blue)
+                }
             }
             if birthDate != nil {
                 Text("Birthday")
@@ -51,7 +62,7 @@ struct PeopleDetailBiographyRow : View {
                     .lineLimit(1)
             }
             if deathDate != nil {
-                Text("Day of deah")
+                Text(PeopleDetailBiographyState.deathLabel)
                     .titleStyle()
                     .lineLimit(1)
                 Text(deathDate!)

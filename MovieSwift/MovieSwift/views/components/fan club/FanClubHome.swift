@@ -9,6 +9,19 @@
 import SwiftUI
 import SwiftUIFlux
 
+enum FanClubState {
+    static func fanClubPeople(from state: AppState) -> [Int] {
+        state.peoplesState.fanClub.map { $0 }.sorted()
+    }
+
+    static func popularPeople(from state: AppState) -> [Int] {
+        state.peoplesState.popular
+            .filter { !state.peoplesState.fanClub.contains($0) }
+            .filter { state.peoplesState.peoples[$0] != nil }
+            .sorted { (state.peoplesState.peoples[$0]?.name ?? "") < (state.peoplesState.peoples[$1]?.name ?? "") }
+    }
+}
+
 struct FanClubHome: ConnectedView {
     struct Props {
         let peoples: [Int]
@@ -25,10 +38,8 @@ struct FanClubHome: ConnectedView {
     #endif
     
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
-        Props(peoples: state.peoplesState.fanClub.map{ $0 }.sorted(),
-              popular: state.peoplesState.popular
-                .filter{ !state.peoplesState.fanClub.contains($0) }
-                .sorted() { state.peoplesState.peoples[$0]!.name < state.peoplesState.peoples[$1]!.name },
+        Props(peoples: FanClubState.fanClubPeople(from: state),
+              popular: FanClubState.popularPeople(from: state),
               dispatch: dispatch)
     }
     
