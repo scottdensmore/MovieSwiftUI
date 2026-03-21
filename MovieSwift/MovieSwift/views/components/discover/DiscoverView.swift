@@ -28,8 +28,42 @@ enum DiscoverSwipeDecision: Equatable {
     }
 }
 
+enum DiscoverSwipeAction: Equatable {
+    case wishlist(Int)
+    case seenlist(Int)
+}
+
+enum DiscoverSwipeActionPlan {
+    static func action(for decision: DiscoverSwipeDecision, currentMovieId: Int?) -> DiscoverSwipeAction? {
+        guard let currentMovieId else { return nil }
+        switch decision {
+        case .wishlist:
+            return .wishlist(currentMovieId)
+        case .seenlist:
+            return .seenlist(currentMovieId)
+        case .none:
+            return nil
+        }
+    }
+}
+
+enum DiscoverFetchPolicy {
+    static func shouldFetchRandomMovies(currentMovieCount: Int,
+                                        force: Bool,
+                                        isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests && (currentMovieCount < 10 || force)
+    }
+}
+
+enum DiscoverUndoState {
+    static func canUndo(previousMovie: Int?, isDragging: Bool) -> Bool {
+        previousMovie != nil && !isDragging
+    }
+}
+
 struct DiscoverView: ConnectedView {
     @EnvironmentObject private var store: Store<AppState>
+    @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
     
     // MARK: - Props
     struct Props {
@@ -88,31 +122,30 @@ struct DiscoverView: ConnectedView {
     }
     
     private func draggableCoverEndGestureHandler(props: Props, handler: DraggableCover.EndState) {
-        guard let currentMovie = props.currentMovie else {
+        guard let action = DiscoverSwipeActionPlan.action(for: DiscoverSwipeDecision.from(handler: handler),
+                                                          currentMovieId: props.currentMovie?.id) else {
             return
         }
-        switch DiscoverSwipeDecision.from(handler: handler) {
-        case .wishlist:
-            previousMovie = currentMovie.id
-            hapticFeedback.impactOccurred(intensity: 0.8)
-            props.dispatch(MoviesActions.AddToWishlist(movie: currentMovie.id))
-            props.dispatch(MoviesActions.PopRandromDiscover())
-            willEndPosition = nil
-            fetchRandomMovies(props: props, force: false, filter: props.filter)
-        case .seenlist:
-            previousMovie = currentMovie.id
-            hapticFeedback.impactOccurred(intensity: 0.8)
-            props.dispatch(MoviesActions.AddToSeenList(movie: currentMovie.id))
-            props.dispatch(MoviesActions.PopRandromDiscover())
-            willEndPosition = nil
-            fetchRandomMovies(props: props, force: false, filter: props.filter)
-        case .none:
-            return
+        let currentMovieId: Int
+        switch action {
+        case let .wishlist(movieId):
+            currentMovieId = movieId
+            props.dispatch(MoviesActions.AddToWishlist(movie: movieId))
+        case let .seenlist(movieId):
+            currentMovieId = movieId
+            props.dispatch(MoviesActions.AddToSeenList(movie: movieId))
         }
+        previousMovie = currentMovieId
+        hapticFeedback.impactOccurred(intensity: 0.8)
+        props.dispatch(MoviesActions.PopRandromDiscover())
+        willEndPosition = nil
+        fetchRandomMovies(props: props, force: false, filter: props.filter)
     }
     
     private func fetchRandomMovies(props: Props, force: Bool, filter: DiscoverFilter?) {
-        if props.movies.count < 10 || force {
+        if DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: props.movies.count,
+                                                       force: force,
+                                                       isRunningUISmokeTests: isRunningUISmokeTests) {
             props.dispatch(MoviesActions.FetchRandomDiscover(filter: filter))
         }
     }
@@ -125,6 +158,7 @@ struct DiscoverView: ConnectedView {
                               isOn: false) {
                                 self.isFilterFormPresented = true
         }
+        .accessibilityIdentifier("discover.filterButton")
     }
     
     private func actionsButtons(props: Props) -> some View {
@@ -135,6 +169,7 @@ struct DiscoverView: ConnectedView {
                     .multilineTextAlignment(.center)
                     .font(.FjallaOne(size: 18))
                     .lineLimit(2)
+                    .accessibilityIdentifier("discover.currentMovieTitle")
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .offset(x: 0, y: -15)
                     .animation(.easeInOut, value: self.draggedViewState.isDragging)
@@ -173,19 +208,10 @@ struct DiscoverView: ConnectedView {
                     .contentShape(Rectangle())
                 })
                     .buttonStyle(PlainButtonStyle())
+                    .accessibilityIdentifier("discover.dismissButton")
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
-                
-                Button(action: {
-                    props.dispatch(MoviesActions.PushRandomDiscover(movie: self.previousMovie!))
-                    self.previousMovie = nil
-                }, label: {
-                    Image(systemName: "gobackward").foregroundColor(.steam_blue)
-                }) .frame(width: 50, height: 50)
-                    .offset(x: -60, y: 30)
-                    .opacity(self.previousMovie != nil && !self.draggedViewState.isActive ? 1 : 0)
-                    .animation(.spring(), value: self.previousMovie != nil && !self.draggedViewState.isActive)
                 
                 Button(action: {
                     props.dispatch(MoviesActions.ResetRandomDiscover())
@@ -195,10 +221,26 @@ struct DiscoverView: ConnectedView {
                         .foregroundColor(.steam_blue)
                 })
                     .frame(width: 50, height: 50)
+                    .accessibilityIdentifier("discover.resetButton")
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
             }
+
+            Button(action: {
+                guard let previousMovie = self.previousMovie else { return }
+                props.dispatch(MoviesActions.PushRandomDiscover(movie: previousMovie))
+                self.previousMovie = nil
+            }, label: {
+                Image(systemName: "gobackward").foregroundColor(.steam_blue)
+            }) .frame(width: 50, height: 50)
+                .accessibilityIdentifier("discover.undoButton")
+                .offset(x: -60, y: 30)
+                .opacity(DiscoverUndoState.canUndo(previousMovie: self.previousMovie,
+                                                   isDragging: self.draggedViewState.isActive) ? 1 : 0)
+                .animation(.spring(),
+                           value: DiscoverUndoState.canUndo(previousMovie: self.previousMovie,
+                                                            isDragging: self.draggedViewState.isActive))
         }
     }
     

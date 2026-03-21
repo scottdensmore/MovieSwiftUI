@@ -50,6 +50,15 @@ final class MovieSwiftUITests: XCTestCase {
         tabButton.tap()
     }
 
+    @discardableResult
+    private func openDiscover(in app: XCUIApplication) -> XCUIElement {
+        openTab("Discover", in: app)
+
+        let filterButton = button("discover.filterButton", in: app)
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        return filterButton
+    }
+
     private func scrollUntilElementExists(_ element: XCUIElement, in app: XCUIApplication, maxSwipes: Int = 6) -> Bool {
         if element.waitForExistence(timeout: 1) {
             return true
@@ -241,5 +250,84 @@ final class MovieSwiftUITests: XCTestCase {
         creditedMovie.tap()
 
         XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverDismissCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let dismissButton = button("discover.dismissButton", in: app)
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: uiWaitTimeout))
+        dismissButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertFalse(identifiedElement("discover.currentMovieTitle", in: app).exists)
+
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
+    func testDiscoverFilterSaveCreatesSavedFilterRow() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        let expectedFilterLabel = filterButton.label
+
+        filterButton.tap()
+
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(savedFilter.label.contains("1950-1959"))
+        XCTAssertTrue(savedFilter.label.contains("Comedy"))
+        XCTAssertEqual(button("discover.filterButton", in: app).label, expectedFilterLabel)
+    }
+
+    func testDiscoverSavedFilterCanBeApplied() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        let expectedFilterLabel = filterButton.label
+
+        filterButton.tap()
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+        savedFilter.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(filterButton.label, expectedFilterLabel)
+    }
+
+    func testDiscoverFilterResetDismissesForm() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+
+        filterButton.tap()
+
+        let resetButton = button("discoverFilter.resetButton", in: app)
+        XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
+        resetButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(filterButton.label, "Loading...")
     }
 }

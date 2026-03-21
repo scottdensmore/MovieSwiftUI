@@ -74,7 +74,31 @@ enum DiscoverFilterFormState {
     }
 }
 
+struct DiscoverFilterSavePlan {
+    let filterToSave: DiscoverFilter?
+    let activeFilter: DiscoverFilter
+}
+
+enum DiscoverFilterFormActionPlan {
+    static func savePlan(selectedDate: Int,
+                         selectedGenre: Int,
+                         selectedCountry: Int,
+                         datesInt: [Int],
+                         genres: [Genre],
+                         fallbackRandomFilter: DiscoverFilter) -> DiscoverFilterSavePlan {
+        let filterToSave = DiscoverFilterFormState.formFilter(selectedDate: selectedDate,
+                                                              selectedGenre: selectedGenre,
+                                                              selectedCountry: selectedCountry,
+                                                              datesInt: datesInt,
+                                                              genres: genres)
+        return DiscoverFilterSavePlan(filterToSave: filterToSave,
+                                      activeFilter: filterToSave ?? fallbackRandomFilter)
+    }
+}
+
 struct DiscoverFilterForm : ConnectedView {
+    @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
+
     struct Props {
         let dispatch: DispatchFunction
         let currentFilter: DiscoverFilter?
@@ -168,19 +192,27 @@ struct DiscoverFilterForm : ConnectedView {
             Section {
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
-                    if let toSave = self.formFilter(genres: props.genres) {
+                    let plan = DiscoverFilterFormActionPlan.savePlan(selectedDate: self.selectedDate,
+                                                                     selectedGenre: self.selectedGenre,
+                                                                     selectedCountry: self.selectedCountry,
+                                                                     datesInt: self.datesInt,
+                                                                     genres: props.genres,
+                                                                     fallbackRandomFilter: DiscoverFilter.randomFilter())
+                    if let toSave = plan.filterToSave {
                         props.dispatch(MoviesActions.SaveDiscoverFilter(filter: toSave))
                     }
-                    let filter = self.formFilter(genres: props.genres) ?? DiscoverFilter.randomFilter()
-                    props.dispatch(MoviesActions.ResetRandomDiscover())
-                    props.dispatch(MoviesActions.SetActiveDiscoverFilter(filter: filter))
-                    props.dispatch(MoviesActions.FetchRandomDiscover(filter: filter))
+                    props.dispatch(MoviesActions.SetActiveDiscoverFilter(filter: plan.activeFilter))
+                    if !isRunningUISmokeTests {
+                        props.dispatch(MoviesActions.ResetRandomDiscover())
+                        props.dispatch(MoviesActions.FetchRandomDiscover(filter: plan.activeFilter))
+                    }
                 }, label: {
                     Text("Save and filter movies")
                         .foregroundColor(.green)
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
+                .accessibilityIdentifier("discoverFilter.saveButton")
                 
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
@@ -190,6 +222,7 @@ struct DiscoverFilterForm : ConnectedView {
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
+                .accessibilityIdentifier("discoverFilter.cancelButton")
             }
             
             Section {
@@ -199,13 +232,16 @@ struct DiscoverFilterForm : ConnectedView {
                     self.selectedGenre = 0
                     self.presentationMode.wrappedValue.dismiss()
                     props.dispatch(MoviesActions.ResetRandomDiscover())
-                    props.dispatch(MoviesActions.FetchRandomDiscover())
+                    if !isRunningUISmokeTests {
+                        props.dispatch(MoviesActions.FetchRandomDiscover())
+                    }
                 }, label: {
                     Text("Reset random")
                         .foregroundColor(.blue)
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
+                .accessibilityIdentifier("discoverFilter.resetButton")
             }
         }
     }
@@ -237,6 +273,7 @@ struct DiscoverFilterForm : ConnectedView {
                             .padding(.vertical, 6)
                             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         })
+                        .accessibilityIdentifier("discoverFilter.savedFilter.\(index)")
                         .buttonStyle(PlainButtonStyle())
                     }
                     Button(action: {

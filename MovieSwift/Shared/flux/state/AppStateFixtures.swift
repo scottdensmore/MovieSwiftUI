@@ -8,6 +8,14 @@ private let sampleCustomList = CustomList(id: 0,
                                           name: "TestName",
                                           cover: 0,
                                           movies: [0])
+private let sampleDiscoverGenres = [Genre(id: -1, name: "Random"),
+                                    Genre(id: 35, name: "Comedy")]
+private let sampleDiscoverFilter = DiscoverFilter(year: 1955,
+                                                  startYear: 1950,
+                                                  endYear: 1959,
+                                                  sort: "popularity.desc",
+                                                  genre: 35,
+                                                  region: "US")
 private let sampleMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
 private let samplePrimaryCast = sampleCasts.first!
 private let sampleSecondaryCast = sampleCasts[1]
@@ -23,7 +31,10 @@ func makePreviewSampleState() -> AppState {
                             moviesList: sampleMoviesMenuState,
                             recommended: [0: [0]],
                             similar: [0: [0]],
-                            customLists: [0: sampleCustomList]),
+                            discover: [0],
+                            discoverFilter: sampleDiscoverFilter,
+                            customLists: [0: sampleCustomList],
+                            genres: sampleDiscoverGenres),
              peoplesState: PeoplesState(peoples: [samplePrimaryCast.id: samplePrimaryCast,
                                                   sampleDirector.id: sampleDirector],
                                         peoplesMovies: [0: Set([samplePrimaryCast.id,
@@ -48,7 +59,10 @@ func makeUISmokeTestState() -> AppState {
                                     moviesList: smokeTestMoviesMenuState,
                                     recommended: [0: [0]],
                                     similar: [0: [0]],
-                                    customLists: [0: smokeTestList]),
+                                    discover: [0],
+                                    discoverFilter: sampleDiscoverFilter,
+                                    customLists: [0: smokeTestList],
+                                    genres: sampleDiscoverGenres),
                     peoplesState: PeoplesState(peoples: [smokeTestPrimaryCast.id: smokeTestPrimaryCast,
                                                          smokeTestDirector.id: smokeTestDirector],
                                                peoplesMovies: [0: Set([smokeTestPrimaryCast.id,

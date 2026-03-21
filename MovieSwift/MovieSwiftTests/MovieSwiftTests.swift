@@ -240,6 +240,45 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(DiscoverSwipeDecision.from(handler: .cancelled), .none)
     }
 
+    func testDiscoverSwipeActionPlanBuildsWishlistAction() {
+        XCTAssertEqual(DiscoverSwipeActionPlan.action(for: .wishlist, currentMovieId: 42),
+                       .wishlist(42))
+    }
+
+    func testDiscoverSwipeActionPlanBuildsSeenlistAction() {
+        XCTAssertEqual(DiscoverSwipeActionPlan.action(for: .seenlist, currentMovieId: 42),
+                       .seenlist(42))
+    }
+
+    func testDiscoverSwipeActionPlanSkipsWhenNoMovieOrNoAction() {
+        XCTAssertNil(DiscoverSwipeActionPlan.action(for: .none, currentMovieId: 42))
+        XCTAssertNil(DiscoverSwipeActionPlan.action(for: .wishlist, currentMovieId: nil))
+    }
+
+    func testDiscoverFetchPolicyFetchesWhenForcedOrRunningLow() {
+        XCTAssertTrue(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 3,
+                                                                 force: false,
+                                                                 isRunningUISmokeTests: false))
+        XCTAssertTrue(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 15,
+                                                                 force: true,
+                                                                 isRunningUISmokeTests: false))
+        XCTAssertFalse(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 15,
+                                                                  force: false,
+                                                                  isRunningUISmokeTests: false))
+    }
+
+    func testDiscoverFetchPolicySkipsDuringUISmokeTests() {
+        XCTAssertFalse(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 3,
+                                                                  force: false,
+                                                                  isRunningUISmokeTests: true))
+    }
+
+    func testDiscoverUndoStateOnlyShowsUndoWhenNotDraggingAndMovieExists() {
+        XCTAssertTrue(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: false))
+        XCTAssertFalse(DiscoverUndoState.canUndo(previousMovie: nil, isDragging: false))
+        XCTAssertFalse(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: true))
+    }
+
     func testMoviesHomeGridFetchPolicyFetchesOutsideUISmokeTests() {
         XCTAssertTrue(MoviesHomeGridFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: false))
     }
@@ -628,6 +667,55 @@ final class MovieSwiftTests: XCTestCase {
                        1)
         XCTAssertEqual(DiscoverFilterFormState.selectedCountry(currentFilter: filter),
                        expectedCountrySelection)
+    }
+
+    func testDiscoverFilterFormActionPlanSavesExplicitFilter() {
+        let genres = [Genre(id: 0, name: "Random"), Genre(id: 35, name: "Comedy")]
+        let fallback = DiscoverFilter(year: 2020,
+                                      startYear: nil,
+                                      endYear: nil,
+                                      sort: "popularity.desc",
+                                      genre: nil,
+                                      region: nil)
+        let plan = DiscoverFilterFormActionPlan.savePlan(selectedDate: 1,
+                                                         selectedGenre: 1,
+                                                         selectedCountry: 1,
+                                                         datesInt: [0, 1950],
+                                                         genres: genres,
+                                                         fallbackRandomFilter: fallback)
+
+        XCTAssertNotNil(plan.filterToSave)
+        XCTAssertEqual(plan.filterToSave?.startYear, plan.activeFilter.startYear)
+        XCTAssertEqual(plan.filterToSave?.endYear, plan.activeFilter.endYear)
+        XCTAssertEqual(plan.filterToSave?.genre, plan.activeFilter.genre)
+        XCTAssertEqual(plan.filterToSave?.region, plan.activeFilter.region)
+        XCTAssertEqual(plan.activeFilter.startYear, 1950)
+        XCTAssertEqual(plan.activeFilter.endYear, 1959)
+        XCTAssertEqual(plan.activeFilter.genre, 35)
+        XCTAssertEqual(plan.activeFilter.region, NSLocale.isoCountryCodes[0])
+    }
+
+    func testDiscoverFilterFormActionPlanFallsBackToRandomFilterForDefaultSelections() {
+        let fallback = DiscoverFilter(year: 2020,
+                                      startYear: nil,
+                                      endYear: nil,
+                                      sort: "popularity.desc",
+                                      genre: nil,
+                                      region: nil)
+        let plan = DiscoverFilterFormActionPlan.savePlan(selectedDate: 0,
+                                                         selectedGenre: 0,
+                                                         selectedCountry: 0,
+                                                         datesInt: [0, 1950],
+                                                         genres: [Genre(id: 0, name: "Random")],
+                                                         fallbackRandomFilter: fallback)
+
+        XCTAssertNil(plan.filterToSave)
+        XCTAssertEqual(plan.activeFilter.year, fallback.year)
+        XCTAssertEqual(plan.activeFilter.startYear, fallback.startYear)
+        XCTAssertEqual(plan.activeFilter.endYear, fallback.endYear)
+        XCTAssertEqual(plan.activeFilter.sort, fallback.sort)
+        XCTAssertEqual(plan.activeFilter.genre, fallback.genre)
+        XCTAssertEqual(plan.activeFilter.region, fallback.region)
     }
 
     func testMovieReviewsFetchPolicyFetchesWhenReviewsAreMissing() {
