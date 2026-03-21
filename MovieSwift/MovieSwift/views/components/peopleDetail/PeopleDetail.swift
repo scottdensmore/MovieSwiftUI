@@ -48,6 +48,21 @@ enum PeopleDetailState {
         }
         return !images.isEmpty
     }
+
+    static func sortedYears(from movieByYears: [String: [PeopleDetail.MovieRole]]) -> [String] {
+        movieByYears.compactMap { $0.key }.sorted(by: { lhs, rhs in
+            switch (lhs, rhs) {
+            case ("Upcoming", "Upcoming"):
+                return false
+            case ("Upcoming", _):
+                return false
+            case (_, "Upcoming"):
+                return true
+            default:
+                return lhs > rhs
+            }
+        })
+    }
 }
 
 enum PeopleDetailMovieGrouping {
@@ -265,7 +280,7 @@ struct PeopleDetail: ConnectedView {
 // MARK: - Map state to props
 extension PeopleDetail {
     private func sortedYears(props: Props) -> [String] {
-        props.movieByYears.compactMap{ $0.key }.sorted(by: { $0 > $1 })
+        PeopleDetailState.sortedYears(from: props.movieByYears)
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {

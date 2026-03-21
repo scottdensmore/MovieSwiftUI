@@ -9,6 +9,16 @@
 import SwiftUI
 import Backend
 
+enum PeopleDetailImagesState {
+    static func accessibilityIdentifier(for index: Int) -> String {
+        "peopleDetail.image.\(index)"
+    }
+
+    static func accessibilityLabel(for index: Int, total: Int) -> String {
+        "Image \(index + 1) of \(total)"
+    }
+}
+
 struct PeopleDetailImagesRow : View {
     let images: [ImageData]
     @Binding var selectedPoster: ImageData?
@@ -20,13 +30,18 @@ struct PeopleDetailImagesRow : View {
                 .padding(.leading)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .center, spacing: 16) {
-                    ForEach(images) { image in
-                        PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.file_path, size: .cast))
-                            .onTapGesture {
-                                withAnimation{
-                                    self.selectedPoster = image
-                                }
+                    ForEach(Array(images.enumerated()), id: \.offset) { index, image in
+                        Button(action: {
+                            withAnimation {
+                                self.selectedPoster = image
+                            }
+                        }) {
+                            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.file_path, size: .cast))
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier(PeopleDetailImagesState.accessibilityIdentifier(for: index))
+                        .accessibilityLabel(PeopleDetailImagesState.accessibilityLabel(for: index, total: images.count))
+                        .accessibilityAddTraits(.isButton)
                     }
                 }
                 .padding(.leading)

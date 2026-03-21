@@ -69,6 +69,11 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertFalse(PeopleDetailState.shouldShowImagesSection(for: []))
     }
 
+    func testPeopleDetailImagesStateBuildsAccessibilityMetadata() {
+        XCTAssertEqual(PeopleDetailImagesState.accessibilityIdentifier(for: 0), "peopleDetail.image.0")
+        XCTAssertEqual(PeopleDetailImagesState.accessibilityLabel(for: 1, total: 3), "Image 2 of 3")
+    }
+
     func testAppLaunchModeDetectsPreviewEnvironment() {
         XCTAssertEqual(AppLaunchMode.from(arguments: [], environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]), .preview)
     }
@@ -1052,6 +1057,11 @@ final class MovieSwiftTests: XCTestCase {
                                                       movies: [:])
 
         XCTAssertTrue(grouped.isEmpty)
+    }
+
+    func testPeopleDetailSortedYearsPlacesUpcomingLast() {
+        XCTAssertEqual(PeopleDetailState.sortedYears(from: ["Upcoming": [], "2024": [], "2022": []]),
+                       ["2024", "2022", "Upcoming"])
     }
 
     func testCustomListPresentationUsesFirstMovieAsListCover() {
