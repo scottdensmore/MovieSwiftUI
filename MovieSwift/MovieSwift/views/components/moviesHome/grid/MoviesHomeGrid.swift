@@ -35,12 +35,13 @@ enum MoviesHomeGridState {
 
 struct MoviesHomeGrid: ConnectedView {
     struct Props {
+        let dispatch: DispatchFunction
         let movies: [MoviesMenu: [Int]]
         let genres: [Genre]
     }
 
-    @EnvironmentObject private var store: Store<AppState>
     let navigationRoute: Binding<MoviesListNavigationRoute?>
+    let isRunningUISmokeTests: Bool
 
     private struct MenuDestination: Hashable, Identifiable {
         let menu: MoviesMenu
@@ -55,11 +56,11 @@ struct MoviesHomeGrid: ConnectedView {
                    pageListener: MoviesMenuListPageListener(menu: menu,
                                                             loadOnInit: false,
                                                             shouldLoadPage: {
-                                                                MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests)
+                                                                MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: isRunningUISmokeTests)
                                                             },
                                                             dispatchPage: { menu, page in
-                                                                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu,
-                                                                                                                        page: page))
+                                                                props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu,
+                                                                                                                 page: page))
                                                             }),
                    navigationRoute: navigationRoute)
             .navigationBarTitle(menu.title())
@@ -87,14 +88,15 @@ struct MoviesHomeGrid: ConnectedView {
             MoviesHomeGridMoviesRow(movies: props.movies[menu] ?? [])
                 .padding(.bottom, 8)
         }.onAppear {
-            if MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
-                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
+            if MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: isRunningUISmokeTests) {
+                props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
             }
         }.listRowInsets(EdgeInsets())
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movies: MoviesHomeGridState.movies(from: state),
+        Props(dispatch: dispatch,
+              movies: MoviesHomeGridState.movies(from: state),
               genres: MoviesHomeGridState.genres(from: state))
     }
     
@@ -129,8 +131,8 @@ struct MoviesHomeGrid: ConnectedView {
             MoviesGenreList(genre: genre)
         }
         .onAppear {
-            if MoviesHomeGridFetchPolicy.shouldFetchGenresOnAppear(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
-                store.dispatch(action: MoviesActions.FetchGenres())
+            if MoviesHomeGridFetchPolicy.shouldFetchGenresOnAppear(isRunningUISmokeTests: isRunningUISmokeTests) {
+                props.dispatch(MoviesActions.FetchGenres())
             }
         }
     }
@@ -138,7 +140,7 @@ struct MoviesHomeGrid: ConnectedView {
 
 struct MoviesHomeGrid_Previews: PreviewProvider {
     static var previews: some View {
-        MoviesHomeGrid(navigationRoute: .constant(nil))
+        MoviesHomeGrid(navigationRoute: .constant(nil), isRunningUISmokeTests: false)
             .environmentObject(sampleStore)
     }
 }

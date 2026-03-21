@@ -18,7 +18,7 @@ final class MoviesMenuListPageListener: MoviesPagesListener {
     var dispatchPage: ((MoviesMenu, Int) -> Void)?
     
     override func loadPage() {
-        guard shouldLoadPage?() ?? !appRuntime.isRunningUISmokeTests else {
+        guard shouldLoadPage?() == true else {
             return
         }
         dispatchPage?(menu, currentPage)

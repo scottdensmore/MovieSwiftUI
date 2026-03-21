@@ -63,6 +63,7 @@ struct PeopleDetail: ConnectedView {
     @State var selectedPoster: ImageData?
     @State var isFanScoreUpdated = false
     @State private var selectedMovieId: Int?
+    @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
@@ -70,7 +71,7 @@ struct PeopleDetail: ConnectedView {
     #endif
     
     private func fetchPeopleData(props: Props) {
-        if !PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
+        if !PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests) {
             return
         }
         props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))

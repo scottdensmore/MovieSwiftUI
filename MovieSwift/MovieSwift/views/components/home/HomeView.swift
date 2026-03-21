@@ -10,6 +10,26 @@ import SwiftUI
 import SwiftUIFlux
 import AppIntents
 
+private struct IsRunningUISmokeTestsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+private struct ArchivedStateSizeDescriptionKey: EnvironmentKey {
+    static let defaultValue: () -> String = { "0 KB" }
+}
+
+extension EnvironmentValues {
+    var isRunningUISmokeTests: Bool {
+        get { self[IsRunningUISmokeTestsKey.self] }
+        set { self[IsRunningUISmokeTestsKey.self] = newValue }
+    }
+
+    var archivedStateSizeDescription: () -> String {
+        get { self[ArchivedStateSizeDescriptionKey.self] }
+        set { self[ArchivedStateSizeDescriptionKey.self] = newValue }
+    }
+}
+
 // MARK:- Shared View
 
 private let defaultAppEnvironment = appEnvironment
@@ -34,7 +54,9 @@ struct HomeView: App {
     var body: some Scene {
         WindowGroup {
             StoreProvider(store: store) {
-                SplitView().accentColor(.steam_gold)
+                SplitView(isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests).accentColor(.steam_gold)
+                    .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
+                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
             }
         }
     }
@@ -42,7 +64,9 @@ struct HomeView: App {
     var body: some Scene {
         WindowGroup {
             StoreProvider(store: store) {
-                TabbarView().accentColor(.steam_gold)
+                TabbarView(isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests).accentColor(.steam_gold)
+                    .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
+                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
             }
         }
     }
@@ -90,6 +114,7 @@ struct HomeView: App {
 
 // MARK: - iOS implementation
 struct TabbarView: View {
+    let isRunningUISmokeTests: Bool
     @State var selectedTab = Tab.movies
     
     enum Tab: Int {
@@ -106,7 +131,7 @@ struct TabbarView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            MoviesHome().tabItem{
+            MoviesHome(isRunningUISmokeTests: isRunningUISmokeTests).tabItem{
                 self.tabbarItem(text: "Movies", image: "film")
             }.tag(Tab.movies)
             DiscoverView().tabItem{
@@ -124,6 +149,7 @@ struct TabbarView: View {
 
 // MARK: - MacOS implementation
 struct SplitView: View {
+    let isRunningUISmokeTests: Bool
     @State private var selectedMenu: OutlineMenu? = .popular
     
     @ViewBuilder
@@ -145,7 +171,7 @@ struct SplitView: View {
             .frame(minWidth: 260, idealWidth: 300)
         } detail: {
             if let selectedMenu {
-                selectedMenu.contentView
+                selectedMenu.contentView(isRunningUISmokeTests: isRunningUISmokeTests)
                     .padding(.leading, selectedMenu == .settings ? 0 : 12)
             } else {
                 Text("Select a section")

@@ -24,7 +24,13 @@ enum MoviesHomeState {
     }
 }
 
-struct MoviesHome : View {
+struct MoviesHome : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+    }
+
+    let isRunningUISmokeTests: Bool
+
     enum HomeMode {
         case list, grid
         
@@ -36,11 +42,14 @@ struct MoviesHome : View {
         }
     }
 
-    @EnvironmentObject private var store: Store<AppState>
     @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: MoviesMenu.allCases.first!)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
     @State private var navigationRoute: MoviesListNavigationRoute?
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch)
+    }
         
     private var settingButton: some View {
         Button(action: {
@@ -86,19 +95,20 @@ struct MoviesHome : View {
     }
     
     private var homeAsGrid: some View {
-        MoviesHomeGrid(navigationRoute: $navigationRoute)
+        MoviesHomeGrid(navigationRoute: $navigationRoute,
+                       isRunningUISmokeTests: isRunningUISmokeTests)
     }
 
-    private func configurePageListener() {
+    private func configurePageListener(props: Props) {
         selectedMenu.pageListener.shouldLoadPage = {
-            MoviesHomeState.shouldLoadPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests)
+            MoviesHomeState.shouldLoadPage(isRunningUISmokeTests: isRunningUISmokeTests)
         }
         selectedMenu.pageListener.dispatchPage = { menu, page in
-            store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: page))
+            props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: page))
         }
     }
         
-    var body: some View {
+    func body(props: Props) -> some View {
         NavigationStack {
             Group {
                 switch homeMode {
@@ -126,11 +136,11 @@ struct MoviesHome : View {
                                  })
                              })
             .onAppear {
-                configurePageListener()
+                configurePageListener(props: props)
                 selectedMenu.pageListener.loadPage()
             }
             .onChange(of: selectedMenu.menu) {
-                configurePageListener()
+                configurePageListener(props: props)
                 selectedMenu.pageListener.loadPage()
             }
         }
@@ -140,7 +150,7 @@ struct MoviesHome : View {
 #if DEBUG
 struct MoviesHome_Previews : PreviewProvider {
     static var previews: some View {
-        MoviesHome().environmentObject(sampleStore)
+        MoviesHome(isRunningUISmokeTests: false).environmentObject(sampleStore)
     }
 }
 #endif

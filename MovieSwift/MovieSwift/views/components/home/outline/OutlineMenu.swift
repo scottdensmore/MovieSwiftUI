@@ -63,10 +63,10 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         }
     }
     
-    private func moviesList(menu: MoviesMenu) -> some View {
+    private func moviesList(menu: MoviesMenu, isRunningUISmokeTests: Bool) -> some View {
         return detailRoot(title: menu.title()) {
             OutlineMoviesMenuList(menu: menu,
-                                  shouldLoadInitialPage: OutlineMoviesMenuListFetchPolicy.shouldLoadInitialPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests))
+                                  shouldLoadInitialPage: OutlineMoviesMenuListFetchPolicy.shouldLoadInitialPage(isRunningUISmokeTests: isRunningUISmokeTests))
         }
     }
     
@@ -104,13 +104,13 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
     
     @ViewBuilder
-    var contentView: some View {
+    func contentView(isRunningUISmokeTests: Bool) -> some View {
         switch self {
-        case .popular:    moviesList(menu: .popular)
-        case .topRated:   moviesList(menu: .topRated)
-        case .upcoming:   moviesList(menu: .upcoming)
-        case .nowPlaying: moviesList(menu: .nowPlaying)
-        case .trending:   moviesList(menu: .trending)
+        case .popular:    moviesList(menu: .popular, isRunningUISmokeTests: isRunningUISmokeTests)
+        case .topRated:   moviesList(menu: .topRated, isRunningUISmokeTests: isRunningUISmokeTests)
+        case .upcoming:   moviesList(menu: .upcoming, isRunningUISmokeTests: isRunningUISmokeTests)
+        case .nowPlaying: moviesList(menu: .nowPlaying, isRunningUISmokeTests: isRunningUISmokeTests)
+        case .trending:   moviesList(menu: .trending, isRunningUISmokeTests: isRunningUISmokeTests)
         case .genres:     genresList
         case .fanClub:    fanClubList
         case .discover:   discoverList
@@ -120,11 +120,14 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
 }
 
-private struct OutlineMoviesMenuList: View {
+private struct OutlineMoviesMenuList: ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+    }
+
     let menu: MoviesMenu
     let shouldLoadInitialPage: Bool
     private let listener: MoviesMenuListPageListener
-    @EnvironmentObject private var store: Store<AppState>
     @State private var navigationRoute: MoviesListNavigationRoute?
 
     init(menu: MoviesMenu, shouldLoadInitialPage: Bool) {
@@ -135,7 +138,11 @@ private struct OutlineMoviesMenuList: View {
                                                    shouldLoadPage: { shouldLoadInitialPage })
     }
 
-    var body: some View {
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch)
+    }
+
+    func body(props: Props) -> some View {
         MoviesHomeList(menu: .constant(menu),
                        navigationRoute: $navigationRoute,
                        pageListener: listener)
@@ -144,7 +151,7 @@ private struct OutlineMoviesMenuList: View {
             }
             .onAppear {
                 listener.dispatchPage = { menu, page in
-                    store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: page))
+                    props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: page))
                 }
                 listener.loadPage()
             }

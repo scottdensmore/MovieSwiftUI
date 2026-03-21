@@ -48,6 +48,7 @@ struct MovieDetail: ConnectedView {
     
     let movieId: Int
     @EnvironmentObject private var store: Store<AppState>
+    @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
     
     // MARK: View States
     @State var isAddSheetPresented = false
@@ -97,7 +98,7 @@ struct MovieDetail: ConnectedView {
     
     // MARK: - Fetch
     func fetchMovieDetails(props: Props) {
-        if !MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
+        if !MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests) {
             return
         }
         props.dispatch(MoviesActions.FetchDetail(movie: movieId))
@@ -217,7 +218,7 @@ struct MovieDetail: ConnectedView {
     @ViewBuilder
     func smokeTestTopPersonShortcut(props: Props) -> some View {
         #if DEBUG
-        if appRuntime.isRunningUISmokeTests,
+        if isRunningUISmokeTests,
            let people = primaryPeopleCredit(props: props) ?? props.characters?.first ?? props.credits?.first {
             Button(action: {
                 selectPeople(people.id)

@@ -29,6 +29,7 @@ enum DiscoverSwipeDecision: Equatable {
 }
 
 struct DiscoverView: ConnectedView {
+    @EnvironmentObject private var store: Store<AppState>
     
     // MARK: - Props
     struct Props {
@@ -311,7 +312,7 @@ struct DiscoverView: ConnectedView {
 #if DEBUG
 struct DiscoverView_Previews : PreviewProvider {
     static var previews: some View {
-        DiscoverView().environmentObject(store)
+        DiscoverView().environmentObject(sampleStore)
     }
 }
 #endif

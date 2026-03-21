@@ -32,7 +32,18 @@ enum SettingsFormDebugState {
     }
 }
 
-struct SettingsForm : View {
+enum SettingsFormState {
+    static func moviesCount(in state: AppState) -> Int {
+        SettingsFormDebugState.moviesCount(from: state.moviesState.movies)
+    }
+}
+
+struct SettingsForm : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let debugMoviesCount: Int
+    }
+
     private struct RegionOption: Identifiable {
         let code: String
         let name: String
@@ -44,8 +55,13 @@ struct SettingsForm : View {
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
-    @EnvironmentObject private var store: Store<AppState>
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.archivedStateSizeDescription) private var archivedStateSizeDescription
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              debugMoviesCount: SettingsFormState.moviesCount(in: state))
+    }
 
     private var isModalPresentation: Bool {
         onClose != nil
@@ -82,14 +98,14 @@ struct SettingsForm : View {
         alwaysOriginalTitle = AppUserDefaults.alwaysOriginalTitle
     }
 
-    private func savePreferences() {
+    private func savePreferences(dispatch: DispatchFunction) {
         let previousRegion = AppUserDefaults.region
         AppUserDefaults.region = selectedRegionCode
         AppUserDefaults.alwaysOriginalTitle = alwaysOriginalTitle
 
         for menu in SettingsFormRefreshPolicy.menusToRefresh(previousRegion: previousRegion,
                                                              selectedRegion: selectedRegionCode) {
-            store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
+            dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
         }
     }
 
@@ -122,7 +138,7 @@ struct SettingsForm : View {
         .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
     }
 
-    private var formContent: some View {
+    private func formContent(props: Props) -> some View {
         Form {
             Section(header: Text("Region preferences"),
                     footer: Text("Region is used to display a more accurate movies list"),
@@ -145,21 +161,21 @@ struct SettingsForm : View {
             
             Section(header: Text("Debug info")) {
                 debugInfoView(title: "Movies in state",
-                              info: "\(SettingsFormDebugState.moviesCount(from: store.state.moviesState.movies))")
+                              info: "\(props.debugMoviesCount)")
                 debugInfoView(title: "Archived state size",
-                              info: appRuntime.archivedStateSizeDescription())
+                              info: archivedStateSizeDescription())
 
             }
         }
         .onAppear(perform: loadCurrentPreferences)
             .onChange(of: selectedRegionCode) { _, _ in
                 if !isModalPresentation {
-                    savePreferences()
+                    savePreferences(dispatch: props.dispatch)
                 }
             }
             .onChange(of: alwaysOriginalTitle) { _, _ in
                 if !isModalPresentation {
-                    savePreferences()
+                    savePreferences(dispatch: props.dispatch)
                 }
             }
             .tint(.steam_gold)
@@ -169,9 +185,9 @@ struct SettingsForm : View {
     }
     
     @ViewBuilder
-    private var screen: some View {
+    private func screen(props: Props) -> some View {
         if showNavigationTitle {
-            formContent
+            formContent(props: props)
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
@@ -182,7 +198,7 @@ struct SettingsForm : View {
                         }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Save") {
-                                savePreferences()
+                                savePreferences(dispatch: props.dispatch)
                                 close()
                             }
                             .accessibilityIdentifier("settings.saveButton")
@@ -190,18 +206,18 @@ struct SettingsForm : View {
                     }
                 }
         } else {
-            formContent
+            formContent(props: props)
         }
     }
     
-    var body: some View {
+    func body(props: Props) -> some View {
         Group {
             if embedInNavigationStack {
                 NavigationStack {
-                    screen
+                    screen(props: props)
                 }
             } else {
-                screen
+                screen(props: props)
             }
         }
         .background(Color.steam_background.ignoresSafeArea())

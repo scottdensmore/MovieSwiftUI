@@ -35,6 +35,8 @@ struct GenresList: ConnectedView {
         let genres: [Genre]
     }
 
+    @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
+
     #if targetEnvironment(macCatalyst)
     @State private var selectedGenre: Genre?
     @FocusState private var focusedGenreId: Int?
@@ -66,7 +68,7 @@ struct GenresList: ConnectedView {
         }
         #endif
         .onAppear {
-            for action in GenresListFetchPolicy.actionsToDispatch(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
+            for action in GenresListFetchPolicy.actionsToDispatch(isRunningUISmokeTests: isRunningUISmokeTests) {
                 props.dispatch(action)
             }
         }

@@ -91,6 +91,19 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(dispatchCount, 0)
     }
 
+    func testMoviesMenuListPageListenerSkipsDispatchWithoutLoadPolicy() {
+        var dispatchCount = 0
+        let listener = MoviesMenuListPageListener(menu: .popular,
+                                                  loadOnInit: false,
+                                                  dispatchPage: { _, _ in
+            dispatchCount += 1
+        })
+
+        listener.loadPage()
+
+        XCTAssertEqual(dispatchCount, 0)
+    }
+
     func testMoviesMenuListPageListenerDoesNotDispatchWithoutInjectedHandler() {
         let listener = MoviesMenuListPageListener(menu: .popular,
                                                   loadOnInit: false,
@@ -728,6 +741,13 @@ final class MovieSwiftTests: XCTestCase {
 
     func testSettingsFormDebugStateCountsMovies() {
         XCTAssertEqual(SettingsFormDebugState.moviesCount(from: [0: sampleMovie, 1: sampleMovie]), 2)
+    }
+
+    func testSettingsFormStateCountsMoviesFromAppState() {
+        var state = AppState()
+        state.moviesState.movies = [0: sampleMovie, 1: sampleMovie]
+
+        XCTAssertEqual(SettingsFormState.moviesCount(in: state), 2)
     }
 
     func testOutlineMoviesMenuListFetchPolicyFetchesOutsideUISmokeTests() {
