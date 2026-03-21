@@ -290,6 +290,35 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertFalse(DiscoverEmptyState.shouldShow(currentMovie: sampleMovie))
     }
 
+    func testDiscoverEmptyStateContentUsesFilterAwareMessage() {
+        let filter = DiscoverFilter(year: 1955,
+                                    startYear: 1950,
+                                    endYear: 1959,
+                                    sort: "popularity.desc",
+                                    genre: 35,
+                                    region: "US")
+        let filtered = DiscoverEmptyStateContent.presentation(filter: filter,
+                                                             isRunningUISmokeTests: false)
+        let unfiltered = DiscoverEmptyStateContent.presentation(filter: nil,
+                                                               isRunningUISmokeTests: false)
+
+        XCTAssertEqual(filtered.title, "No more discover movies")
+        XCTAssertTrue(filtered.message.contains("reset the filter"))
+        XCTAssertTrue(filtered.showsRefill)
+        XCTAssertTrue(unfiltered.message.contains("refill to keep browsing"))
+    }
+
+    func testDiscoverEmptyStateContentHidesRefillDuringUISmokeTests() {
+        let filter = DiscoverFilter(year: 1955,
+                                    startYear: 1950,
+                                    endYear: 1959,
+                                    sort: "popularity.desc",
+                                    genre: 35,
+                                    region: "US")
+        XCTAssertFalse(DiscoverEmptyStateContent.presentation(filter: filter,
+                                                              isRunningUISmokeTests: true).showsRefill)
+    }
+
     func testDiscoverUndoStateOnlyShowsUndoWhenNotDraggingAndMovieExists() {
         XCTAssertTrue(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: false))
         XCTAssertFalse(DiscoverUndoState.canUndo(previousMovie: nil, isDragging: false))

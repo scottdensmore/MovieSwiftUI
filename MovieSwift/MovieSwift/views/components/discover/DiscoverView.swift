@@ -61,6 +61,26 @@ enum DiscoverEmptyState {
     }
 }
 
+struct DiscoverEmptyStatePresentation: Equatable {
+    let title: String
+    let message: String
+    let showsRefill: Bool
+}
+
+enum DiscoverEmptyStateContent {
+    static func presentation(filter: DiscoverFilter?, isRunningUISmokeTests: Bool) -> DiscoverEmptyStatePresentation {
+        if filter != nil {
+            return DiscoverEmptyStatePresentation(title: "No more discover movies",
+                                                 message: "Undo the last action, reset the filter, or refill this queue.",
+                                                 showsRefill: !isRunningUISmokeTests)
+        }
+
+        return DiscoverEmptyStatePresentation(title: "No more discover movies",
+                                             message: "Undo the last action or refill to keep browsing.",
+                                             showsRefill: !isRunningUISmokeTests)
+    }
+}
+
 enum DiscoverUndoState {
     static func canUndo(previousMovie: Int?, isDragging: Bool) -> Bool {
         previousMovie != nil && !isDragging
@@ -266,14 +286,23 @@ struct DiscoverView: ConnectedView {
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
             } else if DiscoverEmptyState.shouldShow(currentMovie: props.currentMovie) {
+                let presentation = DiscoverEmptyStateContent.presentation(filter: props.filter,
+                                                                         isRunningUISmokeTests: isRunningUISmokeTests)
                 VStack(spacing: 12) {
-                    Text("No more discover movies")
+                    Text(presentation.title)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
                         .font(.FjallaOne(size: 18))
                         .accessibilityIdentifier("discover.emptyState")
 
-                    if !isRunningUISmokeTests {
+                    Text(presentation.message)
+                        .foregroundColor(.white.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .font(.system(size: 14, weight: .medium))
+                        .padding(.horizontal, 24)
+                        .accessibilityIdentifier("discover.emptyStateMessage")
+
+                    if presentation.showsRefill {
                         BorderedButton(text: "Refill discover",
                                        systemImageName: "arrow.clockwise",
                                        color: .steam_blue,

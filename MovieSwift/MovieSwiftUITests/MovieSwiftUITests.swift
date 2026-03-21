@@ -284,6 +284,7 @@ final class MovieSwiftUITests: XCTestCase {
         dismissButton.tap()
 
         XCTAssertTrue(identifiedElement("discover.emptyState", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(identifiedElement("discover.emptyStateMessage", in: app).waitForExistence(timeout: uiWaitTimeout))
         XCTAssertTrue(button("discover.undoButton", in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
