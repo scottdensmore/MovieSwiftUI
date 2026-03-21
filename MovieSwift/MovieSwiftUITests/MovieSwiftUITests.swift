@@ -287,6 +287,48 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(button("discover.undoButton", in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
+    func testDiscoverWishlistButtonCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let wishlistButton = button("discover.wishlistButton", in: app)
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+        wishlistButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
+    func testDiscoverSeenlistButtonCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let seenlistButton = button("discover.seenlistButton", in: app)
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+        seenlistButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
     func testDiscoverFilterSaveCreatesSavedFilterRow() {
         let app = launchApp()
         let filterButton = openDiscover(in: app)

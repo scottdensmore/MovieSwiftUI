@@ -128,7 +128,11 @@ struct DiscoverView: ConnectedView {
     }
     
     private func draggableCoverEndGestureHandler(props: Props, handler: DraggableCover.EndState) {
-        guard let action = DiscoverSwipeActionPlan.action(for: DiscoverSwipeDecision.from(handler: handler),
+        performDiscoverAction(decision: DiscoverSwipeDecision.from(handler: handler), props: props)
+    }
+
+    private func performDiscoverAction(decision: DiscoverSwipeDecision, props: Props) {
+        guard let action = DiscoverSwipeActionPlan.action(for: decision,
                                                           currentMovieId: props.currentMovie?.id) else {
             return
         }
@@ -155,6 +159,34 @@ struct DiscoverView: ConnectedView {
             props.dispatch(MoviesActions.FetchRandomDiscover(filter: filter))
         }
     }
+
+    private func primaryActionButton(systemImage: String,
+                                     color: Color,
+                                     decision: DiscoverSwipeDecision,
+                                     accessibilityIdentifier: String,
+                                     opacity: Double,
+                                     xOffset: CGFloat,
+                                     yOffset: CGFloat,
+                                     props: Props) -> some View {
+        Button(action: {
+            self.performDiscoverAction(decision: decision, props: props)
+        }, label: {
+            ZStack {
+                Circle()
+                    .strokeBorder(color, lineWidth: 1)
+                Image(systemName: systemImage)
+                    .foregroundColor(color)
+            }
+            .frame(width: 50, height: 50)
+            .padding(12)
+            .contentShape(Rectangle())
+        })
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .offset(x: xOffset, y: yOffset)
+        .opacity(opacity)
+        .animation(.spring(), value: self.draggedViewState.translation)
+    }
     
     // MARK: Body views
     private func filterView(props: Props) -> some View {
@@ -180,21 +212,23 @@ struct DiscoverView: ConnectedView {
                     .offset(x: 0, y: -15)
                     .animation(.easeInOut, value: self.draggedViewState.isDragging)
                 
-                Circle()
-                    .strokeBorder(Color.pink, lineWidth: 1)
-                    .background(Image(systemName: "heart.fill").foregroundColor(.pink))
-                    .frame(width: 50, height: 50)
-                    .offset(x: -70, y: 0)
-                    .opacity(self.draggedViewState.isDragging ? 0.3 + Double(self.leftZoneResistance()) : 0)
-                    .animation(.spring(), value: self.draggedViewState.translation)
-                
-                Circle()
-                    .strokeBorder(Color.green, lineWidth: 1)
-                    .background(Image(systemName: "eye.fill").foregroundColor(.green))
-                    .frame(width: 50, height: 50)
-                    .offset(x: 70, y: 0)
-                    .opacity(self.draggedViewState.isDragging ? 0.3 + Double(self.rightZoneResistance()) : 0)
-                    .animation(.spring(), value: self.draggedViewState.translation)
+                primaryActionButton(systemImage: "heart.fill",
+                                    color: .pink,
+                                    decision: .wishlist,
+                                    accessibilityIdentifier: "discover.wishlistButton",
+                                    opacity: self.draggedViewState.isDragging ? 0.3 + Double(self.leftZoneResistance()) : 0.8,
+                                    xOffset: -70,
+                                    yOffset: 0,
+                                    props: props)
+
+                primaryActionButton(systemImage: "eye.fill",
+                                    color: .green,
+                                    decision: .seenlist,
+                                    accessibilityIdentifier: "discover.seenlistButton",
+                                    opacity: self.draggedViewState.isDragging ? 0.3 + Double(self.rightZoneResistance()) : 0.8,
+                                    xOffset: 70,
+                                    yOffset: 0,
+                                    props: props)
                 
                 
                 Button(action: {
