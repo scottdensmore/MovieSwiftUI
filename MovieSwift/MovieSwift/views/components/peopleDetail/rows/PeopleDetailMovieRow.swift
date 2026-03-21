@@ -9,6 +9,13 @@
 import SwiftUI
 import Backend
 
+enum PeopleDetailMovieRowState {
+    static func subtitle(for role: String) -> String? {
+        let trimmed = role.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
 struct PeopleDetailMovieRow : View {
     let movie: Movie
     let role: String
@@ -26,10 +33,11 @@ struct PeopleDetailMovieRow : View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
-                    .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
-                Text(role)
-                    .foregroundColor(.secondary)
-                    .font(.subheadline)
+                if let subtitle = PeopleDetailMovieRowState.subtitle(for: role) {
+                    Text(subtitle)
+                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                }
             }
         }
         .padding(.horizontal, 10)

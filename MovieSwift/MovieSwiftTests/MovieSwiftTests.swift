@@ -74,6 +74,32 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(PeopleDetailImagesState.accessibilityLabel(for: 1, total: 3), "Image 2 of 3")
     }
 
+    func testPeopleDetailHeaderStateUsesNeutralFallbackCopy() {
+        let people = People(id: 1,
+                            name: "Test Person",
+                            character: nil,
+                            department: nil,
+                            profile_path: nil,
+                            known_for_department: nil,
+                            known_for: nil,
+                            also_known_as: nil,
+                            birthDay: nil,
+                            deathDay: nil,
+                            place_of_birth: nil,
+                            biography: nil,
+                            popularity: nil,
+                            images: nil)
+
+        XCTAssertEqual(PeopleDetailHeaderState.knownForText(for: people),
+                       "Known work is not available.")
+    }
+
+    func testPeopleDetailMovieRowStateSkipsEmptySubtitle() {
+        XCTAssertNil(PeopleDetailMovieRowState.subtitle(for: ""))
+        XCTAssertNil(PeopleDetailMovieRowState.subtitle(for: "   "))
+        XCTAssertEqual(PeopleDetailMovieRowState.subtitle(for: "Director"), "Director")
+    }
+
     func testAppLaunchModeDetectsPreviewEnvironment() {
         XCTAssertEqual(AppLaunchMode.from(arguments: [], environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]), .preview)
     }

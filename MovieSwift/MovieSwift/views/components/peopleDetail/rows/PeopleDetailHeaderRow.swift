@@ -9,6 +9,15 @@
 import SwiftUI
 import Backend
 
+enum PeopleDetailHeaderState {
+    static let missingKnownForText = "Known work is not available."
+
+    static func knownForText(for people: People) -> String {
+        let text = people.knownForText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text?.isEmpty == false ? text! : missingKnownForText
+    }
+}
+
 struct PeopleDetailHeaderRow : View {
     let people: People
     
@@ -23,7 +32,7 @@ struct PeopleDetailHeaderRow : View {
                 if people.known_for_department != nil{
                     Text(people.known_for_department!)
                 }
-                Text(people.knownForText ?? "For now nothing much... or missing data")
+                Text(PeopleDetailHeaderState.knownForText(for: people))
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(nil)
