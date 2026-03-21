@@ -133,6 +133,8 @@ struct SettingsForm : ConnectedView {
                     .allowsHitTesting(false)
                     .accessibilityIdentifier("settings.alwaysOriginalTitleToggle")
             }
+            .padding(.vertical, 6)
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
@@ -193,7 +195,8 @@ struct SettingsForm : ConnectedView {
                 .toolbar {
                     if isModalPresentation {
                         ToolbarItem(placement: .topBarLeading) {
-                            Button("Cancel", action: cancelAction)
+                Button("Cancel", action: cancelAction)
+                    .padding(.horizontal, 6)
                                 .accessibilityIdentifier("settings.cancelButton")
                         }
                         ToolbarItem(placement: .topBarTrailing) {
@@ -201,6 +204,7 @@ struct SettingsForm : ConnectedView {
                                 savePreferences(dispatch: props.dispatch)
                                 close()
                             }
+                            .padding(.horizontal, 6)
                             .accessibilityIdentifier("settings.saveButton")
                         }
                     }

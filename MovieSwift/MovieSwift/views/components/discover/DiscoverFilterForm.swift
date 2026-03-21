@@ -176,13 +176,19 @@ struct DiscoverFilterForm : ConnectedView {
                     props.dispatch(MoviesActions.SetActiveDiscoverFilter(filter: filter))
                     props.dispatch(MoviesActions.FetchRandomDiscover(filter: filter))
                 }, label: {
-                    Text("Save and filter movies").foregroundColor(.green)
+                    Text("Save and filter movies")
+                        .foregroundColor(.green)
+                        .padding(.vertical, 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
                 
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
                 }, label: {
-                    Text("Cancel").foregroundColor(.red)
+                    Text("Cancel")
+                        .foregroundColor(.red)
+                        .padding(.vertical, 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
             }
             
@@ -195,7 +201,10 @@ struct DiscoverFilterForm : ConnectedView {
                     props.dispatch(MoviesActions.ResetRandomDiscover())
                     props.dispatch(MoviesActions.FetchRandomDiscover())
                 }, label: {
-                    Text("Reset random").foregroundColor(.blue)
+                    Text("Reset random")
+                        .foregroundColor(.blue)
+                        .padding(.vertical, 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
             }
         }
@@ -224,8 +233,9 @@ struct DiscoverFilterForm : ConnectedView {
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
+                            .padding(.horizontal, 4)
                             .padding(.vertical, 6)
-                            .contentShape(Rectangle())
+                            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         })
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -236,6 +246,8 @@ struct DiscoverFilterForm : ConnectedView {
                             Image(systemName: "trash")
                             Text("Delete saved filters")
                         }
+                        .padding(.vertical, 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .foregroundColor(.red)
                     })
                 })
