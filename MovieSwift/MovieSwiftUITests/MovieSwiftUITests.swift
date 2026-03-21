@@ -275,6 +275,18 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertEqual(restoredTitle.label, originalTitle)
     }
 
+    func testDiscoverShowsEmptyStateAfterDismissingLastMovie() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let dismissButton = button("discover.dismissButton", in: app)
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: uiWaitTimeout))
+        dismissButton.tap()
+
+        XCTAssertTrue(identifiedElement("discover.emptyState", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(button("discover.undoButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
     func testDiscoverFilterSaveCreatesSavedFilterRow() {
         let app = launchApp()
         let filterButton = openDiscover(in: app)

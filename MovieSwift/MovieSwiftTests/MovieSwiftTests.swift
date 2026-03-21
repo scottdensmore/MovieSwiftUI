@@ -273,6 +273,23 @@ final class MovieSwiftTests: XCTestCase {
                                                                   isRunningUISmokeTests: true))
     }
 
+    func testDiscoverFetchPolicySkipsWhenEnoughCardsRemain() {
+        XCTAssertFalse(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 10,
+                                                                  force: false,
+                                                                  isRunningUISmokeTests: false))
+    }
+
+    func testDiscoverFetchPolicyAllowsForcedRefillOutsideUISmokeTests() {
+        XCTAssertTrue(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 10,
+                                                                 force: true,
+                                                                 isRunningUISmokeTests: false))
+    }
+
+    func testDiscoverEmptyStateShowsOnlyWithoutCurrentMovie() {
+        XCTAssertTrue(DiscoverEmptyState.shouldShow(currentMovie: nil))
+        XCTAssertFalse(DiscoverEmptyState.shouldShow(currentMovie: sampleMovie))
+    }
+
     func testDiscoverUndoStateOnlyShowsUndoWhenNotDraggingAndMovieExists() {
         XCTAssertTrue(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: false))
         XCTAssertFalse(DiscoverUndoState.canUndo(previousMovie: nil, isDragging: false))

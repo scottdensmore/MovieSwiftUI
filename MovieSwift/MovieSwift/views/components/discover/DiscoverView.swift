@@ -55,6 +55,12 @@ enum DiscoverFetchPolicy {
     }
 }
 
+enum DiscoverEmptyState {
+    static func shouldShow(currentMovie: Movie?) -> Bool {
+        currentMovie == nil
+    }
+}
+
 enum DiscoverUndoState {
     static func canUndo(previousMovie: Int?, isDragging: Bool) -> Bool {
         previousMovie != nil && !isDragging
@@ -225,6 +231,24 @@ struct DiscoverView: ConnectedView {
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
+            } else if DiscoverEmptyState.shouldShow(currentMovie: props.currentMovie) {
+                VStack(spacing: 12) {
+                    Text("No more discover movies")
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .font(.FjallaOne(size: 18))
+                        .accessibilityIdentifier("discover.emptyState")
+
+                    if !isRunningUISmokeTests {
+                        BorderedButton(text: "Refill discover",
+                                       systemImageName: "arrow.clockwise",
+                                       color: .steam_blue,
+                                       isOn: false) {
+                            self.fetchRandomMovies(props: props, force: true, filter: props.filter)
+                        }
+                        .accessibilityIdentifier("discover.refillButton")
+                    }
+                }
             }
 
             Button(action: {
