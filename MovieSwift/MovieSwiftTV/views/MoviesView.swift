@@ -11,23 +11,36 @@ import SwiftUIFlux
 import Backend
 
 struct MoviesView: ConnectedView {
+    struct Poster: Identifiable {
+        let id: Int
+        let posterPath: String?
+    }
+
     struct Props {
-        let movies: [Int]
+        let movies: [Poster]
+        let loadMovies: () -> Void
     }
     
     @Binding var menu: MoviesMenu
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        return Props(movies: state.moviesState.moviesList[menu] ?? [])
+        let movies = (state.moviesState.moviesList[menu] ?? []).map { id in
+            Poster(id: id, posterPath: state.moviesState.movies[id]?.poster_path)
+        }
+
+        return Props(movies: movies,
+                     loadMovies: {
+                        dispatch(MoviesActions.FetchMoviesMenuList(list: self.menu, page: 1))
+                     })
     }
     
     func body(props: Props) -> some View {
         NavigationView {
             ScrollView(.horizontal) {
                 HStack {
-                    ForEach(props.movies, id: \.self) { id in
+                    ForEach(props.movies) { movie in
                         NavigationLink(destination: Text("Test")) {
-                            MoviePosterImage(imageLoader: ImageLoader(path: store.state.moviesState.movies[id]?.poster_path,
+                            MoviePosterImage(imageLoader: ImageLoader(path: movie.posterPath,
                                                                       size: .medium),
                                 posterSize: PosterStyle.Size.tv)
                         }
@@ -35,7 +48,7 @@ struct MoviesView: ConnectedView {
                 }.frame(height: PosterStyle.Size.tv.height() + 50)
             }
             .onAppear{
-                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: self.menu, page: 1))
+                props.loadMovies()
             }
         }
     }
@@ -43,6 +56,6 @@ struct MoviesView: ConnectedView {
 
 struct MoviesView_Previews: PreviewProvider {
     static var previews: some View {
-        MoviesView(menu: .constant(.popular))
+        MoviesView(menu: .constant(.popular)).environmentObject(sampleStore)
     }
 }

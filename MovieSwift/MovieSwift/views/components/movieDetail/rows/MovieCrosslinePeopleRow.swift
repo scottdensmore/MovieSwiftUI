@@ -10,6 +10,30 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 
+struct MovieCrosslinePersonPresentation {
+    let name: String
+    let subtitle: String?
+    let profilePath: String?
+    let accessibilityIdentifier: String
+}
+
+enum MovieCrosslinePeopleState {
+    static func presentation(for people: People) -> MovieCrosslinePersonPresentation {
+        MovieCrosslinePersonPresentation(name: people.name,
+                                         subtitle: people.character ?? people.department,
+                                         profilePath: people.profile_path,
+                                         accessibilityIdentifier: "movieDetail.person.\(people.id)")
+    }
+
+    static func subtitle(for people: People) -> String {
+        presentation(for: people).subtitle ?? ""
+    }
+
+    static func accessibilityIdentifier(for people: People) -> String {
+        presentation(for: people).accessibilityIdentifier
+    }
+}
+
 struct MovieCrosslinePeopleRow : View {
     let title: String
     let peoples: [People]
@@ -71,28 +95,34 @@ struct PeopleListItem: View {
     let people: People
     var onSelect: () -> Void
 
+    private var presentation: MovieCrosslinePersonPresentation {
+        MovieCrosslinePeopleState.presentation(for: people)
+    }
+
     var body: some View {
         Button(action: onSelect) {
             HStack {
-                PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
+                PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.profilePath,
                                                      size: .cast))
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(people.name)
+                    Text(presentation.name)
                         .font(.headline)
                         .foregroundColor(.primary)
                         .lineLimit(1)
-                    Text(people.character ?? people.department ?? "")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    if let subtitle = presentation.subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(people.name)
-        .accessibilityValue(people.character ?? people.department ?? "")
+        .accessibilityLabel(presentation.name)
+        .accessibilityValue(presentation.subtitle ?? "")
         .contextMenu{ PeopleContextMenu(people: people.id) }
     }
 }
@@ -100,6 +130,10 @@ struct PeopleListItem: View {
 struct PeopleRowItem: View {
     let people: People
     var onSelect: () -> Void
+
+    private var presentation: MovieCrosslinePersonPresentation {
+        MovieCrosslinePeopleState.presentation(for: people)
+    }
 
     #if targetEnvironment(macCatalyst)
     @FocusState private var isFocused: Bool
@@ -111,9 +145,9 @@ struct PeopleRowItem: View {
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(people.name)
-        .accessibilityValue(people.character ?? people.department ?? "")
-        .accessibilityIdentifier("movieDetail.person.\(people.id)")
+        .accessibilityLabel(presentation.name)
+        .accessibilityValue(presentation.subtitle ?? "")
+        .accessibilityIdentifier(presentation.accessibilityIdentifier)
         .buttonStyle(.plain)
         #if targetEnvironment(macCatalyst)
         .focusable()
@@ -127,16 +161,18 @@ struct PeopleRowItem: View {
 
     private var peopleContent: some View {
         VStack(alignment: .center) {
-            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
+            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.profilePath,
                                                                        size: .cast))
-            Text(people.name)
+            Text(presentation.name)
                 .font(.footnote)
                 .foregroundColor(.primary)
                 .lineLimit(1)
-            Text(people.character ?? people.department ?? "")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .lineLimit(1)
+            if let subtitle = presentation.subtitle {
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
         }
         .frame(width: 100)
         .contextMenu{ PeopleContextMenu(people: people.id) }

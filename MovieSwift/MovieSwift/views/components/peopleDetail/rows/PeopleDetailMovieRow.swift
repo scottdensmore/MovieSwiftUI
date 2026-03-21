@@ -7,16 +7,10 @@
 //
 
 import SwiftUI
-import SwiftUIFlux
 import Backend
 
 struct PeopleDetailMovieRow : View {
-    @EnvironmentObject var store: Store<AppState>
-    
-    let movieId: Int
-    private var movie: Movie! {
-        return store.state.moviesState.movies[movieId]
-    }
+    let movie: Movie
     let role: String
     
     let onMovieContextMenu: () -> Void
@@ -27,29 +21,29 @@ struct PeopleDetailMovieRow : View {
                 MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
                                                                                 size: .small),
                                  posterSize: .small)
-                ListImage(movieId: movieId)
+                ListImage(movieId: movie.id)
             }.fixedSize()
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
-                    .accessibilityIdentifier("peopleDetail.movie.\(movieId)")
+                    .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
                 Text(role)
                     .foregroundColor(.secondary)
                     .font(.subheadline)
             }
         }
-        .accessibilityIdentifier("peopleDetail.movie.\(movieId)")
+        .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
         .accessibilityElement(children: .combine)
-        .contextMenu{ MovieContextMenu(movieId: movieId, onAction: onMovieContextMenu) }
+        .contextMenu{ MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }
     }
 }
 
 #if DEBUG
 struct PeopleDetailMovieRow_Previews : PreviewProvider {
     static var previews: some View {
-        PeopleDetailMovieRow(movieId: sampleMovie.id, role: "Test", onMovieContextMenu: {
+        PeopleDetailMovieRow(movie: sampleMovie, role: "Test", onMovieContextMenu: {
             
-        }).environmentObject(sampleStore)
+        })
     }
 }
 #endif

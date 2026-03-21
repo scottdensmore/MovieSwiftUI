@@ -11,6 +11,24 @@ import SwiftUIFlux
 import Backend
 import UI
 
+struct MovieCrosslineItemPresentation {
+    let title: String
+    let posterPath: String?
+    let popularityScore: Int
+}
+
+enum MovieCrosslineState {
+    static func movieIds(from movies: [Movie]) -> [Int] {
+        movies.map(\.id)
+    }
+
+    static func presentation(for movie: Movie) -> MovieCrosslineItemPresentation {
+        MovieCrosslineItemPresentation(title: movie.userTitle,
+                                       posterPath: movie.poster_path,
+                                       popularityScore: Int(movie.vote_average * 10))
+    }
+}
+
 struct MovieCrosslineRow : View {
     let title: String
     let movies: [Movie]
@@ -24,7 +42,7 @@ struct MovieCrosslineRow : View {
     #endif
 
     private var listView: some View {
-        MoviesList(movies: movies.map{ $0.id },
+        MoviesList(movies: MovieCrosslineState.movieIds(from: movies),
                    displaySearch: false,
                    pageListener: nil,
                    navigationRoute: $navigationRoute)
@@ -74,6 +92,10 @@ struct MovieDetailRowItem: View {
     let movie: Movie
     var onSelect: () -> Void
 
+    private var presentation: MovieCrosslineItemPresentation {
+        MovieCrosslineState.presentation(for: movie)
+    }
+
     #if targetEnvironment(macCatalyst)
     @FocusState private var isFocused: Bool
     #endif
@@ -96,17 +118,17 @@ struct MovieDetailRowItem: View {
     private var movieContent: some View {
         VStack(alignment: .center) {
             ZStack(alignment: .topLeading) {
-                MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
+                MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.posterPath,
                                                                                 size: .medium),
                                  posterSize: .medium)
                 ListImage(movieId: movie.id)
 
             }.fixedSize()
-            Text(movie.userTitle)
+            Text(presentation.title)
                 .font(.footnote)
                 .foregroundColor(.primary)
                 .lineLimit(1)
-            PopularityBadge(score: Int(movie.vote_average * 10))
+            PopularityBadge(score: presentation.popularityScore)
         }.frame(width: 120, height: 240)
     }
 }

@@ -9,12 +9,34 @@
 import SwiftUI
 import Backend
 
+struct MovieBackdropPresentation: Identifiable {
+    let image: ImageData
+
+    var id: String {
+        image.file_path
+    }
+
+    var path: String {
+        image.file_path
+    }
+}
+
+enum MovieBackdropsState {
+    static func presentations(from backdrops: [ImageData]) -> [MovieBackdropPresentation] {
+        backdrops.map(MovieBackdropPresentation.init(image:))
+    }
+}
+
 struct MovieBackdropsRow : View {
     let backdrops: [ImageData]
 
     #if targetEnvironment(macCatalyst)
     @FocusState private var focusedBackdropId: String?
     #endif
+
+    private var presentations: [MovieBackdropPresentation] {
+        MovieBackdropsState.presentations(from: backdrops)
+    }
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -23,19 +45,19 @@ struct MovieBackdropsRow : View {
                 .padding(.leading)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(self.backdrops) { backdrop in
+                    ForEach(presentations) { backdrop in
                         #if targetEnvironment(macCatalyst)
-                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.file_path,
+                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.path,
                                                                                           size: .original))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(focusedBackdropId == backdrop.file_path ? Color.accentColor : .clear, lineWidth: 3)
+                                    .stroke(focusedBackdropId == backdrop.id ? Color.accentColor : .clear, lineWidth: 3)
                             )
                             .focusable()
-                            .focused($focusedBackdropId, equals: backdrop.file_path)
+                            .focused($focusedBackdropId, equals: backdrop.id)
                             .focusEffectDisabled()
                         #else
-                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.file_path,
+                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.path,
                                                                                           size: .original))
                         #endif
                     }

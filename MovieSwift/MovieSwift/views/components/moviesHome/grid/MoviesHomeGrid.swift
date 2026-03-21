@@ -9,12 +9,37 @@
 import SwiftUI
 import SwiftUIFlux
 
+enum MoviesHomeGridFetchPolicy {
+    static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+
+    static func shouldFetchMenuPage(isRunningUISmokeTests: Bool) -> Bool {
+        shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests)
+    }
+
+    static func shouldFetchGenresOnAppear(isRunningUISmokeTests: Bool) -> Bool {
+        shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests)
+    }
+}
+
+enum MoviesHomeGridState {
+    static func movies(from state: AppState) -> [MoviesMenu: [Int]] {
+        state.moviesState.moviesList
+    }
+
+    static func genres(from state: AppState) -> [Genre] {
+        Array(state.moviesState.genres.dropFirst())
+    }
+}
+
 struct MoviesHomeGrid: ConnectedView {
     struct Props {
         let movies: [MoviesMenu: [Int]]
         let genres: [Genre]
     }
 
+    @EnvironmentObject private var store: Store<AppState>
     let navigationRoute: Binding<MoviesListNavigationRoute?>
 
     private struct MenuDestination: Hashable, Identifiable {
@@ -27,7 +52,15 @@ struct MoviesHomeGrid: ConnectedView {
     private func menuListView(for menu: MoviesMenu, props: Props) -> some View {
         MoviesList(movies: props.movies[menu] ?? [],
                    displaySearch: true,
-                   pageListener: MoviesMenuListPageListener(menu: menu, loadOnInit: false),
+                   pageListener: MoviesMenuListPageListener(menu: menu,
+                                                            loadOnInit: false,
+                                                            shouldLoadPage: {
+                                                                MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests)
+                                                            },
+                                                            dispatchPage: { menu, page in
+                                                                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu,
+                                                                                                                        page: page))
+                                                            }),
                    navigationRoute: navigationRoute)
             .navigationBarTitle(menu.title())
     }
@@ -54,19 +87,15 @@ struct MoviesHomeGrid: ConnectedView {
             MoviesHomeGridMoviesRow(movies: props.movies[menu] ?? [])
                 .padding(.bottom, 8)
         }.onAppear {
-            if !isRunningUISmokeTests {
+            if MoviesHomeGridFetchPolicy.shouldFetchMenuPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
                 store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
             }
         }.listRowInsets(EdgeInsets())
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        var genres = state.moviesState.genres
-        if !genres.isEmpty {
-            genres.removeFirst()
-        }
-        return Props(movies: state.moviesState.moviesList,
-                     genres: genres)
+        Props(movies: MoviesHomeGridState.movies(from: state),
+              genres: MoviesHomeGridState.genres(from: state))
     }
     
     func body(props: Props) -> some View {
@@ -100,7 +129,7 @@ struct MoviesHomeGrid: ConnectedView {
             MoviesGenreList(genre: genre)
         }
         .onAppear {
-            if !isRunningUISmokeTests {
+            if MoviesHomeGridFetchPolicy.shouldFetchGenresOnAppear(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
                 store.dispatch(action: MoviesActions.FetchGenres())
             }
         }
@@ -110,5 +139,6 @@ struct MoviesHomeGrid: ConnectedView {
 struct MoviesHomeGrid_Previews: PreviewProvider {
     static var previews: some View {
         MoviesHomeGrid(navigationRoute: .constant(nil))
+            .environmentObject(sampleStore)
     }
 }

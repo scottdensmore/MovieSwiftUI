@@ -9,11 +9,23 @@
 import SwiftUI
 import SwiftUIFlux
 
+enum MyListsPresentation {
+    static func customLists(from customLists: [Int: CustomList]) -> [CustomList] {
+        customLists.compactMap { $0.value }
+    }
+
+    static func sortedMovies(_ movies: [Int], by sort: MoviesSort, state: AppState) -> [Int] {
+        movies.sortedMoviesIds(by: sort, state: state)
+    }
+}
+
 struct MyLists : ConnectedView {
     struct Props {
+        let dispatch: DispatchFunction
         let customLists: [CustomList]
         let wishlist: [Int]
         let seenlist: [Int]
+        let movieLookup: [Int: Movie]
     }
     
     // MARK: - Vars
@@ -32,11 +44,15 @@ struct MyLists : ConnectedView {
     #endif
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(customLists: state.moviesState.customLists.compactMap{ $0.value },
-              wishlist: state.moviesState.wishlist.map{ $0 }.sortedMoviesIds(by: selectedMoviesSort,
-                                                                                state: store.state),
-              seenlist: state.moviesState.seenlist.map{ $0 }.sortedMoviesIds(by: selectedMoviesSort,
-                                                                                state: store.state))
+        Props(dispatch: dispatch,
+              customLists: MyListsPresentation.customLists(from: state.moviesState.customLists),
+              wishlist: MyListsPresentation.sortedMovies(state.moviesState.wishlist.map { $0 },
+                                                         by: selectedMoviesSort,
+                                                         state: state),
+              seenlist: MyListsPresentation.sortedMovies(state.moviesState.seenlist.map { $0 },
+                                                         by: selectedMoviesSort,
+                                                         state: state),
+              movieLookup: state.moviesState.movies)
     }
     
     // MARK: - Dynamic views
@@ -58,7 +74,9 @@ struct MyLists : ConnectedView {
             ForEach(props.customLists) { list in
                 #if targetEnvironment(macCatalyst)
                 Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
-                    CustomListRow(list: list)
+                    CustomListRow(list: list,
+                                  coverMovie: CustomListPresentation.coverMovie(for: list,
+                                                                               movies: props.movieLookup))
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
@@ -66,14 +84,16 @@ struct MyLists : ConnectedView {
                 .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedCustomList = CustomListNav(id: list.id); return .handled }
                 #else
                 NavigationLink(destination: CustomListDetail(listId: list.id)) {
-                    CustomListRow(list: list)
+                    CustomListRow(list: list,
+                                  coverMovie: CustomListPresentation.coverMovie(for: list,
+                                                                               movies: props.movieLookup))
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
             .onDelete { (index) in
                 let list = props.customLists[index.first!]
-                self.store.dispatch(action: MoviesActions.RemoveCustomList(list: list.id))
+                props.dispatch(MoviesActions.RemoveCustomList(list: list.id))
             }
         }
     }
@@ -98,7 +118,7 @@ struct MyLists : ConnectedView {
             }
             .onDelete { (index) in
                 let movie = props.wishlist[index.first!]
-                self.store.dispatch(action: MoviesActions.RemoveFromWishlist(movie: movie))
+                props.dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
 
             }
         }
@@ -124,7 +144,7 @@ struct MyLists : ConnectedView {
             }
             .onDelete { (index) in
                 let movie = props.seenlist[index.first!]
-                self.store.dispatch(action: MoviesActions.RemoveFromSeenList(movie: movie))
+                props.dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
             }
         }
     }

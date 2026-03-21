@@ -7,16 +7,10 @@
 //
 
 import SwiftUI
-import SwiftUIFlux
 import Backend
 
 struct PeopleDetailHeaderRow : View {
-    @EnvironmentObject private var store: Store<AppState>
-    let peopleId: Int
-    
-    var people: People {
-        store.state.peoplesState.peoples[peopleId]!
-    }
+    let people: People
     
     var body: some View {
         HStack(alignment: .top) {
@@ -42,7 +36,7 @@ struct PeopleDetailHeaderRow : View {
 #if DEBUG
 struct PeopleDetailHeaderRow_Previews : PreviewProvider {
     static var previews: some View {
-        PeopleDetailHeaderRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
+        PeopleDetailHeaderRow(people: sampleCasts.first!)
     }
 }
 #endif

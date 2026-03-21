@@ -68,6 +68,34 @@ func moviesListDestinationView(for route: MoviesListNavigationRoute) -> some Vie
     }
 }
 
+enum MoviesListSearchState {
+    static func searchedMovies(query: String, from state: AppState) -> [Int]? {
+        state.moviesState.search[query]
+    }
+
+    static func searchedKeywords(query: String, from state: AppState) -> [Keyword]? {
+        state.moviesState.searchKeywords[query]?.prefix(5).map { $0 }
+    }
+
+    static func searchedPeoples(query: String, from state: AppState) -> [Int]? {
+        state.peoplesState.search[query]
+    }
+
+    static func recentSearches(from state: AppState) -> [String] {
+        state.moviesState.recentSearches.map { $0 }
+    }
+}
+
+enum MoviesListPaginationPolicy {
+    static func shouldAdvanceSearchPage(isSearching: Bool, searchedMovies: [Int]?) -> Bool {
+        isSearching && searchedMovies?.isEmpty == false
+    }
+
+    static func shouldAdvanceListPage(isSearching: Bool, pageListenerExists: Bool, movies: [Int]) -> Bool {
+        !isSearching && pageListenerExists && !movies.isEmpty
+    }
+}
+
 // MARK: - Movies List
 struct MoviesList: ConnectedView {
     struct Props {
@@ -101,11 +129,17 @@ struct MoviesList: ConnectedView {
     // MARK: - Private var
     // MARK: - Computed Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        searchTextWrapper.bindDispatchSearches { text, page in
+            dispatch(MoviesActions.FetchSearchKeyword(query: text))
+            dispatch(MoviesActions.FetchSearch(query: text, page: page))
+            dispatch(PeopleActions.FetchSearch(query: text, page: page))
+        }
+
         if isSearching {
-            return Props(searchedMovies: state.moviesState.search[searchTextWrapper.searchText],
-                         searchedKeywords: state.moviesState.searchKeywords[searchTextWrapper.searchText]?.prefix(5).map{ $0 },
-                         searcherdPeoples: state.peoplesState.search[searchTextWrapper.searchText],
-                         recentSearches: state.moviesState.recentSearches.map{ $0 })
+            return Props(searchedMovies: MoviesListSearchState.searchedMovies(query: searchTextWrapper.searchText, from: state),
+                         searchedKeywords: MoviesListSearchState.searchedKeywords(query: searchTextWrapper.searchText, from: state),
+                         searcherdPeoples: MoviesListSearchState.searchedPeoples(query: searchTextWrapper.searchText, from: state),
+                         recentSearches: MoviesListSearchState.recentSearches(from: state))
         }
         return Props(searchedMovies: nil, searchedKeywords: nil, searcherdPeoples: nil, recentSearches: [])
     }
@@ -237,9 +271,12 @@ struct MoviesList: ConnectedView {
             Rectangle()
                 .foregroundColor(.clear)
                 .onAppear {
-                    if self.isSearching && props.searchedMovies?.isEmpty == false {
+                    if MoviesListPaginationPolicy.shouldAdvanceSearchPage(isSearching: self.isSearching,
+                                                                         searchedMovies: props.searchedMovies) {
                         self.searchTextWrapper.searchPageListener.currentPage += 1
-                    } else if self.pageListener != nil && !self.isSearching && !self.movies.isEmpty {
+                    } else if MoviesListPaginationPolicy.shouldAdvanceListPage(isSearching: self.isSearching,
+                                                                               pageListenerExists: self.pageListener != nil,
+                                                                               movies: self.movies) {
                         self.pageListener?.currentPage += 1
                     }
                 }

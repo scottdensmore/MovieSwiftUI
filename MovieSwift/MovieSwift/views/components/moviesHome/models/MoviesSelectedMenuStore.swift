@@ -15,12 +15,17 @@ final class MoviesSelectedMenuStore: ObservableObject {
     
     @Published var menu: MoviesMenu {
         didSet {
-            pageListener.menu = menu
+            synchronizePageListener()
         }
     }
-        
-    init(selectedMenu: MoviesMenu) {
+
+    init(selectedMenu: MoviesMenu, pageListener: MoviesMenuListPageListener? = nil) {
         self.menu = selectedMenu
-        self.pageListener = MoviesMenuListPageListener(menu: selectedMenu)
+        self.pageListener = pageListener ?? MoviesMenuListPageListener(menu: selectedMenu, loadOnInit: false)
+        synchronizePageListener()
+    }
+
+    private func synchronizePageListener() {
+        pageListener.menu = menu
     }
 }

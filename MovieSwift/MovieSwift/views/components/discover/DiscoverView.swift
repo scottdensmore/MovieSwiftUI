@@ -11,6 +11,23 @@ import SwiftUIFlux
 import Backend
 import UI
 
+enum DiscoverSwipeDecision: Equatable {
+    case wishlist
+    case seenlist
+    case none
+
+    static func from(handler: DraggableCover.EndState) -> DiscoverSwipeDecision {
+        switch handler {
+        case .left:
+            return .wishlist
+        case .right:
+            return .seenlist
+        case .cancelled:
+            return .none
+        }
+    }
+}
+
 struct DiscoverView: ConnectedView {
     
     // MARK: - Props
@@ -73,18 +90,23 @@ struct DiscoverView: ConnectedView {
         guard let currentMovie = props.currentMovie else {
             return
         }
-        if handler == .left || handler == .right {
+        switch DiscoverSwipeDecision.from(handler: handler) {
+        case .wishlist:
             previousMovie = currentMovie.id
-            if handler == .left {
-                hapticFeedback.impactOccurred(intensity: 0.8)
-                props.dispatch(MoviesActions.AddToWishlist(movie: currentMovie.id))
-            } else if handler == .right {
-                hapticFeedback.impactOccurred(intensity: 0.8)
-                props.dispatch(MoviesActions.AddToSeenList(movie: currentMovie.id))
-            }
-            store.dispatch(action: MoviesActions.PopRandromDiscover())
+            hapticFeedback.impactOccurred(intensity: 0.8)
+            props.dispatch(MoviesActions.AddToWishlist(movie: currentMovie.id))
+            props.dispatch(MoviesActions.PopRandromDiscover())
             willEndPosition = nil
             fetchRandomMovies(props: props, force: false, filter: props.filter)
+        case .seenlist:
+            previousMovie = currentMovie.id
+            hapticFeedback.impactOccurred(intensity: 0.8)
+            props.dispatch(MoviesActions.AddToSeenList(movie: currentMovie.id))
+            props.dispatch(MoviesActions.PopRandromDiscover())
+            willEndPosition = nil
+            fetchRandomMovies(props: props, force: false, filter: props.filter)
+        case .none:
+            return
         }
     }
     
@@ -202,7 +224,7 @@ struct DiscoverView: ConnectedView {
             Group {
                 if props.movies.reversed().firstIndex(of: id) == 0 {
                     presentMovieDetails(
-                        DraggableCover(movieId: id,
+                        DraggableCover(posterPath: DiscoverPosterLookup.posterPath(for: id, posters: props.posters),
                                        gestureViewState: self.$draggedViewState,
                                        onTapGesture: {
                                         self.presentedMovie = props.currentMovie

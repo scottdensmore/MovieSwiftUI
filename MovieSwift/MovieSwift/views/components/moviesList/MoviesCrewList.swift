@@ -9,14 +9,29 @@
 import SwiftUI
 import SwiftUIFlux
 
-struct MoviesCrewList : View {
-    @EnvironmentObject var store: Store<AppState>
+enum MoviesCrewListState {
+    static func movies(for crew: People, from state: AppState) -> [Int] {
+        state.moviesState.withCrew[crew.id] ?? []
+    }
+}
+
+struct MoviesCrewList : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let movies: [Int]
+    }
+
     @State private var navigationRoute: MoviesListNavigationRoute?
     let crew: People
 
-    var body: some View {
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              movies: MoviesCrewListState.movies(for: crew, from: state))
+    }
+
+    func body(props: Props) -> some View {
         VStack(spacing: 0) {
-            MoviesList(movies: store.state.moviesState.withCrew[crew.id] ?? [],
+            MoviesList(movies: props.movies,
                        displaySearch: false,
                        navigationRoute: $navigationRoute)
         }
@@ -25,7 +40,7 @@ struct MoviesCrewList : View {
             moviesListDestinationView(for: route)
         }
         .onAppear {
-            self.store.dispatch(action: MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
+            props.dispatch(MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
         }
     }
 }
@@ -34,6 +49,7 @@ struct MoviesCrewList : View {
 struct MovieCrewList_Previews : PreviewProvider {
     static var previews: some View {
         MoviesCrewList(crew: sampleCasts.first!)
+            .environmentObject(sampleStore)
     }
 }
 #endif

@@ -10,6 +10,12 @@ import SwiftUI
 import Combine
 import SwiftUIFlux
 
+enum MoviesHomeListState {
+    static func movies(for menu: MoviesMenu, from state: AppState) -> [Int] {
+        state.moviesState.moviesList[menu] ?? [0, 0, 0, 0]
+    }
+}
+
 struct MoviesHomeList: ConnectedView {
     struct Props {
         let movies: [Int]
@@ -21,7 +27,7 @@ struct MoviesHomeList: ConnectedView {
     let pageListener: MoviesMenuListPageListener
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movies: state.moviesState.moviesList[menu] ?? [0, 0, 0, 0])
+        Props(movies: MoviesHomeListState.movies(for: menu, from: state))
     }
     
     func body(props: Props) -> some View {
@@ -40,7 +46,7 @@ struct MoviesHomeList_Previews : PreviewProvider {
         NavigationView {
             MoviesHomeList(menu: .constant(.popular),
                            navigationRoute: .constant(nil),
-                           pageListener: MoviesMenuListPageListener(menu: .popular))
+                           pageListener: MoviesMenuListPageListener(menu: .popular, loadOnInit: false))
                 .environmentObject(sampleStore)
         }
     }

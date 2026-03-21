@@ -9,6 +9,18 @@
 import SwiftUI
 import SwiftUIFlux
 
+enum MovieGenrePageAction {
+    static func fetch(genre: Genre, page: Int, sort: MoviesSort) -> Action {
+        MoviesActions.FetchMoviesGenre(genre: genre, page: page, sortBy: sort)
+    }
+}
+
+enum MoviesGenreListState {
+    static func movies(for genre: Genre, from state: AppState) -> [Int] {
+        state.moviesState.withGenre[genre.id] ?? []
+    }
+}
+
 // MARK: - Page listener
 final class MovieGenrePageListener: MoviesPagesListener {
     var genre: Genre
@@ -22,7 +34,7 @@ final class MovieGenrePageListener: MoviesPagesListener {
     }
     
     override func loadPage() {
-        dispatch?(MoviesActions.FetchMoviesGenre(genre: genre, page: currentPage, sortBy: sort))
+        dispatch?(MovieGenrePageAction.fetch(genre: genre, page: currentPage, sort: sort))
     }
     
     init(genre: Genre) {
@@ -51,7 +63,7 @@ struct MoviesGenreList: ConnectedView {
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movies: state.moviesState.withGenre[genre.id] ?? [],
+        Props(movies: MoviesGenreListState.movies(for: genre, from: state),
               dispatch: dispatch)
     }
     

@@ -14,6 +14,10 @@ public struct BorderedButton : View {
     public let color: Color
     public let isOn: Bool
     public let action: () -> Void
+
+    #if targetEnvironment(macCatalyst)
+    @FocusState private var isFocused: Bool
+    #endif
     
     public init(text: String, systemImageName: String, color: Color, isOn: Bool, action: @escaping () -> Void) {
         self.text = text
@@ -38,6 +42,25 @@ public struct BorderedButton : View {
                 .stroke(color, lineWidth: isOn ? 0 : 2)
                 .background(isOn ? color : .clear)
                 .cornerRadius(8))
+            #if targetEnvironment(macCatalyst)
+            .focusable()
+            .focused($isFocused)
+            .focusEffectDisabled()
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isFocused ? color.opacity(isOn ? 0.16 : 0.10) : .clear)
+            )
+            .shadow(color: isFocused ? color.opacity(0.20) : .clear,
+                    radius: 10,
+                    x: 0,
+                    y: 0)
+            .shadow(color: isFocused ? Color.black.opacity(0.12) : .clear,
+                    radius: 4,
+                    x: 0,
+                    y: 3)
+            .scaleEffect(isFocused ? 1.01 : 1.0)
+            .animation(.easeOut(duration: 0.14), value: isFocused)
+            #endif
     }
 }
 

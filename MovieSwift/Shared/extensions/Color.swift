@@ -87,7 +87,21 @@ struct CatalystFocusHighlight: ViewModifier {
         content
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isFocused ? Color.accentColor.opacity(0.25) : .clear)
+                    .fill(isFocused ? Color.steam_white.opacity(0.10) : .clear)
+            )
+            .shadow(color: isFocused ? Color.steam_white.opacity(0.16) : .clear,
+                    radius: 14,
+                    x: 0,
+                    y: 0)
+            .shadow(color: isFocused ? Color.black.opacity(0.18) : .clear,
+                    radius: 6,
+                    x: 0,
+                    y: 4)
+            .scaleEffect(isFocused ? 1.01 : 1.0)
+            .animation(.easeOut(duration: 0.14), value: isFocused)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isFocused ? Color.black.opacity(0.12) : .clear)
             )
             .focusEffectDisabled()
     }

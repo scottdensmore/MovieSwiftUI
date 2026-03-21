@@ -23,21 +23,27 @@ struct MovieKeywords : View {
                 .titleStyle()
                 .padding(.leading)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
+                HStack(spacing: 8) {
                     ForEach(keywords) { keyword in
                         #if targetEnvironment(macCatalyst)
                         CatalystFocusableLink(id: keyword.id, focusedId: $focusedKeywordId) {
                             selectedKeyword = keyword
                         } label: {
                             RoundedBadge(text: keyword.name, color: .steam_background)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
                         }
                         #else
                         NavigationLink(destination: MovieKeywordList(keyword: keyword)) {
                             RoundedBadge(text: keyword.name, color: .steam_background)
+                                .padding(.vertical, 2)
                         }
                         #endif
                     }
-                }.padding(.leading)
+                }
+                .padding(.leading)
+                .padding(.trailing)
+                .padding(.vertical, 4)
             }
         }
         .listRowInsets(EdgeInsets())

@@ -10,6 +10,12 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 
+enum DiscoverPosterLookup {
+    static func posterPath(for movieId: Int, posters: [Int: String]) -> String? {
+        posters[movieId]
+    }
+}
+
 struct DraggableCover : View {
     
     // MARK: - Drag State
@@ -64,7 +70,6 @@ struct DraggableCover : View {
     @State private var hasMoved = false
     @State private var delayedIsActive = false
     @State private var viewWidth: CGFloat = 0
-    @EnvironmentObject private var store: Store<AppState>
     @GestureState private var dragState = DragState.inactive
     private let hapticFeedback = UISelectionFeedbackGenerator()
     
@@ -74,16 +79,11 @@ struct DraggableCover : View {
     private let shadowRadius: CGFloat = 16
     
     // MARK: - Constructor vars
-    let movieId: Int
+    let posterPath: String?
     @Binding var gestureViewState: DragState
     let onTapGesture: () -> Void
     let willEndGesture: (CGSize) -> Void
     let endGestureHandler: (EndState) -> Void
-    
-    // MARK: - Computed vars
-    private var movie: Movie! {
-        store.state.moviesState.movies[movieId]
-    }
     
     // MARK: - Viewd functions
     
@@ -157,7 +157,7 @@ struct DraggableCover : View {
             }
         
         // MARK: - View return
-        return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
+        return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: posterPath,
                                                                                  size: .medium))
             .offset(computedOffset())
             .animation(delayedIsActive ? coverSpringAnimation : nil, value: computedOffset())
@@ -196,7 +196,7 @@ struct DraggableCover : View {
 #if DEBUG
 struct DraggableCover_Previews : PreviewProvider {
     static var previews: some View {
-        DraggableCover(movieId: 0,
+        DraggableCover(posterPath: sampleMovie.poster_path,
                        gestureViewState: .constant(.inactive),
                        onTapGesture: {
                         
@@ -206,7 +206,7 @@ struct DraggableCover_Previews : PreviewProvider {
         },
                        endGestureHandler: {handler in
             
-        }).environmentObject(sampleStore)
+        })
     }
 }
 #endif

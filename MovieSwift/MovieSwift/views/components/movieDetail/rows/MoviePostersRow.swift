@@ -9,6 +9,28 @@
 import SwiftUI
 import Backend
 
+struct MoviePosterPresentation: Identifiable {
+    let image: ImageData
+
+    var id: String {
+        image.file_path
+    }
+
+    var path: String {
+        image.file_path
+    }
+}
+
+enum MoviePostersState {
+    static func presentations(from posters: [ImageData]) -> [MoviePosterPresentation] {
+        posters.map(MoviePosterPresentation.init(image:))
+    }
+
+    static func selectedPoster(afterSelecting poster: MoviePosterPresentation) -> ImageData {
+        poster.image
+    }
+}
+
 struct MoviePostersRow : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
@@ -17,6 +39,10 @@ struct MoviePostersRow : View {
     @FocusState private var focusedPosterId: String?
     #endif
 
+    private var presentations: [MoviePosterPresentation] {
+        MoviePostersState.presentations(from: posters)
+    }
+
     var body: some View {
         VStack(alignment: .leading) {
             Text("Other posters")
@@ -24,35 +50,35 @@ struct MoviePostersRow : View {
                 .padding(.leading)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 32) {
-                    ForEach(self.posters) { poster in
+                    ForEach(presentations) { poster in
                         #if targetEnvironment(macCatalyst)
                         Button {
                             withAnimation {
-                                selectedPoster = poster
+                                selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster)
                             }
                         } label: {
-                            MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
+                            MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.path,
                                                                                             size: .medium),
                                              posterSize: .medium)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 6)
-                                        .stroke(focusedPosterId == poster.file_path ? Color.accentColor : .clear, lineWidth: 3)
+                                        .stroke(focusedPosterId == poster.id ? Color.accentColor : .clear, lineWidth: 3)
                                 )
                         }
                         .buttonStyle(.plain)
                         .focusable()
-                        .focused($focusedPosterId, equals: poster.file_path)
-                        .onKeyPress(.return) { withAnimation { selectedPoster = poster }; return .handled }
-                        .onKeyPress(characters: .init(charactersIn: " ")) { _ in withAnimation { selectedPoster = poster }; return .handled }
+                        .focused($focusedPosterId, equals: poster.id)
+                        .onKeyPress(.return) { withAnimation { selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster) }; return .handled }
+                        .onKeyPress(characters: .init(charactersIn: " ")) { _ in withAnimation { selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster) }; return .handled }
                         .focusEffectDisabled()
                         .padding(.vertical)
                         #else
-                        MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
+                        MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.path,
                                                                                         size: .medium),
                                          posterSize: .medium)
                             .onTapGesture {
                                 withAnimation {
-                                    self.selectedPoster = poster
+                                    self.selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster)
                                 }
                         }
                         .padding(.vertical)
@@ -78,4 +104,3 @@ struct MoviePostersRow_Previews : PreviewProvider {
     }
 }
 #endif
-

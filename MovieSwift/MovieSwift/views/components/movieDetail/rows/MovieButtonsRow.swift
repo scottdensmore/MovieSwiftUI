@@ -11,6 +11,21 @@ import SwiftUIFlux
 import Backend
 import UI
 
+enum MovieButtonsToggleAction: Equatable {
+    case addToWishlist(movie: Int)
+    case removeFromWishlist(movie: Int)
+    case addToSeenlist(movie: Int)
+    case removeFromSeenlist(movie: Int)
+
+    static func wishlistAction(movieId: Int, isInWishlist: Bool) -> MovieButtonsToggleAction {
+        isInWishlist ? .removeFromWishlist(movie: movieId) : .addToWishlist(movie: movieId)
+    }
+
+    static func seenlistAction(movieId: Int, isInSeenlist: Bool) -> MovieButtonsToggleAction {
+        isInSeenlist ? .removeFromSeenlist(movie: movieId) : .addToSeenlist(movie: movieId)
+    }
+}
+
 struct MovieButtonsRow: ConnectedView {
     let movieId: Int
     @Binding var showCustomListSheet: Bool
@@ -20,16 +35,40 @@ struct MovieButtonsRow: ConnectedView {
         let isInWishlist: Bool
         let isInSeenlist: Bool
         let isInCustomList: Bool
+        let onWishlistTap: () -> Void
+        let onSeenlistTap: () -> Void
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movie: state.moviesState.movies[movieId]!,
-              isInWishlist: state.moviesState.wishlist.contains(movieId),
-              isInSeenlist: state.moviesState.seenlist.contains(movieId),
-              isInCustomList: state.moviesState.customLists.contains(where:
-                                                                        { (_, value) -> Bool in
-                                                                            value.movies.contains(self.movieId)
-                                                                        }))
+        let isInWishlist = state.moviesState.wishlist.contains(movieId)
+        let isInSeenlist = state.moviesState.seenlist.contains(movieId)
+        return Props(movie: state.moviesState.movies[movieId]!,
+                     isInWishlist: isInWishlist,
+                     isInSeenlist: isInSeenlist,
+                     isInCustomList: state.moviesState.customLists.contains(where:
+                                                                               { (_, value) -> Bool in
+                                                                                   value.movies.contains(self.movieId)
+                                                                               }),
+                     onWishlistTap: {
+                        switch MovieButtonsToggleAction.wishlistAction(movieId: self.movieId, isInWishlist: isInWishlist) {
+                        case let .addToWishlist(movie):
+                            dispatch(MoviesActions.AddToWishlist(movie: movie))
+                        case let .removeFromWishlist(movie):
+                            dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
+                        default:
+                            break
+                        }
+                     },
+                     onSeenlistTap: {
+                        switch MovieButtonsToggleAction.seenlistAction(movieId: self.movieId, isInSeenlist: isInSeenlist) {
+                        case let .addToSeenlist(movie):
+                            dispatch(MoviesActions.AddToSeenList(movie: movie))
+                        case let .removeFromSeenlist(movie):
+                            dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
+                        default:
+                            break
+                        }
+                     })
     }
     
     func body(props: Props) -> some View {
@@ -38,25 +77,13 @@ struct MovieButtonsRow: ConnectedView {
                            systemImageName: "heart",
                            color: .pink,
                            isOn: props.isInWishlist,
-                           action: {
-                            if props.isInWishlist {
-                                store.dispatch(action: MoviesActions.RemoveFromWishlist(movie: self.movieId))
-                            } else {
-                                store.dispatch(action: MoviesActions.AddToWishlist(movie: self.movieId))
-                            }
-                           })
+                           action: props.onWishlistTap)
             
             BorderedButton(text: props.isInSeenlist ? "Seen" : "Seenlist",
                            systemImageName: "eye",
                            color: .green,
                            isOn: props.isInSeenlist,
-                           action: {
-                            if props.isInSeenlist {
-                                store.dispatch(action: MoviesActions.RemoveFromSeenList(movie: self.movieId))
-                            } else {
-                                store.dispatch(action: MoviesActions.AddToSeenList(movie: self.movieId))
-                            }
-                           })
+                           action: props.onSeenlistTap)
             
             BorderedButton(text: "List",
                            systemImageName: "pin",

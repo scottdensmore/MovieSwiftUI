@@ -8,7 +8,29 @@
 
 import SwiftUI
 import Foundation
+import SwiftUIFlux
 import Backend
+
+enum SettingsFormRefreshPolicy {
+    static func shouldRefreshMovieMenus(previousRegion: String, selectedRegion: String) -> Bool {
+        previousRegion != selectedRegion
+    }
+
+    static func menusToRefresh(previousRegion: String, selectedRegion: String) -> [MoviesMenu] {
+        guard shouldRefreshMovieMenus(previousRegion: previousRegion,
+                                      selectedRegion: selectedRegion) else {
+            return []
+        }
+
+        return MoviesMenu.allCases
+    }
+}
+
+enum SettingsFormDebugState {
+    static func moviesCount(from movies: [Int: Movie]) -> Int {
+        movies.count
+    }
+}
 
 struct SettingsForm : View {
     private struct RegionOption: Identifiable {
@@ -22,6 +44,7 @@ struct SettingsForm : View {
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
+    @EnvironmentObject private var store: Store<AppState>
     @Environment(\.dismiss) private var dismiss
 
     private var isModalPresentation: Bool {
@@ -64,10 +87,9 @@ struct SettingsForm : View {
         AppUserDefaults.region = selectedRegionCode
         AppUserDefaults.alwaysOriginalTitle = alwaysOriginalTitle
 
-        if previousRegion != selectedRegionCode {
-            for menu in MoviesMenu.allCases {
-                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
-            }
+        for menu in SettingsFormRefreshPolicy.menusToRefresh(previousRegion: previousRegion,
+                                                             selectedRegion: selectedRegionCode) {
+            store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
         }
     }
 
@@ -123,9 +145,9 @@ struct SettingsForm : View {
             
             Section(header: Text("Debug info")) {
                 debugInfoView(title: "Movies in state",
-                              info: "\(store.state.moviesState.movies.count)")
+                              info: "\(SettingsFormDebugState.moviesCount(from: store.state.moviesState.movies))")
                 debugInfoView(title: "Archived state size",
-                              info: "\(store.state.sizeOfArchivedState())")
+                              info: appRuntime.archivedStateSizeDescription())
 
             }
         }
@@ -190,6 +212,7 @@ struct SettingsForm : View {
 struct SettingsForm_Previews : PreviewProvider {
     static var previews: some View {
         SettingsForm()
+            .environmentObject(sampleStore)
     }
 }
 #endif

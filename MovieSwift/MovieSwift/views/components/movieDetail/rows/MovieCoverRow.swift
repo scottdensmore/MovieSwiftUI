@@ -11,6 +11,28 @@ import SwiftUIFlux
 import Backend
 import UI
 
+struct MovieCoverPresentation {
+    let backdropPath: String?
+    let posterPath: String?
+    let popularityScore: Int
+    let ratingsText: String
+    let genres: [Genre]
+    let areGenresPlaceholder: Bool
+}
+
+enum MovieCoverState {
+    static func presentation(for movie: Movie) -> MovieCoverPresentation {
+        let placeholderGenres = Array(repeating: Genre(id: 0, name: "     "), count: 3)
+
+        return MovieCoverPresentation(backdropPath: movie.backdrop_path ?? movie.poster_path,
+                                      posterPath: movie.poster_path,
+                                      popularityScore: Int(movie.vote_average * 10),
+                                      ratingsText: "\(movie.vote_count) ratings",
+                                      genres: movie.genres ?? placeholderGenres,
+                                      areGenresPlaceholder: movie.genres == nil)
+    }
+}
+
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
 
@@ -23,26 +45,32 @@ struct MovieCoverRow : ConnectedView {
         let movie: Movie
     }
 
+    private func presentation(props: Props) -> MovieCoverPresentation {
+        MovieCoverState.presentation(for: props.movie)
+    }
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(movie: state.moviesState.movies[movieId]!)
     }
 
     func body(props: Props) -> some View {
-        ZStack {
-            MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.movie.backdrop_path ?? props.movie.poster_path,
+        let presentation = presentation(props: props)
+
+        return ZStack {
+            MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.backdropPath,
                                                                                  size: .medium),
                                   fill: false)
             VStack(alignment: .leading) {
                 HStack(spacing: 16) {
-                    MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.movie.poster_path,
+                    MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.posterPath,
                                                                                     size: .medium),
                                      posterSize: .medium)
                         .padding(.leading, 16)
                     VStack(alignment: .leading, spacing: 16) {
                         MovieInfoRow(movie: props.movie)
                         HStack {
-                            PopularityBadge(score: Int(props.movie.vote_average * 10), textColor: .white)
-                            Text("\(props.movie.vote_count) ratings")
+                            PopularityBadge(score: presentation.popularityScore, textColor: .white)
+                            Text(presentation.ratingsText)
                                 .lineLimit(1)
                                 .foregroundColor(.white)
                         }
@@ -55,32 +83,55 @@ struct MovieCoverRow : ConnectedView {
     }
     
     private func genresBadges(props: Props) -> some View {
-        let fakeGenres = Array(repeating: Genre(id: 0, name: "     "), count: 3)
+        let presentation = presentation(props: props)
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                ForEach(props.movie.genres ?? fakeGenres) { genre in
+            HStack(spacing: 8) {
+                ForEach(presentation.genres) { genre in
                     #if targetEnvironment(macCatalyst)
                     CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
                         selectedGenre = genre
                     } label: {
-                        RoundedBadge(text: genre.name, color: .steam_background)
+                        coverGenreBadge(text: genre.name)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 4)
                     }
-                    .disabled(props.movie.genres == nil)
+                    .disabled(presentation.areGenresPlaceholder)
                     #else
                     NavigationLink(destination: MoviesGenreList(genre: genre)) {
-                        RoundedBadge(text: genre.name, color: .steam_background)
-                    }.disabled(props.movie.genres == nil)
+                        coverGenreBadge(text: genre.name)
+                            .padding(.vertical, 2)
+                    }.disabled(presentation.areGenresPlaceholder)
                     #endif
                 }
             }
             .padding(.leading, 16)
-            .redacted(reason: props.movie.genres == nil ? .placeholder : [])
+            .padding(.trailing, 16)
+            .padding(.vertical, 4)
+            .redacted(reason: presentation.areGenresPlaceholder ? .placeholder : [])
         }
         #if targetEnvironment(macCatalyst)
         .navigationDestination(item: $selectedGenre) { genre in
             MoviesGenreList(genre: genre)
         }
         #endif
+    }
+
+    private func coverGenreBadge(text: String) -> some View {
+        HStack(spacing: 6) {
+            Text(text.capitalized)
+                .font(.footnote)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white.opacity(0.9))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.42))
+        )
     }
 }
 

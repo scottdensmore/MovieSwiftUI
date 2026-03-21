@@ -11,10 +11,21 @@ import SwiftUI
 import SwiftUIFlux
 import AppIntents
 
+private let defaultTVAppEnvironment = appEnvironment
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    private let environment: AppEnvironment
+    private let store: Store<AppState>
+
+    override init() {
+        self.environment = defaultTVAppEnvironment
+        self.store = defaultTVAppEnvironment.store
+        super.init()
+        environment.runtime.startArchiving(store: store)
+    }
 
     private func configureWindowIfNeeded(for application: UIApplication) {
         guard window == nil else { return }
@@ -45,23 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
-let store = Store<AppState>(reducer: appStateReducer,
-                            middleware: [loggingMiddleware],
-                            state: AppState())
-
 #if DEBUG
-let sampleCustomList = CustomList(id: 0,
-                                  name: "TestName",
-                                  cover: 0,
-                                  movies: [0])
 let sampleStore = Store<AppState>(reducer: appStateReducer,
-                                  state: AppState(moviesState:
-                                    MoviesState(movies: [0: sampleMovie],
-                                                moviesList: [MoviesMenu.popular: [0]],
-                                                recommended: [0: [0]],
-                                                similar: [0: [0]],
-                                                customLists: [0: sampleCustomList]),
-                                                  peoplesState: PeoplesState(peoples: [0: sampleCasts.first!, 1: sampleCasts[1]],
-                                                                             peoplesMovies: [:],
-                                                                             search: [:])))
+                                  state: makePreviewSampleState())
 #endif

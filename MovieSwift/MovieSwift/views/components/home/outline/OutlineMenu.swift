@@ -8,6 +8,13 @@
 
 import Foundation
 import SwiftUI
+import SwiftUIFlux
+
+enum OutlineMoviesMenuListFetchPolicy {
+    static func shouldLoadInitialPage(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+}
 
 enum OutlineMenu: Int, CaseIterable, Identifiable {
     var id: Int {
@@ -58,7 +65,8 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     
     private func moviesList(menu: MoviesMenu) -> some View {
         return detailRoot(title: menu.title()) {
-            OutlineMoviesMenuList(menu: menu)
+            OutlineMoviesMenuList(menu: menu,
+                                  shouldLoadInitialPage: OutlineMoviesMenuListFetchPolicy.shouldLoadInitialPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests))
         }
     }
     
@@ -114,12 +122,17 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
 
 private struct OutlineMoviesMenuList: View {
     let menu: MoviesMenu
+    let shouldLoadInitialPage: Bool
     private let listener: MoviesMenuListPageListener
+    @EnvironmentObject private var store: Store<AppState>
     @State private var navigationRoute: MoviesListNavigationRoute?
 
-    init(menu: MoviesMenu) {
+    init(menu: MoviesMenu, shouldLoadInitialPage: Bool) {
         self.menu = menu
-        self.listener = MoviesMenuListPageListener(menu: menu, loadOnInit: false)
+        self.shouldLoadInitialPage = shouldLoadInitialPage
+        self.listener = MoviesMenuListPageListener(menu: menu,
+                                                   loadOnInit: false,
+                                                   shouldLoadPage: { shouldLoadInitialPage })
     }
 
     var body: some View {
@@ -130,9 +143,10 @@ private struct OutlineMoviesMenuList: View {
                 moviesListDestinationView(for: route)
             }
             .onAppear {
-                if !isRunningUISmokeTests {
-                    listener.loadPage()
+                listener.dispatchPage = { menu, page in
+                    store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: page))
                 }
+                listener.loadPage()
             }
     }
 }

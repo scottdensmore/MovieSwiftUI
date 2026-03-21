@@ -10,27 +10,45 @@ import SwiftUI
 import SwiftUIFlux
 
 final class KeywordPageListener: MoviesPagesListener {
-    var keyword: Int!
+    var keyword: Int?
+    var dispatchPage: ((Int, Int) -> Void)?
     
     override func loadPage() {
-        store.dispatch(action: MoviesActions.FetchMovieWithKeywords(keyword: keyword,
-                                                                    page: currentPage))
+        guard let keyword else {
+            return
+        }
+        dispatchPage?(keyword, currentPage)
+    }
+
+    init(dispatchPage: ((Int, Int) -> Void)? = nil) {
+        self.dispatchPage = dispatchPage
     }
 }
 
-struct MovieKeywordList : View {
-    @EnvironmentObject var store: Store<AppState>
+enum MovieKeywordListState {
+    static func movies(for keyword: Keyword, from state: AppState) -> [Int] {
+        state.moviesState.withKeywords[keyword.id] ?? [0, 0, 0, 0]
+    }
+}
+
+struct MovieKeywordList : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let movies: [Int]
+    }
+
     @State var pageListener = KeywordPageListener()
     @State private var navigationRoute: MoviesListNavigationRoute?
     let keyword: Keyword
-    
-    var movies: [Int] {
-        store.state.moviesState.withKeywords[keyword.id] ?? [0, 0, 0, 0]
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              movies: MovieKeywordListState.movies(for: keyword, from: state))
     }
-    
-    var body: some View {
+
+    func body(props: Props) -> some View {
         VStack(spacing: 0) {
-            MoviesList(movies: movies,
+            MoviesList(movies: props.movies,
                        displaySearch: false,
                        pageListener: pageListener,
                        navigationRoute: $navigationRoute)
@@ -40,6 +58,10 @@ struct MovieKeywordList : View {
             moviesListDestinationView(for: route)
         }
         .onAppear {
+            self.pageListener.dispatchPage = { keyword, page in
+                props.dispatch(MoviesActions.FetchMovieWithKeywords(keyword: keyword,
+                                                                    page: page))
+            }
             self.pageListener.keyword = self.keyword.id
             self.pageListener.loadPage()
         }
@@ -50,6 +72,7 @@ struct MovieKeywordList : View {
 struct MovieKeywordList_Previews : PreviewProvider {
     static var previews: some View {
         MovieKeywordList(keyword: Keyword(id: 0, name: "Test"))
+            .environmentObject(sampleStore)
     }
 }
 #endif

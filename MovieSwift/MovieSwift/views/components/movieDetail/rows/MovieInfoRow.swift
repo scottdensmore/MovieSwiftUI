@@ -9,8 +9,28 @@
 import SwiftUI
 import UI
 
+struct MovieInfoPresentation {
+    let yearText: String?
+    let runtimeText: String?
+    let statusText: String?
+    let productionCountryText: String?
+}
+
+enum MovieInfoState {
+    static func presentation(for movie: Movie) -> MovieInfoPresentation {
+        MovieInfoPresentation(yearText: movie.release_date.map { String($0.prefix(4)) },
+                              runtimeText: movie.runtime.map { "• \($0) minutes" },
+                              statusText: movie.status.map { "• \($0)" },
+                              productionCountryText: movie.production_countries?.first?.name)
+    }
+}
+
 struct MovieInfoRow : View {
     let movie: Movie
+
+    private var presentation: MovieInfoPresentation {
+        MovieInfoState.presentation(for: movie)
+    }
     
     var asyncTextTransition: AnyTransition {
         .opacity
@@ -22,17 +42,17 @@ struct MovieInfoRow : View {
     
     private var infos: some View {
         HStack {
-            if let date = movie.release_date {
-                Text(date.prefix(4)).font(.subheadline)
+            if let yearText = presentation.yearText {
+                Text(yearText).font(.subheadline)
             }
-            if let runtime = movie.runtime {
-                Text("• \(runtime) minutes")
+            if let runtimeText = presentation.runtimeText {
+                Text(runtimeText)
                     .font(.subheadline)
                     .animation(asyncTextAnimation, value: movie.runtime)
                     .transition(asyncTextTransition)
             }
-            if let status = movie.status {
-                Text("• \(status)")
+            if let statusText = presentation.statusText {
+                Text(statusText)
                     .font(.subheadline)
                     .animation(asyncTextAnimation, value: movie.status)
                     .transition(asyncTextTransition)
@@ -43,8 +63,8 @@ struct MovieInfoRow : View {
     
     private var productionCountry: some View {
         Group {
-            if movie.production_countries?.isEmpty == false {
-                Text("\(movie.production_countries!.first!.name)")
+            if let productionCountryText = presentation.productionCountryText {
+                Text(productionCountryText)
                     .font(.subheadline)
                     .foregroundColor(.white)
             }

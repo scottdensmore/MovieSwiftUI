@@ -9,6 +9,12 @@
 import Foundation
 import SwiftUIFlux
 
+enum AppLoggingPolicy {
+    static func shouldEnableLogging(isRunningTests: Bool) -> Bool {
+        !isRunningTests
+    }
+}
+
 let loggingMiddleware: Middleware<AppState> = { dispatch, getState in
     return { next in
         return { action in

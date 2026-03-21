@@ -7,16 +7,10 @@
 //
 
 import SwiftUI
-import SwiftUIFlux
 import Backend
 
 struct CustomListCoverRow : View {
-    @EnvironmentObject var store: Store<AppState>
-    
-    let movieId: Int
-    var movie: Movie! {
-        return store.state.moviesState.movies[movieId]
-    }
+    let movie: Movie
     
     var body: some View {
         MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.backdrop_path ?? movie.poster_path,
@@ -27,7 +21,7 @@ struct CustomListCoverRow : View {
 #if DEBUG
 struct CustomListCoverRow_Previews : PreviewProvider {
     static var previews: some View {
-        CustomListCoverRow(movieId: 0).environmentObject(sampleStore)
+        CustomListCoverRow(movie: sampleMovie)
     }
 }
 #endif

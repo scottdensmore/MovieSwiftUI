@@ -12,34 +12,21 @@ import AppIntents
 
 // MARK:- Shared View
 
-let isRunningUISmokeTests: Bool = {
-    let processInfo = ProcessInfo.processInfo
-    return processInfo.arguments.contains("--ui-smoke-tests")
-        || processInfo.environment["UI_SMOKE_TESTS"] == "1"
-}()
-
-private func makeAppStore() -> Store<AppState> {
-#if DEBUG
-    // UI smoke tests should not depend on live API/network availability.
-    if isRunningUISmokeTests {
-        return uiSmokeTestStore
-    }
-#endif
-    return Store<AppState>(reducer: appStateReducer,
-                           middleware: [loggingMiddleware],
-                           state: AppState())
-}
-
-let store = makeAppStore()
+private let defaultAppEnvironment = appEnvironment
 
 @main
 struct HomeView: App {
-    let archiveTimer: Timer
-    
+    private let environment: AppEnvironment
+    private let store: Store<AppState>
+
     init() {
-        archiveTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true, block: { _ in
-            store.state.archiveState()
-        })
+        self.init(environment: defaultAppEnvironment)
+    }
+
+    init(environment: AppEnvironment) {
+        self.environment = environment
+        self.store = environment.store
+        environment.runtime.startArchiving(store: store)
         setupApperance()
     }
     
@@ -170,60 +157,6 @@ struct SplitView: View {
 }
 
 #if DEBUG
-let sampleCustomList = CustomList(id: 0,
-                                  name: "TestName",
-                                  cover: 0,
-                                  movies: [0])
-let sampleMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
-let samplePrimaryCast = sampleCasts.first!
-let sampleSecondaryCast = sampleCasts[1]
-let sampleDirector: People = {
-    var people = sampleSecondaryCast
-    people.department = "Directing"
-    return people
-}()
-
-private func makePreviewSampleState() -> AppState {
-    AppState(moviesState:
-                MoviesState(movies: [0: sampleMovie],
-                            moviesList: sampleMoviesMenuState,
-                            recommended: [0: [0]],
-                            similar: [0: [0]],
-                            customLists: [0: sampleCustomList]),
-             peoplesState: PeoplesState(peoples: [samplePrimaryCast.id: samplePrimaryCast,
-                                                  sampleDirector.id: sampleDirector],
-                                        peoplesMovies: [0: Set([samplePrimaryCast.id,
-                                                                sampleDirector.id])],
-                                        search: [:],
-                                        casts: [samplePrimaryCast.id: [0: "Character 1"]],
-                                        crews: [sampleDirector.id: [0: "Director 1"]]))
-}
-
-private func makeUISmokeTestState() -> AppState {
-    let smokeTestList = CustomList(id: 0,
-                                   name: "TestName",
-                                   cover: 0,
-                                   movies: [0])
-    let smokeTestMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
-    let smokeTestPrimaryCast = sampleCasts.first!
-    var smokeTestDirector = sampleCasts[1]
-    smokeTestDirector.department = "Directing"
-
-    return AppState(moviesState:
-                        MoviesState(movies: [0: sampleMovie],
-                                    moviesList: smokeTestMoviesMenuState,
-                                    recommended: [0: [0]],
-                                    similar: [0: [0]],
-                                    customLists: [0: smokeTestList]),
-                    peoplesState: PeoplesState(peoples: [smokeTestPrimaryCast.id: smokeTestPrimaryCast,
-                                                         smokeTestDirector.id: smokeTestDirector],
-                                               peoplesMovies: [0: Set([smokeTestPrimaryCast.id,
-                                                                       smokeTestDirector.id])],
-                                               search: [:],
-                                               casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
-                                               crews: [smokeTestDirector.id: [0: "Director 1"]]))
-}
-
 let sampleStore = Store<AppState>(reducer: appStateReducer,
                                   state: makePreviewSampleState())
 let uiSmokeTestStore = Store<AppState>(reducer: appStateReducer,

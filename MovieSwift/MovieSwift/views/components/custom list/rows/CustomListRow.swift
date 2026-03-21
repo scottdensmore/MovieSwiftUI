@@ -7,19 +7,11 @@
 //
 
 import SwiftUI
-import SwiftUIFlux
 import Backend
 
 struct CustomListRow : View {
-    @EnvironmentObject var store: Store<AppState>
-    
     let list: CustomList
-    var coverMovie: Movie? {
-        guard let id = list.movies.first else {
-            return nil
-        }
-        return store.state.moviesState.movies[id]
-    }
+    let coverMovie: Movie?
     
     var body: some View {
         HStack {
@@ -66,8 +58,8 @@ struct SmallMoviePosterImage : View {
 #if DEBUG
 struct CustomListRow_Previews : PreviewProvider {
     static var previews: some View {
-        CustomListRow(list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]))
-            .environmentObject(sampleStore)
+        CustomListRow(list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]),
+                      coverMovie: sampleMovie)
     }
 }
 #endif

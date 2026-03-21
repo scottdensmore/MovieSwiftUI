@@ -11,6 +11,26 @@ import SwiftUIFlux
 import Combine
 import UI
 
+enum MovieDetailFetchPolicy {
+    static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+}
+
+enum MovieDetailListState {
+    static func isInWishlist(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.wishlist.contains(movieId)
+    }
+
+    static func isInSeenlist(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.seenlist.contains(movieId)
+    }
+
+    static func customLists(from state: AppState) -> [CustomList] {
+        state.moviesState.customLists.compactMap { $0.value }
+    }
+}
+
 struct MovieDetail: ConnectedView {
     struct Props {
         let movie: Movie
@@ -20,9 +40,14 @@ struct MovieDetail: ConnectedView {
         let similar: [Movie]?
         let reviewsCount: Int?
         let videos: [Video]?
+        let isInWishlist: Bool
+        let isInSeenlist: Bool
+        let customLists: [CustomList]
+        let dispatch: DispatchFunction
     }
     
     let movieId: Int
+    @EnvironmentObject private var store: Store<AppState>
     
     // MARK: View States
     @State var isAddSheetPresented = false
@@ -63,20 +88,24 @@ struct MovieDetail: ConnectedView {
                      recommended: recommended,
                      similar: similar,
                      reviewsCount: state.moviesState.reviews[movieId]?.count ?? nil,
-                     videos: state.moviesState.videos[movieId])
+                     videos: state.moviesState.videos[movieId],
+                     isInWishlist: MovieDetailListState.isInWishlist(movieId: movieId, from: state),
+                     isInSeenlist: MovieDetailListState.isInSeenlist(movieId: movieId, from: state),
+                     customLists: MovieDetailListState.customLists(from: state),
+                     dispatch: dispatch)
     }
     
     // MARK: - Fetch
-    func fetchMovieDetails() {
-        if isRunningUISmokeTests {
+    func fetchMovieDetails(props: Props) {
+        if !MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
             return
         }
-        store.dispatch(action: MoviesActions.FetchDetail(movie: movieId))
-        store.dispatch(action: PeopleActions.FetchMovieCasts(movie: movieId))
-        store.dispatch(action: MoviesActions.FetchRecommended(movie: movieId))
-        store.dispatch(action: MoviesActions.FetchSimilar(movie: movieId))
-        store.dispatch(action: MoviesActions.FetchMovieReviews(movie: movieId))
-        store.dispatch(action: MoviesActions.FetchVideos(movie: movieId))
+        props.dispatch(MoviesActions.FetchDetail(movie: movieId))
+        props.dispatch(PeopleActions.FetchMovieCasts(movie: movieId))
+        props.dispatch(MoviesActions.FetchRecommended(movie: movieId))
+        props.dispatch(MoviesActions.FetchSimilar(movie: movieId))
+        props.dispatch(MoviesActions.FetchMovieReviews(movie: movieId))
+        props.dispatch(MoviesActions.FetchVideos(movie: movieId))
     }
     
     // MARK: - View actions
@@ -104,13 +133,19 @@ struct MovieDetail: ConnectedView {
     // MARK: - Computed views
     func addActionSheet(props: Props) -> ActionSheet {
         var buttons: [Alert.Button] = []
-        let wishlistButton = ActionSheet.wishlistButton(store: store, movie: movieId) {
+        let wishlistButton = ActionSheet.wishlistButton(isInWishlist: props.isInWishlist,
+                                                        movie: movieId,
+                                                        dispatch: props.dispatch) {
             self.displaySavedBadge()
         }
-        let seenButton = ActionSheet.seenListButton(store: store, movie: movieId) {
+        let seenButton = ActionSheet.seenListButton(isInSeenlist: props.isInSeenlist,
+                                                    movie: movieId,
+                                                    dispatch: props.dispatch) {
             self.displaySavedBadge()
         }
-        let customListButtons = ActionSheet.customListsButttons(store: store, movie: movieId) {
+        let customListButtons = ActionSheet.customListsButttons(customLists: props.customLists,
+                                                                movie: movieId,
+                                                                dispatch: props.dispatch) {
             self.displaySavedBadge()
         }
         let createListButton: Alert.Button = .default(Text("Create list")) {
@@ -144,6 +179,8 @@ struct MovieDetail: ConnectedView {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("\(role): \(people!.name)")
@@ -157,6 +194,8 @@ struct MovieDetail: ConnectedView {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("\(role): \(people!.name)")
@@ -178,7 +217,7 @@ struct MovieDetail: ConnectedView {
     @ViewBuilder
     func smokeTestTopPersonShortcut(props: Props) -> some View {
         #if DEBUG
-        if isRunningUISmokeTests,
+        if appRuntime.isRunningUISmokeTests,
            let people = primaryPeopleCredit(props: props) ?? props.characters?.first ?? props.credits?.first {
             Button(action: {
                 selectPeople(people.id)
@@ -205,6 +244,8 @@ struct MovieDetail: ConnectedView {
                     Text("\(props.reviewsCount!) reviews")
                         .foregroundColor(.steam_blue)
                         .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
                 }
                 #else
                 Button(action: {
@@ -213,6 +254,8 @@ struct MovieDetail: ConnectedView {
                     Text("\(props.reviewsCount!) reviews")
                         .foregroundColor(.steam_blue)
                         .lineLimit(1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
                 }
                 .buttonStyle(.plain)
                 #endif
@@ -271,7 +314,7 @@ struct MovieDetail: ConnectedView {
             }
             .accessibilityIdentifier("movieDetail.addToListButton"))
             .onAppear {
-                self.fetchMovieDetails()
+                self.fetchMovieDetails(props: props)
             }
             .actionSheet(isPresented: $isAddSheetPresented, content: { addActionSheet(props: props) })
             .sheet(isPresented: $isCreateListFormPresented,

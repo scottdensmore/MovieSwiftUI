@@ -68,13 +68,15 @@ struct PeopleActions {
         }
     }
     
-    struct FetchMovieCasts: Action {
-        init(movie: Int) {
+    struct FetchMovieCasts: AsyncAction {
+        let movie: Int
+
+        func execute(state: FluxState?, dispatch: @escaping DispatchFunction) {
             APIService.shared.GET(endpoint: .credits(movie: movie), params: nil) {
                 (result: Result<CastResponse, APIService.APIError>) in
                 switch result {
                 case let .success(response):
-                    store.dispatch(action: SetMovieCasts(movie: movie, response: response))
+                    dispatch(SetMovieCasts(movie: self.movie, response: response))
                 case .failure(_):
                     break
                 }

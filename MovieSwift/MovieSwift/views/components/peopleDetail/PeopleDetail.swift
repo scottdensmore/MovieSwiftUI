@@ -10,6 +10,38 @@ import SwiftUI
 import SwiftUIFlux
 import UI
 
+enum PeopleDetailFetchPolicy {
+    static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+}
+
+enum PeopleDetailMovieGrouping {
+    static func group(credits: [Int: String], movies: [Int: Movie]) -> [String: [PeopleDetail.MovieRole]] {
+        var years: [String: [PeopleDetail.MovieRole]] = [:]
+        for (_, value) in credits.enumerated() {
+            if let movie = movies[value.key] {
+                if movie.release_date != nil && movie.release_date?.isEmpty == false {
+                    let year = String(movie.release_date!.prefix(4))
+                    if years[year] == nil {
+                        years[year] = []
+                    }
+                    years[year]?.append(PeopleDetail.MovieRole(movie: movie, role: value.value))
+                } else {
+                    if years["Upcoming"] == nil {
+                        years["Upcoming"] = []
+                    }
+                    years["Upcoming"]?.append(PeopleDetail.MovieRole(movie: movie, role: value.value))
+                }
+            }
+        }
+        for value in years {
+            years[value.key] = value.value.sorted(by: { $0.movie.id > $1.movie.id })
+        }
+        return years
+    }
+}
+
 struct PeopleDetail: ConnectedView {
     // MARK: - Props
     struct Props {
@@ -21,7 +53,8 @@ struct PeopleDetail: ConnectedView {
     }
     
     struct MovieRole: Identifiable {
-        let id: Int
+        var id: Int { movie.id }
+        let movie: Movie
         let role: String
     }
     
@@ -37,7 +70,7 @@ struct PeopleDetail: ConnectedView {
     #endif
     
     private func fetchPeopleData(props: Props) {
-        if isRunningUISmokeTests {
+        if !PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
             return
         }
         props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
@@ -72,7 +105,7 @@ struct PeopleDetail: ConnectedView {
                 CatalystFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
                     selectMovie(meta.id)
                 } label: {
-                    PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
+                    PeopleDetailMovieRow(movie: meta.movie, role: meta.role, onMovieContextMenu: {
                         if props.isInFanClub.wrappedValue {
                             self.toggleScoreUpdate()
                         }
@@ -83,7 +116,7 @@ struct PeopleDetail: ConnectedView {
                 Button(action: {
                     selectMovie(meta.id)
                 }) {
-                    PeopleDetailMovieRow(movieId: meta.id, role: meta.role, onMovieContextMenu: {
+                    PeopleDetailMovieRow(movie: meta.movie, role: meta.role, onMovieContextMenu: {
                         if props.isInFanClub.wrappedValue {
                             self.toggleScoreUpdate()
                         }
@@ -143,7 +176,7 @@ struct PeopleDetail: ConnectedView {
         ZStack(alignment: .center) {
             List {
                 Section {
-                    PeopleDetailHeaderRow(peopleId: peopleId)
+                    PeopleDetailHeaderRow(people: props.people)
                     if props.people.birthDay != nil ||
                         props.people.birthDay != nil ||
                         props.people.place_of_birth != nil ||
@@ -204,28 +237,9 @@ extension PeopleDetail {
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        var years: [String: [MovieRole]] = [:]
         var credits: [Int: String] = state.peoplesState.crews[peopleId] ?? [:]
         credits.merge(state.peoplesState.casts[peopleId] ?? [:]) { (current, _) in current }
-        for (_, value) in credits.enumerated() {
-            if let movie = state.moviesState.movies[value.key] {
-                if movie.release_date != nil && movie.release_date?.isEmpty == false {
-                    let year = String(movie.release_date!.prefix(4))
-                    if years[year] == nil {
-                        years[year] = []
-                    }
-                    years[year]?.append(MovieRole(id: value.key, role: value.value))
-                } else {
-                    if years["Upcoming"] == nil {
-                        years["Upcoming"] = []
-                    }
-                    years["Upcoming"]?.append(MovieRole(id: value.key, role: value.value))
-                }
-            }
-        }
-        for value in years {
-            years[value.key] = value.value.sorted(by: { $0.id > $1.id })
-        }
+        let years = PeopleDetailMovieGrouping.group(credits: credits, movies: state.moviesState.movies)
         
         let isInFanClub = Binding<Bool>(
             get: { state.peoplesState.fanClub.contains(self.peopleId) },

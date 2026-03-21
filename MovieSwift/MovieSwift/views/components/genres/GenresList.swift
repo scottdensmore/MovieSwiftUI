@@ -9,16 +9,40 @@
 import SwiftUI
 import SwiftUIFlux
 
-struct GenresList: View {
-    @EnvironmentObject private var store: Store<AppState>
+enum GenresListFetchPolicy {
+    static func shouldFetchGenres(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+
+    static func actionsToDispatch(isRunningUISmokeTests: Bool) -> [Action] {
+        guard shouldFetchGenres(isRunningUISmokeTests: isRunningUISmokeTests) else {
+            return []
+        }
+
+        return [MoviesActions.FetchGenres()]
+    }
+}
+
+enum GenresListState {
+    static func genres(from state: AppState) -> [Genre] {
+        state.moviesState.genres
+    }
+}
+
+struct GenresList: ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let genres: [Genre]
+    }
+
     #if targetEnvironment(macCatalyst)
     @State private var selectedGenre: Genre?
     @FocusState private var focusedGenreId: Int?
     #endif
 
-    var body: some View {
+    func body(props: Props) -> some View {
         List {
-            ForEach(store.state.moviesState.genres) { genre in
+            ForEach(props.genres) { genre in
                 #if targetEnvironment(macCatalyst)
                 CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
                     selectedGenre = genre
@@ -42,10 +66,15 @@ struct GenresList: View {
         }
         #endif
         .onAppear {
-            if !isRunningUISmokeTests {
-                self.store.dispatch(action: MoviesActions.FetchGenres())
+            for action in GenresListFetchPolicy.actionsToDispatch(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests) {
+                props.dispatch(action)
             }
         }
+    }
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              genres: GenresListState.genres(from: state))
     }
 }
 
@@ -53,6 +82,7 @@ struct GenresList: View {
 struct GenresList_Previews: PreviewProvider {
     static var previews: some View {
         GenresList()
+            .environmentObject(sampleStore)
     }
 }
 #endif

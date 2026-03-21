@@ -10,8 +10,22 @@ import SwiftUI
 import Combine
 import SwiftUIFlux
 
+enum MoviesHomeState {
+    static func toggledMode(from mode: MoviesHome.HomeMode) -> MoviesHome.HomeMode {
+        mode == .grid ? .list : .grid
+    }
+
+    static func navigationBarTitleDisplayMode(for mode: MoviesHome.HomeMode) -> NavigationBarItem.TitleDisplayMode {
+        mode == .list ? .inline : .automatic
+    }
+
+    static func shouldLoadPage(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+}
+
 struct MoviesHome : View {
-    private enum HomeMode {
+    enum HomeMode {
         case list, grid
         
         func icon() -> String {
@@ -22,6 +36,7 @@ struct MoviesHome : View {
         }
     }
 
+    @EnvironmentObject private var store: Store<AppState>
     @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: MoviesMenu.allCases.first!)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
@@ -41,7 +56,7 @@ struct MoviesHome : View {
     
     private var swapHomeButton: some View {
         Button(action: {
-            self.homeMode = self.homeMode == .grid ? .list : .grid
+            self.homeMode = MoviesHomeState.toggledMode(from: self.homeMode)
         }) {
             HStack {
                 Image(systemName: self.homeMode.icon()).imageScale(.medium)
@@ -73,6 +88,15 @@ struct MoviesHome : View {
     private var homeAsGrid: some View {
         MoviesHomeGrid(navigationRoute: $navigationRoute)
     }
+
+    private func configurePageListener() {
+        selectedMenu.pageListener.shouldLoadPage = {
+            MoviesHomeState.shouldLoadPage(isRunningUISmokeTests: appRuntime.isRunningUISmokeTests)
+        }
+        selectedMenu.pageListener.dispatchPage = { menu, page in
+            store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: page))
+        }
+    }
         
     var body: some View {
         NavigationStack {
@@ -85,7 +109,7 @@ struct MoviesHome : View {
                 }
             }
             .navigationTitle(selectedMenu.menu.title())
-            .navigationBarTitleDisplayMode(homeMode == .list ? .inline : .automatic)
+            .navigationBarTitleDisplayMode(MoviesHomeState.navigationBarTitleDisplayMode(for: homeMode))
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     swapHomeButton
@@ -101,6 +125,14 @@ struct MoviesHome : View {
                                      isSettingPresented = false
                                  })
                              })
+            .onAppear {
+                configurePageListener()
+                selectedMenu.pageListener.loadPage()
+            }
+            .onChange(of: selectedMenu.menu) {
+                configurePageListener()
+                selectedMenu.pageListener.loadPage()
+            }
         }
     }
 }
