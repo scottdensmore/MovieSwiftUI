@@ -104,6 +104,7 @@ struct MyLists : ConnectedView {
                 #if targetEnvironment(macCatalyst)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
+                        .padding(.horizontal, 6)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
@@ -112,6 +113,7 @@ struct MyLists : ConnectedView {
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)
+                        .padding(.horizontal, 6)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif
@@ -130,6 +132,7 @@ struct MyLists : ConnectedView {
                 #if targetEnvironment(macCatalyst)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
+                        .padding(.horizontal, 6)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 .focusable()
@@ -138,6 +141,7 @@ struct MyLists : ConnectedView {
                 #else
                 NavigationLink(destination: MovieDetail(movieId: id)) {
                     MovieRow(movieId: id, displayListImage: false)
+                        .padding(.horizontal, 6)
                 }
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif

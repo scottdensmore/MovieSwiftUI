@@ -151,9 +151,9 @@ struct MoviesList: ConnectedView {
             Button(action: { navigationRoute = .movie(id) }) {
                 MovieRow(movieId: id)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    #if targetEnvironment(macCatalyst)
-                    .padding(6)
-                    #endif
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("moviesList.movie.\(id)")
@@ -203,6 +203,9 @@ struct MoviesList: ConnectedView {
                 ForEach(props.searcherdPeoples ?? [], id: \.self) { id in
                     Button(action: { navigationRoute = .people(id) }) {
                         PeopleRow(peopleId: id)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .buttonStyle(.plain)
@@ -217,6 +220,9 @@ struct MoviesList: ConnectedView {
             ForEach(props.searchedKeywords ?? []) {keyword in
                 Button(action: { navigationRoute = .keyword(keyword) }) {
                     Text(keyword.name)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)

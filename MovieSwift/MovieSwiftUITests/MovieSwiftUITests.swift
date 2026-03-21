@@ -3,6 +3,7 @@ import XCTest
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
     private let uiWaitTimeout: TimeInterval = 15
+    private let shouldLogHierarchyOnFailure = ProcessInfo.processInfo.environment["UI_TEST_LOG_HIERARCHY"] == "1"
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -40,17 +41,7 @@ final class MovieSwiftUITests: XCTestCase {
     }
 
     private func tappableElement(_ title: String, in app: XCUIApplication) -> XCUIElement {
-        let button = app.buttons[title]
-        if button.waitForExistence(timeout: 0.5) {
-            return button
-        }
-
-        let staticText = app.staticTexts[title]
-        if staticText.waitForExistence(timeout: 0.5) {
-            return staticText
-        }
-
-        return app.otherElements[title]
+        app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", title)).firstMatch
     }
 
     private func openTab(_ title: String, in app: XCUIApplication) {
@@ -75,7 +66,7 @@ final class MovieSwiftUITests: XCTestCase {
     }
 
     private func logHierarchyIfMissing(_ app: XCUIApplication, element: XCUIElement, named name: String) {
-        if !element.exists {
+        if shouldLogHierarchyOnFailure && !element.exists {
             print("Missing element: \(name)")
             print(app.debugDescription)
         }
@@ -187,7 +178,7 @@ final class MovieSwiftUITests: XCTestCase {
         toggleRow.tap()
 
         let expectedValue = initialValue == "1" ? "0" : "1"
-        let updatedValuePredicate = NSPredicate(format: "value == %@", expectedValue ?? "")
+        let updatedValuePredicate = NSPredicate(format: "value == %@", expectedValue)
         expectation(for: updatedValuePredicate, evaluatedWith: originalTitleToggle)
         waitForExpectations(timeout: uiWaitTimeout)
 

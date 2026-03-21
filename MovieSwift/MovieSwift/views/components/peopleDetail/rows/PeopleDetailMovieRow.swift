@@ -16,7 +16,7 @@ struct PeopleDetailMovieRow : View {
     let onMovieContextMenu: () -> Void
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             ZStack {
                 MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
                                                                                 size: .small),
@@ -32,6 +32,9 @@ struct PeopleDetailMovieRow : View {
                     .font(.subheadline)
             }
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
         .accessibilityElement(children: .combine)
         .contextMenu{ MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }

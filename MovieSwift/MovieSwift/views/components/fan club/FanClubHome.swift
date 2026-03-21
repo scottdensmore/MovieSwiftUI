@@ -39,13 +39,17 @@ struct FanClubHome: ConnectedView {
             selectedPeopleId = people
         } label: {
             PeopleRow(peopleId: people)
-                .contentShape(Rectangle())
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)
-                .contentShape(Rectangle())
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(SoftSelectionButtonStyle())
         #endif

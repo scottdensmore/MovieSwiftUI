@@ -14,15 +14,20 @@ struct CustomListRow : View {
     let coverMovie: Movie?
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             SmallMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverMovie?.poster_path,
                                                                                  size: .medium))
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(list.name).font(.headline).fontWeight(.bold)
                 Text("\(list.movies.count) movies").font(.subheadline).foregroundColor(.secondary)
             }
-            }.listRowInsets(EdgeInsets())
-            .frame(height: 50)
+            Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .listRowInsets(EdgeInsets())
+            .frame(minHeight: 66)
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
