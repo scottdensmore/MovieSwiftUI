@@ -22,6 +22,47 @@ enum FanClubState {
     }
 }
 
+enum FanClubPaginationPolicy {
+    static func initialPopularPage(popularCount: Int, nextPage: Int) -> Int? {
+        guard popularCount == 0, nextPage == 1 else {
+            return nil
+        }
+        return nextPage
+    }
+
+    static func nextPopularPage(popular: [Int], lastTriggeredPopularId: Int?, nextPage: Int) -> Int? {
+        guard let lastPopularId = popular.last,
+              lastTriggeredPopularId != lastPopularId else {
+            return nil
+        }
+        return nextPage
+    }
+}
+
+enum FanClubPresentation {
+    struct EmptyState {
+        let title: String
+        let message: String
+        let accessibilityIdentifier: String
+    }
+
+    static func emptyState(peoples: [Int], popular: [Int], hasRequestedInitialPopularPage: Bool) -> EmptyState? {
+        guard peoples.isEmpty, popular.isEmpty else {
+            return nil
+        }
+
+        if hasRequestedInitialPopularPage {
+            return EmptyState(title: "No popular people right now",
+                              message: "Try again later to find people to add to your Fan Club.",
+                              accessibilityIdentifier: "fanClub.emptyState")
+        }
+
+        return EmptyState(title: "Loading people",
+                          message: "Fetching popular people for your Fan Club.",
+                          accessibilityIdentifier: "fanClub.loadingState")
+    }
+}
+
 struct FanClubHome: ConnectedView {
     struct Props {
         let peoples: [Int]
@@ -31,7 +72,9 @@ struct FanClubHome: ConnectedView {
     
     var embedInNavigationStack = true
     var showNavigationTitle = true
-    @State private var currentPage = 1
+    @State private var nextPopularPage = 1
+    @State private var lastTriggeredPopularId: Int?
+    @State private var hasRequestedInitialPopularPage = false
     #if targetEnvironment(macCatalyst)
     @State private var selectedPeopleId: Int?
     @FocusState private var focusedPeopleId: Int?
@@ -84,13 +127,12 @@ struct FanClubHome: ConnectedView {
                 }
             }
             
-            if !props.popular.isEmpty {
+            if let lastPopularId = props.popular.last {
                 Rectangle()
                     .foregroundColor(.clear)
                     .onAppear {
-                        self.currentPage += 1
-                        props.dispatch(PeopleActions.FetchPopular(page: self.currentPage))
-                }
+                        fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+                    }
             }
         }
         .animation(.spring(), value: props.peoples.count + props.popular.count)
@@ -100,14 +142,60 @@ struct FanClubHome: ConnectedView {
         }
         #endif
     }
-    
+
+    private func emptyStateView(_ state: FanClubPresentation.EmptyState) -> some View {
+        VStack(spacing: 12) {
+            Text(state.title)
+                .font(.headline)
+            Text(state.message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(state.accessibilityIdentifier)
+    }
+
     @ViewBuilder
     private func screen(props: Props) -> some View {
-        if showNavigationTitle {
-            listView(props: props).navigationTitle("Fan Club")
-        } else {
-            listView(props: props)
+        let content = Group {
+            if let emptyState = FanClubPresentation.emptyState(peoples: props.peoples,
+                                                               popular: props.popular,
+                                                               hasRequestedInitialPopularPage: hasRequestedInitialPopularPage) {
+                emptyStateView(emptyState)
+            } else {
+                listView(props: props)
+            }
         }
+
+        if showNavigationTitle {
+            content.navigationTitle("Fan Club")
+        } else {
+            content
+        }
+    }
+
+    private func fetchInitialPopularPageIfNeeded(props: Props) {
+        guard let page = FanClubPaginationPolicy.initialPopularPage(popularCount: props.popular.count,
+                                                                    nextPage: nextPopularPage) else {
+            return
+        }
+        hasRequestedInitialPopularPage = true
+        nextPopularPage += 1
+        props.dispatch(PeopleActions.FetchPopular(page: page))
+    }
+
+    private func fetchNextPopularPageIfNeeded(props: Props, lastPopularId: Int) {
+        guard let page = FanClubPaginationPolicy.nextPopularPage(popular: props.popular,
+                                                                 lastTriggeredPopularId: lastTriggeredPopularId,
+                                                                 nextPage: nextPopularPage) else {
+            return
+        }
+        lastTriggeredPopularId = lastPopularId
+        nextPopularPage += 1
+        props.dispatch(PeopleActions.FetchPopular(page: page))
     }
     
     func body(props: Props) -> some View {
@@ -121,9 +209,7 @@ struct FanClubHome: ConnectedView {
             }
         }
         .onAppear {
-            if self.currentPage == 1{
-                props.dispatch(PeopleActions.FetchPopular(page: self.currentPage))
-            }
+            fetchInitialPopularPageIfNeeded(props: props)
         }
     }
 }

@@ -14,6 +14,10 @@ enum PeopleRowState {
     static func people(for peopleId: Int, from state: AppState) -> People? {
         state.peoplesState.peoples[peopleId]
     }
+
+    static func shouldShowPlaceholder(for people: People?) -> Bool {
+        people == nil
+    }
 }
 
 struct PeopleRow : ConnectedView {
@@ -65,7 +69,7 @@ struct PeopleRow : ConnectedView {
         .padding(.bottom)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
-        .redacted(reason: peopleId == 0 ? .placeholder : [])
+        .redacted(reason: PeopleRowState.shouldShowPlaceholder(for: props.people) ? .placeholder : [])
     }
 }
 

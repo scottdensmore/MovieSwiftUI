@@ -2,6 +2,77 @@ import XCTest
 @testable import MovieSwift
 
 final class MovieSwiftTests: XCTestCase {
+    func testPeopleRowStateShowsPlaceholderWhenPersonIsMissing() {
+        XCTAssertTrue(PeopleRowState.shouldShowPlaceholder(for: nil))
+    }
+
+    func testPeopleRowStateDoesNotShowPlaceholderWhenPersonExists() {
+        let person = People(id: 1,
+                            name: "Known Person",
+                            character: nil,
+                            department: nil,
+                            profile_path: nil,
+                            known_for_department: nil,
+                            known_for: nil,
+                            also_known_as: nil,
+                            birthDay: nil,
+                            deathDay: nil,
+                            place_of_birth: nil,
+                            biography: nil,
+                            popularity: nil,
+                            images: nil)
+
+        XCTAssertFalse(PeopleRowState.shouldShowPlaceholder(for: person))
+    }
+
+    func testFanClubPaginationPolicyRequestsInitialPopularPage() {
+        XCTAssertEqual(FanClubPaginationPolicy.initialPopularPage(popularCount: 0, nextPage: 1), 1)
+    }
+
+    func testFanClubPaginationPolicySkipsInitialFetchWhenPopularAlreadyLoaded() {
+        XCTAssertNil(FanClubPaginationPolicy.initialPopularPage(popularCount: 3, nextPage: 1))
+    }
+
+    func testFanClubPaginationPolicyRequestsNextPopularPageForNewLastId() {
+        XCTAssertEqual(FanClubPaginationPolicy.nextPopularPage(popular: [1, 2, 3],
+                                                               lastTriggeredPopularId: 2,
+                                                               nextPage: 4),
+                       4)
+    }
+
+    func testFanClubPaginationPolicySkipsRepeatedLastPopularId() {
+        XCTAssertNil(FanClubPaginationPolicy.nextPopularPage(popular: [1, 2, 3],
+                                                             lastTriggeredPopularId: 3,
+                                                             nextPage: 4))
+    }
+
+    func testFanClubPresentationShowsLoadingStateBeforeInitialRequest() {
+        let state = FanClubPresentation.emptyState(peoples: [],
+                                                   popular: [],
+                                                   hasRequestedInitialPopularPage: false)
+
+        XCTAssertEqual(state?.title, "Loading people")
+        XCTAssertEqual(state?.accessibilityIdentifier, "fanClub.loadingState")
+    }
+
+    func testFanClubPresentationShowsEmptyStateAfterInitialRequest() {
+        let state = FanClubPresentation.emptyState(peoples: [],
+                                                   popular: [],
+                                                   hasRequestedInitialPopularPage: true)
+
+        XCTAssertEqual(state?.title, "No popular people right now")
+        XCTAssertEqual(state?.accessibilityIdentifier, "fanClub.emptyState")
+    }
+
+    func testFanClubPresentationSkipsEmptyStateWhenContentExists() {
+        XCTAssertNil(FanClubPresentation.emptyState(peoples: [1],
+                                                    popular: [],
+                                                    hasRequestedInitialPopularPage: true))
+        XCTAssertNil(FanClubPresentation.emptyState(peoples: [],
+                                                    popular: [2],
+                                                    hasRequestedInitialPopularPage: true))
+    }
+
     func testPeopleStateReducerUpdatesExistingRoleMetadataFromLaterCredits() {
         var state = AppState().peoplesState
         state.peoples[1] = People(id: 1,
@@ -39,6 +110,126 @@ final class MovieSwiftTests: XCTestCase {
                                                                                                     crew: [])))
 
         XCTAssertEqual(updated.peoples[1]?.character, "New Role")
+    }
+
+    func testPeopleStateReducerSetDetailDoesNotRetainStaleMovieRoleMetadata() {
+        var state = AppState().peoplesState
+        state.peoples[1] = People(id: 1,
+                                  name: "Actor",
+                                  character: "Old Role",
+                                  department: "Old Department",
+                                  profile_path: nil,
+                                  known_for_department: nil,
+                                  known_for: nil,
+                                  also_known_as: nil,
+                                  birthDay: nil,
+                                  deathDay: nil,
+                                  place_of_birth: nil,
+                                  biography: nil,
+                                  popularity: nil,
+                                  images: nil)
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetDetail(person: People(id: 1,
+                                                                                         name: "Actor",
+                                                                                         character: nil,
+                                                                                         department: nil,
+                                                                                         profile_path: nil,
+                                                                                         known_for_department: nil,
+                                                                                         known_for: nil,
+                                                                                         also_known_as: nil,
+                                                                                         birthDay: nil,
+                                                                                         deathDay: nil,
+                                                                                         place_of_birth: nil,
+                                                                                         biography: "Bio",
+                                                                                         popularity: nil,
+                                                                                         images: nil)))
+
+        XCTAssertNil(updated.peoples[1]?.character)
+        XCTAssertNil(updated.peoples[1]?.department)
+    }
+
+    func testPeopleStateReducerSetImagesCreatesPlaceholderWhenPersonIsMissing() {
+        let state = AppState().peoplesState
+        let images = [ImageData(aspect_ratio: 1,
+                                file_path: "/profile.jpg",
+                                height: 200,
+                                width: 100)]
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetImages(people: 77, images: images))
+
+        XCTAssertEqual(updated.peoples[77]?.name, "Unknown person")
+        XCTAssertEqual(updated.peoples[77]?.images?.count, 1)
+        XCTAssertTrue(updated.imagesLoaded.contains(77))
+    }
+
+    func testPeopleStateReducerSetPeopleCreditsReplacesExistingCredits() {
+        var state = AppState().peoplesState
+        state.casts[7] = [10: "Old Role"]
+        state.crews[7] = [11: "Old Department"]
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetPeopleCredits(people: 7,
+                                                                                response: PeopleActions.PeopleCreditsResponse(cast: [Movie(id: 12,
+                                                                                                                                 original_title: "New Cast",
+                                                                                                                                 title: "New Cast",
+                                                                                                                                 overview: "",
+                                                                                                                                 poster_path: nil,
+                                                                                                                                 backdrop_path: nil,
+                                                                                                                                 popularity: 0,
+                                                                                                                                 vote_average: 0,
+                                                                                                                                 vote_count: 0,
+                                                                                                                                 release_date: nil,
+                                                                                                                                 genres: nil,
+                                                                                                                                 runtime: nil,
+                                                                                                                                 status: nil,
+                                                                                                                                 video: false,
+                                                                                                                                 character: "New Role",
+                                                                                                                                 department: nil)],
+                                                                                                                             crew: [])))
+
+        XCTAssertEqual(updated.casts[7]?[12], "New Role")
+        XCTAssertNil(updated.casts[7]?[10])
+        XCTAssertTrue(updated.creditsLoaded.contains(7))
+    }
+
+    func testPeoplesStateCodableRoundTripPreservesLoadedDetailFlagsAndCredits() throws {
+        var state = PeoplesState()
+        state.peoples[7] = People(id: 7,
+                                  name: "Person",
+                                  character: nil,
+                                  department: nil,
+                                  profile_path: nil,
+                                  known_for_department: nil,
+                                  known_for: nil,
+                                  also_known_as: nil,
+                                  birthDay: nil,
+                                  deathDay: nil,
+                                  place_of_birth: nil,
+                                  biography: nil,
+                                  popularity: nil,
+                                  images: [ImageData(aspect_ratio: 1,
+                                                     file_path: "/profile.jpg",
+                                                     height: 200,
+                                                     width: 100)])
+        state.casts[7] = [12: "Actor"]
+        state.crews[7] = [13: "Director"]
+        state.detailed.insert(7)
+        state.imagesLoaded.insert(7)
+        state.creditsLoaded.insert(7)
+        state.fanClub.insert(7)
+
+        let data = try JSONEncoder().encode(state)
+        let decoded = try JSONDecoder().decode(PeoplesState.self, from: data)
+
+        XCTAssertEqual(decoded.peoples[7]?.images?.count, 1)
+        XCTAssertEqual(decoded.casts[7]?[12], "Actor")
+        XCTAssertEqual(decoded.crews[7]?[13], "Director")
+        XCTAssertTrue(decoded.detailed.contains(7))
+        XCTAssertTrue(decoded.imagesLoaded.contains(7))
+        XCTAssertTrue(decoded.creditsLoaded.contains(7))
+        XCTAssertTrue(decoded.fanClub.contains(7))
     }
 
     func testPeopleRowStateReturnsNilWhenPersonIsMissing() {
@@ -197,6 +388,46 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertNil(PeopleDetailMovieRowState.subtitle(for: ""))
         XCTAssertNil(PeopleDetailMovieRowState.subtitle(for: "   "))
         XCTAssertEqual(PeopleDetailMovieRowState.subtitle(for: "Director"), "Director")
+    }
+
+    func testMovieDetailPeopleStateUsesMovieSpecificRoleMetadata() {
+        var state = AppState()
+        state.peoplesState.peoples[1] = People(id: 1,
+                                               name: "Actor",
+                                               character: "Old Role",
+                                               department: nil,
+                                               profile_path: nil,
+                                               known_for_department: nil,
+                                               known_for: nil,
+                                               also_known_as: nil,
+                                               birthDay: nil,
+                                               deathDay: nil,
+                                               place_of_birth: nil,
+                                               biography: nil,
+                                               popularity: nil,
+                                               images: nil)
+        state.peoplesState.peoples[2] = People(id: 2,
+                                               name: "Director",
+                                               character: nil,
+                                               department: "Old Department",
+                                               profile_path: nil,
+                                               known_for_department: nil,
+                                               known_for: nil,
+                                               also_known_as: nil,
+                                               birthDay: nil,
+                                               deathDay: nil,
+                                               place_of_birth: nil,
+                                               biography: nil,
+                                               popularity: nil,
+                                               images: nil)
+        state.peoplesState.peoplesMovies[42] = [1, 2]
+        state.peoplesState.casts[1] = [7: "Old Role", 42: "New Role"]
+        state.peoplesState.crews[2] = [7: "Old Department", 42: "Directing"]
+
+        XCTAssertEqual(MovieDetailPeopleState.characters(movieId: 42, from: state)?.first?.character,
+                       "New Role")
+        XCTAssertEqual(MovieDetailPeopleState.credits(movieId: 42, from: state)?.first?.department,
+                       "Directing")
     }
 
     func testAppLaunchModeDetectsPreviewEnvironment() {
@@ -1074,11 +1305,30 @@ final class MovieSwiftTests: XCTestCase {
     }
 
     func testPeopleDetailFetchPolicyFetchesOutsideUISmokeTests() {
-        XCTAssertTrue(PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: false))
+        XCTAssertTrue(PeopleDetailFetchPolicy.shouldFetchDetail(isRunningUISmokeTests: false,
+                                                                hasLoadedDetail: false))
+        XCTAssertTrue(PeopleDetailFetchPolicy.shouldFetchImages(isRunningUISmokeTests: false,
+                                                                hasLoadedImages: false))
+        XCTAssertTrue(PeopleDetailFetchPolicy.shouldFetchCredits(isRunningUISmokeTests: false,
+                                                                 hasLoadedCredits: false))
     }
 
     func testPeopleDetailFetchPolicySkipsDuringUISmokeTests() {
-        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: true))
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchDetail(isRunningUISmokeTests: true,
+                                                                 hasLoadedDetail: false))
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchImages(isRunningUISmokeTests: true,
+                                                                 hasLoadedImages: false))
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchCredits(isRunningUISmokeTests: true,
+                                                                  hasLoadedCredits: false))
+    }
+
+    func testPeopleDetailFetchPolicySkipsAlreadyLoadedSlices() {
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchDetail(isRunningUISmokeTests: false,
+                                                                 hasLoadedDetail: true))
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchImages(isRunningUISmokeTests: false,
+                                                                 hasLoadedImages: true))
+        XCTAssertFalse(PeopleDetailFetchPolicy.shouldFetchCredits(isRunningUISmokeTests: false,
+                                                                  hasLoadedCredits: true))
     }
 
     func testSettingsFormRefreshPolicyRefreshesWhenRegionChanges() {
@@ -1182,6 +1432,20 @@ final class MovieSwiftTests: XCTestCase {
                                                       movies: [:])
 
         XCTAssertTrue(grouped.isEmpty)
+    }
+
+    func testPeopleDetailCreditsStateMergesCastAndCrewRolesForSameMovie() {
+        let merged = PeopleDetailCreditsState.mergedCredits(cast: [7: "Actor"],
+                                                            crew: [7: "Director"])
+
+        XCTAssertEqual(merged[7], "Actor • Director")
+    }
+
+    func testPeopleDetailCreditsStateDedupesMatchingRoles() {
+        let merged = PeopleDetailCreditsState.mergedCredits(cast: [7: "Producer"],
+                                                            crew: [7: "Producer"])
+
+        XCTAssertEqual(merged[7], "Producer")
     }
 
     func testPeopleDetailSortedYearsPlacesUpcomingLast() {
