@@ -27,17 +27,21 @@ func moviesStateReducer(state: MoviesState, action: Action) -> MoviesState {
 
     case let action as MoviesActions.SetDetail:
         state.movies[action.movie] = action.response
+        state.detailed.insert(action.movie)
         
     case let action as MoviesActions.SetRecommended:
         state.recommended[action.movie] = action.response.results.map{ $0.id }
+        state.recommendedLoaded.insert(action.movie)
         state = mergeMovies(movies: action.response.results, state: state)
         
     case let action as MoviesActions.SetSimilar:
         state.similar[action.movie] = action.response.results.map{ $0.id }
+        state.similarLoaded.insert(action.movie)
         state = mergeMovies(movies: action.response.results, state: state)
         
     case let action as MoviesActions.SetVideos:
         state.videos[action.movie] = action.response.results
+        state.videosLoaded.insert(action.movie)
         
     case let action as MoviesActions.SetSearch:
         if action.page == 1 {
@@ -108,6 +112,7 @@ func moviesStateReducer(state: MoviesState, action: Action) -> MoviesState {
         
     case let action as MoviesActions.SetMovieReviews:
         state.reviews[action.movie] = action.response.results
+        state.reviewsLoaded.insert(action.movie)
         
     case let action as MoviesActions.SetMovieWithCrew:
         state.withCrew[action.crew] = action.response.results.map{ $0.id }

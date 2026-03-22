@@ -12,9 +12,12 @@ import SwiftUIFlux
 struct MoviesState: FluxState, Codable {
     var movies: [Int: Movie] = [:]
     var moviesList: [MoviesMenu: [Int]] = [:]
+    var detailed: Set<Int> = Set()
     
     var recommended: [Int: [Int]] = [:]
     var similar: [Int: [Int ]] = [:]
+    var recommendedLoaded: Set<Int> = Set()
+    var similarLoaded: Set<Int> = Set()
     
     var search: [String: [Int]] = [:]
     var searchKeywords: [String: [Keyword]] = [:]
@@ -30,11 +33,13 @@ struct MoviesState: FluxState, Codable {
     var seenlist: Set<Int> = Set()
     
     var videos: [Int: [Video]] = [:]
+    var videosLoaded: Set<Int> = Set()
     
     var withGenre: [Int: [Int]] = [:]
     var withKeywords: [Int: [Int]] = [:]
     var withCrew: [Int: [Int]] = [:]
     var reviews: [Int: [Review]] = [:]
+    var reviewsLoaded: Set<Int> = Set()
     
     var customLists: [Int: CustomList] = [:]
     
@@ -42,5 +47,6 @@ struct MoviesState: FluxState, Codable {
     
     enum CodingKeys: String, CodingKey {
         case movies, wishlist, seenlist, customLists, moviesUserMeta, savedDiscoverFilters, discoverFilter
+        case detailed, recommendedLoaded, similarLoaded, videosLoaded, reviewsLoaded
     }
 }

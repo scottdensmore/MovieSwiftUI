@@ -20,6 +20,7 @@ struct PeoplesState: FluxState, Codable {
     var detailed: Set<Int> = Set()
     var imagesLoaded: Set<Int> = Set()
     var creditsLoaded: Set<Int> = Set()
+    var movieCreditsLoaded: Set<Int> = Set()
     
     /// [PeopleId: [MovieId:  Character]]
     var casts: [Int: [Int: String]] = [:]
@@ -36,5 +37,6 @@ struct PeoplesState: FluxState, Codable {
         case detailed
         case imagesLoaded
         case creditsLoaded
+        case movieCreditsLoaded
     }
 }

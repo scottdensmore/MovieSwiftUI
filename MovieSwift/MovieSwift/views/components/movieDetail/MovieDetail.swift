@@ -11,9 +11,53 @@ import SwiftUIFlux
 import Combine
 import UI
 
+enum MovieDetailLoadSlice: Equatable {
+    case detail
+    case credits
+    case recommended
+    case similar
+    case reviews
+    case videos
+}
+
 enum MovieDetailFetchPolicy {
-    static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {
-        !isRunningUISmokeTests
+    static func slicesToFetch(hasMovieDetail: Bool,
+                              hasMovieCredits: Bool,
+                              hasRecommended: Bool,
+                              hasSimilar: Bool,
+                              hasReviews: Bool,
+                              hasVideos: Bool,
+                              isRunningUISmokeTests: Bool) -> [MovieDetailLoadSlice] {
+        guard !isRunningUISmokeTests else {
+            return []
+        }
+
+        var slices: [MovieDetailLoadSlice] = []
+        if !hasMovieDetail {
+            slices.append(.detail)
+        }
+        if !hasMovieCredits {
+            slices.append(.credits)
+        }
+        if !hasRecommended {
+            slices.append(.recommended)
+        }
+        if !hasSimilar {
+            slices.append(.similar)
+        }
+        if !hasReviews {
+            slices.append(.reviews)
+        }
+        if !hasVideos {
+            slices.append(.videos)
+        }
+        return slices
+    }
+}
+
+enum MovieDetailState {
+    static func movie(movieId: Int, from state: AppState) -> Movie? {
+        state.moviesState.movies[movieId]
     }
 }
 
@@ -77,13 +121,19 @@ enum MovieDetailPeopleState {
 
 struct MovieDetail: ConnectedView {
     struct Props {
-        let movie: Movie
+        let movie: Movie?
         let characters: [People]?
         let credits: [People]?
         let recommended: [Movie]?
         let similar: [Movie]?
         let reviewsCount: Int?
         let videos: [Video]?
+        let hasMovieDetail: Bool
+        let hasMovieCredits: Bool
+        let hasRecommended: Bool
+        let hasSimilar: Bool
+        let hasReviews: Bool
+        let hasVideos: Bool
         let isInWishlist: Bool
         let isInSeenlist: Bool
         let customLists: [CustomList]
@@ -120,13 +170,19 @@ struct MovieDetail: ConnectedView {
         if let simillarIds = state.moviesState.similar[movieId] {
             similar = simillarIds.compactMap{ state.moviesState.movies[$0] }
         }
-        return Props(movie: state.moviesState.movies[movieId]!,
+        return Props(movie: MovieDetailState.movie(movieId: movieId, from: state),
                      characters: MovieDetailPeopleState.characters(movieId: movieId, from: state),
                      credits: MovieDetailPeopleState.credits(movieId: movieId, from: state),
                      recommended: recommended,
                      similar: similar,
                      reviewsCount: state.moviesState.reviews[movieId]?.count ?? nil,
                      videos: state.moviesState.videos[movieId],
+                     hasMovieDetail: state.moviesState.detailed.contains(movieId),
+                     hasMovieCredits: state.peoplesState.movieCreditsLoaded.contains(movieId),
+                     hasRecommended: state.moviesState.recommendedLoaded.contains(movieId),
+                     hasSimilar: state.moviesState.similarLoaded.contains(movieId),
+                     hasReviews: state.moviesState.reviewsLoaded.contains(movieId),
+                     hasVideos: state.moviesState.videosLoaded.contains(movieId),
                      isInWishlist: MovieDetailListState.isInWishlist(movieId: movieId, from: state),
                      isInSeenlist: MovieDetailListState.isInSeenlist(movieId: movieId, from: state),
                      customLists: MovieDetailListState.customLists(from: state),
@@ -135,15 +191,28 @@ struct MovieDetail: ConnectedView {
     
     // MARK: - Fetch
     func fetchMovieDetails(props: Props) {
-        if !MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests) {
-            return
+        for slice in MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: props.hasMovieDetail,
+                                                          hasMovieCredits: props.hasMovieCredits,
+                                                          hasRecommended: props.hasRecommended,
+                                                          hasSimilar: props.hasSimilar,
+                                                          hasReviews: props.hasReviews,
+                                                          hasVideos: props.hasVideos,
+                                                          isRunningUISmokeTests: isRunningUISmokeTests) {
+            switch slice {
+            case .detail:
+                props.dispatch(MoviesActions.FetchDetail(movie: movieId))
+            case .credits:
+                props.dispatch(PeopleActions.FetchMovieCasts(movie: movieId))
+            case .recommended:
+                props.dispatch(MoviesActions.FetchRecommended(movie: movieId))
+            case .similar:
+                props.dispatch(MoviesActions.FetchSimilar(movie: movieId))
+            case .reviews:
+                props.dispatch(MoviesActions.FetchMovieReviews(movie: movieId))
+            case .videos:
+                props.dispatch(MoviesActions.FetchVideos(movie: movieId))
+            }
         }
-        props.dispatch(MoviesActions.FetchDetail(movie: movieId))
-        props.dispatch(PeopleActions.FetchMovieCasts(movie: movieId))
-        props.dispatch(MoviesActions.FetchRecommended(movie: movieId))
-        props.dispatch(MoviesActions.FetchSimilar(movie: movieId))
-        props.dispatch(MoviesActions.FetchMovieReviews(movie: movieId))
-        props.dispatch(MoviesActions.FetchVideos(movie: movieId))
     }
     
     // MARK: - View actions
@@ -170,6 +239,7 @@ struct MovieDetail: ConnectedView {
     
     // MARK: - Computed views
     func addActionSheet(props: Props) -> ActionSheet {
+        let movieTitle = props.movie?.userTitle ?? "this movie"
         var buttons: [Alert.Button] = []
         let wishlistButton = ActionSheet.wishlistButton(isInWishlist: props.isInWishlist,
                                                         movie: movieId,
@@ -197,7 +267,7 @@ struct MovieDetail: ConnectedView {
         buttons.append(contentsOf: customListButtons)
         buttons.append(createListButton)
         buttons.append(cancelButton)
-        let sheet = ActionSheet(title: Text("Add or remove \(props.movie.userTitle) from your lists"),
+        let sheet = ActionSheet(title: Text("Add or remove \(movieTitle) from your lists"),
                                 message: nil,
                                 buttons: buttons)
         return sheet
@@ -301,16 +371,18 @@ struct MovieDetail: ConnectedView {
             if props.credits?.isEmpty == false {
                 peopleRows(props: props)
             }
-            if !props.movie.overview.isEmpty {
-                MovieOverview(movie: props.movie)
+            if let movie = props.movie, !movie.overview.isEmpty {
+                MovieOverview(movie: movie)
             }
         }
     }
     
     func bottomSection(props: Props) -> some View {
         Section {
-            if props.movie.keywords?.keywords?.isEmpty == false {
-                MovieKeywords(keywords: props.movie.keywords!.keywords!)
+            if let movie = props.movie,
+               movie.keywords?.keywords?.isEmpty == false,
+               let keywords = movie.keywords?.keywords {
+                MovieKeywords(keywords: keywords)
             }
             if props.characters?.isEmpty == false {
                 MovieCrosslinePeopleRow(title: "Cast",
@@ -330,27 +402,58 @@ struct MovieDetail: ConnectedView {
                                   movies: props.recommended ?? [],
                                   navigationRoute: $selectedCrosslineRoute)
             }
-            if props.movie.images?.posters?.isEmpty == false {
-                MoviePostersRow(posters: props.movie.images!.posters!.prefix(8).map{ $0 },
+            if let movie = props.movie,
+               movie.images?.posters?.isEmpty == false,
+               let posters = movie.images?.posters {
+                MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                                 selectedPoster: $selectedPoster)
             }
-            if props.movie.images?.backdrops?.isEmpty == false {
-                MovieBackdropsRow(backdrops: props.movie.images!.backdrops!.prefix(8).map{ $0 })
+            if let movie = props.movie,
+               movie.images?.backdrops?.isEmpty == false,
+               let backdrops = movie.images?.backdrops {
+                MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
             }
+        }
+    }
+
+    @ViewBuilder
+    func unavailableView() -> some View {
+        VStack(spacing: 12) {
+            Text("Movie not available")
+                .font(.headline)
+            Text("This movie could not be loaded.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+
+    @ViewBuilder
+    func addButton(props: Props) -> some View {
+        if props.movie != nil {
+            Button(action: onAddButton) {
+                Image(systemName: "text.badge.plus").imageScale(.large)
+            }
+            .accessibilityIdentifier("movieDetail.addToListButton")
         }
     }
     
     func body(props: Props) -> some View {
         ZStack(alignment: .bottom) {
-            List {
-                topSection(props: props)
-                bottomSection(props: props)
+            Group {
+                if let movie = props.movie {
+                    List {
+                        topSection(props: props)
+                        bottomSection(props: props)
+                    }
+                    .navigationBarTitle(Text(movie.userTitle), displayMode: .large)
+                } else {
+                    unavailableView()
+                        .navigationBarTitle(Text("Movie"), displayMode: .large)
+                }
             }
-            .navigationBarTitle(Text(props.movie.userTitle), displayMode: .large)
-            .navigationBarItems(trailing: Button(action: onAddButton) {
-                Image(systemName: "text.badge.plus").imageScale(.large)
-            }
-            .accessibilityIdentifier("movieDetail.addToListButton"))
+            .navigationBarItems(trailing: addButton(props: props))
             .onAppear {
                 self.fetchMovieDetails(props: props)
             }
@@ -365,7 +468,7 @@ struct MovieDetail: ConnectedView {
             NotificationBadge(text: "Added successfully",
                               color: .blue,
                               show: $isAddedToListBadgePresented).padding(.bottom, 10)
-            ImagesCarouselView(posters: props.movie.images?.posters ?? [],
+            ImagesCarouselView(posters: props.movie?.images?.posters ?? [],
                                    selectedPoster: $selectedPoster)
                 .blur(radius: selectedPoster != nil ? 0 : 10)
                 .scaleEffect(selectedPoster != nil ? 1 : 1.2)

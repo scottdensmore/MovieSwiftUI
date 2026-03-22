@@ -31,7 +31,6 @@ struct MovieButtonsRow: ConnectedView {
     @Binding var showCustomListSheet: Bool
     
     struct Props {
-        let movie: Movie
         let isInWishlist: Bool
         let isInSeenlist: Bool
         let isInCustomList: Bool
@@ -42,8 +41,7 @@ struct MovieButtonsRow: ConnectedView {
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         let isInWishlist = state.moviesState.wishlist.contains(movieId)
         let isInSeenlist = state.moviesState.seenlist.contains(movieId)
-        return Props(movie: state.moviesState.movies[movieId]!,
-                     isInWishlist: isInWishlist,
+        return Props(isInWishlist: isInWishlist,
                      isInSeenlist: isInSeenlist,
                      isInCustomList: state.moviesState.customLists.contains(where:
                                                                                { (_, value) -> Bool in

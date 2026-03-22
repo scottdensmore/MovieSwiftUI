@@ -2,6 +2,111 @@ import XCTest
 @testable import MovieSwift
 
 final class MovieSwiftTests: XCTestCase {
+    func testMovieDetailStateReturnsNilWhenMovieIsMissing() {
+        XCTAssertNil(MovieDetailState.movie(movieId: 404, from: AppState()))
+    }
+
+    func testMovieDetailFetchPolicyReturnsOnlyMissingSlices() {
+        XCTAssertEqual(MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: true,
+                                                            hasMovieCredits: false,
+                                                            hasRecommended: true,
+                                                            hasSimilar: false,
+                                                            hasReviews: true,
+                                                            hasVideos: false,
+                                                            isRunningUISmokeTests: false),
+                       [.credits, .similar, .videos])
+    }
+
+    func testMovieDetailFetchPolicySkipsAllSlicesDuringUISmokeTests() {
+        XCTAssertTrue(MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: false,
+                                                           hasMovieCredits: false,
+                                                           hasRecommended: false,
+                                                           hasSimilar: false,
+                                                           hasReviews: false,
+                                                           hasVideos: false,
+                                                           isRunningUISmokeTests: true).isEmpty)
+    }
+
+    func testMoviesStateReducerMarksMovieDetailSlicesLoaded() {
+        let movie = Movie(id: 9,
+                          original_title: "Movie",
+                          title: "Movie",
+                          overview: "",
+                          poster_path: nil,
+                          backdrop_path: nil,
+                          popularity: 0,
+                          vote_average: 0,
+                          vote_count: 0,
+                          release_date: nil,
+                          genres: nil,
+                          runtime: nil,
+                          status: nil,
+                          video: false,
+                          character: nil,
+                          department: nil)
+
+        var state = moviesStateReducer(state: MoviesState(),
+                                       action: MoviesActions.SetDetail(movie: 9, response: movie))
+        state = moviesStateReducer(state: state,
+                                   action: MoviesActions.SetRecommended(movie: 9,
+                                                                        response: PaginatedResponse(page: 1,
+                                                                                                    total_results: 0,
+                                                                                                    total_pages: 1,
+                                                                                                    results: [])))
+        state = moviesStateReducer(state: state,
+                                   action: MoviesActions.SetSimilar(movie: 9,
+                                                                    response: PaginatedResponse(page: 1,
+                                                                                                total_results: 0,
+                                                                                                total_pages: 1,
+                                                                                                results: [])))
+        state = moviesStateReducer(state: state,
+                                   action: MoviesActions.SetVideos(movie: 9,
+                                                                   response: PaginatedResponse(page: 1,
+                                                                                               total_results: 0,
+                                                                                               total_pages: 1,
+                                                                                               results: [])))
+        state = moviesStateReducer(state: state,
+                                   action: MoviesActions.SetMovieReviews(movie: 9,
+                                                                         response: PaginatedResponse(page: 1,
+                                                                                                     total_results: 0,
+                                                                                                     total_pages: 1,
+                                                                                                     results: [])))
+
+        XCTAssertTrue(state.detailed.contains(9))
+        XCTAssertTrue(state.recommendedLoaded.contains(9))
+        XCTAssertTrue(state.similarLoaded.contains(9))
+        XCTAssertTrue(state.videosLoaded.contains(9))
+        XCTAssertTrue(state.reviewsLoaded.contains(9))
+    }
+
+    func testMoviesStateCodableRoundTripPreservesLoadedMovieDetailFlags() throws {
+        var state = MoviesState()
+        state.detailed.insert(1)
+        state.recommendedLoaded.insert(2)
+        state.similarLoaded.insert(3)
+        state.videosLoaded.insert(4)
+        state.reviewsLoaded.insert(5)
+
+        let data = try JSONEncoder().encode(state)
+        let decoded = try JSONDecoder().decode(MoviesState.self, from: data)
+
+        XCTAssertTrue(decoded.detailed.contains(1))
+        XCTAssertTrue(decoded.recommendedLoaded.contains(2))
+        XCTAssertTrue(decoded.similarLoaded.contains(3))
+        XCTAssertTrue(decoded.videosLoaded.contains(4))
+        XCTAssertTrue(decoded.reviewsLoaded.contains(5))
+    }
+
+    func testPeoplesStateCodableRoundTripPreservesMovieCreditsLoadedFlags() throws {
+        var state = PeoplesState()
+        state.movieCreditsLoaded.insert(9)
+
+        let data = try JSONEncoder().encode(state)
+        let decoded = try JSONDecoder().decode(PeoplesState.self, from: data)
+
+        XCTAssertTrue(decoded.movieCreditsLoaded.contains(9))
+    }
+
     func testPeopleRowStateShowsPlaceholderWhenPersonIsMissing() {
         XCTAssertTrue(PeopleRowState.shouldShowPlaceholder(for: nil))
     }
@@ -898,11 +1003,24 @@ final class MovieSwiftTests: XCTestCase {
     }
 
     func testMovieDetailFetchPolicyFetchesOutsideUISmokeTests() {
-        XCTAssertTrue(MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: false))
+        XCTAssertEqual(MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: false,
+                                                            hasMovieCredits: false,
+                                                            hasRecommended: false,
+                                                            hasSimilar: false,
+                                                            hasReviews: false,
+                                                            hasVideos: false,
+                                                            isRunningUISmokeTests: false),
+                       [.detail, .credits, .recommended, .similar, .reviews, .videos])
     }
 
     func testMovieDetailFetchPolicySkipsDuringUISmokeTests() {
-        XCTAssertFalse(MovieDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: true))
+        XCTAssertTrue(MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: false,
+                                                           hasMovieCredits: false,
+                                                           hasRecommended: false,
+                                                           hasSimilar: false,
+                                                           hasReviews: false,
+                                                           hasVideos: false,
+                                                           isRunningUISmokeTests: true).isEmpty)
     }
 
     func testMovieDetailListStateReadsWishlistSeenlistAndCustomLists() {

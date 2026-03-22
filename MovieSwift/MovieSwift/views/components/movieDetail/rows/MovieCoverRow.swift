@@ -42,21 +42,25 @@ struct MovieCoverRow : ConnectedView {
     #endif
 
     struct Props {
-        let movie: Movie
+        let movie: Movie?
     }
 
     private func presentation(props: Props) -> MovieCoverPresentation {
-        MovieCoverState.presentation(for: props.movie)
+        MovieCoverState.presentation(for: props.movie ?? sampleMovie)
     }
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movie: state.moviesState.movies[movieId]!)
+        Props(movie: state.moviesState.movies[movieId])
     }
 
     func body(props: Props) -> some View {
+        guard props.movie != nil else {
+            return AnyView(EmptyView())
+        }
+        let movie = props.movie ?? sampleMovie
         let presentation = presentation(props: props)
 
-        return ZStack {
+        return AnyView(ZStack {
             MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: presentation.backdropPath,
                                                                                  size: .medium),
                                   fill: false)
@@ -67,7 +71,7 @@ struct MovieCoverRow : ConnectedView {
                                      posterSize: .medium)
                         .padding(.leading, 16)
                     VStack(alignment: .leading, spacing: 16) {
-                        MovieInfoRow(movie: props.movie)
+                        MovieInfoRow(movie: movie)
                         HStack {
                             PopularityBadge(score: presentation.popularityScore, textColor: .white)
                             Text(presentation.ratingsText)
@@ -79,7 +83,7 @@ struct MovieCoverRow : ConnectedView {
                 genresBadges(props: props).padding(.top, 16)
             }
         }
-        .listRowInsets(EdgeInsets())
+        .listRowInsets(EdgeInsets()))
     }
     
     private func genresBadges(props: Props) -> some View {
