@@ -108,6 +108,7 @@ struct PeopleActions {
         let page: Int
         
         func execute(state: FluxState?, dispatch: @escaping DispatchFunction) {
+            dispatch(PopularRequestStarted(page: page))
             APIService.shared.GET(endpoint: .popularPersons, params: ["page": "\(page)",
                 "region": AppUserDefaults.region])
             {
@@ -116,12 +117,19 @@ struct PeopleActions {
                 case let .success(response):
                     dispatch(SetPopular(page: self.page,
                                         response: response))
-                case let .failure(error):
-                    print(error)
-                    break
+                case .failure:
+                    dispatch(PopularRequestFailed(page: self.page))
                 }
             }
         }
+    }
+
+    struct PopularRequestStarted: Action {
+        let page: Int
+    }
+
+    struct PopularRequestFailed: Action {
+        let page: Int
     }
     
     struct SetDetail: Action {

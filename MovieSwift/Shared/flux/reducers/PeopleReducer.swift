@@ -12,6 +12,13 @@ import SwiftUIFlux
 func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
     var state = state
     switch action {
+    case let action as PeopleActions.PopularRequestStarted:
+        state.popularLoading = true
+        state.popularLoadFailed = false
+        if action.page == 1 {
+            state.popularInitialLoadCompleted = false
+        }
+
     case let action as PeopleActions.SetMovieCasts:
         state = mergePeople(peoples: action.response.cast, state: state)
         state = mergePeople(peoples: action.response.crew, state: state)
@@ -31,7 +38,15 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
         } else {
             state.popular = appendUnique(ids: action.response.results.map{ $0.id }, to: state.popular)
         }
+        state.popularLoading = false
+        state.popularInitialLoadCompleted = true
+        state.popularLoadFailed = false
         state = mergePeople(peoples: action.response.results, state: state)
+
+    case is PeopleActions.PopularRequestFailed:
+        state.popularLoading = false
+        state.popularInitialLoadCompleted = true
+        state.popularLoadFailed = true
         
     case let action as PeopleActions.SetDetail:
         if let current = state.peoples[action.person.id] {

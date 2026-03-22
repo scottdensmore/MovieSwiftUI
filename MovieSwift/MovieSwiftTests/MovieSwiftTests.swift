@@ -49,28 +49,68 @@ final class MovieSwiftTests: XCTestCase {
     func testFanClubPresentationShowsLoadingStateBeforeInitialRequest() {
         let state = FanClubPresentation.emptyState(peoples: [],
                                                    popular: [],
-                                                   hasRequestedInitialPopularPage: false)
+                                                   popularLoading: true,
+                                                   popularInitialLoadCompleted: false,
+                                                   popularLoadFailed: false)
 
         XCTAssertEqual(state?.title, "Loading people")
         XCTAssertEqual(state?.accessibilityIdentifier, "fanClub.loadingState")
+        XCTAssertEqual(state?.showsRetry, false)
     }
 
-    func testFanClubPresentationShowsEmptyStateAfterInitialRequest() {
+    func testFanClubPresentationShowsErrorStateAfterFailedRequest() {
         let state = FanClubPresentation.emptyState(peoples: [],
                                                    popular: [],
-                                                   hasRequestedInitialPopularPage: true)
+                                                   popularLoading: false,
+                                                   popularInitialLoadCompleted: true,
+                                                   popularLoadFailed: true)
+
+        XCTAssertEqual(state?.title, "Could not load popular people")
+        XCTAssertEqual(state?.accessibilityIdentifier, "fanClub.errorState")
+        XCTAssertEqual(state?.showsRetry, true)
+    }
+
+    func testFanClubPresentationShowsEmptyStateAfterSuccessfulInitialRequest() {
+        let state = FanClubPresentation.emptyState(peoples: [],
+                                                   popular: [],
+                                                   popularLoading: false,
+                                                   popularInitialLoadCompleted: true,
+                                                   popularLoadFailed: false)
 
         XCTAssertEqual(state?.title, "No popular people right now")
         XCTAssertEqual(state?.accessibilityIdentifier, "fanClub.emptyState")
+        XCTAssertEqual(state?.showsRetry, false)
     }
 
     func testFanClubPresentationSkipsEmptyStateWhenContentExists() {
         XCTAssertNil(FanClubPresentation.emptyState(peoples: [1],
                                                     popular: [],
-                                                    hasRequestedInitialPopularPage: true))
+                                                    popularLoading: false,
+                                                    popularInitialLoadCompleted: true,
+                                                    popularLoadFailed: false))
         XCTAssertNil(FanClubPresentation.emptyState(peoples: [],
                                                     popular: [2],
-                                                    hasRequestedInitialPopularPage: true))
+                                                    popularLoading: false,
+                                                    popularInitialLoadCompleted: true,
+                                                    popularLoadFailed: false))
+    }
+
+    func testPeopleStateReducerMarksPopularRequestStarted() {
+        let updated = peoplesStateReducer(state: PeoplesState(),
+                                          action: PeopleActions.PopularRequestStarted(page: 1))
+
+        XCTAssertTrue(updated.popularLoading)
+        XCTAssertFalse(updated.popularInitialLoadCompleted)
+        XCTAssertFalse(updated.popularLoadFailed)
+    }
+
+    func testPeopleStateReducerMarksPopularRequestFailed() {
+        let updated = peoplesStateReducer(state: PeoplesState(),
+                                          action: PeopleActions.PopularRequestFailed(page: 1))
+
+        XCTAssertFalse(updated.popularLoading)
+        XCTAssertTrue(updated.popularInitialLoadCompleted)
+        XCTAssertTrue(updated.popularLoadFailed)
     }
 
     func testPeopleStateReducerUpdatesExistingRoleMetadataFromLaterCredits() {
@@ -312,11 +352,16 @@ final class MovieSwiftTests: XCTestCase {
                                                                                                                       popularity: nil,
                                                                                                                       images: nil)])))
 
-        let updated = peoplesStateReducer(state: seeded,
+        let inFlight = peoplesStateReducer(state: seeded,
+                                           action: PeopleActions.PopularRequestStarted(page: 2))
+        let updated = peoplesStateReducer(state: inFlight,
                                           action: PeopleActions.SetPopular(page: 2,
                                                                           response: popularPage))
 
         XCTAssertEqual(updated.popular, [1, 2])
+        XCTAssertFalse(updated.popularLoading)
+        XCTAssertTrue(updated.popularInitialLoadCompleted)
+        XCTAssertFalse(updated.popularLoadFailed)
     }
 
     func testPeopleDetailBiographyStateShowsToggleOnlyForNonEmptyBiography() {

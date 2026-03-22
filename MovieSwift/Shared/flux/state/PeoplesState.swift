@@ -14,6 +14,9 @@ struct PeoplesState: FluxState, Codable {
     var peoplesMovies: [Int: Set<Int>] = [:]
     var search: [String: [Int]] = [:]
     var popular: [Int] = []
+    var popularLoading = false
+    var popularInitialLoadCompleted = false
+    var popularLoadFailed = false
     var detailed: Set<Int> = Set()
     var imagesLoaded: Set<Int> = Set()
     var creditsLoaded: Set<Int> = Set()

@@ -44,22 +44,36 @@ enum FanClubPresentation {
         let title: String
         let message: String
         let accessibilityIdentifier: String
+        let showsRetry: Bool
     }
 
-    static func emptyState(peoples: [Int], popular: [Int], hasRequestedInitialPopularPage: Bool) -> EmptyState? {
+    static func emptyState(peoples: [Int],
+                           popular: [Int],
+                           popularLoading: Bool,
+                           popularInitialLoadCompleted: Bool,
+                           popularLoadFailed: Bool) -> EmptyState? {
         guard peoples.isEmpty, popular.isEmpty else {
             return nil
         }
 
-        if hasRequestedInitialPopularPage {
-            return EmptyState(title: "No popular people right now",
-                              message: "Try again later to find people to add to your Fan Club.",
-                              accessibilityIdentifier: "fanClub.emptyState")
+        if popularLoading || !popularInitialLoadCompleted {
+            return EmptyState(title: "Loading people",
+                              message: "Fetching popular people for your Fan Club.",
+                              accessibilityIdentifier: "fanClub.loadingState",
+                              showsRetry: false)
         }
 
-        return EmptyState(title: "Loading people",
-                          message: "Fetching popular people for your Fan Club.",
-                          accessibilityIdentifier: "fanClub.loadingState")
+        if popularLoadFailed {
+            return EmptyState(title: "Could not load popular people",
+                              message: "Check your connection and try again.",
+                              accessibilityIdentifier: "fanClub.errorState",
+                              showsRetry: true)
+        }
+
+        return EmptyState(title: "No popular people right now",
+                          message: "Try again later to find people to add to your Fan Club.",
+                          accessibilityIdentifier: "fanClub.emptyState",
+                          showsRetry: false)
     }
 }
 
@@ -67,6 +81,9 @@ struct FanClubHome: ConnectedView {
     struct Props {
         let peoples: [Int]
         let popular: [Int]
+        let popularLoading: Bool
+        let popularInitialLoadCompleted: Bool
+        let popularLoadFailed: Bool
         let dispatch: DispatchFunction
     }
     
@@ -74,7 +91,6 @@ struct FanClubHome: ConnectedView {
     var showNavigationTitle = true
     @State private var nextPopularPage = 1
     @State private var lastTriggeredPopularId: Int?
-    @State private var hasRequestedInitialPopularPage = false
     #if targetEnvironment(macCatalyst)
     @State private var selectedPeopleId: Int?
     @FocusState private var focusedPeopleId: Int?
@@ -83,6 +99,9 @@ struct FanClubHome: ConnectedView {
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
         Props(peoples: FanClubState.fanClubPeople(from: state),
               popular: FanClubState.popularPeople(from: state),
+              popularLoading: state.peoplesState.popularLoading,
+              popularInitialLoadCompleted: state.peoplesState.popularInitialLoadCompleted,
+              popularLoadFailed: state.peoplesState.popularLoadFailed,
               dispatch: dispatch)
     }
     
@@ -143,7 +162,13 @@ struct FanClubHome: ConnectedView {
         #endif
     }
 
-    private func emptyStateView(_ state: FanClubPresentation.EmptyState) -> some View {
+    private func retryPopularLoad(props: Props) {
+        nextPopularPage = 2
+        lastTriggeredPopularId = nil
+        props.dispatch(PeopleActions.FetchPopular(page: 1))
+    }
+
+    private func emptyStateView(_ state: FanClubPresentation.EmptyState, props: Props) -> some View {
         VStack(spacing: 12) {
             Text(state.title)
                 .font(.headline)
@@ -151,10 +176,16 @@ struct FanClubHome: ConnectedView {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            if state.showsRetry {
+                Button("Retry") {
+                    retryPopularLoad(props: props)
+                }
+                .accessibilityIdentifier("fanClub.retryButton")
+            }
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(state.accessibilityIdentifier)
     }
 
@@ -163,8 +194,10 @@ struct FanClubHome: ConnectedView {
         let content = Group {
             if let emptyState = FanClubPresentation.emptyState(peoples: props.peoples,
                                                                popular: props.popular,
-                                                               hasRequestedInitialPopularPage: hasRequestedInitialPopularPage) {
-                emptyStateView(emptyState)
+                                                               popularLoading: props.popularLoading,
+                                                               popularInitialLoadCompleted: props.popularInitialLoadCompleted,
+                                                               popularLoadFailed: props.popularLoadFailed) {
+                emptyStateView(emptyState, props: props)
             } else {
                 listView(props: props)
             }
@@ -182,7 +215,6 @@ struct FanClubHome: ConnectedView {
                                                                     nextPage: nextPopularPage) else {
             return
         }
-        hasRequestedInitialPopularPage = true
         nextPopularPage += 1
         props.dispatch(PeopleActions.FetchPopular(page: page))
     }
