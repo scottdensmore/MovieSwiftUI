@@ -79,6 +79,7 @@ enum MovieDetailPeopleState {
     static func characters(movieId: Int, from state: AppState) -> [People]? {
         contextualPeople(movieId: movieId,
                          from: state,
+                         peopleIds: state.peoplesState.movieCastOrder[movieId],
                          metadata: state.peoplesState.casts) { people, role in
             var contextual = people
             contextual.character = role
@@ -90,6 +91,7 @@ enum MovieDetailPeopleState {
     static func credits(movieId: Int, from state: AppState) -> [People]? {
         contextualPeople(movieId: movieId,
                          from: state,
+                         peopleIds: state.peoplesState.movieCrewOrder[movieId],
                          metadata: state.peoplesState.crews) { people, department in
             var contextual = people
             contextual.character = nil
@@ -100,13 +102,15 @@ enum MovieDetailPeopleState {
 
     private static func contextualPeople(movieId: Int,
                                          from state: AppState,
+                                         peopleIds: [Int]?,
                                          metadata: [Int: [Int: String]],
                                          transform: (People, String) -> People) -> [People]? {
-        guard let peopleIds = state.peoplesState.peoplesMovies[movieId]?.sorted() else {
+        let resolvedPeopleIds = peopleIds ?? state.peoplesState.peoplesMovies[movieId]?.sorted()
+        guard let resolvedPeopleIds = resolvedPeopleIds, !resolvedPeopleIds.isEmpty else {
             return nil
         }
 
-        let contextual = peopleIds.compactMap { peopleId -> People? in
+        let contextual = resolvedPeopleIds.compactMap { peopleId -> People? in
             guard let people = state.peoplesState.peoples[peopleId],
                   let role = metadata[peopleId]?[movieId],
                   !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

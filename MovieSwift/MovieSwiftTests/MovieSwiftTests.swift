@@ -107,6 +107,18 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertTrue(decoded.movieCreditsLoaded.contains(9))
     }
 
+    func testPeoplesStateCodableRoundTripPreservesMovieCreditOrder() throws {
+        var state = PeoplesState()
+        state.movieCastOrder[9] = [2, 1]
+        state.movieCrewOrder[9] = [5, 4]
+
+        let data = try JSONEncoder().encode(state)
+        let decoded = try JSONDecoder().decode(PeoplesState.self, from: data)
+
+        XCTAssertEqual(decoded.movieCastOrder[9], [2, 1])
+        XCTAssertEqual(decoded.movieCrewOrder[9], [5, 4])
+    }
+
     func testPeopleRowStateShowsPlaceholderWhenPersonIsMissing() {
         XCTAssertTrue(PeopleRowState.shouldShowPlaceholder(for: nil))
     }
@@ -584,7 +596,8 @@ final class MovieSwiftTests: XCTestCase {
                                                biography: nil,
                                                popularity: nil,
                                                images: nil)
-        state.peoplesState.peoplesMovies[42] = [1, 2]
+        state.peoplesState.movieCastOrder[42] = [1]
+        state.peoplesState.movieCrewOrder[42] = [2]
         state.peoplesState.casts[1] = [7: "Old Role", 42: "New Role"]
         state.peoplesState.crews[2] = [7: "Old Department", 42: "Directing"]
 
@@ -592,6 +605,43 @@ final class MovieSwiftTests: XCTestCase {
                        "New Role")
         XCTAssertEqual(MovieDetailPeopleState.credits(movieId: 42, from: state)?.first?.department,
                        "Directing")
+    }
+
+    func testMovieDetailPeopleStateUsesMovieCreditOrder() {
+        var state = AppState()
+        state.peoplesState.peoples[1] = People(id: 1,
+                                               name: "Second",
+                                               character: nil,
+                                               department: nil,
+                                               profile_path: nil,
+                                               known_for_department: nil,
+                                               known_for: nil,
+                                               also_known_as: nil,
+                                               birthDay: nil,
+                                               deathDay: nil,
+                                               place_of_birth: nil,
+                                               biography: nil,
+                                               popularity: nil,
+                                               images: nil)
+        state.peoplesState.peoples[2] = People(id: 2,
+                                               name: "First",
+                                               character: nil,
+                                               department: nil,
+                                               profile_path: nil,
+                                               known_for_department: nil,
+                                               known_for: nil,
+                                               also_known_as: nil,
+                                               birthDay: nil,
+                                               deathDay: nil,
+                                               place_of_birth: nil,
+                                               biography: nil,
+                                               popularity: nil,
+                                               images: nil)
+        state.peoplesState.movieCastOrder[9] = [2, 1]
+        state.peoplesState.casts[1] = [9: "Role B"]
+        state.peoplesState.casts[2] = [9: "Role A"]
+
+        XCTAssertEqual(MovieDetailPeopleState.characters(movieId: 9, from: state)?.map(\.id), [2, 1])
     }
 
     func testAppLaunchModeDetectsPreviewEnvironment() {

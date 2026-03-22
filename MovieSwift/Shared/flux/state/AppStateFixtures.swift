@@ -42,7 +42,9 @@ func makePreviewSampleState() -> AppState {
                                                                 sampleDirector.id])],
                                         search: [:],
                                         casts: [samplePrimaryCast.id: [0: "Character 1"]],
-                                        crews: [sampleDirector.id: [0: "Director 1"]]))
+                                        crews: [sampleDirector.id: [0: "Director 1"]],
+                                        movieCastOrder: [0: [samplePrimaryCast.id]],
+                                        movieCrewOrder: [0: [sampleDirector.id]]))
 }
 
 func makeUISmokeTestState() -> AppState {
@@ -62,7 +64,9 @@ func makeUISmokeTestState() -> AppState {
                                                             smokeTestDirector.id])],
                                     search: [:],
                                     casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
-                                    crews: [smokeTestDirector.id: [0: "Director 1"]])
+                                    crews: [smokeTestDirector.id: [0: "Director 1"]],
+                                    movieCastOrder: [0: [smokeTestPrimaryCast.id]],
+                                    movieCrewOrder: [0: [smokeTestDirector.id]])
 
     if environment[uiSmokeTestFanClubFailureKey] == "1" {
         peoplesState.popularInitialLoadCompleted = true

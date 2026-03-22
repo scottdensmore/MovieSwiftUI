@@ -26,6 +26,10 @@ struct PeoplesState: FluxState, Codable {
     var casts: [Int: [Int: String]] = [:]
     /// [PeopleId: [MovieId:  Character]]
     var crews: [Int: [Int: String]] = [:]
+    /// [MovieId: [PeopleId]]
+    var movieCastOrder: [Int: [Int]] = [:]
+    /// [MovieId: [PeopleId]]
+    var movieCrewOrder: [Int: [Int]] = [:]
     
     var fanClub: Set<Int> = Set()
     
@@ -34,6 +38,8 @@ struct PeoplesState: FluxState, Codable {
         case fanClub
         case casts
         case crews
+        case movieCastOrder
+        case movieCrewOrder
         case detailed
         case imagesLoaded
         case creditsLoaded
