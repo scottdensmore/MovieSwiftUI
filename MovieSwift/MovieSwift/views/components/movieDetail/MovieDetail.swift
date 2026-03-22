@@ -31,6 +31,50 @@ enum MovieDetailListState {
     }
 }
 
+enum MovieDetailPeopleState {
+    static func characters(movieId: Int, from state: AppState) -> [People]? {
+        contextualPeople(movieId: movieId,
+                         from: state,
+                         metadata: state.peoplesState.casts) { people, role in
+            var contextual = people
+            contextual.character = role
+            contextual.department = nil
+            return contextual
+        }
+    }
+
+    static func credits(movieId: Int, from state: AppState) -> [People]? {
+        contextualPeople(movieId: movieId,
+                         from: state,
+                         metadata: state.peoplesState.crews) { people, department in
+            var contextual = people
+            contextual.character = nil
+            contextual.department = department
+            return contextual
+        }
+    }
+
+    private static func contextualPeople(movieId: Int,
+                                         from state: AppState,
+                                         metadata: [Int: [Int: String]],
+                                         transform: (People, String) -> People) -> [People]? {
+        guard let peopleIds = state.peoplesState.peoplesMovies[movieId]?.sorted() else {
+            return nil
+        }
+
+        let contextual = peopleIds.compactMap { peopleId -> People? in
+            guard let people = state.peoplesState.peoples[peopleId],
+                  let role = metadata[peopleId]?[movieId],
+                  !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return nil
+            }
+            return transform(people, role)
+        }
+
+        return contextual.isEmpty ? nil : contextual
+    }
+}
+
 struct MovieDetail: ConnectedView {
     struct Props {
         let movie: Movie
@@ -67,25 +111,18 @@ struct MovieDetail: ConnectedView {
         
     // MARK: Computed Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        var characters: [People]?
-        var credits: [People]?
         var recommended: [Movie]?
         var similar: [Movie]?
         
-        if let peopleIds = state.peoplesState.peoplesMovies[movieId]?.sorted() {
-            let peoples = peopleIds.compactMap{ state.peoplesState.peoples[$0] }
-            characters = peoples.filter{ $0.character != nil}
-            credits = peoples.filter{ $0.department != nil }
-            if let recommendedIds = state.moviesState.recommended[movieId] {
-                recommended = recommendedIds.compactMap{ state.moviesState.movies[$0] }
-            }
-            if let simillarIds = state.moviesState.similar[movieId] {
-                similar = simillarIds.compactMap{ state.moviesState.movies[$0] }
-            }
+        if let recommendedIds = state.moviesState.recommended[movieId] {
+            recommended = recommendedIds.compactMap{ state.moviesState.movies[$0] }
+        }
+        if let simillarIds = state.moviesState.similar[movieId] {
+            similar = simillarIds.compactMap{ state.moviesState.movies[$0] }
         }
         return Props(movie: state.moviesState.movies[movieId]!,
-                     characters: characters,
-                     credits: credits,
+                     characters: MovieDetailPeopleState.characters(movieId: movieId, from: state),
+                     credits: MovieDetailPeopleState.credits(movieId: movieId, from: state),
                      recommended: recommended,
                      similar: similar,
                      reviewsCount: state.moviesState.reviews[movieId]?.count ?? nil,

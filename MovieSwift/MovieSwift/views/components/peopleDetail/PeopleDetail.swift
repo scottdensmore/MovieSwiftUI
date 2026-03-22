@@ -11,8 +11,16 @@ import SwiftUIFlux
 import UI
 
 enum PeopleDetailFetchPolicy {
-    static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {
-        !isRunningUISmokeTests
+    static func shouldFetchDetail(isRunningUISmokeTests: Bool, hasLoadedDetail: Bool) -> Bool {
+        !isRunningUISmokeTests && !hasLoadedDetail
+    }
+
+    static func shouldFetchImages(isRunningUISmokeTests: Bool, hasLoadedImages: Bool) -> Bool {
+        !isRunningUISmokeTests && !hasLoadedImages
+    }
+
+    static func shouldFetchCredits(isRunningUISmokeTests: Bool, hasLoadedCredits: Bool) -> Bool {
+        !isRunningUISmokeTests && !hasLoadedCredits
     }
 }
 
@@ -91,12 +99,41 @@ enum PeopleDetailMovieGrouping {
     }
 }
 
+enum PeopleDetailCreditsState {
+    static func mergedCredits(cast: [Int: String], crew: [Int: String]) -> [Int: String] {
+        var merged = crew
+        for (movieId, castRole) in cast {
+            if let crewRole = merged[movieId] {
+                merged[movieId] = mergeRoles(primary: castRole, secondary: crewRole)
+            } else {
+                merged[movieId] = castRole
+            }
+        }
+        return merged
+    }
+
+    private static func mergeRoles(primary: String, secondary: String) -> String {
+        let roles = [primary, secondary]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        var unique: [String] = []
+        for role in roles where !unique.contains(role) {
+            unique.append(role)
+        }
+        return unique.joined(separator: " • ")
+    }
+}
+
 struct PeopleDetail: ConnectedView {
     // MARK: - Props
     struct Props {
         let dispatch: DispatchFunction
         let people: People
         let movieByYears: [String: [MovieRole]]
+        let hasLoadedDetail: Bool
+        let hasLoadedImages: Bool
+        let hasLoadedCredits: Bool
         let isInFanClub: Binding<Bool>
         let movieScore: Int?
     }
@@ -120,12 +157,18 @@ struct PeopleDetail: ConnectedView {
     #endif
     
     private func fetchPeopleData(props: Props) {
-        if !PeopleDetailFetchPolicy.shouldFetchLiveData(isRunningUISmokeTests: isRunningUISmokeTests) {
-            return
+        if PeopleDetailFetchPolicy.shouldFetchDetail(isRunningUISmokeTests: isRunningUISmokeTests,
+                                                     hasLoadedDetail: props.hasLoadedDetail) {
+            props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
         }
-        props.dispatch(PeopleActions.FetchDetail(people: self.peopleId))
-        props.dispatch(PeopleActions.FetchImages(people: self.peopleId))
-        props.dispatch(PeopleActions.FetchPeopleCredits(people: self.peopleId))
+        if PeopleDetailFetchPolicy.shouldFetchImages(isRunningUISmokeTests: isRunningUISmokeTests,
+                                                     hasLoadedImages: props.hasLoadedImages) {
+            props.dispatch(PeopleActions.FetchImages(people: self.peopleId))
+        }
+        if PeopleDetailFetchPolicy.shouldFetchCredits(isRunningUISmokeTests: isRunningUISmokeTests,
+                                                      hasLoadedCredits: props.hasLoadedCredits) {
+            props.dispatch(PeopleActions.FetchPeopleCredits(people: self.peopleId))
+        }
     }
 
     private func selectMovie(_ id: Int) {
@@ -284,8 +327,8 @@ extension PeopleDetail {
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        var credits: [Int: String] = state.peoplesState.crews[peopleId] ?? [:]
-        credits.merge(state.peoplesState.casts[peopleId] ?? [:]) { (current, _) in current }
+        let credits = PeopleDetailCreditsState.mergedCredits(cast: state.peoplesState.casts[peopleId] ?? [:],
+                                                             crew: state.peoplesState.crews[peopleId] ?? [:])
         let years = PeopleDetailMovieGrouping.group(credits: credits, movies: state.moviesState.movies)
         
         let isInFanClub = Binding<Bool>(
@@ -314,6 +357,9 @@ extension PeopleDetail {
         return Props(dispatch: dispatch,
                      people: PeopleDetailState.people(for: peopleId, from: state),
                      movieByYears: years,
+                     hasLoadedDetail: state.peoplesState.detailed.contains(peopleId),
+                     hasLoadedImages: state.peoplesState.imagesLoaded.contains(peopleId),
+                     hasLoadedCredits: state.peoplesState.creditsLoaded.contains(peopleId),
                      isInFanClub: isInFanClub,
                      movieScore: movieScore)
         

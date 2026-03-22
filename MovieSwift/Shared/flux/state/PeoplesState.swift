@@ -14,6 +14,9 @@ struct PeoplesState: FluxState, Codable {
     var peoplesMovies: [Int: Set<Int>] = [:]
     var search: [String: [Int]] = [:]
     var popular: [Int] = []
+    var detailed: Set<Int> = Set()
+    var imagesLoaded: Set<Int> = Set()
+    var creditsLoaded: Set<Int> = Set()
     
     /// [PeopleId: [MovieId:  Character]]
     var casts: [Int: [Int: String]] = [:]
@@ -23,6 +26,12 @@ struct PeoplesState: FluxState, Codable {
     var fanClub: Set<Int> = Set()
     
     enum CodingKeys: String, CodingKey {
-        case peoples, fanClub
+        case peoples
+        case fanClub
+        case casts
+        case crews
+        case detailed
+        case imagesLoaded
+        case creditsLoaded
     }
 }

@@ -38,34 +38,33 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
             var new = action.person
             new.known_for = current.known_for
             new.images = current.images
-            new.character = current.character
-            new.department = current.department
             state.peoples[action.person.id] = new
         } else {
             state.peoples[action.person.id] = action.person
         }
+        state.detailed.insert(action.person.id)
         
     case let action as PeopleActions.SetPeopleCredits:
+        state.casts[action.people] = [:]
+        state.crews[action.people] = [:]
         if let cast = action.response.cast {
-            if state.casts[action.people] == nil {
-                state.casts[action.people] = [:]
-            }
             for meta in cast where meta.character != nil {
                 state.casts[action.people]![meta.id] = meta.character!
             }
         }
         
         if let crew = action.response.crew {
-            if state.crews[action.people] == nil {
-                state.crews[action.people] = [:]
-            }
             for meta in crew where meta.department != nil {
                 state.crews[action.people]![meta.id] = meta.department!
             }
         }
+        state.creditsLoaded.insert(action.people)
         
     case let action as PeopleActions.SetImages:
-        state.peoples[action.people]?.images = action.images
+        var people = state.peoples[action.people] ?? placeholderPeople(id: action.people)
+        people.images = action.images
+        state.peoples[action.people] = people
+        state.imagesLoaded.insert(action.people)
         
     case let action as PeopleActions.AddToFanClub:
         state.fanClub.insert(action.people)
@@ -78,6 +77,23 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
     }
 
     return state
+}
+
+private func placeholderPeople(id: Int) -> People {
+    People(id: id,
+           name: "Unknown person",
+           character: nil,
+           department: nil,
+           profile_path: nil,
+           known_for_department: nil,
+           known_for: nil,
+           also_known_as: nil,
+           birthDay: nil,
+           deathDay: nil,
+           place_of_birth: nil,
+           biography: nil,
+           popularity: nil,
+           images: nil)
 }
 
 private func mergePeople(peoples: [People], state: PeoplesState) -> PeoplesState {
