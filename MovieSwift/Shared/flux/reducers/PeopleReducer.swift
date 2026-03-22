@@ -29,7 +29,7 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
         if action.page == 1 {
             state.popular = action.response.results.map{ $0.id }
         } else {
-            state.popular.append(contentsOf: action.response.results.map{ $0.id })
+            state.popular = appendUnique(ids: action.response.results.map{ $0.id }, to: state.popular)
         }
         state = mergePeople(peoples: action.response.results, state: state)
         
@@ -83,10 +83,25 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
 private func mergePeople(peoples: [People], state: PeoplesState) -> PeoplesState {
     var state = state
     for people in peoples {
-        if state.peoples[people.id] == nil {
+        if let current = state.peoples[people.id] {
+            var merged = current
+            merged.character = people.character ?? current.character
+            merged.department = people.department ?? current.department
+            merged.known_for = people.known_for ?? current.known_for
+            merged.images = people.images ?? current.images
+            state.peoples[people.id] = merged
+        } else {
             state.peoples[people.id] = people
         }
     }
     return state
 }
 
+private func appendUnique(ids: [Int], to current: [Int]) -> [Int] {
+    var merged = current
+    var known = Set(current)
+    for id in ids where known.insert(id).inserted {
+        merged.append(id)
+    }
+    return merged
+}

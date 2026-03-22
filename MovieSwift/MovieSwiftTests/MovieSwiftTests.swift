@@ -2,6 +2,45 @@ import XCTest
 @testable import MovieSwift
 
 final class MovieSwiftTests: XCTestCase {
+    func testPeopleStateReducerUpdatesExistingRoleMetadataFromLaterCredits() {
+        var state = AppState().peoplesState
+        state.peoples[1] = People(id: 1,
+                                  name: "Actor",
+                                  character: "Old Role",
+                                  department: nil,
+                                  profile_path: nil,
+                                  known_for_department: nil,
+                                  known_for: nil,
+                                  also_known_as: nil,
+                                  birthDay: nil,
+                                  deathDay: nil,
+                                  place_of_birth: nil,
+                                  biography: nil,
+                                  popularity: nil,
+                                  images: nil)
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 7,
+                                                                             response: CastResponse(id: 7,
+                                                                                                    cast: [People(id: 1,
+                                                                                                                  name: "Actor",
+                                                                                                                  character: "New Role",
+                                                                                                                  department: nil,
+                                                                                                                  profile_path: nil,
+                                                                                                                  known_for_department: nil,
+                                                                                                                  known_for: nil,
+                                                                                                                  also_known_as: nil,
+                                                                                                                  birthDay: nil,
+                                                                                                                  deathDay: nil,
+                                                                                                                  place_of_birth: nil,
+                                                                                                                  biography: nil,
+                                                                                                                  popularity: nil,
+                                                                                                                  images: nil)],
+                                                                                                    crew: [])))
+
+        XCTAssertEqual(updated.peoples[1]?.character, "New Role")
+    }
+
     func testPeopleRowStateReturnsNilWhenPersonIsMissing() {
         let state = AppState()
 
@@ -27,6 +66,66 @@ final class MovieSwiftTests: XCTestCase {
                                                images: nil)
 
         XCTAssertEqual(FanClubState.popularPeople(from: state), [1])
+    }
+
+    func testPeopleStateReducerDedupesPopularPeopleAcrossPages() {
+        let state = AppState().peoplesState
+        let popularPage = PaginatedResponse(page: 2,
+                                            total_results: 3,
+                                            total_pages: 2,
+                                            results: [People(id: 2,
+                                                             name: "Second",
+                                                             character: nil,
+                                                             department: nil,
+                                                             profile_path: nil,
+                                                             known_for_department: nil,
+                                                             known_for: nil,
+                                                             also_known_as: nil,
+                                                             birthDay: nil,
+                                                             deathDay: nil,
+                                                             place_of_birth: nil,
+                                                             biography: nil,
+                                                             popularity: nil,
+                                                             images: nil),
+                                                      People(id: 1,
+                                                             name: "First",
+                                                             character: nil,
+                                                             department: nil,
+                                                             profile_path: nil,
+                                                             known_for_department: nil,
+                                                             known_for: nil,
+                                                             also_known_as: nil,
+                                                             birthDay: nil,
+                                                             deathDay: nil,
+                                                             place_of_birth: nil,
+                                                             biography: nil,
+                                                             popularity: nil,
+                                                             images: nil)])
+        let seeded = peoplesStateReducer(state: state,
+                                         action: PeopleActions.SetPopular(page: 1,
+                                                                         response: PaginatedResponse(page: 1,
+                                                                                                     total_results: 2,
+                                                                                                     total_pages: 2,
+                                                                                                     results: [People(id: 1,
+                                                                                                                      name: "First",
+                                                                                                                      character: nil,
+                                                                                                                      department: nil,
+                                                                                                                      profile_path: nil,
+                                                                                                                      known_for_department: nil,
+                                                                                                                      known_for: nil,
+                                                                                                                      also_known_as: nil,
+                                                                                                                      birthDay: nil,
+                                                                                                                      deathDay: nil,
+                                                                                                                      place_of_birth: nil,
+                                                                                                                      biography: nil,
+                                                                                                                      popularity: nil,
+                                                                                                                      images: nil)])))
+
+        let updated = peoplesStateReducer(state: seeded,
+                                          action: PeopleActions.SetPopular(page: 2,
+                                                                          response: popularPage))
+
+        XCTAssertEqual(updated.popular, [1, 2])
     }
 
     func testPeopleDetailBiographyStateShowsToggleOnlyForNonEmptyBiography() {
