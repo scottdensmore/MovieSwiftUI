@@ -10,10 +10,13 @@ final class MovieSwiftUITests: XCTestCase {
     }
 
     @discardableResult
-    private func launchApp() -> XCUIApplication {
+    private func launchApp(environment: [String: String] = [:]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
         app.launchEnvironment["UI_SMOKE_TESTS"] = "1"
+        for (key, value) in environment {
+            app.launchEnvironment[key] = value
+        }
         app.launch()
         return app
     }
@@ -141,6 +144,14 @@ final class MovieSwiftUITests: XCTestCase {
         personRow.tap()
 
         XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testFanClubShowsRetryStateWhenPopularLoadFails() {
+        let app = launchApp(environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"])
+        openTab("Fan Club", in: app)
+
+        XCTAssertTrue(identifiedElement("fanClub.errorState", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(button("fanClub.retryButton", in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
     func testMyListsTabShowsCreateAndSortControls() {

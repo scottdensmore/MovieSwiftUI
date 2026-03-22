@@ -4,6 +4,7 @@
 //
 
 #if DEBUG
+private let uiSmokeTestFanClubFailureKey = "UI_SMOKE_TEST_FAN_CLUB_FAILURE"
 private let sampleCustomList = CustomList(id: 0,
                                           name: "TestName",
                                           cover: 0,
@@ -45,6 +46,7 @@ func makePreviewSampleState() -> AppState {
 }
 
 func makeUISmokeTestState() -> AppState {
+    let environment = ProcessInfo.processInfo.environment
     let smokeTestList = CustomList(id: 0,
                                    name: "TestName",
                                    cover: 0,
@@ -53,6 +55,19 @@ func makeUISmokeTestState() -> AppState {
     let smokeTestPrimaryCast = sampleCasts.first!
     var smokeTestDirector = sampleCasts[1]
     smokeTestDirector.department = "Directing"
+
+    var peoplesState = PeoplesState(peoples: [smokeTestPrimaryCast.id: smokeTestPrimaryCast,
+                                              smokeTestDirector.id: smokeTestDirector],
+                                    peoplesMovies: [0: Set([smokeTestPrimaryCast.id,
+                                                            smokeTestDirector.id])],
+                                    search: [:],
+                                    casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
+                                    crews: [smokeTestDirector.id: [0: "Director 1"]])
+
+    if environment[uiSmokeTestFanClubFailureKey] == "1" {
+        peoplesState.popularInitialLoadCompleted = true
+        peoplesState.popularLoadFailed = true
+    }
 
     return AppState(moviesState:
                         MoviesState(movies: [0: sampleMovie],
@@ -63,12 +78,6 @@ func makeUISmokeTestState() -> AppState {
                                     discoverFilter: sampleDiscoverFilter,
                                     customLists: [0: smokeTestList],
                                     genres: sampleDiscoverGenres),
-                    peoplesState: PeoplesState(peoples: [smokeTestPrimaryCast.id: smokeTestPrimaryCast,
-                                                         smokeTestDirector.id: smokeTestDirector],
-                                               peoplesMovies: [0: Set([smokeTestPrimaryCast.id,
-                                                                       smokeTestDirector.id])],
-                                               search: [:],
-                                               casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
-                                               crews: [smokeTestDirector.id: [0: "Director 1"]]))
+                    peoplesState: peoplesState)
 }
 #endif

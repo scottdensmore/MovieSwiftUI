@@ -23,8 +23,14 @@ enum FanClubState {
 }
 
 enum FanClubPaginationPolicy {
-    static func initialPopularPage(popularCount: Int, nextPage: Int) -> Int? {
-        guard popularCount == 0, nextPage == 1 else {
+    static func initialPopularPage(popularCount: Int,
+                                   nextPage: Int,
+                                   popularLoading: Bool,
+                                   popularInitialLoadCompleted: Bool) -> Int? {
+        guard popularCount == 0,
+              nextPage == 1,
+              !popularLoading,
+              !popularInitialLoadCompleted else {
             return nil
         }
         return nextPage
@@ -212,7 +218,9 @@ struct FanClubHome: ConnectedView {
 
     private func fetchInitialPopularPageIfNeeded(props: Props) {
         guard let page = FanClubPaginationPolicy.initialPopularPage(popularCount: props.popular.count,
-                                                                    nextPage: nextPopularPage) else {
+                                                                    nextPage: nextPopularPage,
+                                                                    popularLoading: props.popularLoading,
+                                                                    popularInitialLoadCompleted: props.popularInitialLoadCompleted) else {
             return
         }
         nextPopularPage += 1

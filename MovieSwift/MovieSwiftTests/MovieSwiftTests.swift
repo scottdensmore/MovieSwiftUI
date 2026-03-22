@@ -26,11 +26,25 @@ final class MovieSwiftTests: XCTestCase {
     }
 
     func testFanClubPaginationPolicyRequestsInitialPopularPage() {
-        XCTAssertEqual(FanClubPaginationPolicy.initialPopularPage(popularCount: 0, nextPage: 1), 1)
+        XCTAssertEqual(FanClubPaginationPolicy.initialPopularPage(popularCount: 0,
+                                                                  nextPage: 1,
+                                                                  popularLoading: false,
+                                                                  popularInitialLoadCompleted: false),
+                       1)
     }
 
     func testFanClubPaginationPolicySkipsInitialFetchWhenPopularAlreadyLoaded() {
-        XCTAssertNil(FanClubPaginationPolicy.initialPopularPage(popularCount: 3, nextPage: 1))
+        XCTAssertNil(FanClubPaginationPolicy.initialPopularPage(popularCount: 3,
+                                                                nextPage: 1,
+                                                                popularLoading: false,
+                                                                popularInitialLoadCompleted: false))
+    }
+
+    func testFanClubPaginationPolicySkipsInitialFetchAfterCompletedLoad() {
+        XCTAssertNil(FanClubPaginationPolicy.initialPopularPage(popularCount: 0,
+                                                                nextPage: 1,
+                                                                popularLoading: false,
+                                                                popularInitialLoadCompleted: true))
     }
 
     func testFanClubPaginationPolicyRequestsNextPopularPageForNewLastId() {
