@@ -211,6 +211,7 @@ struct MovieDetail: ConnectedView {
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var isDetailFocused: Bool
     @FocusState private var focusedDetailItem: Int?
     private let reviewsSentinel = -998
     #endif
@@ -268,6 +269,22 @@ struct MovieDetail: ConnectedView {
             case .videos:
                 props.dispatch(MoviesActions.FetchVideos(movie: movieId))
             }
+        }
+    }
+
+    func selectAdjacentPoster(offset: Int, posters: [ImageData]) {
+        guard let currentPoster = selectedPoster,
+              let currentIndex = posters.firstIndex(where: { $0.id == currentPoster.id }) else {
+            return
+        }
+
+        let nextIndex = currentIndex + offset
+        guard posters.indices.contains(nextIndex) else {
+            return
+        }
+
+        withAnimation {
+            selectedPoster = posters[nextIndex]
         }
     }
     
@@ -555,7 +572,9 @@ struct MovieDetail: ConnectedView {
     }
     
     func body(props: Props) -> some View {
-        ZStack(alignment: .bottom) {
+        let posters = props.movie?.images?.posters ?? []
+
+        return ZStack(alignment: .bottom) {
             Group {
                 if let movie = props.movie {
                     List {
@@ -611,7 +630,40 @@ struct MovieDetail: ConnectedView {
             moviesListDestinationView(for: route)
         }
         #if targetEnvironment(macCatalyst)
-        .onKeyPress(.escape) { dismiss(); return .handled }
+        .focusable()
+        .focused($isDetailFocused)
+        .focusEffectDisabled()
+        .onAppear {
+            isDetailFocused = true
+        }
+        .onChange(of: selectedPoster?.id) {
+            isDetailFocused = true
+        }
+        .onKeyPress(.leftArrow) {
+            guard selectedPoster != nil else {
+                return .ignored
+            }
+
+            selectAdjacentPoster(offset: -1, posters: posters)
+            return .handled
+        }
+        .onKeyPress(.rightArrow) {
+            guard selectedPoster != nil else {
+                return .ignored
+            }
+
+            selectAdjacentPoster(offset: 1, posters: posters)
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            if selectedPoster != nil {
+                selectedPoster = nil
+                return .handled
+            }
+
+            dismiss()
+            return .handled
+        }
         #endif
     }
     

@@ -12,82 +12,63 @@ import Backend
 struct ImagesCarouselView : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
-    @State var innerSelectedPoster: ImageData?
-    
-    func computeCarouselPosterScale(width: CGFloat, itemX: CGFloat) -> CGFloat {
-        let trueX = itemX - (width/2 - 200/2) - 100
-        if trueX < -5 {
-            return 1 - (abs(trueX) / width)
-        }
-        if trueX > 5 {
-            return 1 - (trueX / width)
-        }
-        return 1
+
+    private var selectedPosterId: Binding<String> {
+        Binding(
+            get: { selectedPoster?.id ?? posters.first?.id ?? "" },
+            set: { newValue in
+                selectedPoster = posters.first(where: { $0.id == newValue })
+            }
+        )
     }
-    
-    private func scrollView(reader: GeometryProxy) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                ForEach(self.posters) { poster in
-                    GeometryReader { reader2 in
-                        BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
-                                                                                           size: .medium))
-                            .scaleEffect(self.selectedPoster == nil ?
-                                .zero :
-                                self.computeCarouselPosterScale(width: reader.frame(in: .global).width,
-                                                                itemX: reader2.frame(in: .global).midX),
-                                         anchor: .center)
-                            .onTapGesture {
-                                withAnimation {
-                                    self.innerSelectedPoster = poster
-                                }
-                        }
-                    }.frame(width: 250, height: 375)
-                }
+
+    private func posterPage(_ poster: ImageData) -> some View {
+        BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
+                                                                           size: .medium))
+            .tag(poster.id)
+            .padding(.horizontal, 24)
+    }
+
+    private func carousel(reader: GeometryProxy) -> some View {
+        TabView(selection: selectedPosterId) {
+            ForEach(posters) { poster in
+                posterPage(poster)
             }
         }
-        .disabled(self.innerSelectedPoster != nil)
-        .scaleEffect(self.innerSelectedPoster != nil ? 0 : 1)
-        .position(x: reader.frame(in: .global).midX,
-                  y: reader.frame(in: .local).midY)
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: posters.count > 1 ? .automatic : .never))
+        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
+        .frame(width: reader.size.width,
+               height: min(reader.size.height * 0.8, 460))
     }
-    
-    private func closeButton(reader: GeometryProxy) -> some View {
+
+    private func closeButton() -> some View {
         Button(action: {
-            self.selectedPoster = nil
+            selectedPoster = nil
         }) {
-            Circle()
-                .strokeBorder(Color.red, lineWidth: 1)
-                .background(Image(systemName: "xmark").foregroundColor(.red))
-                .frame(width: 50, height: 50)
-            
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundColor(.white.opacity(0.95))
         }
-        .scaleEffect(self.innerSelectedPoster != nil ? 0 : 1)
-        .position(x: reader.frame(in: .local).midX,
-                  y: reader.frame(in: .local).maxY - 40)
+        .padding()
     }
-    
-    private func selectedPoster(reader: GeometryProxy) -> some View {
-        BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: self.innerSelectedPoster!.file_path,
-                                                                           size: .medium))
-            .position(x: reader.frame(in: .local).midX,
-                      y: reader.frame(in: .global).midY - 120)
-            .scaleEffect(1.3)
-            .onTapGesture {
-                withAnimation {
-                    self.innerSelectedPoster = nil
-                }
-        }
-    }
-    
+
     var body: some View {
-        GeometryReader { reader in
-            ZStack(alignment: .center) {
-                self.scrollView(reader: reader)
-                self.closeButton(reader: reader)
-                
-                if self.innerSelectedPoster != nil {
-                    self.selectedPoster(reader: reader)
+        if !posters.isEmpty {
+            GeometryReader { reader in
+                ZStack {
+                    Color.black.opacity(0.72)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            selectedPoster = nil
+                        }
+
+                    VStack(spacing: 20) {
+                        Spacer()
+                        carousel(reader: reader)
+                        closeButton()
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }
