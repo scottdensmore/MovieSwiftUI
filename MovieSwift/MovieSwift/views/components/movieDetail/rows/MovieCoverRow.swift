@@ -22,7 +22,9 @@ struct MovieCoverPresentation {
 
 enum MovieCoverState {
     static func presentation(for movie: Movie) -> MovieCoverPresentation {
-        let placeholderGenres = Array(repeating: Genre(id: 0, name: "     "), count: 3)
+        let placeholderGenres = (1...3).map { index in
+            Genre(id: -index, name: "     ")
+        }
 
         return MovieCoverPresentation(backdropPath: movie.backdrop_path ?? movie.poster_path,
                                       posterPath: movie.poster_path,

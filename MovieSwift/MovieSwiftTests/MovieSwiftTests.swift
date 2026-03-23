@@ -1433,6 +1433,7 @@ final class MovieSwiftTests: XCTestCase {
 
         XCTAssertTrue(placeholderPresentation.areGenresPlaceholder)
         XCTAssertEqual(placeholderPresentation.genres.count, 3)
+        XCTAssertEqual(placeholderPresentation.genres.map(\.id), [-1, -2, -3])
         XCTAssertEqual(placeholderPresentation.genres.map(\.name), ["     ", "     ", "     "])
         XCTAssertEqual(placeholderPresentation.backdropPath, nil)
         XCTAssertEqual(placeholderPresentation.ratingsText, "15 ratings")
