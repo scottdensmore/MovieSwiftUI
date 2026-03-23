@@ -2,8 +2,232 @@ import XCTest
 @testable import MovieSwift
 
 final class MovieSwiftTests: XCTestCase {
+    private func makeMovie(id: Int,
+                           keywords: Movie.Keywords? = nil,
+                           images: Movie.MovieImages? = nil) -> Movie {
+        Movie(id: id,
+              original_title: "Movie \(id)",
+              title: "Movie \(id)",
+              overview: "Overview",
+              poster_path: nil,
+              backdrop_path: nil,
+              popularity: 0,
+              vote_average: 0,
+              vote_count: 0,
+              release_date: nil,
+              genres: nil,
+              runtime: nil,
+              status: nil,
+              video: false,
+              keywords: keywords,
+              images: images,
+              production_countries: nil,
+              character: nil,
+              department: nil)
+    }
+
+    private func makePerson(id: Int, character: String? = nil, department: String? = nil) -> People {
+        People(id: id,
+               name: "Person \(id)",
+               character: character,
+               department: department,
+               profile_path: nil,
+               known_for_department: nil,
+               known_for: nil,
+               also_known_as: nil,
+               birthDay: nil,
+               deathDay: nil,
+               place_of_birth: nil,
+               biography: nil,
+               popularity: nil,
+               images: nil)
+    }
+
     func testMovieDetailStateReturnsNilWhenMovieIsMissing() {
         XCTAssertNil(MovieDetailState.movie(movieId: 404, from: AppState()))
+    }
+
+    func testMovieDetailMapTreatsPersistedPartialMovieAsMissingDetailPayload() {
+        var state = AppState()
+        state.moviesState.movies[42] = makeMovie(id: 42)
+        state.moviesState.detailed.insert(42)
+        state.moviesState.recommendedLoaded.insert(42)
+        state.moviesState.similarLoaded.insert(42)
+        state.moviesState.reviewsLoaded.insert(42)
+        state.moviesState.videosLoaded.insert(42)
+        state.peoplesState.movieCreditsLoaded.insert(42)
+        state.peoplesState.movieCastOrder[42] = [7]
+        state.peoplesState.movieCrewOrder[42] = [8]
+        state.peoplesState.casts[7] = [42: "Lead"]
+        state.peoplesState.crews[8] = [42: "Director"]
+
+        let props = MovieDetail(movieId: 42).map(state: state, dispatch: { _ in })
+
+        XCTAssertFalse(props.hasMovieDetail)
+        XCTAssertFalse(props.hasMovieCredits)
+        XCTAssertFalse(props.hasRecommended)
+        XCTAssertFalse(props.hasSimilar)
+        XCTAssertFalse(props.hasReviews)
+        XCTAssertFalse(props.hasVideos)
+    }
+
+    func testMovieDetailMapKeepsCompletePayloadMarkedAsLoaded() {
+        var state = AppState()
+        state.moviesState.movies[42] = makeMovie(
+            id: 42,
+            keywords: Movie.Keywords(keywords: [Keyword(id: 1, name: "neo-noir")]),
+            images: Movie.MovieImages(posters: [], backdrops: [])
+        )
+        state.moviesState.detailed.insert(42)
+        state.moviesState.recommendedLoaded.insert(42)
+        state.moviesState.recommended[42] = []
+        state.moviesState.similarLoaded.insert(42)
+        state.moviesState.similar[42] = []
+        state.moviesState.reviewsLoaded.insert(42)
+        state.moviesState.reviews[42] = []
+        state.moviesState.videosLoaded.insert(42)
+        state.moviesState.videos[42] = []
+        state.peoplesState.movieCreditsLoaded.insert(42)
+        state.peoplesState.movieCastOrder[42] = [7]
+        state.peoplesState.movieCrewOrder[42] = [8]
+        state.peoplesState.casts[7] = [42: "Lead"]
+        state.peoplesState.crews[8] = [42: "Director"]
+        state.peoplesState.peoples[7] = makePerson(id: 7, character: "Lead")
+        state.peoplesState.peoples[8] = makePerson(id: 8, department: "Director")
+
+        let props = MovieDetail(movieId: 42).map(state: state, dispatch: { _ in })
+
+        XCTAssertTrue(props.hasMovieDetail)
+        XCTAssertTrue(props.hasMovieCredits)
+        XCTAssertTrue(props.hasRecommended)
+        XCTAssertTrue(props.hasSimilar)
+        XCTAssertTrue(props.hasReviews)
+        XCTAssertTrue(props.hasVideos)
+    }
+
+    func testMovieRowMapReturnsPlaceholderWhenMovieIsMissing() {
+        let props = MovieRow(movieId: 42).map(state: AppState(), dispatch: { _ in })
+
+        XCTAssertEqual(props.movie.id, 42)
+        XCTAssertEqual(props.movie.title, "Movie unavailable")
+        XCTAssertNil(props.movie.poster_path)
+    }
+
+    func testMovieGridRowMapReturnsPlaceholderWhenMovieIsMissing() {
+        let props = MovieGridRow(movieId: 42).map(state: AppState(), dispatch: { _ in })
+
+        XCTAssertEqual(props.movie.id, 42)
+        XCTAssertEqual(props.movie.title, "Movie unavailable")
+    }
+
+    func testSortedMoviesIdsKeepsMissingMoviesForAddedDateSort() {
+        var state = AppState()
+        state.moviesState.moviesUserMeta[42] = MovieUserMeta(addedToList: Date(timeIntervalSince1970: 200))
+        state.moviesState.moviesUserMeta[7] = MovieUserMeta(addedToList: Date(timeIntervalSince1970: 100))
+
+        let sorted = [7, 42].sortedMoviesIds(by: .byAddedDate, state: state)
+
+        XCTAssertEqual(sorted, [42, 7])
+    }
+
+    func testSortedMoviesIdsKeepsMissingMoviesForReleaseDateSort() {
+        var state = AppState()
+        state.moviesState.movies[sampleMovie.id] = sampleMovie
+
+        let sorted = [42, sampleMovie.id].sortedMoviesIds(by: .byReleaseDate, state: state)
+
+        XCTAssertEqual(sorted, [sampleMovie.id, 42])
+    }
+
+    func testAppStateReducerClearCachedDataPreservesUserDataAndRemovesTransientCaches() {
+        let savedDate = Date(timeIntervalSince1970: 1234)
+        let discoverFilter = DiscoverFilter(year: 1999,
+                                            startYear: nil,
+                                            endYear: nil,
+                                            sort: "popularity.desc",
+                                            genre: 12,
+                                            region: "US")
+
+        var state = AppState()
+        state.moviesState.movies[11] = makeMovie(id: 11)
+        state.moviesState.movies[12] = makeMovie(id: 12)
+        state.moviesState.movies[13] = makeMovie(id: 13)
+        state.moviesState.movies[99] = makeMovie(id: 99)
+        state.moviesState.wishlist = [11]
+        state.moviesState.seenlist = [12]
+        state.moviesState.customLists[7] = CustomList(id: 7,
+                                                      name: "Debug",
+                                                      cover: 12,
+                                                      movies: [13])
+        state.moviesState.moviesUserMeta[11] = MovieUserMeta(addedToList: savedDate)
+        state.moviesState.savedDiscoverFilters = [discoverFilter]
+        state.moviesState.discoverFilter = discoverFilter
+        state.moviesState.moviesList[.popular] = [99]
+        state.moviesState.recommended[11] = [99]
+        state.moviesState.similar[11] = [99]
+        state.moviesState.reviews[11] = []
+        state.moviesState.videos[11] = []
+        state.moviesState.search["matrix"] = [99]
+        state.moviesState.searchKeywords["matrix"] = [Keyword(id: 1, name: "matrix")]
+        state.moviesState.withGenre[12] = [99]
+        state.moviesState.withKeywords[1] = [99]
+        state.moviesState.withCrew[2] = [99]
+        state.moviesState.discover = [99]
+        state.moviesState.genres = [Genre(id: 12, name: "Adventure")]
+        state.moviesState.detailed.insert(11)
+        state.moviesState.recommendedLoaded.insert(11)
+        state.moviesState.similarLoaded.insert(11)
+        state.moviesState.reviewsLoaded.insert(11)
+        state.moviesState.videosLoaded.insert(11)
+
+        state.peoplesState.fanClub = [7]
+        state.peoplesState.peoples[7] = makePerson(id: 7)
+        state.peoplesState.peoples[8] = makePerson(id: 8)
+        state.peoplesState.movieCreditsLoaded.insert(11)
+        state.peoplesState.movieCastOrder[11] = [7]
+        state.peoplesState.movieCrewOrder[11] = [8]
+        state.peoplesState.casts[7] = [11: "Lead"]
+        state.peoplesState.crews[8] = [11: "Director"]
+
+        let cleared = appStateReducer(state: state, action: AppActions.ClearCachedData())
+
+        XCTAssertEqual(cleared.moviesState.wishlist, [11])
+        XCTAssertEqual(cleared.moviesState.seenlist, [12])
+        XCTAssertEqual(cleared.moviesState.customLists[7]?.movies, Set([13]))
+        XCTAssertEqual(cleared.moviesState.customLists[7]?.cover, 12)
+        XCTAssertEqual(cleared.moviesState.moviesUserMeta[11]?.addedToList, savedDate)
+        XCTAssertEqual(cleared.moviesState.savedDiscoverFilters.count, 1)
+        XCTAssertEqual(cleared.moviesState.discoverFilter?.region, "US")
+        XCTAssertNotNil(cleared.moviesState.movies[11])
+        XCTAssertNotNil(cleared.moviesState.movies[12])
+        XCTAssertNotNil(cleared.moviesState.movies[13])
+        XCTAssertNil(cleared.moviesState.movies[99])
+        XCTAssertTrue(cleared.moviesState.moviesList.isEmpty)
+        XCTAssertTrue(cleared.moviesState.recommended.isEmpty)
+        XCTAssertTrue(cleared.moviesState.similar.isEmpty)
+        XCTAssertTrue(cleared.moviesState.reviews.isEmpty)
+        XCTAssertTrue(cleared.moviesState.videos.isEmpty)
+        XCTAssertTrue(cleared.moviesState.search.isEmpty)
+        XCTAssertTrue(cleared.moviesState.searchKeywords.isEmpty)
+        XCTAssertTrue(cleared.moviesState.withGenre.isEmpty)
+        XCTAssertTrue(cleared.moviesState.withKeywords.isEmpty)
+        XCTAssertTrue(cleared.moviesState.withCrew.isEmpty)
+        XCTAssertTrue(cleared.moviesState.discover.isEmpty)
+        XCTAssertTrue(cleared.moviesState.genres.isEmpty)
+        XCTAssertTrue(cleared.moviesState.detailed.isEmpty)
+        XCTAssertTrue(cleared.moviesState.recommendedLoaded.isEmpty)
+        XCTAssertTrue(cleared.moviesState.similarLoaded.isEmpty)
+        XCTAssertTrue(cleared.moviesState.reviewsLoaded.isEmpty)
+        XCTAssertTrue(cleared.moviesState.videosLoaded.isEmpty)
+
+        XCTAssertEqual(cleared.peoplesState.fanClub, Set([7]))
+        XCTAssertNotNil(cleared.peoplesState.peoples[7])
+        XCTAssertNil(cleared.peoplesState.peoples[8])
+        XCTAssertTrue(cleared.peoplesState.movieCreditsLoaded.isEmpty)
+        XCTAssertTrue(cleared.peoplesState.movieCastOrder.isEmpty)
+        XCTAssertTrue(cleared.peoplesState.movieCrewOrder.isEmpty)
+        XCTAssertTrue(cleared.peoplesState.casts.isEmpty)
+        XCTAssertTrue(cleared.peoplesState.crews.isEmpty)
     }
 
     func testMovieDetailFetchPolicyReturnsOnlyMissingSlices() {
@@ -1576,7 +1800,49 @@ final class MovieSwiftTests: XCTestCase {
 
     func testSettingsFormRefreshPolicyReturnsNoMenusWhenRegionMatches() {
         XCTAssertTrue(SettingsFormRefreshPolicy.menusToRefresh(previousRegion: "US",
-                                                               selectedRegion: "US").isEmpty)
+                                                              selectedRegion: "US").isEmpty)
+    }
+
+    func testSettingsFormCacheResetPolicyClearsCachesDispatchesResetAndArchivesTrimmedState() {
+        var state = AppState()
+        state.moviesState.movies[11] = makeMovie(id: 11)
+        state.moviesState.movies[99] = makeMovie(id: 99)
+        state.moviesState.wishlist = [11]
+        state.moviesState.moviesList[.popular] = [99]
+        state.peoplesState.fanClub = [7]
+        state.peoplesState.peoples[7] = makePerson(id: 7)
+        state.peoplesState.peoples[8] = makePerson(id: 8)
+
+        var clearedImageCache = false
+        var clearedURLCache = false
+        var didDispatchClearCachedData = false
+        var archivedState: AppState?
+
+        SettingsFormCacheResetPolicy.clearCachedData(
+            state: state,
+            dispatch: { action in
+                didDispatchClearCachedData = action is AppActions.ClearCachedData
+            },
+            clearImageCache: {
+                clearedImageCache = true
+            },
+            clearURLCache: {
+                clearedURLCache = true
+            },
+            archiveState: { state in
+                archivedState = state
+            }
+        )
+
+        XCTAssertTrue(clearedImageCache)
+        XCTAssertTrue(clearedURLCache)
+        XCTAssertTrue(didDispatchClearCachedData)
+        XCTAssertEqual(archivedState?.moviesState.wishlist, Set([11]))
+        XCTAssertNotNil(archivedState?.moviesState.movies[11])
+        XCTAssertNil(archivedState?.moviesState.movies[99])
+        XCTAssertEqual(archivedState?.peoplesState.fanClub, Set([7]))
+        XCTAssertNotNil(archivedState?.peoplesState.peoples[7])
+        XCTAssertNil(archivedState?.peoplesState.peoples[8])
     }
 
     func testSettingsFormDebugStateCountsMovies() {

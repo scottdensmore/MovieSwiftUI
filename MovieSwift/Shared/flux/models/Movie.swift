@@ -65,6 +65,28 @@ struct Movie: Codable, Identifiable {
         }
         let name: String
     }
+
+    static func placeholder(id: Int) -> Movie {
+        Movie(id: id,
+              original_title: "Movie unavailable",
+              title: "Movie unavailable",
+              overview: "Details for this saved movie are not currently cached.",
+              poster_path: nil,
+              backdrop_path: nil,
+              popularity: 0,
+              vote_average: 0,
+              vote_count: 0,
+              release_date: nil,
+              genres: nil,
+              runtime: nil,
+              status: nil,
+              video: false,
+              keywords: nil,
+              images: nil,
+              production_countries: nil,
+              character: nil,
+              department: nil)
+    }
 }
 
 let sampleMovie = Movie(id: 0,

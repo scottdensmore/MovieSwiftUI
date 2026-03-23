@@ -40,19 +40,42 @@ enum MoviesSort {
 
 extension Sequence where Iterator.Element == Int {
     func sortedMoviesIds(by: MoviesSort, state: AppState) -> [Int] {
+        let ids = Array(self)
+
         switch by {
         case .byAddedDate:
-            let metas = state.moviesState.moviesUserMeta.filter{ self.contains($0.key) }
-            return metas.sorted{ $0.value.addedToList ?? Date() > $1.value.addedToList ?? Date() }.compactMap{ $0.key }
+            return ids.sorted {
+                let lhs = state.moviesState.moviesUserMeta[$0]?.addedToList ?? .distantPast
+                let rhs = state.moviesState.moviesUserMeta[$1]?.addedToList ?? .distantPast
+                return lhs > rhs
+            }
         case .byReleaseDate:
-            let movies = state.moviesState.movies.filter{ self.contains($0.key) }
-            return movies.sorted{ $0.value.releaseDate ?? Date() > $1.value.releaseDate ?? Date() }.compactMap{ $0.key }
+            return ids.sorted {
+                let lhs = state.moviesState.movies[$0].flatMap { MovieSortValues.releaseDate(for: $0) } ?? .distantPast
+                let rhs = state.moviesState.movies[$1].flatMap { MovieSortValues.releaseDate(for: $0) } ?? .distantPast
+                return lhs > rhs
+            }
         case .byPopularity:
-            let movies = state.moviesState.movies.filter{ self.contains($0.key) }
-            return movies.sorted{ $0.value.popularity > $1.value.popularity }.compactMap{ $0.key }
+            return ids.sorted {
+                let lhs = state.moviesState.movies[$0]?.popularity ?? -Float.greatestFiniteMagnitude
+                let rhs = state.moviesState.movies[$1]?.popularity ?? -Float.greatestFiniteMagnitude
+                return lhs > rhs
+            }
         case .byScore:
-            let movies = state.moviesState.movies.filter{ self.contains($0.key) }
-            return movies.sorted{ $0.value.vote_average > $1.value.vote_average }.compactMap{ $0.key }
+            return ids.sorted {
+                let lhs = state.moviesState.movies[$0]?.vote_average ?? -Float.greatestFiniteMagnitude
+                let rhs = state.moviesState.movies[$1]?.vote_average ?? -Float.greatestFiniteMagnitude
+                return lhs > rhs
+            }
         }
+    }
+}
+
+private enum MovieSortValues {
+    static func releaseDate(for movie: Movie) -> Date? {
+        guard let releaseDate = movie.release_date else {
+            return nil
+        }
+        return Movie.dateFormatter.date(from: releaseDate)
     }
 }

@@ -24,6 +24,10 @@ public class ImageLoaderCache {
             return loader
         }
     }
+
+    public func clear() {
+        loaders.removeAllObjects()
+    }
 }
 
 public final class ImageLoader: ObservableObject {

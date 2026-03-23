@@ -38,6 +38,26 @@ enum SettingsFormState {
     }
 }
 
+enum SettingsFormCacheResetPolicy {
+    static func clearCachedData(state: AppState,
+                                dispatch: @escaping DispatchFunction,
+                                clearImageCache: () -> Void = {
+                                    ImageLoaderCache.shared.clear()
+                                },
+                                clearURLCache: () -> Void = {
+                                    URLCache.shared.removeAllCachedResponses()
+                                },
+                                archiveState: (AppState) -> Void = { state in
+                                    AppPersistence.archiveNow(state: state)
+                                }) {
+        let cachedState = AppStateCacheReset.persistentSnapshot(from: state)
+        clearImageCache()
+        clearURLCache()
+        dispatch(AppActions.ClearCachedData())
+        archiveState(cachedState)
+    }
+}
+
 struct SettingsForm : ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
@@ -52,9 +72,11 @@ struct SettingsForm : ConnectedView {
 
     @State var selectedRegionCode: String = AppUserDefaults.region
     @State var alwaysOriginalTitle: Bool = false
+    @State private var isClearCacheConfirmationPresented = false
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
+    @EnvironmentObject private var store: Store<AppState>
     @Environment(\.dismiss) private var dismiss
     @Environment(\.archivedStateSizeDescription) private var archivedStateSizeDescription
 
@@ -121,6 +143,11 @@ struct SettingsForm : ConnectedView {
         close()
     }
 
+    private func clearCachedData(props: Props) {
+        SettingsFormCacheResetPolicy.clearCachedData(state: store.state,
+                                                     dispatch: props.dispatch)
+    }
+
     private var originalTitlePreferenceRow: some View {
         Button {
             alwaysOriginalTitle.toggle()
@@ -154,11 +181,19 @@ struct SettingsForm : ConnectedView {
                             }
                     })
             })
-            Section(header: Text("App data"), footer: Text("None of those action are working yet ;)"), content: {
-                Text("Export my data")
-                Text("Backup to iCloud")
-                Text("Restore from iCloud")
-                Text("Reset application data").foregroundColor(.red)
+            Section(header: Text("App data"),
+                    footer: Text("Clears cached movies, people, details, and images while keeping your lists and preferences. Backup and restore are not implemented yet."),
+                    content: {
+                Button(role: .destructive) {
+                    isClearCacheConfirmationPresented = true
+                } label: {
+                    Text("Clear cached data")
+                }
+                .accessibilityIdentifier("settings.clearCachedDataButton")
+
+                Text("Export my data").foregroundColor(.secondary)
+                Text("Backup to iCloud").foregroundColor(.secondary)
+                Text("Restore from iCloud").foregroundColor(.secondary)
             })
             
             Section(header: Text("Debug info")) {
@@ -225,6 +260,17 @@ struct SettingsForm : ConnectedView {
             }
         }
         .background(Color.steam_background.ignoresSafeArea())
+        .confirmationDialog("Clear cached data?",
+                            isPresented: $isClearCacheConfirmationPresented,
+                            titleVisibility: .visible) {
+            Button("Clear Cached Data", role: .destructive) {
+                clearCachedData(props: props)
+            }
+            Button("Cancel", role: .cancel) {
+            }
+        } message: {
+            Text("This removes cached movie and people data and clears downloaded image responses, but keeps your lists and preferences.")
+        }
     }
 }
 

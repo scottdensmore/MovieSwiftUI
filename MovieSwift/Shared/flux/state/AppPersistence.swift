@@ -53,31 +53,17 @@ enum AppPersistence {
             return
         }
 
-        let moviesState = state.moviesState
-        let peoplesState = state.peoplesState
         DispatchQueue.global().async {
-            let movies = moviesState.movies.filter { (arg) -> Bool in
-                let (key, _) = arg
-                return moviesState.seenlist.contains(key) ||
-                    moviesState.wishlist.contains(key) ||
-                    moviesState.customLists.contains(where: { (_, value) -> Bool in
-                        value.movies.contains(key) ||
-                            value.cover == key
-                    })
-            }
-            let people = peoplesState.peoples.filter { peoplesState.fanClub.contains($0.key) }
-            var savingState = state
-            savingState.moviesState.movies = movies
-            savingState.peoplesState.peoples = people
-            guard let data = try? encoder.encode(savingState) else {
-                return
-            }
-            do {
-                try data.write(to: resolvedSavePath)
-            } catch let error {
-                print("Error while saving app state :\(error)")
-            }
+            write(state: AppStateCacheReset.persistentSnapshot(from: state), to: resolvedSavePath)
         }
+    }
+
+    static func archiveNow(state: AppState) {
+        guard let resolvedSavePath = ensureSavePath() else {
+            return
+        }
+
+        write(state: AppStateCacheReset.persistentSnapshot(from: state), to: resolvedSavePath)
     }
 
     static func archivedStateSizeDescription() -> String {
@@ -92,6 +78,17 @@ enum AppPersistence {
             return formatter.string(fromByteCount: Int64(resources.fileSize ?? 0))
         } catch {
             return "0"
+        }
+    }
+
+    private static func write(state: AppState, to path: URL) {
+        guard let data = try? encoder.encode(state) else {
+            return
+        }
+        do {
+            try data.write(to: path)
+        } catch let error {
+            print("Error while saving app state :\(error)")
         }
     }
 }

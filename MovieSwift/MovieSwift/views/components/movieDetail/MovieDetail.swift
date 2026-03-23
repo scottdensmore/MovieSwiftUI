@@ -59,6 +59,35 @@ enum MovieDetailState {
     static func movie(movieId: Int, from state: AppState) -> Movie? {
         state.moviesState.movies[movieId]
     }
+
+    static func hasLoadedDetail(movieId: Int, from state: AppState) -> Bool {
+        guard state.moviesState.detailed.contains(movieId),
+              let movie = movie(movieId: movieId, from: state) else {
+            return false
+        }
+
+        return movie.keywords != nil && movie.images != nil
+    }
+
+    static func hasLoadedRecommended(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.recommendedLoaded.contains(movieId) &&
+            state.moviesState.recommended[movieId] != nil
+    }
+
+    static func hasLoadedSimilar(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.similarLoaded.contains(movieId) &&
+            state.moviesState.similar[movieId] != nil
+    }
+
+    static func hasLoadedReviews(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.reviewsLoaded.contains(movieId) &&
+            state.moviesState.reviews[movieId] != nil
+    }
+
+    static func hasLoadedVideos(movieId: Int, from state: AppState) -> Bool {
+        state.moviesState.videosLoaded.contains(movieId) &&
+            state.moviesState.videos[movieId] != nil
+    }
 }
 
 enum MovieDetailListState {
@@ -98,6 +127,21 @@ enum MovieDetailPeopleState {
             contextual.department = department
             return contextual
         }
+    }
+
+    static func hasLoadedMovieCredits(movieId: Int, from state: AppState) -> Bool {
+        guard state.peoplesState.movieCreditsLoaded.contains(movieId),
+              state.peoplesState.movieCastOrder[movieId] != nil,
+              state.peoplesState.movieCrewOrder[movieId] != nil else {
+            return false
+        }
+
+        let hasResolvedPeople = characters(movieId: movieId, from: state)?.isEmpty == false ||
+            credits(movieId: movieId, from: state)?.isEmpty == false
+        let hasExplicitlyEmptyCredits = state.peoplesState.movieCastOrder[movieId]?.isEmpty == true &&
+            state.peoplesState.movieCrewOrder[movieId]?.isEmpty == true
+
+        return hasResolvedPeople || hasExplicitlyEmptyCredits
     }
 
     private static func contextualPeople(movieId: Int,
@@ -181,12 +225,12 @@ struct MovieDetail: ConnectedView {
                      similar: similar,
                      reviewsCount: state.moviesState.reviews[movieId]?.count ?? nil,
                      videos: state.moviesState.videos[movieId],
-                     hasMovieDetail: state.moviesState.detailed.contains(movieId),
-                     hasMovieCredits: state.peoplesState.movieCreditsLoaded.contains(movieId),
-                     hasRecommended: state.moviesState.recommendedLoaded.contains(movieId),
-                     hasSimilar: state.moviesState.similarLoaded.contains(movieId),
-                     hasReviews: state.moviesState.reviewsLoaded.contains(movieId),
-                     hasVideos: state.moviesState.videosLoaded.contains(movieId),
+                     hasMovieDetail: MovieDetailState.hasLoadedDetail(movieId: movieId, from: state),
+                     hasMovieCredits: MovieDetailPeopleState.hasLoadedMovieCredits(movieId: movieId, from: state),
+                     hasRecommended: MovieDetailState.hasLoadedRecommended(movieId: movieId, from: state),
+                     hasSimilar: MovieDetailState.hasLoadedSimilar(movieId: movieId, from: state),
+                     hasReviews: MovieDetailState.hasLoadedReviews(movieId: movieId, from: state),
+                     hasVideos: MovieDetailState.hasLoadedVideos(movieId: movieId, from: state),
                      isInWishlist: MovieDetailListState.isInWishlist(movieId: movieId, from: state),
                      isInSeenlist: MovieDetailListState.isInSeenlist(movieId: movieId, from: state),
                      customLists: MovieDetailListState.customLists(from: state),

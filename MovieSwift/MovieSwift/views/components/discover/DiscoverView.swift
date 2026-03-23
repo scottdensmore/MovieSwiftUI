@@ -132,7 +132,7 @@ struct DiscoverView: ConnectedView {
         var posters: [Int: String] = [:]
         let movies = state.moviesState.discover
         for movie in movies {
-            posters[movie] = state.moviesState.movies[movie]!.poster_path
+            posters[movie] = state.moviesState.movies[movie]?.poster_path
         }
         return Props(movies: movies,
                      posters: posters,
