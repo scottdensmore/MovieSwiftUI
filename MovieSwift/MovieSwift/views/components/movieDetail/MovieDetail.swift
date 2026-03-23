@@ -200,7 +200,6 @@ struct MovieDetail: ConnectedView {
     @State private var selectedPeopleId: Int?
     @State private var selectedReviewMovieId: Int?
     @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
-    @State private var selectedGenre: Genre?
     @State private var selectedKeyword: Keyword?
     @State private var isCrosslineMoviesListPresented = false
     @State private var crosslineMoviesListTitle = ""
@@ -441,111 +440,126 @@ struct MovieDetail: ConnectedView {
         #endif
     }
 
-    func topSection(props: Props) -> some View {
-        Section {
+    @ViewBuilder
+    func topContent(props: Props) -> some View {
+        MovieCoverRow(movieId: movieId)
+        MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
+        smokeTestTopPersonShortcut(props: props)
+        if props.reviewsCount ?? 0 > 0 {
             #if targetEnvironment(macCatalyst)
-            MovieCoverRow(movieId: movieId) { genre in
-                selectedGenre = genre
+            CatalystFocusableLink(id: reviewsSentinel, focusedId: $focusedDetailItem) {
+                selectedReviewMovieId = movieId
+            } label: {
+                Text("\(props.reviewsCount!) reviews")
+                    .foregroundColor(.steam_blue)
+                    .lineLimit(1)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
             }
             #else
-            MovieCoverRow(movieId: movieId)
+            Button(action: {
+                selectedReviewMovieId = movieId
+            }) {
+                Text("\(props.reviewsCount!) reviews")
+                    .foregroundColor(.steam_blue)
+                    .lineLimit(1)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
             #endif
-            MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
-            smokeTestTopPersonShortcut(props: props)
-            if props.reviewsCount ?? 0 > 0 {
-                #if targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: reviewsSentinel, focusedId: $focusedDetailItem) {
-                    selectedReviewMovieId = movieId
-                } label: {
-                    Text("\(props.reviewsCount!) reviews")
-                        .foregroundColor(.steam_blue)
-                        .lineLimit(1)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                }
-                #else
-                Button(action: {
-                    selectedReviewMovieId = movieId
-                }) {
-                    Text("\(props.reviewsCount!) reviews")
-                        .foregroundColor(.steam_blue)
-                        .lineLimit(1)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                }
-                .buttonStyle(.plain)
-                #endif
-            }
-            if props.credits?.isEmpty == false {
-                peopleRows(props: props)
-            }
-            if let movie = props.movie, !movie.overview.isEmpty {
-                MovieOverview(movie: movie)
-            }
+        }
+        if props.credits?.isEmpty == false {
+            peopleRows(props: props)
+        }
+        if let movie = props.movie, !movie.overview.isEmpty {
+            MovieOverview(movie: movie)
         }
     }
-    
-    func bottomSection(props: Props) -> some View {
-        Section {
-            if let movie = props.movie,
-               movie.keywords?.keywords?.isEmpty == false,
-               let keywords = movie.keywords?.keywords {
-                #if targetEnvironment(macCatalyst)
-                MovieKeywords(keywords: keywords) { keyword in
-                    selectedKeyword = keyword
-                }
-                #else
-                MovieKeywords(keywords: keywords)
-                #endif
+
+    @ViewBuilder
+    func bottomContent(props: Props) -> some View {
+        if let movie = props.movie,
+           movie.keywords?.keywords?.isEmpty == false,
+           let keywords = movie.keywords?.keywords {
+            #if targetEnvironment(macCatalyst)
+            MovieKeywords(keywords: keywords) { keyword in
+                selectedKeyword = keyword
             }
-            if props.characters?.isEmpty == false {
-                MovieCrosslinePeopleRow(title: "Cast",
-                                        peoples: props.characters ?? [],
-                                        onSelectPeople: selectPeople,
-                                        onSelectSeeAll: {
-                                            presentPeopleList(title: "Cast",
-                                                              peoples: props.characters ?? [])
-                                        })
+            #else
+            MovieKeywords(keywords: keywords)
+            #endif
+        }
+        if props.characters?.isEmpty == false {
+            MovieCrosslinePeopleRow(title: "Cast",
+                                    peoples: props.characters ?? [],
+                                    onSelectPeople: selectPeople,
+                                    onSelectSeeAll: {
+                                        presentPeopleList(title: "Cast",
+                                                          peoples: props.characters ?? [])
+                                    })
+        }
+        if props.credits?.isEmpty == false {
+            MovieCrosslinePeopleRow(title: "Crew",
+                                    peoples: props.credits ?? [],
+                                    onSelectPeople: selectPeople,
+                                    onSelectSeeAll: {
+                                        presentPeopleList(title: "Crew",
+                                                          peoples: props.credits ?? [])
+                                    })
+        }
+        if props.similar?.isEmpty == false {
+            MovieCrosslineRow(title: "Similar Movies",
+                              movies: props.similar ?? [],
+                              onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                              onSelectSeeAll: {
+                                  presentCrosslineMoviesList(title: "Similar Movies",
+                                                             movies: props.similar ?? [])
+                              })
+        }
+        if  props.recommended?.isEmpty == false {
+            MovieCrosslineRow(title: "Recommended Movies",
+                              movies: props.recommended ?? [],
+                              onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                              onSelectSeeAll: {
+                                  presentCrosslineMoviesList(title: "Recommended Movies",
+                                                             movies: props.recommended ?? [])
+                              })
+        }
+        if let movie = props.movie,
+           movie.images?.posters?.isEmpty == false,
+           let posters = movie.images?.posters {
+            MoviePostersRow(posters: posters.prefix(8).map{ $0 },
+                            selectedPoster: $selectedPoster)
+        }
+        if let movie = props.movie,
+           movie.images?.backdrops?.isEmpty == false,
+           let backdrops = movie.images?.backdrops {
+            MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
+        }
+    }
+
+    @ViewBuilder
+    func detailContent(props: Props) -> some View {
+        #if targetEnvironment(macCatalyst)
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                topContent(props: props)
+                bottomContent(props: props)
             }
-            if props.credits?.isEmpty == false {
-                MovieCrosslinePeopleRow(title: "Crew",
-                                        peoples: props.credits ?? [],
-                                        onSelectPeople: selectPeople,
-                                        onSelectSeeAll: {
-                                            presentPeopleList(title: "Crew",
-                                                              peoples: props.credits ?? [])
-                                        })
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 24)
+        }
+        #else
+        List {
+            Section {
+                topContent(props: props)
             }
-            if props.similar?.isEmpty == false {
-                MovieCrosslineRow(title: "Similar Movies",
-                                  movies: props.similar ?? [],
-                                  onSelectMovie: { selectedCrosslineRoute = .movie($0) },
-                                  onSelectSeeAll: {
-                                      presentCrosslineMoviesList(title: "Similar Movies",
-                                                                 movies: props.similar ?? [])
-                                  })
-            }
-            if  props.recommended?.isEmpty == false {
-                MovieCrosslineRow(title: "Recommended Movies",
-                                  movies: props.recommended ?? [],
-                                  onSelectMovie: { selectedCrosslineRoute = .movie($0) },
-                                  onSelectSeeAll: {
-                                      presentCrosslineMoviesList(title: "Recommended Movies",
-                                                                 movies: props.recommended ?? [])
-                                  })
-            }
-            if let movie = props.movie,
-               movie.images?.posters?.isEmpty == false,
-               let posters = movie.images?.posters {
-                MoviePostersRow(posters: posters.prefix(8).map{ $0 },
-                                selectedPoster: $selectedPoster)
-            }
-            if let movie = props.movie,
-               movie.images?.backdrops?.isEmpty == false,
-               let backdrops = movie.images?.backdrops {
-                MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
+            Section {
+                bottomContent(props: props)
             }
         }
+        #endif
     }
 
     @ViewBuilder
@@ -577,10 +591,7 @@ struct MovieDetail: ConnectedView {
         return ZStack(alignment: .bottom) {
             Group {
                 if let movie = props.movie {
-                    List {
-                        topSection(props: props)
-                        bottomSection(props: props)
-                    }
+                    detailContent(props: props)
                     .navigationBarTitle(Text(movie.userTitle), displayMode: .large)
                 } else {
                     unavailableView()
@@ -613,9 +624,6 @@ struct MovieDetail: ConnectedView {
         }
         .navigationDestination(item: $selectedReviewMovieId) { id in
             MovieReviews(movie: id)
-        }
-        .navigationDestination(item: $selectedGenre) { genre in
-            MoviesGenreList(genre: genre)
         }
         .navigationDestination(item: $selectedKeyword) { keyword in
             MovieKeywordList(keyword: keyword)

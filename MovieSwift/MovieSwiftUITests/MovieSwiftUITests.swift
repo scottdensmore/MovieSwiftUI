@@ -276,6 +276,17 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
+    func testMovieDetailGenreOpensGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let genreChip = button("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+        genreChip.tap()
+
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
     func testDiscoverDismissCanBeUndone() {
         let app = launchApp()
         _ = openDiscover(in: app)

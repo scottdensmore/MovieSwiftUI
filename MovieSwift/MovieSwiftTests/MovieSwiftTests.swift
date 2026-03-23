@@ -1439,6 +1439,12 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(placeholderPresentation.ratingsText, "15 ratings")
     }
 
+    func testMovieCoverStateBuildsGenreAccessibilityIdentifier() {
+        let genre = Genre(id: 42, name: "Sci-Fi")
+
+        XCTAssertEqual(MovieCoverState.accessibilityIdentifier(for: genre), "movieDetail.genre.42")
+    }
+
     func testMoviePostersStateBuildsPresentationsAndSelection() {
         let posters = [
             ImageData(aspect_ratio: 0.7, file_path: "/poster-a.jpg", height: 1000, width: 700),

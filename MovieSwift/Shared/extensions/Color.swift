@@ -121,15 +121,24 @@ struct CatalystFocusableLink<Label: View, ID: Hashable>: View {
     let action: () -> Void
     @ViewBuilder let label: () -> Label
 
+    private func performAction() {
+        // Defer navigation state writes until after Catalyst finishes the
+        // current focus/list update cycle. This avoids Swift exclusivity
+        // violations when a focused list row triggers navigation.
+        DispatchQueue.main.async {
+            action()
+        }
+    }
+
     var body: some View {
-        Button(action: action) {
+        Button(action: performAction) {
             label()
         }
         .buttonStyle(.plain)
         .focusable()
         .focused(focusedId, equals: id)
-        .onKeyPress(.return) { action(); return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in action(); return .handled }
+        .onKeyPress(.return) { performAction(); return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in performAction(); return .handled }
         .catalystFocusHighlight(isFocused: focusedId.wrappedValue == id)
     }
 }

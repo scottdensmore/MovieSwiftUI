@@ -33,17 +33,14 @@ enum MovieCoverState {
                                       genres: movie.genres ?? placeholderGenres,
                                       areGenresPlaceholder: movie.genres == nil)
     }
+
+    static func accessibilityIdentifier(for genre: Genre) -> String {
+        "movieDetail.genre.\(genre.id)"
+    }
 }
 
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
-    #if targetEnvironment(macCatalyst)
-    let onSelectGenre: (Genre) -> Void
-    #endif
-
-    #if targetEnvironment(macCatalyst)
-    @FocusState private var focusedGenreId: Int?
-    #endif
 
     struct Props {
         let movie: Movie?
@@ -95,21 +92,14 @@ struct MovieCoverRow : ConnectedView {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(presentation.genres) { genre in
-                    #if targetEnvironment(macCatalyst)
-                    CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
-                        onSelectGenre(genre)
-                    } label: {
+                    NavigationLink(destination: MoviesGenreList(genre: genre)) {
                         coverGenreBadge(text: genre.name)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 4)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
                     .disabled(presentation.areGenresPlaceholder)
-                    #else
-                    NavigationLink(destination: MoviesGenreList(genre: genre)) {
-                        coverGenreBadge(text: genre.name)
-                            .padding(.vertical, 2)
-                    }.disabled(presentation.areGenresPlaceholder)
-                    #endif
                 }
             }
             .padding(.leading, 16)
@@ -141,13 +131,8 @@ struct MovieCoverRow : ConnectedView {
 #if DEBUG
 struct MovieCoverRow_Previews : PreviewProvider {
     static var previews: some View {
-        #if targetEnvironment(macCatalyst)
-        MovieCoverRow(movieId: 0, onSelectGenre: { _ in })
-            .environmentObject(sampleStore)
-        #else
         MovieCoverRow(movieId: 0)
             .environmentObject(sampleStore)
-        #endif
     }
 }
 #endif
