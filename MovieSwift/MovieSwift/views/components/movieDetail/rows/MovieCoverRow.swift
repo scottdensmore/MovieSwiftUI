@@ -37,9 +37,11 @@ enum MovieCoverState {
 
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
+    #if targetEnvironment(macCatalyst)
+    let onSelectGenre: (Genre) -> Void
+    #endif
 
     #if targetEnvironment(macCatalyst)
-    @State private var selectedGenre: Genre?
     @FocusState private var focusedGenreId: Int?
     #endif
 
@@ -95,7 +97,7 @@ struct MovieCoverRow : ConnectedView {
                 ForEach(presentation.genres) { genre in
                     #if targetEnvironment(macCatalyst)
                     CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
-                        selectedGenre = genre
+                        onSelectGenre(genre)
                     } label: {
                         coverGenreBadge(text: genre.name)
                             .padding(.horizontal, 6)
@@ -115,11 +117,6 @@ struct MovieCoverRow : ConnectedView {
             .padding(.vertical, 4)
             .redacted(reason: presentation.areGenresPlaceholder ? .placeholder : [])
         }
-        #if targetEnvironment(macCatalyst)
-        .navigationDestination(item: $selectedGenre) { genre in
-            MoviesGenreList(genre: genre)
-        }
-        #endif
     }
 
     private func coverGenreBadge(text: String) -> some View {
@@ -144,7 +141,13 @@ struct MovieCoverRow : ConnectedView {
 #if DEBUG
 struct MovieCoverRow_Previews : PreviewProvider {
     static var previews: some View {
-        MovieCoverRow(movieId: 0).environmentObject(sampleStore)
+        #if targetEnvironment(macCatalyst)
+        MovieCoverRow(movieId: 0, onSelectGenre: { _ in })
+            .environmentObject(sampleStore)
+        #else
+        MovieCoverRow(movieId: 0)
+            .environmentObject(sampleStore)
+        #endif
     }
 }
 #endif

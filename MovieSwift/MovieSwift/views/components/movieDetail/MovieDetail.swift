@@ -200,6 +200,14 @@ struct MovieDetail: ConnectedView {
     @State private var selectedPeopleId: Int?
     @State private var selectedReviewMovieId: Int?
     @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
+    @State private var selectedGenre: Genre?
+    @State private var selectedKeyword: Keyword?
+    @State private var isCrosslineMoviesListPresented = false
+    @State private var crosslineMoviesListTitle = ""
+    @State private var crosslineMoviesListMovieIds: [Int] = []
+    @State private var isPeopleListPresented = false
+    @State private var peopleListTitle = ""
+    @State private var peopleListEntries: [People] = []
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
@@ -283,6 +291,35 @@ struct MovieDetail: ConnectedView {
         props.credits?.first(where: {
             ($0.department ?? "").localizedCaseInsensitiveContains("direct")
         })
+    }
+
+    private func presentCrosslineMoviesList(title: String, movies: [Movie]) {
+        crosslineMoviesListTitle = title
+        crosslineMoviesListMovieIds = MovieCrosslineState.movieIds(from: movies)
+        isCrosslineMoviesListPresented = true
+    }
+
+    private func presentPeopleList(title: String, peoples: [People]) {
+        peopleListTitle = title
+        peopleListEntries = peoples
+        isPeopleListPresented = true
+    }
+
+    private var crosslineMoviesListView: some View {
+        MoviesList(movies: crosslineMoviesListMovieIds,
+                   displaySearch: false,
+                   pageListener: nil,
+                   navigationRoute: $selectedCrosslineRoute)
+            .navigationBarTitle(crosslineMoviesListTitle)
+    }
+
+    private var peopleListView: some View {
+        List(peopleListEntries) { people in
+            PeopleListItem(people: people) {
+                selectedPeopleId = people.id
+            }
+        }
+        .navigationBarTitle(peopleListTitle)
     }
     
     // MARK: - Computed views
@@ -389,7 +426,13 @@ struct MovieDetail: ConnectedView {
 
     func topSection(props: Props) -> some View {
         Section {
+            #if targetEnvironment(macCatalyst)
+            MovieCoverRow(movieId: movieId) { genre in
+                selectedGenre = genre
+            }
+            #else
             MovieCoverRow(movieId: movieId)
+            #endif
             MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
             smokeTestTopPersonShortcut(props: props)
             if props.reviewsCount ?? 0 > 0 {
@@ -430,25 +473,49 @@ struct MovieDetail: ConnectedView {
             if let movie = props.movie,
                movie.keywords?.keywords?.isEmpty == false,
                let keywords = movie.keywords?.keywords {
+                #if targetEnvironment(macCatalyst)
+                MovieKeywords(keywords: keywords) { keyword in
+                    selectedKeyword = keyword
+                }
+                #else
                 MovieKeywords(keywords: keywords)
+                #endif
             }
             if props.characters?.isEmpty == false {
                 MovieCrosslinePeopleRow(title: "Cast",
-                                        peoples: props.characters ?? [])
+                                        peoples: props.characters ?? [],
+                                        onSelectPeople: selectPeople,
+                                        onSelectSeeAll: {
+                                            presentPeopleList(title: "Cast",
+                                                              peoples: props.characters ?? [])
+                                        })
             }
             if props.credits?.isEmpty == false {
                 MovieCrosslinePeopleRow(title: "Crew",
-                                        peoples: props.credits ?? [])
+                                        peoples: props.credits ?? [],
+                                        onSelectPeople: selectPeople,
+                                        onSelectSeeAll: {
+                                            presentPeopleList(title: "Crew",
+                                                              peoples: props.credits ?? [])
+                                        })
             }
             if props.similar?.isEmpty == false {
                 MovieCrosslineRow(title: "Similar Movies",
                                   movies: props.similar ?? [],
-                                  navigationRoute: $selectedCrosslineRoute)
+                                  onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                                  onSelectSeeAll: {
+                                      presentCrosslineMoviesList(title: "Similar Movies",
+                                                                 movies: props.similar ?? [])
+                                  })
             }
             if  props.recommended?.isEmpty == false {
                 MovieCrosslineRow(title: "Recommended Movies",
                                   movies: props.recommended ?? [],
-                                  navigationRoute: $selectedCrosslineRoute)
+                                  onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                                  onSelectSeeAll: {
+                                      presentCrosslineMoviesList(title: "Recommended Movies",
+                                                                 movies: props.recommended ?? [])
+                                  })
             }
             if let movie = props.movie,
                movie.images?.posters?.isEmpty == false,
@@ -527,6 +594,18 @@ struct MovieDetail: ConnectedView {
         }
         .navigationDestination(item: $selectedReviewMovieId) { id in
             MovieReviews(movie: id)
+        }
+        .navigationDestination(item: $selectedGenre) { genre in
+            MoviesGenreList(genre: genre)
+        }
+        .navigationDestination(item: $selectedKeyword) { keyword in
+            MovieKeywordList(keyword: keyword)
+        }
+        .navigationDestination(isPresented: $isPeopleListPresented) {
+            peopleListView
+        }
+        .navigationDestination(isPresented: $isCrosslineMoviesListPresented) {
+            crosslineMoviesListView
         }
         .navigationDestination(item: $selectedCrosslineRoute) { route in
             moviesListDestinationView(for: route)

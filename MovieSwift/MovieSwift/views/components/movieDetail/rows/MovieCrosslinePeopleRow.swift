@@ -37,21 +37,12 @@ enum MovieCrosslinePeopleState {
 struct MovieCrosslinePeopleRow : View {
     let title: String
     let peoples: [People]
-
-    @State private var selectedPeopleId: Int?
-    @State private var showSeeAll = false
+    let onSelectPeople: (Int) -> Void
+    let onSelectSeeAll: () -> Void
     #if targetEnvironment(macCatalyst)
     @FocusState private var focusedPeopleId: Int?
     private let seeAllSentinel = -999
     #endif
-
-    private var peoplesListView: some View {
-        List(peoples) { cast in
-            PeopleListItem(people: cast) {
-                selectedPeopleId = cast.id
-            }
-        }.navigationBarTitle(title)
-    }
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -61,7 +52,7 @@ struct MovieCrosslinePeopleRow : View {
                     .padding(.leading)
                 Spacer()
                 Button(action: {
-                    showSeeAll = true
+                    onSelectSeeAll()
                 }) {
                     Text("See all").foregroundColor(.steam_blue)
                 }
@@ -74,7 +65,7 @@ struct MovieCrosslinePeopleRow : View {
                 LazyHStack {
                     ForEach(peoples) { cast in
                         PeopleRowItem(people: cast) {
-                            selectedPeopleId = cast.id
+                            onSelectPeople(cast.id)
                         }
                     }
                 }.padding(.leading)
@@ -82,12 +73,6 @@ struct MovieCrosslinePeopleRow : View {
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
-        .navigationDestination(item: $selectedPeopleId) { id in
-            PeopleDetail(peopleId: id)
-        }
-        .navigationDestination(isPresented: $showSeeAll) {
-            peoplesListView
-        }
     }
 }
 
@@ -182,7 +167,10 @@ struct PeopleRowItem: View {
 #if DEBUG
 struct CastsRow_Previews : PreviewProvider {
     static var previews: some View {
-        MovieCrosslinePeopleRow(title: "Sample", peoples: sampleCasts)
+        MovieCrosslinePeopleRow(title: "Sample",
+                                peoples: sampleCasts,
+                                onSelectPeople: { _ in },
+                                onSelectSeeAll: {})
     }
 }
 #endif

@@ -11,9 +11,11 @@ import UI
 
 struct MovieKeywords : View {
     let keywords: [Keyword]
+    #if targetEnvironment(macCatalyst)
+    let onSelectKeyword: (Keyword) -> Void
+    #endif
 
     #if targetEnvironment(macCatalyst)
-    @State private var selectedKeyword: Keyword?
     @FocusState private var focusedKeywordId: Int?
     #endif
 
@@ -27,7 +29,7 @@ struct MovieKeywords : View {
                     ForEach(keywords) { keyword in
                         #if targetEnvironment(macCatalyst)
                         CatalystFocusableLink(id: keyword.id, focusedId: $focusedKeywordId) {
-                            selectedKeyword = keyword
+                            onSelectKeyword(keyword)
                         } label: {
                             RoundedBadge(text: keyword.name, color: .steam_background)
                                 .padding(.horizontal, 6)
@@ -48,18 +50,17 @@ struct MovieKeywords : View {
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
-        #if targetEnvironment(macCatalyst)
-        .navigationDestination(item: $selectedKeyword) { keyword in
-            MovieKeywordList(keyword: keyword)
-        }
-        #endif
     }
 }
 
 #if DEBUG
 struct MovieKeywords_Previews : PreviewProvider {
     static var previews: some View {
+        #if targetEnvironment(macCatalyst)
+        MovieKeywords(keywords: [Keyword(id: 0, name: "Test")], onSelectKeyword: { _ in })
+        #else
         MovieKeywords(keywords: [Keyword(id: 0, name: "Test")])
+        #endif
     }
 }
 #endif

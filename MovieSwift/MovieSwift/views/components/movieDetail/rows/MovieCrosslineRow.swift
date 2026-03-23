@@ -32,22 +32,12 @@ enum MovieCrosslineState {
 struct MovieCrosslineRow : View {
     let title: String
     let movies: [Movie]
-    @Binding var navigationRoute: MoviesListNavigationRoute?
-
-    @State private var selectedMovieId: Int?
-    @State private var showSeeAll = false
+    let onSelectMovie: (Int) -> Void
+    let onSelectSeeAll: () -> Void
     #if targetEnvironment(macCatalyst)
     @FocusState private var focusedId: Int?
     private let seeAllSentinel = -999
     #endif
-
-    private var listView: some View {
-        MoviesList(movies: MovieCrosslineState.movieIds(from: movies),
-                   displaySearch: false,
-                   pageListener: nil,
-                   navigationRoute: $navigationRoute)
-            .navigationBarTitle(title)
-    }
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -57,7 +47,7 @@ struct MovieCrosslineRow : View {
                     .padding(.leading)
                 Spacer()
                 Button(action: {
-                    showSeeAll = true
+                    onSelectSeeAll()
                 }) {
                     Text("See all")
                         .foregroundColor(.steam_blue)
@@ -71,7 +61,7 @@ struct MovieCrosslineRow : View {
                 LazyHStack(spacing: 32) {
                     ForEach(self.movies) { movie in
                         MovieDetailRowItem(movie: movie) {
-                            selectedMovieId = movie.id
+                            onSelectMovie(movie.id)
                         }
                     }
                 }.padding(.leading)
@@ -79,12 +69,6 @@ struct MovieCrosslineRow : View {
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
-        .navigationDestination(item: $selectedMovieId) { id in
-            MovieDetail(movieId: id)
-        }
-        .navigationDestination(isPresented: $showSeeAll) {
-            listView
-        }
     }
 }
 
@@ -139,7 +123,8 @@ struct MovieDetailRow_Previews : PreviewProvider {
         NavigationView {
             MovieCrosslineRow(title: "Sample",
                               movies: [sampleMovie, sampleMovie],
-                              navigationRoute: .constant(nil))
+                              onSelectMovie: { _ in },
+                              onSelectSeeAll: {})
         }
     }
 }

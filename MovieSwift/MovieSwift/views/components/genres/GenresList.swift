@@ -43,25 +43,27 @@ struct GenresList: ConnectedView {
     #endif
 
     func body(props: Props) -> some View {
-        List {
-            ForEach(props.genres) { genre in
-                #if targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
-                    selectedGenre = genre
-                } label: {
-                    Text(genre.name)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 8)
+        VStack(spacing: 0) {
+            List {
+                ForEach(props.genres) { genre in
+                    #if targetEnvironment(macCatalyst)
+                    CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
+                        selectedGenre = genre
+                    } label: {
+                        Text(genre.name)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 8)
+                    }
+                    #else
+                    NavigationLink(destination: MoviesGenreList(genre: genre)) {
+                        Text(genre.name)
+                    }
+                    #endif
                 }
-                #else
-                NavigationLink(destination: MoviesGenreList(genre: genre)) {
-                    Text(genre.name)
-                }
-                #endif
             }
+            .listStyle(PlainListStyle())
         }
-        .listStyle(PlainListStyle())
         #if targetEnvironment(macCatalyst)
         .navigationDestination(item: $selectedGenre) { genre in
             MoviesGenreList(genre: genre)
