@@ -47,6 +47,27 @@ final class MovieSwiftUITests: XCTestCase {
         app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", title)).firstMatch
     }
 
+    private func keyboardElement(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        let button = app.buttons[identifier]
+        if button.waitForExistence(timeout: 0.5) {
+            return button
+        }
+
+        return identifiedElement(identifier, in: app)
+    }
+
+    private func topPersonElement(in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "movieDetail.topPerson."))
+            .firstMatch
+    }
+
+    private func pressKey(_ key: XCUIKeyboardKey,
+                          in app: XCUIApplication,
+                          modifierFlags: XCUIElement.KeyModifierFlags = []) {
+        app.typeKey(key, modifierFlags: modifierFlags)
+    }
+
     private func openTab(_ title: String, in app: XCUIApplication) {
         let tabButton = navigationButton(title, in: app)
         XCTAssertTrue(tabButton.waitForExistence(timeout: uiWaitTimeout), "Expected tab '\(title)' to exist")
@@ -88,6 +109,18 @@ final class MovieSwiftUITests: XCTestCase {
     private func openFirstMovieDetail(in app: XCUIApplication) -> XCUIElement {
         openTab("Movies", in: app)
 
+        let firstMovie = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout))
+        firstMovie.tap()
+
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        logHierarchyIfMissing(app, element: addToListButton, named: "movieDetail.addToListButton")
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout))
+        return addToListButton
+    }
+
+    @discardableResult
+    private func openFirstMovieDetailFromLaunch(in app: XCUIApplication) -> XCUIElement {
         let firstMovie = identifiedElement("moviesList.movie.0", in: app)
         XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout))
         firstMovie.tap()
@@ -285,6 +318,55 @@ final class MovieSwiftUITests: XCTestCase {
         genreChip.tap()
 
         XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardReturnOpensFocusedGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardCanToggleWishlistAndSeenlist() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        let wishlistButton = button("In wishlist", in: app)
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.rightArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        let seenlistButton = button("Seen", in: app)
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardCanOpenTopPerson() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        let topPerson = topPersonElement(in: app)
+        XCTAssertTrue(topPerson.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
     func testDiscoverDismissCanBeUndone() {

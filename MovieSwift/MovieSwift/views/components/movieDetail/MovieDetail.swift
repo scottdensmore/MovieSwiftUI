@@ -167,6 +167,17 @@ enum MovieDetailPeopleState {
     }
 }
 
+#if targetEnvironment(macCatalyst)
+enum MovieDetailFocusTarget: Hashable {
+    case genre(Int)
+    case wishlistButton
+    case seenlistButton
+    case customListButton
+    case reviewLink
+    case topPerson(Int)
+}
+#endif
+
 struct MovieDetail: ConnectedView {
     struct Props {
         let movie: Movie?
@@ -200,6 +211,7 @@ struct MovieDetail: ConnectedView {
     @State private var selectedPeopleId: Int?
     @State private var selectedReviewMovieId: Int?
     @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
+    @State private var selectedGenre: Genre?
     @State private var selectedKeyword: Keyword?
     @State private var isCrosslineMoviesListPresented = false
     @State private var crosslineMoviesListTitle = ""
@@ -210,9 +222,7 @@ struct MovieDetail: ConnectedView {
 
     #if targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var isDetailFocused: Bool
-    @FocusState private var focusedDetailItem: Int?
-    private let reviewsSentinel = -998
+    @FocusState private var focusedDetailItem: MovieDetailFocusTarget?
     #endif
         
     // MARK: Computed Props
@@ -321,6 +331,171 @@ struct MovieDetail: ConnectedView {
         isPeopleListPresented = true
     }
 
+    #if targetEnvironment(macCatalyst)
+    private func genreTargets(props: Props) -> [MovieDetailFocusTarget] {
+        (props.movie?.genres ?? []).map { .genre($0.id) }
+    }
+
+    private var actionTargets: [MovieDetailFocusTarget] {
+        [.wishlistButton, .seenlistButton, .customListButton]
+    }
+
+    private func reviewTarget(props: Props) -> MovieDetailFocusTarget? {
+        guard props.reviewsCount ?? 0 > 0 else {
+            return nil
+        }
+        return .reviewLink
+    }
+
+    private func topPersonTarget(props: Props) -> MovieDetailFocusTarget? {
+        primaryPeopleCredit(props: props).map { .topPerson($0.id) }
+    }
+
+    private func supplementalTargets(props: Props) -> [MovieDetailFocusTarget] {
+        [reviewTarget(props: props), topPersonTarget(props: props)].compactMap { $0 }
+    }
+
+    private func availableTopTargets(props: Props) -> [MovieDetailFocusTarget] {
+        genreTargets(props: props) + actionTargets + supplementalTargets(props: props)
+    }
+
+    private func preferredFocusTarget(props: Props) -> MovieDetailFocusTarget? {
+        genreTargets(props: props).first ?? actionTargets.first
+    }
+
+    private func adjacentFocusTarget(in targets: [MovieDetailFocusTarget], offset: Int) -> MovieDetailFocusTarget? {
+        guard let focusedDetailItem,
+              let index = targets.firstIndex(of: focusedDetailItem) else {
+            return nil
+        }
+
+        let nextIndex = index + offset
+        guard targets.indices.contains(nextIndex) else {
+            return nil
+        }
+
+        return targets[nextIndex]
+    }
+
+    private func topFocusLeftTarget(props: Props) -> MovieDetailFocusTarget? {
+        let genres = genreTargets(props: props)
+        let supplemental = supplementalTargets(props: props)
+
+        return adjacentFocusTarget(in: genres, offset: -1) ??
+            adjacentFocusTarget(in: actionTargets, offset: -1) ??
+            adjacentFocusTarget(in: supplemental, offset: -1)
+    }
+
+    private func topFocusRightTarget(props: Props) -> MovieDetailFocusTarget? {
+        let genres = genreTargets(props: props)
+        let supplemental = supplementalTargets(props: props)
+
+        return adjacentFocusTarget(in: genres, offset: 1) ??
+            adjacentFocusTarget(in: actionTargets, offset: 1) ??
+            adjacentFocusTarget(in: supplemental, offset: 1)
+    }
+
+    private func topFocusUpTarget(props: Props) -> MovieDetailFocusTarget? {
+        guard let focusedDetailItem else {
+            return nil
+        }
+
+        if actionTargets.contains(focusedDetailItem),
+           let firstGenre = genreTargets(props: props).first {
+            return firstGenre
+        }
+
+        if supplementalTargets(props: props).contains(focusedDetailItem),
+           let firstAction = actionTargets.first {
+            return firstAction
+        }
+
+        return nil
+    }
+
+    private func topFocusDownTarget(props: Props) -> MovieDetailFocusTarget? {
+        guard let focusedDetailItem else {
+            return nil
+        }
+
+        if genreTargets(props: props).contains(focusedDetailItem),
+           let firstAction = actionTargets.first {
+            return firstAction
+        }
+
+        if actionTargets.contains(focusedDetailItem),
+           let firstSupplemental = supplementalTargets(props: props).first {
+            return firstSupplemental
+        }
+
+        return nil
+    }
+
+    private func moveTopFocusLeft(props: Props) -> Bool {
+        guard let nextTarget = topFocusLeftTarget(props: props) else {
+            return false
+        }
+        focusedDetailItem = nextTarget
+        return true
+    }
+
+    private func moveTopFocusRight(props: Props) -> Bool {
+        guard let nextTarget = topFocusRightTarget(props: props) else {
+            return false
+        }
+        focusedDetailItem = nextTarget
+        return true
+    }
+
+    private func moveTopFocusUp(props: Props) -> Bool {
+        guard let nextTarget = topFocusUpTarget(props: props) else {
+            return false
+        }
+        focusedDetailItem = nextTarget
+        return true
+    }
+
+    private func moveTopFocusDown(props: Props) -> Bool {
+        guard let nextTarget = topFocusDownTarget(props: props) else {
+            return false
+        }
+        focusedDetailItem = nextTarget
+        return true
+    }
+
+    private func canMoveTopFocusLeft(props: Props) -> Bool {
+        topFocusLeftTarget(props: props) != nil
+    }
+
+    private func canMoveTopFocusRight(props: Props) -> Bool {
+        topFocusRightTarget(props: props) != nil
+    }
+
+    private func canMoveTopFocusUp(props: Props) -> Bool {
+        topFocusUpTarget(props: props) != nil
+    }
+
+    private func canMoveTopFocusDown(props: Props) -> Bool {
+        topFocusDownTarget(props: props) != nil
+    }
+
+    private func restoreDetailFocus(props: Props, force: Bool = false) {
+        guard selectedPoster == nil else {
+            return
+        }
+
+        let availableTargets = availableTopTargets(props: props)
+        guard !availableTargets.isEmpty else {
+            focusedDetailItem = nil
+            return
+        }
+
+        if force || focusedDetailItem == nil || !availableTargets.contains(focusedDetailItem!) {
+            focusedDetailItem = preferredFocusTarget(props: props)
+        }
+    }
+    #endif
+
     private var crosslineMoviesListView: some View {
         MoviesList(movies: crosslineMoviesListMovieIds,
                    displaySearch: false,
@@ -381,7 +556,7 @@ struct MovieDetail: ConnectedView {
             if people != nil {
                 let accessibilityId = "movieDetail.topPerson.\(people!.id)"
                 #if targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: people!.id, focusedId: $focusedDetailItem) {
+                CatalystFocusableLink(id: .topPerson(people!.id), focusedId: $focusedDetailItem) {
                     selectPeople(people!.id)
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
@@ -442,12 +617,21 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func topContent(props: Props) -> some View {
+        #if targetEnvironment(macCatalyst)
+        MovieCoverRow(movieId: movieId, focusedItem: $focusedDetailItem) { genre in
+            selectedGenre = genre
+        }
+        MovieButtonsRow(movieId: movieId,
+                        showCustomListSheet: $isAddSheetPresented,
+                        focusedItem: $focusedDetailItem)
+        #else
         MovieCoverRow(movieId: movieId)
         MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
+        #endif
         smokeTestTopPersonShortcut(props: props)
         if props.reviewsCount ?? 0 > 0 {
             #if targetEnvironment(macCatalyst)
-            CatalystFocusableLink(id: reviewsSentinel, focusedId: $focusedDetailItem) {
+            CatalystFocusableLink(id: .reviewLink, focusedId: $focusedDetailItem) {
                 selectedReviewMovieId = movieId
             } label: {
                 Text("\(props.reviewsCount!) reviews")
@@ -476,7 +660,7 @@ struct MovieDetail: ConnectedView {
             MovieOverview(movie: movie)
         }
     }
-
+    
     @ViewBuilder
     func bottomContent(props: Props) -> some View {
         if let movie = props.movie,
@@ -625,6 +809,9 @@ struct MovieDetail: ConnectedView {
         .navigationDestination(item: $selectedReviewMovieId) { id in
             MovieReviews(movie: id)
         }
+        .navigationDestination(item: $selectedGenre) { genre in
+            MoviesGenreList(genre: genre)
+        }
         .navigationDestination(item: $selectedKeyword) { keyword in
             MovieKeywordList(keyword: keyword)
         }
@@ -638,45 +825,196 @@ struct MovieDetail: ConnectedView {
             moviesListDestinationView(for: route)
         }
         #if targetEnvironment(macCatalyst)
-        .focusable()
-        .focused($isDetailFocused)
-        .focusEffectDisabled()
+        .background(
+            CatalystDetailKeyHandler(
+                capturesLeftArrow: selectedPoster != nil || canMoveTopFocusLeft(props: props),
+                capturesRightArrow: selectedPoster != nil || canMoveTopFocusRight(props: props),
+                capturesUpArrow: canMoveTopFocusUp(props: props),
+                capturesDownArrow: canMoveTopFocusDown(props: props),
+                onEscape: {
+                    if selectedPoster != nil {
+                        selectedPoster = nil
+                        restoreDetailFocus(props: props, force: true)
+                        return
+                    }
+
+                    dismiss()
+                },
+                onMoveLeft: {
+                    if selectedPoster != nil {
+                        selectAdjacentPoster(offset: -1, posters: posters)
+                        return
+                    }
+                    _ = moveTopFocusLeft(props: props)
+                },
+                onMoveRight: {
+                    if selectedPoster != nil {
+                        selectAdjacentPoster(offset: 1, posters: posters)
+                        return
+                    }
+                    _ = moveTopFocusRight(props: props)
+                },
+                onMoveUp: {
+                    _ = moveTopFocusUp(props: props)
+                },
+                onMoveDown: {
+                    _ = moveTopFocusDown(props: props)
+                }
+            )
+        )
         .onAppear {
-            isDetailFocused = true
+            restoreDetailFocus(props: props, force: true)
         }
-        .onChange(of: selectedPoster?.id) {
-            isDetailFocused = true
-        }
-        .onKeyPress(.leftArrow) {
-            guard selectedPoster != nil else {
-                return .ignored
+        .onChange(of: selectedPoster?.id) { _, newValue in
+            if newValue == nil {
+                restoreDetailFocus(props: props, force: true)
             }
-
-            selectAdjacentPoster(offset: -1, posters: posters)
-            return .handled
         }
-        .onKeyPress(.rightArrow) {
-            guard selectedPoster != nil else {
-                return .ignored
-            }
-
-            selectAdjacentPoster(offset: 1, posters: posters)
-            return .handled
+        .onChange(of: props.movie?.id) { _, _ in
+            restoreDetailFocus(props: props, force: true)
         }
-        .onKeyPress(.escape) {
-            if selectedPoster != nil {
-                selectedPoster = nil
-                return .handled
-            }
-
-            dismiss()
-            return .handled
+        .onChange(of: props.reviewsCount) { _, _ in
+            restoreDetailFocus(props: props)
+        }
+        .onChange(of: props.credits?.count) { _, _ in
+            restoreDetailFocus(props: props)
         }
         #endif
     }
     
     
 }
+
+#if targetEnvironment(macCatalyst)
+private struct CatalystDetailKeyHandler: UIViewRepresentable {
+    let capturesLeftArrow: Bool
+    let capturesRightArrow: Bool
+    let capturesUpArrow: Bool
+    let capturesDownArrow: Bool
+    let onEscape: () -> Void
+    let onMoveLeft: () -> Void
+    let onMoveRight: () -> Void
+    let onMoveUp: () -> Void
+    let onMoveDown: () -> Void
+
+    func makeUIView(context: Context) -> KeyHandlingView {
+        let view = KeyHandlingView()
+        update(view)
+        return view
+    }
+
+    func updateUIView(_ uiView: KeyHandlingView, context: Context) {
+        update(uiView)
+    }
+
+    private func update(_ view: KeyHandlingView) {
+        view.capturesLeftArrow = capturesLeftArrow
+        view.capturesRightArrow = capturesRightArrow
+        view.capturesUpArrow = capturesUpArrow
+        view.capturesDownArrow = capturesDownArrow
+        view.onEscape = onEscape
+        view.onMoveLeft = onMoveLeft
+        view.onMoveRight = onMoveRight
+        view.onMoveUp = onMoveUp
+        view.onMoveDown = onMoveDown
+    }
+
+    final class KeyHandlingView: UIView {
+        var capturesLeftArrow = false { didSet { reloadIfNeeded(oldValue, capturesLeftArrow) } }
+        var capturesRightArrow = false { didSet { reloadIfNeeded(oldValue, capturesRightArrow) } }
+        var capturesUpArrow = false { didSet { reloadIfNeeded(oldValue, capturesUpArrow) } }
+        var capturesDownArrow = false { didSet { reloadIfNeeded(oldValue, capturesDownArrow) } }
+        var onEscape: (() -> Void)?
+        var onMoveLeft: (() -> Void)?
+        var onMoveRight: (() -> Void)?
+        var onMoveUp: (() -> Void)?
+        var onMoveDown: (() -> Void)?
+
+        override var canBecomeFirstResponder: Bool { true }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            guard window != nil else {
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.becomeFirstResponder()
+            }
+        }
+
+        override var keyCommands: [UIKeyCommand]? {
+            var commands: [UIKeyCommand] = []
+
+            let escape = UIKeyCommand(input: UIKeyCommand.inputEscape,
+                                      modifierFlags: [],
+                                      action: #selector(handleEscape))
+            escape.wantsPriorityOverSystemBehavior = true
+            commands.append(escape)
+
+            if capturesLeftArrow {
+                let left = UIKeyCommand(input: UIKeyCommand.inputLeftArrow,
+                                        modifierFlags: [],
+                                        action: #selector(handleMoveLeft))
+                left.wantsPriorityOverSystemBehavior = true
+                commands.append(left)
+            }
+
+            if capturesRightArrow {
+                let right = UIKeyCommand(input: UIKeyCommand.inputRightArrow,
+                                         modifierFlags: [],
+                                         action: #selector(handleMoveRight))
+                right.wantsPriorityOverSystemBehavior = true
+                commands.append(right)
+            }
+
+            if capturesUpArrow {
+                let up = UIKeyCommand(input: UIKeyCommand.inputUpArrow,
+                                      modifierFlags: [],
+                                      action: #selector(handleMoveUp))
+                up.wantsPriorityOverSystemBehavior = true
+                commands.append(up)
+            }
+
+            if capturesDownArrow {
+                let down = UIKeyCommand(input: UIKeyCommand.inputDownArrow,
+                                        modifierFlags: [],
+                                        action: #selector(handleMoveDown))
+                down.wantsPriorityOverSystemBehavior = true
+                commands.append(down)
+            }
+
+            return commands
+        }
+
+        private func reloadIfNeeded(_ oldValue: Bool, _ newValue: Bool) {
+            if oldValue != newValue {
+                reloadInputViews()
+            }
+        }
+
+        @objc private func handleEscape() {
+            onEscape?()
+        }
+
+        @objc private func handleMoveLeft() {
+            onMoveLeft?()
+        }
+
+        @objc private func handleMoveRight() {
+            onMoveRight?()
+        }
+
+        @objc private func handleMoveUp() {
+            onMoveUp?()
+        }
+
+        @objc private func handleMoveDown() {
+            onMoveDown?()
+        }
+    }
+}
+#endif
 
 // MARK: - Preview
 #if DEBUG

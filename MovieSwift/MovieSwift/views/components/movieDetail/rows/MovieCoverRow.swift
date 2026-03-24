@@ -41,6 +41,10 @@ enum MovieCoverState {
 
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
+    #if targetEnvironment(macCatalyst)
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    let onSelectGenre: (Genre) -> Void
+    #endif
 
     struct Props {
         let movie: Movie?
@@ -92,14 +96,24 @@ struct MovieCoverRow : ConnectedView {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(presentation.genres) { genre in
-                    NavigationLink(destination: MoviesGenreList(genre: genre)) {
+                    #if targetEnvironment(macCatalyst)
+                    CatalystFocusableLink(id: .genre(genre.id), focusedId: focusedItem) {
+                        onSelectGenre(genre)
+                    } label: {
                         coverGenreBadge(text: genre.name)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 4)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
                     .disabled(presentation.areGenresPlaceholder)
+                    .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
+                    #else
+                    NavigationLink(destination: MoviesGenreList(genre: genre)) {
+                        coverGenreBadge(text: genre.name)
+                            .padding(.vertical, 2)
+                    }
+                    .disabled(presentation.areGenresPlaceholder)
+                    .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
+                    #endif
                 }
             }
             .padding(.leading, 16)
@@ -129,10 +143,25 @@ struct MovieCoverRow : ConnectedView {
 }
 
 #if DEBUG
+#if targetEnvironment(macCatalyst)
+private struct MovieCoverRowCatalystPreviewHost: View {
+    @FocusState private var focusedItem: MovieDetailFocusTarget?
+
+    var body: some View {
+        MovieCoverRow(movieId: 0, focusedItem: $focusedItem, onSelectGenre: { _ in })
+            .environmentObject(sampleStore)
+    }
+}
+#endif
+
 struct MovieCoverRow_Previews : PreviewProvider {
     static var previews: some View {
+        #if targetEnvironment(macCatalyst)
+        MovieCoverRowCatalystPreviewHost()
+        #else
         MovieCoverRow(movieId: 0)
             .environmentObject(sampleStore)
+        #endif
     }
 }
 #endif

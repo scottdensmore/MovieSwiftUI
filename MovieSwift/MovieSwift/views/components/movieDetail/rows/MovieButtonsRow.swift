@@ -29,6 +29,9 @@ enum MovieButtonsToggleAction: Equatable {
 struct MovieButtonsRow: ConnectedView {
     let movieId: Int
     @Binding var showCustomListSheet: Bool
+    #if targetEnvironment(macCatalyst)
+    var focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    #endif
     
     struct Props {
         let isInWishlist: Bool
@@ -71,6 +74,30 @@ struct MovieButtonsRow: ConnectedView {
     
     func body(props: Props) -> some View {
         HStack(alignment: .center, spacing: 8) {
+            #if targetEnvironment(macCatalyst)
+            catalystButton(id: .wishlistButton,
+                           text: props.isInWishlist ? "In wishlist" : "Wishlist",
+                           systemImageName: "heart",
+                           color: .pink,
+                           isOn: props.isInWishlist,
+                           action: props.onWishlistTap)
+            
+            catalystButton(id: .seenlistButton,
+                           text: props.isInSeenlist ? "Seen" : "Seenlist",
+                           systemImageName: "eye",
+                           color: .green,
+                           isOn: props.isInSeenlist,
+                           action: props.onSeenlistTap)
+            
+            catalystButton(id: .customListButton,
+                           text: "List",
+                           systemImageName: "pin",
+                           color: .steam_gold,
+                           isOn: props.isInCustomList,
+                           action: {
+                               self.showCustomListSheet = true
+                           })
+            #else
             BorderedButton(text: props.isInWishlist ? "In wishlist" : "Wishlist",
                            systemImageName: "heart",
                            color: .pink,
@@ -90,14 +117,77 @@ struct MovieButtonsRow: ConnectedView {
                            action: {
                             self.showCustomListSheet = true
                            })
+            #endif
         }
         .padding(.vertical, 8)
         .animation(.spring(), value: props.isInWishlist || props.isInSeenlist || props.isInCustomList)
     }
+
+    #if targetEnvironment(macCatalyst)
+    private func catalystButton(id: MovieDetailFocusTarget,
+                                text: String,
+                                systemImageName: String,
+                                color: Color,
+                                isOn: Bool,
+                                action: @escaping () -> Void) -> some View {
+        Button(action: {
+            DispatchQueue.main.async {
+                action()
+            }
+        }) {
+            HStack(alignment: .center, spacing: 4) {
+                Image(systemName: systemImageName)
+                    .foregroundColor(isOn ? .white : color)
+                Text(text)
+                    .foregroundColor(isOn ? .white : color)
+            }
+            .padding(6)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: isOn ? 0 : 2)
+                    .background(isOn ? color : .clear)
+                    .cornerRadius(8)
+            )
+        }
+        .buttonStyle(.plain)
+        .focusable()
+        .focused(focusedItem, equals: id)
+        .onKeyPress(.return) {
+            DispatchQueue.main.async {
+                action()
+            }
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in
+            DispatchQueue.main.async {
+                action()
+            }
+            return .handled
+        }
+        .catalystFocusHighlight(isFocused: focusedItem.wrappedValue == id)
+    }
+    #endif
 }
 
 struct MovieButtonsRow_Previews: PreviewProvider {
     static var previews: some View {
+        #if targetEnvironment(macCatalyst)
+        MovieButtonsRowCatalystPreviewHost()
+        #else
         MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environmentObject(sampleStore)
+        #endif
     }
 }
+
+#if DEBUG && targetEnvironment(macCatalyst)
+private struct MovieButtonsRowCatalystPreviewHost: View {
+    @FocusState private var focusedItem: MovieDetailFocusTarget?
+
+    var body: some View {
+        MovieButtonsRow(movieId: 0,
+                        showCustomListSheet: .constant(false),
+                        focusedItem: $focusedItem)
+            .environmentObject(sampleStore)
+    }
+}
+#endif
