@@ -25,7 +25,7 @@ struct HomeView: App {
         environment.runtime.startArchiving(store: store)
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     var body: some Scene {
         WindowGroup {
             StoreProvider(store: store) {

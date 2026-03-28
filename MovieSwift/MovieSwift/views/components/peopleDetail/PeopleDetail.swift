@@ -151,7 +151,7 @@ struct PeopleDetail: ConnectedView {
     @State private var selectedMovieId: Int?
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -194,8 +194,8 @@ struct PeopleDetail: ConnectedView {
     private func moviesSection(props: Props, year: String) -> some View {
         Section(header: Text(year)) {
             ForEach(props.movieByYears[year]!) { meta in
-                #if os(macOS) || targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
+                #if os(macOS)
+                MacFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
                     selectMovie(meta.id)
                 } label: {
                     PeopleDetailMovieRow(movie: meta.movie, role: meta.role, onMovieContextMenu: {
@@ -304,7 +304,7 @@ struct PeopleDetail: ConnectedView {
         .navigationDestination(item: $selectedMovieId) { id in
             MovieDetail(movieId: id)
         }
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .onKeyPress(.escape) { dismiss(); return .handled }
         #endif
         #if !os(macOS)

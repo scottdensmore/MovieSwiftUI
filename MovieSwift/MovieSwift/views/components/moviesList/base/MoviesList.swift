@@ -115,7 +115,7 @@ struct MoviesList: ConnectedView {
     @State private var searchTextWrapper = MoviesSearchTextWrapper()
     @State private var isSearching = false
     @FocusState private var isSearchFieldFocused: Bool
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @State private var highlightedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -157,12 +157,12 @@ struct MoviesList: ConnectedView {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("moviesList.movie.\(id)")
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             .focusable()
             .focused($focusedMovieId, equals: id)
             .onKeyPress(.return) { navigationRoute = .movie(id); return .handled }
             .onKeyPress(characters: .init(charactersIn: " ")) { _ in navigationRoute = .movie(id); return .handled }
-            .catalystFocusHighlight(isFocused: focusedMovieId == id || highlightedMovieId == id)
+            .macFocusHighlight(isFocused: focusedMovieId == id || highlightedMovieId == id)
             #endif
         }
     }
@@ -283,7 +283,7 @@ struct MoviesList: ConnectedView {
     // MARK: - Body
     func body(props: Props) -> some View {
         ZStack {
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             VStack(spacing: 0) {
                 if displaySearch {
                     searchField
@@ -327,58 +327,6 @@ struct MoviesList: ConnectedView {
         }
     }
 }
-
-// MARK: - Mac Catalyst detail focus & back navigation
-#if targetEnvironment(macCatalyst)
-/// A UIKit view that automatically becomes first responder when the detail
-/// view appears, keeping focus in the detail pane (not the sidebar).
-/// Handles Escape, Left Arrow, and Delete to navigate back.
-struct CatalystBackNavigationView: UIViewRepresentable {
-    var onBack: () -> Void
-
-    func makeUIView(context: Context) -> KeyHandlingView {
-        let view = KeyHandlingView()
-        view.onBack = onBack
-        return view
-    }
-
-    func updateUIView(_ uiView: KeyHandlingView, context: Context) {
-        uiView.onBack = onBack
-    }
-
-    class KeyHandlingView: UIView {
-        var onBack: (() -> Void)?
-
-        override var canBecomeFirstResponder: Bool { true }
-
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            if window != nil {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.becomeFirstResponder()
-                }
-            }
-        }
-
-        override var keyCommands: [UIKeyCommand]? {
-            let esc = UIKeyCommand(input: UIKeyCommand.inputEscape,
-                                   modifierFlags: [], action: #selector(handleBack))
-            esc.wantsPriorityOverSystemBehavior = true
-            let left = UIKeyCommand(input: UIKeyCommand.inputLeftArrow,
-                                    modifierFlags: [], action: #selector(handleBack))
-            left.wantsPriorityOverSystemBehavior = true
-            let del = UIKeyCommand(input: "\u{8}",
-                                   modifierFlags: [], action: #selector(handleBack))
-            del.wantsPriorityOverSystemBehavior = true
-            return [esc, left, del]
-        }
-
-        @objc private func handleBack() {
-            onBack?()
-        }
-    }
-}
-#endif
 
 #if DEBUG
 struct MoviesList_Previews : PreviewProvider {

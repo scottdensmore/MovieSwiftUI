@@ -135,7 +135,7 @@ struct MoviesHome : ConnectedView {
             .navigationDestination(item: $navigationRoute) { route in
                 moviesListDestinationView(for: route)
             }
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             .sheet(isPresented: $isSettingPresented,
                    content: {
                        SettingsForm(onClose: {

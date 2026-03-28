@@ -77,10 +77,10 @@ struct SoftSelectionButtonStyle: ButtonStyle {
     }
 }
 
-#if os(macOS) || targetEnvironment(macCatalyst)
+#if os(macOS)
 /// Replaces SwiftUI's default blue focus ring with a sidebar-style
 /// rounded-rectangle highlight on macOS.
-struct CatalystFocusHighlight: ViewModifier {
+struct MacFocusHighlight: ViewModifier {
     var isFocused: Bool
 
     func body(content: Content) -> some View {
@@ -108,38 +108,29 @@ struct CatalystFocusHighlight: ViewModifier {
 }
 
 extension View {
-    func catalystFocusHighlight(isFocused: Bool) -> some View {
-        self.modifier(CatalystFocusHighlight(isFocused: isFocused))
+    func macFocusHighlight(isFocused: Bool) -> some View {
+        self.modifier(MacFocusHighlight(isFocused: isFocused))
     }
 }
 
-/// A reusable wrapper that replaces NavigationLink with a focusable,
-/// keyboard-navigable Button on Mac Catalyst.
-struct CatalystFocusableLink<Label: View, ID: Hashable>: View {
+/// A reusable wrapper that provides a focusable, keyboard-navigable
+/// Button for macOS list rows.
+struct MacFocusableLink<Label: View, ID: Hashable>: View {
     let id: ID
     var focusedId: FocusState<ID?>.Binding
     let action: () -> Void
     @ViewBuilder let label: () -> Label
 
-    private func performAction() {
-        // Defer navigation state writes until after Catalyst finishes the
-        // current focus/list update cycle. This avoids Swift exclusivity
-        // violations when a focused list row triggers navigation.
-        DispatchQueue.main.async {
-            action()
-        }
-    }
-
     var body: some View {
-        Button(action: performAction) {
+        Button(action: action) {
             label()
         }
         .buttonStyle(.plain)
         .focusable()
         .focused(focusedId, equals: id)
-        .onKeyPress(.return) { performAction(); return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in performAction(); return .handled }
-        .catalystFocusHighlight(isFocused: focusedId.wrappedValue == id)
+        .onKeyPress(.return) { action(); return .handled }
+        .onKeyPress(characters: .init(charactersIn: " ")) { _ in action(); return .handled }
+        .macFocusHighlight(isFocused: focusedId.wrappedValue == id)
     }
 }
 #endif

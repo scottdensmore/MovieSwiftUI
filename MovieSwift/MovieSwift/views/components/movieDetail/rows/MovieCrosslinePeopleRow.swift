@@ -39,7 +39,7 @@ struct MovieCrosslinePeopleRow : View {
     let peoples: [People]
     let onSelectPeople: (Int) -> Void
     let onSelectSeeAll: () -> Void
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @FocusState private var focusedPeopleId: Int?
     private let seeAllSentinel = -999
     #endif
@@ -57,7 +57,7 @@ struct MovieCrosslinePeopleRow : View {
                     Text("See all").foregroundColor(.steam_blue)
                 }
                 .buttonStyle(.plain)
-                #if os(macOS) || targetEnvironment(macCatalyst)
+                #if os(macOS)
                 .focused($focusedPeopleId, equals: seeAllSentinel)
                 #endif
             }
@@ -120,7 +120,7 @@ struct PeopleRowItem: View {
         MovieCrosslinePeopleState.presentation(for: people)
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @FocusState private var isFocused: Bool
     #endif
 
@@ -134,12 +134,12 @@ struct PeopleRowItem: View {
         .accessibilityValue(presentation.subtitle ?? "")
         .accessibilityIdentifier(presentation.accessibilityIdentifier)
         .buttonStyle(.plain)
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .focusable()
         .focused($isFocused)
         .onKeyPress(.return) { onSelect(); return .handled }
         .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect(); return .handled }
-        .catalystFocusHighlight(isFocused: isFocused)
+        .macFocusHighlight(isFocused: isFocused)
         #endif
         .contextMenu { PeopleContextMenu(people: people.id) }
     }

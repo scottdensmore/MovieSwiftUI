@@ -36,7 +36,7 @@ struct MyLists : ConnectedView {
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
     @State private var isEditingFormPresented = false
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     private struct MovieNav: Hashable { let id: Int }
     private struct CustomListNav: Hashable { let id: Int }
     @State private var selectedMovie: MovieNav?
@@ -75,7 +75,7 @@ struct MyLists : ConnectedView {
             }
             .accessibilityIdentifier("myLists.createCustomListButton")
             ForEach(props.customLists) { list in
-                #if os(macOS) || targetEnvironment(macCatalyst)
+                #if os(macOS)
                 Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
                     CustomListRow(list: list,
                                   coverMovie: CustomListPresentation.coverMovie(for: list,
@@ -104,7 +104,7 @@ struct MyLists : ConnectedView {
     private func wishlistSection(props: Props) -> some View {
         Section(header: Text("\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")) {
             ForEach(props.wishlist, id: \.self) {id in
-                #if os(macOS) || targetEnvironment(macCatalyst)
+                #if os(macOS)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
                         .padding(.horizontal, 6)
@@ -132,7 +132,7 @@ struct MyLists : ConnectedView {
     private func seenSection(props: Props) -> some View {
         Section(header: Text("\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")) {
             ForEach(props.seenlist, id: \.self) {id in
-                #if os(macOS) || targetEnvironment(macCatalyst)
+                #if os(macOS)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
                         .padding(.horizontal, 6)
@@ -174,7 +174,7 @@ struct MyLists : ConnectedView {
         #if os(iOS) || os(tvOS)
         .listStyle(GroupedListStyle())
         #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .navigationDestination(item: $selectedMovie) { nav in
             MovieDetail(movieId: nav.id)
         }

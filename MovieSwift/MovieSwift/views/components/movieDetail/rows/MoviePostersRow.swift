@@ -35,7 +35,7 @@ struct MoviePostersRow : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @FocusState private var focusedPosterId: String?
     #endif
 
@@ -51,7 +51,7 @@ struct MoviePostersRow : View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 32) {
                     ForEach(presentations) { poster in
-                        #if os(macOS) || targetEnvironment(macCatalyst)
+                        #if os(macOS)
                         Button {
                             withAnimation {
                                 selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster)

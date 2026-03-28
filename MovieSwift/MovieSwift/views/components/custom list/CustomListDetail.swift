@@ -89,7 +89,7 @@ struct CustomListDetail : ConnectedView {
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
@@ -210,8 +210,8 @@ struct CustomListDetail : ConnectedView {
                         }
                     } else {
                         ForEach(props.movies, id: \.self) { movie in
-                            #if os(macOS) || targetEnvironment(macCatalyst)
-                            CatalystFocusableLink(id: movie, focusedId: $focusedMovieId) {
+                            #if os(macOS)
+                            MacFocusableLink(id: movie, focusedId: $focusedMovieId) {
                                 selectedMovieId = movie
                             } label: {
                                 MovieRow(movieId: movie, displayListImage: false)
@@ -238,7 +238,7 @@ struct CustomListDetail : ConnectedView {
             }
             
         }
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
             }

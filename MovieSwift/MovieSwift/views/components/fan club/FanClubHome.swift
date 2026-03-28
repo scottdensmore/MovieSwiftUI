@@ -97,7 +97,7 @@ struct FanClubHome: ConnectedView {
     var showNavigationTitle = true
     @State private var nextPopularPage = 1
     @State private var lastTriggeredPopularId: Int?
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @State private var selectedPeopleId: Int?
     @FocusState private var focusedPeopleId: Int?
     #endif
@@ -113,8 +113,8 @@ struct FanClubHome: ConnectedView {
     
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        CatalystFocusableLink(id: people, focusedId: $focusedPeopleId) {
+        #if os(macOS)
+        MacFocusableLink(id: people, focusedId: $focusedPeopleId) {
             selectedPeopleId = people
         } label: {
             PeopleRow(peopleId: people)
@@ -161,7 +161,7 @@ struct FanClubHome: ConnectedView {
             }
         }
         .animation(.spring(), value: props.peoples.count + props.popular.count)
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .navigationDestination(item: $selectedPeopleId) { id in
             PeopleDetail(peopleId: id)
         }

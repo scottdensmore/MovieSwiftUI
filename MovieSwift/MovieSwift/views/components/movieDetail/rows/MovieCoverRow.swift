@@ -41,7 +41,7 @@ enum MovieCoverState {
 
 struct MovieCoverRow : ConnectedView {
     let movieId: Int
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
     let onSelectGenre: (Genre) -> Void
     #endif
@@ -96,8 +96,8 @@ struct MovieCoverRow : ConnectedView {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(presentation.genres) { genre in
-                    #if os(macOS) || targetEnvironment(macCatalyst)
-                    CatalystFocusableLink(id: .genre(genre.id), focusedId: focusedItem) {
+                    #if os(macOS)
+                    MacFocusableLink(id: .genre(genre.id), focusedId: focusedItem) {
                         onSelectGenre(genre)
                     } label: {
                         coverGenreBadge(text: genre.name)
@@ -143,7 +143,7 @@ struct MovieCoverRow : ConnectedView {
 }
 
 #if DEBUG
-#if os(macOS) || targetEnvironment(macCatalyst)
+#if os(macOS)
 private struct MovieCoverRowCatalystPreviewHost: View {
     @FocusState private var focusedItem: MovieDetailFocusTarget?
 
@@ -156,7 +156,7 @@ private struct MovieCoverRowCatalystPreviewHost: View {
 
 struct MovieCoverRow_Previews : PreviewProvider {
     static var previews: some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         MovieCoverRowCatalystPreviewHost()
         #else
         MovieCoverRow(movieId: 0)

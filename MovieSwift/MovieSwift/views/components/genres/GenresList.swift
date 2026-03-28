@@ -37,7 +37,7 @@ struct GenresList: ConnectedView {
 
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @State private var selectedGenre: Genre?
     @FocusState private var focusedGenreId: Int?
     #endif
@@ -46,8 +46,8 @@ struct GenresList: ConnectedView {
         VStack(spacing: 0) {
             List {
                 ForEach(props.genres) { genre in
-                    #if os(macOS) || targetEnvironment(macCatalyst)
-                    CatalystFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
+                    #if os(macOS)
+                    MacFocusableLink(id: genre.id, focusedId: $focusedGenreId) {
                         selectedGenre = genre
                     } label: {
                         Text(genre.name)
@@ -64,7 +64,7 @@ struct GenresList: ConnectedView {
             }
             .listStyle(PlainListStyle())
         }
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .navigationDestination(item: $selectedGenre) { genre in
             MoviesGenreList(genre: genre)
         }

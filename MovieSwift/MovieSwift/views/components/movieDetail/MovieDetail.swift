@@ -167,7 +167,7 @@ enum MovieDetailPeopleState {
     }
 }
 
-#if os(macOS) || targetEnvironment(macCatalyst)
+#if os(macOS)
 enum MovieDetailFocusTarget: Hashable {
     case genre(Int)
     case wishlistButton
@@ -220,7 +220,7 @@ struct MovieDetail: ConnectedView {
     @State private var peopleListTitle = ""
     @State private var peopleListEntries: [People] = []
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedDetailItem: MovieDetailFocusTarget?
     #endif
@@ -281,22 +281,6 @@ struct MovieDetail: ConnectedView {
         }
     }
 
-    func selectAdjacentPoster(offset: Int, posters: [ImageData]) {
-        guard let currentPoster = selectedPoster,
-              let currentIndex = posters.firstIndex(where: { $0.id == currentPoster.id }) else {
-            return
-        }
-
-        let nextIndex = currentIndex + offset
-        guard posters.indices.contains(nextIndex) else {
-            return
-        }
-
-        withAnimation {
-            selectedPoster = posters[nextIndex]
-        }
-    }
-    
     // MARK: - View actions
     func displaySavedBadge() {
         isAddedToListBadgePresented = true
@@ -331,7 +315,7 @@ struct MovieDetail: ConnectedView {
         isPeopleListPresented = true
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     private func genreTargets(props: Props) -> [MovieDetailFocusTarget] {
         (props.movie?.genres ?? []).map { .genre($0.id) }
     }
@@ -431,54 +415,6 @@ struct MovieDetail: ConnectedView {
         return nil
     }
 
-    private func moveTopFocusLeft(props: Props) -> Bool {
-        guard let nextTarget = topFocusLeftTarget(props: props) else {
-            return false
-        }
-        focusedDetailItem = nextTarget
-        return true
-    }
-
-    private func moveTopFocusRight(props: Props) -> Bool {
-        guard let nextTarget = topFocusRightTarget(props: props) else {
-            return false
-        }
-        focusedDetailItem = nextTarget
-        return true
-    }
-
-    private func moveTopFocusUp(props: Props) -> Bool {
-        guard let nextTarget = topFocusUpTarget(props: props) else {
-            return false
-        }
-        focusedDetailItem = nextTarget
-        return true
-    }
-
-    private func moveTopFocusDown(props: Props) -> Bool {
-        guard let nextTarget = topFocusDownTarget(props: props) else {
-            return false
-        }
-        focusedDetailItem = nextTarget
-        return true
-    }
-
-    private func canMoveTopFocusLeft(props: Props) -> Bool {
-        topFocusLeftTarget(props: props) != nil
-    }
-
-    private func canMoveTopFocusRight(props: Props) -> Bool {
-        topFocusRightTarget(props: props) != nil
-    }
-
-    private func canMoveTopFocusUp(props: Props) -> Bool {
-        topFocusUpTarget(props: props) != nil
-    }
-
-    private func canMoveTopFocusDown(props: Props) -> Bool {
-        topFocusDownTarget(props: props) != nil
-    }
-
     private func restoreDetailFocus(props: Props, force: Bool = false) {
         guard selectedPoster == nil else {
             return
@@ -557,8 +493,8 @@ struct MovieDetail: ConnectedView {
         Group {
             if people != nil {
                 let accessibilityId = "movieDetail.topPerson.\(people!.id)"
-                #if os(macOS) || targetEnvironment(macCatalyst)
-                CatalystFocusableLink(id: .topPerson(people!.id), focusedId: $focusedDetailItem) {
+                #if os(macOS)
+                MacFocusableLink(id: .topPerson(people!.id), focusedId: $focusedDetailItem) {
                     selectPeople(people!.id)
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
@@ -619,7 +555,7 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func topContent(props: Props) -> some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         MovieCoverRow(movieId: movieId, focusedItem: $focusedDetailItem) { genre in
             selectedGenre = genre
         }
@@ -632,8 +568,8 @@ struct MovieDetail: ConnectedView {
         #endif
         smokeTestTopPersonShortcut(props: props)
         if props.reviewsCount ?? 0 > 0 {
-            #if os(macOS) || targetEnvironment(macCatalyst)
-            CatalystFocusableLink(id: .reviewLink, focusedId: $focusedDetailItem) {
+            #if os(macOS)
+            MacFocusableLink(id: .reviewLink, focusedId: $focusedDetailItem) {
                 selectedReviewMovieId = movieId
             } label: {
                 Text("\(props.reviewsCount!) reviews")
@@ -668,7 +604,7 @@ struct MovieDetail: ConnectedView {
         if let movie = props.movie,
            movie.keywords?.keywords?.isEmpty == false,
            let keywords = movie.keywords?.keywords {
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             MovieKeywords(keywords: keywords) { keyword in
                 selectedKeyword = keyword
             }
@@ -727,7 +663,7 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func detailContent(props: Props) -> some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 topContent(props: props)
@@ -883,46 +819,7 @@ struct MovieDetail: ConnectedView {
         .navigationDestination(item: $selectedCrosslineRoute) { route in
             moviesListDestinationView(for: route)
         }
-        #if targetEnvironment(macCatalyst)
-        .background(
-            CatalystDetailKeyHandler(
-                capturesLeftArrow: selectedPoster != nil || canMoveTopFocusLeft(props: props),
-                capturesRightArrow: selectedPoster != nil || canMoveTopFocusRight(props: props),
-                capturesUpArrow: canMoveTopFocusUp(props: props),
-                capturesDownArrow: canMoveTopFocusDown(props: props),
-                onEscape: {
-                    if selectedPoster != nil {
-                        selectedPoster = nil
-                        restoreDetailFocus(props: props, force: true)
-                        return
-                    }
-
-                    dismiss()
-                },
-                onMoveLeft: {
-                    if selectedPoster != nil {
-                        selectAdjacentPoster(offset: -1, posters: posters)
-                        return
-                    }
-                    _ = moveTopFocusLeft(props: props)
-                },
-                onMoveRight: {
-                    if selectedPoster != nil {
-                        selectAdjacentPoster(offset: 1, posters: posters)
-                        return
-                    }
-                    _ = moveTopFocusRight(props: props)
-                },
-                onMoveUp: {
-                    _ = moveTopFocusUp(props: props)
-                },
-                onMoveDown: {
-                    _ = moveTopFocusDown(props: props)
-                }
-            )
-        )
-        #endif
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         .onAppear {
             restoreDetailFocus(props: props, force: true)
         }
@@ -945,137 +842,6 @@ struct MovieDetail: ConnectedView {
     
     
 }
-
-#if targetEnvironment(macCatalyst)
-private struct CatalystDetailKeyHandler: UIViewRepresentable {
-    let capturesLeftArrow: Bool
-    let capturesRightArrow: Bool
-    let capturesUpArrow: Bool
-    let capturesDownArrow: Bool
-    let onEscape: () -> Void
-    let onMoveLeft: () -> Void
-    let onMoveRight: () -> Void
-    let onMoveUp: () -> Void
-    let onMoveDown: () -> Void
-
-    func makeUIView(context: Context) -> KeyHandlingView {
-        let view = KeyHandlingView()
-        update(view)
-        return view
-    }
-
-    func updateUIView(_ uiView: KeyHandlingView, context: Context) {
-        update(uiView)
-    }
-
-    private func update(_ view: KeyHandlingView) {
-        view.capturesLeftArrow = capturesLeftArrow
-        view.capturesRightArrow = capturesRightArrow
-        view.capturesUpArrow = capturesUpArrow
-        view.capturesDownArrow = capturesDownArrow
-        view.onEscape = onEscape
-        view.onMoveLeft = onMoveLeft
-        view.onMoveRight = onMoveRight
-        view.onMoveUp = onMoveUp
-        view.onMoveDown = onMoveDown
-    }
-
-    final class KeyHandlingView: UIView {
-        var capturesLeftArrow = false { didSet { reloadIfNeeded(oldValue, capturesLeftArrow) } }
-        var capturesRightArrow = false { didSet { reloadIfNeeded(oldValue, capturesRightArrow) } }
-        var capturesUpArrow = false { didSet { reloadIfNeeded(oldValue, capturesUpArrow) } }
-        var capturesDownArrow = false { didSet { reloadIfNeeded(oldValue, capturesDownArrow) } }
-        var onEscape: (() -> Void)?
-        var onMoveLeft: (() -> Void)?
-        var onMoveRight: (() -> Void)?
-        var onMoveUp: (() -> Void)?
-        var onMoveDown: (() -> Void)?
-
-        override var canBecomeFirstResponder: Bool { true }
-
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            guard window != nil else {
-                return
-            }
-
-            DispatchQueue.main.async {
-                self.becomeFirstResponder()
-            }
-        }
-
-        override var keyCommands: [UIKeyCommand]? {
-            var commands: [UIKeyCommand] = []
-
-            let escape = UIKeyCommand(input: UIKeyCommand.inputEscape,
-                                      modifierFlags: [],
-                                      action: #selector(handleEscape))
-            escape.wantsPriorityOverSystemBehavior = true
-            commands.append(escape)
-
-            if capturesLeftArrow {
-                let left = UIKeyCommand(input: UIKeyCommand.inputLeftArrow,
-                                        modifierFlags: [],
-                                        action: #selector(handleMoveLeft))
-                left.wantsPriorityOverSystemBehavior = true
-                commands.append(left)
-            }
-
-            if capturesRightArrow {
-                let right = UIKeyCommand(input: UIKeyCommand.inputRightArrow,
-                                         modifierFlags: [],
-                                         action: #selector(handleMoveRight))
-                right.wantsPriorityOverSystemBehavior = true
-                commands.append(right)
-            }
-
-            if capturesUpArrow {
-                let up = UIKeyCommand(input: UIKeyCommand.inputUpArrow,
-                                      modifierFlags: [],
-                                      action: #selector(handleMoveUp))
-                up.wantsPriorityOverSystemBehavior = true
-                commands.append(up)
-            }
-
-            if capturesDownArrow {
-                let down = UIKeyCommand(input: UIKeyCommand.inputDownArrow,
-                                        modifierFlags: [],
-                                        action: #selector(handleMoveDown))
-                down.wantsPriorityOverSystemBehavior = true
-                commands.append(down)
-            }
-
-            return commands
-        }
-
-        private func reloadIfNeeded(_ oldValue: Bool, _ newValue: Bool) {
-            if oldValue != newValue {
-                reloadInputViews()
-            }
-        }
-
-        @objc private func handleEscape() {
-            onEscape?()
-        }
-
-        @objc private func handleMoveLeft() {
-            onMoveLeft?()
-        }
-
-        @objc private func handleMoveRight() {
-            onMoveRight?()
-        }
-
-        @objc private func handleMoveUp() {
-            onMoveUp?()
-        }
-
-        @objc private func handleMoveDown() {
-            onMoveDown?()
-        }
-    }
-}
-#endif
 
 // MARK: - Preview
 #if DEBUG

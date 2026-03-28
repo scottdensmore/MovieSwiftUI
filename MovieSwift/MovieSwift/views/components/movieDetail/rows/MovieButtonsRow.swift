@@ -29,7 +29,7 @@ enum MovieButtonsToggleAction: Equatable {
 struct MovieButtonsRow: ConnectedView {
     let movieId: Int
     @Binding var showCustomListSheet: Bool
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     var focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
     #endif
     
@@ -74,7 +74,7 @@ struct MovieButtonsRow: ConnectedView {
     
     func body(props: Props) -> some View {
         HStack(alignment: .center, spacing: 8) {
-            #if os(macOS) || targetEnvironment(macCatalyst)
+            #if os(macOS)
             catalystButton(id: .wishlistButton,
                            text: props.isInWishlist ? "In wishlist" : "Wishlist",
                            systemImageName: "heart",
@@ -123,7 +123,7 @@ struct MovieButtonsRow: ConnectedView {
         .animation(.spring(), value: props.isInWishlist || props.isInSeenlist || props.isInCustomList)
     }
 
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     private func catalystButton(id: MovieDetailFocusTarget,
                                 text: String,
                                 systemImageName: String,
@@ -164,23 +164,23 @@ struct MovieButtonsRow: ConnectedView {
             }
             return .handled
         }
-        .catalystFocusHighlight(isFocused: focusedItem.wrappedValue == id)
+        .macFocusHighlight(isFocused: focusedItem.wrappedValue == id)
     }
     #endif
 }
 
 struct MovieButtonsRow_Previews: PreviewProvider {
     static var previews: some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        MovieButtonsRowCatalystPreviewHost()
+        #if os(macOS)
+        MovieButtonsRowMacPreviewHost()
         #else
         MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environmentObject(sampleStore)
         #endif
     }
 }
 
-#if DEBUG && (os(macOS) || targetEnvironment(macCatalyst))
-private struct MovieButtonsRowCatalystPreviewHost: View {
+#if DEBUG && os(macOS)
+private struct MovieButtonsRowMacPreviewHost: View {
     @FocusState private var focusedItem: MovieDetailFocusTarget?
 
     var body: some View {

@@ -123,7 +123,7 @@ struct DiscoverView: ConnectedView {
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .soft)
     #endif
     
-    #if os(macOS) || targetEnvironment(macCatalyst)
+    #if os(macOS)
     private let bottomSafeInsetFix: CGFloat = 100
     #else
     private let bottomSafeInsetFix: CGFloat = 20
@@ -403,7 +403,7 @@ struct DiscoverView: ConnectedView {
     
     @ViewBuilder
     private func presentMovieDetails<Content: View>(_ content: Content) -> some View {
-        #if os(macOS) || targetEnvironment(macCatalyst)
+        #if os(macOS)
         content
             .popover(item: self.$presentedMovie,
                      attachmentAnchor: .rect(.bounds),

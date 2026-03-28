@@ -1,28 +1,36 @@
 //
-//  ContentView.swift
+//  HomeView.swift
 //  MovieSwiftTV
-//
-//  Created by Thomas Ricouard on 06/01/2020.
-//  Copyright © 2020 Thomas Ricouard. All rights reserved.
 //
 
 import SwiftUI
 
 struct HomeView: View {
     @State private var selectedTab = MoviesMenu.popular
+
+    private static let movieTabs: [MoviesMenu] = MoviesMenu.allCases.filter { $0 != .genres }
+
     var body: some View {
         TabView(selection: $selectedTab) {
-            ForEach(MoviesMenu.allCases, id: \.self) { menu in
-                MoviesView(menu: self.$selectedTab)
-                    .tabItem{ Text(menu.title()) }
-                    .tag(menu)
+            ForEach(Self.movieTabs, id: \.self) { menu in
+                NavigationStack {
+                    MoviesView(menu: menu)
+                        .navigationTitle(menu.title())
+                }
+                .tabItem { Label(menu.title(), systemImage: tabIcon(for: menu)) }
+                .tag(menu)
             }
         }
     }
-}
 
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView()
+    private func tabIcon(for menu: MoviesMenu) -> String {
+        switch menu {
+        case .popular:      return "flame"
+        case .topRated:     return "star"
+        case .upcoming:     return "calendar"
+        case .nowPlaying:   return "play.circle"
+        case .trending:     return "chart.line.uptrend.xyaxis"
+        case .genres:       return "tag"
+        }
     }
 }
