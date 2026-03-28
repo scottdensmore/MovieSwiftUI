@@ -33,11 +33,14 @@ struct TVMovieDetail: ConnectedView {
             if let movie = props.movie {
                 VStack(alignment: .leading, spacing: 40) {
                     headerSection(movie: movie)
+                        .focusSection()
                     if !props.characters.isEmpty {
                         castSection(characters: props.characters)
+                            .focusSection()
                     }
                     if !props.recommended.isEmpty {
                         recommendedSection(movieIds: props.recommended, movies: props.movies)
+                            .focusSection()
                     }
                 }
                 .padding(.horizontal, 60)
@@ -108,22 +111,25 @@ struct TVMovieDetail: ConnectedView {
             ScrollView(.horizontal) {
                 HStack(spacing: 24) {
                     ForEach(characters.prefix(10)) { person in
-                        VStack {
-                            AsyncImage(url: person.profile_path.flatMap {
-                                ImageService.Size.cast.path(poster: $0)
-                            }) { image in
-                                image.resizable().aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Color.secondary.opacity(0.3)
-                            }
-                            .frame(width: 120, height: 160)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        Button { } label: {
+                            VStack {
+                                AsyncImage(url: person.profile_path.flatMap {
+                                    ImageService.Size.cast.path(poster: $0)
+                                }) { image in
+                                    image.resizable().aspectRatio(contentMode: .fill)
+                                } placeholder: {
+                                    Color.secondary.opacity(0.3)
+                                }
+                                .frame(width: 150, height: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                            Text(person.name)
-                                .font(.caption)
-                                .lineLimit(1)
-                                .frame(width: 120)
+                                Text(person.name)
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                    .frame(width: 150)
+                            }
                         }
+                        .buttonStyle(.card)
                     }
                 }
             }

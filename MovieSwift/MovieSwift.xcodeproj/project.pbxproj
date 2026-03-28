@@ -384,7 +384,6 @@
 		699179F1257E1A8300D375E7 /* MovieButtonsRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieButtonsRow.swift; sourceTree = "<group>"; };
 		6993877122E64DE8007AA4E0 /* MoviesMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoviesMenu.swift; sourceTree = "<group>"; };
 		69A0F56A22AEFF3C000977BB /* MovieSwift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MovieSwift.entitlements; sourceTree = "<group>"; };
-		69A396A223C365E5003E165F /* MovieRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieRow.swift; sourceTree = "<group>"; };
 		69B1CE5722E1FB3500D6682C /* MovieSwift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MovieSwift-Bridging-Header.h"; sourceTree = "<group>"; };
 		69B2560422A9BDD5009F4413 /* MovieRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieRow.swift; sourceTree = "<group>"; };
 		69B2560B22AAD1D5009F4413 /* MoviesHomeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesHomeList.swift; sourceTree = "<group>"; };
@@ -618,7 +617,6 @@
 			children = (
 				69414A1023C33FBE0056FBDF /* HomeView.swift */,
 				69414A5523C360C90056FBDF /* MoviesView.swift */,
-				69A396A223C365E5003E165F /* MovieRow.swift */,
 				AC5EEEB18CC8FC9A70406B36 /* TVMovieDetail.swift */,
 			);
 			path = views;

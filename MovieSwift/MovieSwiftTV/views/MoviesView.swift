@@ -22,10 +22,11 @@ struct MoviesView: ConnectedView {
               dispatch: dispatch)
     }
 
+    private static let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 40), count: 5)
+
     func body(props: Props) -> some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 200, maximum: 300))],
-                      spacing: 40) {
+            LazyVGrid(columns: Self.gridColumns, spacing: 40) {
                 ForEach(props.movieIds, id: \.self) { id in
                     if let movie = props.movies[id] {
                         NavigationLink(value: id) {
