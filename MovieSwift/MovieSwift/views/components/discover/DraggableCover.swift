@@ -71,7 +71,9 @@ struct DraggableCover : View {
     @State private var delayedIsActive = false
     @State private var viewWidth: CGFloat = 0
     @GestureState private var dragState = DragState.inactive
+    #if !os(macOS)
     private let hapticFeedback = UISelectionFeedbackGenerator()
+    #endif
     
     // MARK: - Internal consts
     private let minimumLongPressDuration = 0.01
@@ -120,7 +122,9 @@ struct DraggableCover : View {
                 switch value {
                 case .first(true):
                     state = .pressing
+                    #if !os(macOS)
                     self.hapticFeedback.selectionChanged()
+                    #endif
                 case .second(true, let drag):
                     state = .dragging(translation: drag?.translation ?? .zero, predictedLocation: drag?.predictedEndLocation ?? .zero)
                 default:
@@ -187,7 +191,9 @@ struct DraggableCover : View {
                 }
             )
             .onAppear{
+                #if !os(macOS)
                 self.hapticFeedback.prepare()
+                #endif
         }
     }
 }

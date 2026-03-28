@@ -167,7 +167,7 @@ enum MovieDetailPeopleState {
     }
 }
 
-#if targetEnvironment(macCatalyst)
+#if os(macOS) || targetEnvironment(macCatalyst)
 enum MovieDetailFocusTarget: Hashable {
     case genre(Int)
     case wishlistButton
@@ -220,7 +220,7 @@ struct MovieDetail: ConnectedView {
     @State private var peopleListTitle = ""
     @State private var peopleListEntries: [People] = []
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedDetailItem: MovieDetailFocusTarget?
     #endif
@@ -331,7 +331,7 @@ struct MovieDetail: ConnectedView {
         isPeopleListPresented = true
     }
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     private func genreTargets(props: Props) -> [MovieDetailFocusTarget] {
         (props.movie?.genres ?? []).map { .genre($0.id) }
     }
@@ -501,7 +501,7 @@ struct MovieDetail: ConnectedView {
                    displaySearch: false,
                    pageListener: nil,
                    navigationRoute: $selectedCrosslineRoute)
-            .navigationBarTitle(crosslineMoviesListTitle)
+            .navigationTitle(crosslineMoviesListTitle)
     }
 
     private var peopleListView: some View {
@@ -510,10 +510,11 @@ struct MovieDetail: ConnectedView {
                 selectedPeopleId = people.id
             }
         }
-        .navigationBarTitle(peopleListTitle)
+        .navigationTitle(peopleListTitle)
     }
     
     // MARK: - Computed views
+    #if !os(macOS)
     func addActionSheet(props: Props) -> ActionSheet {
         let movieTitle = props.movie?.userTitle ?? "this movie"
         var buttons: [Alert.Button] = []
@@ -536,7 +537,7 @@ struct MovieDetail: ConnectedView {
             self.isCreateListFormPresented = true
         }
         let cancelButton = Alert.Button.cancel {
-            
+
         }
         buttons.append(wishlistButton)
         buttons.append(seenButton)
@@ -548,6 +549,7 @@ struct MovieDetail: ConnectedView {
                                 buttons: buttons)
         return sheet
     }
+    #endif
     
     // MARK: - Body
     
@@ -555,7 +557,7 @@ struct MovieDetail: ConnectedView {
         Group {
             if people != nil {
                 let accessibilityId = "movieDetail.topPerson.\(people!.id)"
-                #if targetEnvironment(macCatalyst)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 CatalystFocusableLink(id: .topPerson(people!.id), focusedId: $focusedDetailItem) {
                     selectPeople(people!.id)
                 } label: {
@@ -617,7 +619,7 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func topContent(props: Props) -> some View {
-        #if targetEnvironment(macCatalyst)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         MovieCoverRow(movieId: movieId, focusedItem: $focusedDetailItem) { genre in
             selectedGenre = genre
         }
@@ -630,7 +632,7 @@ struct MovieDetail: ConnectedView {
         #endif
         smokeTestTopPersonShortcut(props: props)
         if props.reviewsCount ?? 0 > 0 {
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             CatalystFocusableLink(id: .reviewLink, focusedId: $focusedDetailItem) {
                 selectedReviewMovieId = movieId
             } label: {
@@ -666,7 +668,7 @@ struct MovieDetail: ConnectedView {
         if let movie = props.movie,
            movie.keywords?.keywords?.isEmpty == false,
            let keywords = movie.keywords?.keywords {
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             MovieKeywords(keywords: keywords) { keyword in
                 selectedKeyword = keyword
             }
@@ -725,7 +727,7 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func detailContent(props: Props) -> some View {
-        #if targetEnvironment(macCatalyst)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 topContent(props: props)
@@ -776,17 +778,27 @@ struct MovieDetail: ConnectedView {
             Group {
                 if let movie = props.movie {
                     detailContent(props: props)
-                    .navigationBarTitle(Text(movie.userTitle), displayMode: .large)
+                    .navigationTitle(movie.userTitle)
                 } else {
                     unavailableView()
-                        .navigationBarTitle(Text("Movie"), displayMode: .large)
+                        .navigationTitle("Movie")
                 }
             }
+            #if !os(macOS)
             .navigationBarItems(trailing: addButton(props: props))
+            #else
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    addButton(props: props)
+                }
+            }
+            #endif
             .onAppear {
                 self.fetchMovieDetails(props: props)
             }
+            #if !os(macOS)
             .actionSheet(isPresented: $isAddSheetPresented, content: { addActionSheet(props: props) })
+            #endif
             .sheet(isPresented: $isCreateListFormPresented,
                    content: { CustomListForm(editingListId: nil)
                     .environmentObject(store) })
@@ -862,6 +874,8 @@ struct MovieDetail: ConnectedView {
                 }
             )
         )
+        #endif
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .onAppear {
             restoreDetailFocus(props: props, force: true)
         }
@@ -1022,7 +1036,10 @@ struct MovieDetail_Previews : PreviewProvider {
     static var previews: some View {
         NavigationView {
             MovieDetail(movieId: sampleMovie.id).environmentObject(sampleStore)
-        }.navigationViewStyle(StackNavigationViewStyle())
+        }
+        #if !os(macOS)
+        .navigationViewStyle(StackNavigationViewStyle())
+        #endif
     }
 }
 #endif

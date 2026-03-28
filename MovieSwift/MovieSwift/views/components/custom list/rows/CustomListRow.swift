@@ -37,10 +37,8 @@ struct SmallMoviePosterImage : View {
     
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
-                Image(uiImage: self.imageLoader.image!)
-                    .resizable()
-                    .renderingMode(.original)
+            if let imageData = self.imageLoader.image {
+                DataImage(data: imageData, renderingMode: .original)
                     .frame(width: 33, height: 50)
                     .cornerRadius(3)
                     .opacity(isImageLoaded ? 1 : 0.1)

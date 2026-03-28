@@ -14,10 +14,8 @@ struct MoviePosterImage: View {
     let posterSize: PosterStyle.Size
     
     var body: some View {
-        if let image = imageLoader.image {
-            Image(uiImage: image)
-                .resizable()
-                .renderingMode(.original)
+        if let imageData = imageLoader.image {
+            DataImage(data: imageData, renderingMode: .original)
                 .posterStyle(loaded: true, size: posterSize)
                 .animation(.easeInOut, value: imageLoader.image != nil)
                 .transition(.opacity)

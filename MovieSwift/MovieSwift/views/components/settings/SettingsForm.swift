@@ -173,13 +173,12 @@ struct SettingsForm : ConnectedView {
                     footer: Text("Region is used to display a more accurate movies list"),
                     content: {
                     originalTitlePreferenceRow
-                    Picker(selection: $selectedRegionCode,
-                           label: Text("Region"),
-                           content: {
+                    Picker("Region", selection: $selectedRegionCode) {
                             ForEach(regions) { region in
                                 Text(region.name).tag(region.code)
                             }
-                    })
+                    }
+                    .accessibilityIdentifier("settings.regionPicker")
             })
             Section(header: Text("App data"),
                     footer: Text("Clears cached movies, people, details, and images while keeping your lists and preferences. Backup and restore are not implemented yet."),
@@ -226,15 +225,17 @@ struct SettingsForm : ConnectedView {
         if showNavigationTitle {
             formContent(props: props)
                 .navigationTitle("Settings")
+                #if !os(macOS)
                 .navigationBarTitleDisplayMode(.large)
+                #endif
                 .toolbar {
                     if isModalPresentation {
-                        ToolbarItem(placement: .topBarLeading) {
+                        ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel", action: cancelAction)
                     .padding(.horizontal, 6)
                                 .accessibilityIdentifier("settings.cancelButton")
                         }
-                        ToolbarItem(placement: .topBarTrailing) {
+                        ToolbarItem(placement: .confirmationAction) {
                             Button("Save") {
                                 savePreferences(dispatch: props.dispatch)
                                 close()

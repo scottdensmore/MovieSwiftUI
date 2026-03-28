@@ -36,7 +36,7 @@ struct MyLists : ConnectedView {
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
     @State private var isEditingFormPresented = false
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     private struct MovieNav: Hashable { let id: Int }
     private struct CustomListNav: Hashable { let id: Int }
     @State private var selectedMovie: MovieNav?
@@ -56,6 +56,7 @@ struct MyLists : ConnectedView {
     }
     
     // MARK: - Dynamic views
+    #if !os(macOS)
     private var sortActionSheet: ActionSheet {
         ActionSheet.sortActionSheet { (sort) in
             if let sort = sort{
@@ -63,6 +64,7 @@ struct MyLists : ConnectedView {
             }
         }
     }
+    #endif
     
     private func customListsSection(props: Props) -> some View {
         Section(header: Text("Custom Lists")) {
@@ -71,8 +73,9 @@ struct MyLists : ConnectedView {
             }) {
                 Text("Create custom list").foregroundColor(.steam_blue)
             }
+            .accessibilityIdentifier("myLists.createCustomListButton")
             ForEach(props.customLists) { list in
-                #if targetEnvironment(macCatalyst)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
                     CustomListRow(list: list,
                                   coverMovie: CustomListPresentation.coverMovie(for: list,
@@ -101,7 +104,7 @@ struct MyLists : ConnectedView {
     private func wishlistSection(props: Props) -> some View {
         Section(header: Text("\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")) {
             ForEach(props.wishlist, id: \.self) {id in
-                #if targetEnvironment(macCatalyst)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
                         .padding(.horizontal, 6)
@@ -129,7 +132,7 @@ struct MyLists : ConnectedView {
     private func seenSection(props: Props) -> some View {
         Section(header: Text("\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")) {
             ForEach(props.seenlist, id: \.self) {id in
-                #if targetEnvironment(macCatalyst)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 Button(action: { selectedMovie = MovieNav(id: id) }) {
                     MovieRow(movieId: id, displayListImage: false)
                         .padding(.horizontal, 6)
@@ -168,8 +171,10 @@ struct MyLists : ConnectedView {
                 seenSection(props: props)
             }
         }
+        #if os(iOS) || os(tvOS)
         .listStyle(GroupedListStyle())
-        #if targetEnvironment(macCatalyst)
+        #endif
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .navigationDestination(item: $selectedMovie) { nav in
             MovieDetail(movieId: nav.id)
         }
@@ -177,9 +182,11 @@ struct MyLists : ConnectedView {
             CustomListDetail(listId: nav.id)
         }
         #endif
+        #if !os(macOS)
         .actionSheet(isPresented: $isSortActionSheetPresented, content: { sortActionSheet })
+        #endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .automatic) {
                 Button(action: {
                     self.isSortActionSheetPresented.toggle()
                 }, label: {

@@ -3,6 +3,8 @@
 //  MovieSwift
 //
 
+import Foundation
+
 #if DEBUG
 private let uiSmokeTestFanClubFailureKey = "UI_SMOKE_TEST_FAN_CLUB_FAILURE"
 private let sampleCustomList = CustomList(id: 0,

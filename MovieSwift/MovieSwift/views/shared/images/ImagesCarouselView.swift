@@ -35,8 +35,10 @@ struct ImagesCarouselView : View {
                 posterPage(poster)
             }
         }
+        #if !os(macOS)
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: posters.count > 1 ? .automatic : .never))
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
+        #endif
         .frame(width: reader.size.width,
                height: min(reader.size.height * 0.8, 460))
     }

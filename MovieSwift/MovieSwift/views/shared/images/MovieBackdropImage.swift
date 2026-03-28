@@ -20,10 +20,8 @@ struct MovieBackdropImage : View {
     
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
-                Image(uiImage: self.imageLoader.image!)
-                    .resizable()
-                    .renderingMode(.original)
+            if let imageData = self.imageLoader.image {
+                DataImage(data: imageData, renderingMode: .original)
                     .frame(width: 280, height: displayMode == .normal ? 168 : 50)
                     .animation(.easeInOut, value: self.imageLoader.image != nil)
                     .onAppear{

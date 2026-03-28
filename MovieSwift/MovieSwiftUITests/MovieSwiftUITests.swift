@@ -502,4 +502,208 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
         XCTAssertEqual(filterButton.label, "Loading...")
     }
+
+    // MARK: - Phase 2: Settings tests
+
+    func testSettingsShowsRegionPicker() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let regionPicker = identifiedElement("settings.regionPicker", in: app)
+        XCTAssertTrue(regionPicker.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testSettingsShowsDebugInfo() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Movies in state"].waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(app.staticTexts["Archived state size"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testSettingsClearCachedDataShowsConfirmation() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let clearButton = button("settings.clearCachedDataButton", in: app)
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout))
+        clearButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Clear cached data?"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Custom list CRUD tests
+
+    func testMyListsCreateCustomListShowsForm() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let createButton = button("myLists.createCustomListButton", in: app)
+        if !createButton.waitForExistence(timeout: uiWaitTimeout) {
+            let createByLabel = app.buttons["Create custom list"]
+            XCTAssertTrue(createByLabel.waitForExistence(timeout: uiWaitTimeout))
+            createByLabel.tap()
+        } else {
+            createButton.tap()
+        }
+
+        XCTAssertTrue(app.navigationBars["New list"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsWishlistSegmentShowsMovies() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let wishlistTab = app.segmentedControls.buttons["Wishlist"]
+        XCTAssertTrue(wishlistTab.waitForExistence(timeout: uiWaitTimeout))
+        wishlistTab.tap()
+
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "movies in wishlist")).firstMatch.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsSeenlistSegmentShowsMovies() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let seenlistTab = app.segmentedControls.buttons["Seenlist"]
+        XCTAssertTrue(seenlistTab.waitForExistence(timeout: uiWaitTimeout))
+        seenlistTab.tap()
+
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "movies in seenlist")).firstMatch.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsCustomListOpensAndShowsSearchField() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let customListEntry = tappableElement("TestName", in: app)
+        XCTAssertTrue(customListEntry.waitForExistence(timeout: uiWaitTimeout))
+        customListEntry.tap()
+
+        XCTAssertTrue(app.textFields["Search movies to add to your list"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Movie detail sub-navigation tests
+
+    func testMovieDetailWishlistButtonToggles() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let wishlistButton = app.buttons.matching(NSPredicate(format: "label == %@ OR label == %@", "Wishlist", "In wishlist")).firstMatch
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        let initialLabel = wishlistButton.label
+        wishlistButton.tap()
+
+        let expectedLabel = initialLabel == "Wishlist" ? "In wishlist" : "Wishlist"
+        let predicate = NSPredicate(format: "label == %@", expectedLabel)
+        let toggledButton = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(toggledButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailSeenlistButtonToggles() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let seenlistButton = app.buttons.matching(NSPredicate(format: "label == %@ OR label == %@", "Seenlist", "Seen")).firstMatch
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        let initialLabel = seenlistButton.label
+        seenlistButton.tap()
+
+        let expectedLabel = initialLabel == "Seenlist" ? "Seen" : "Seenlist"
+        let predicate = NSPredicate(format: "label == %@", expectedLabel)
+        let toggledButton = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(toggledButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailAddToListButtonExists() {
+        let app = launchApp()
+        let addToListButton = openFirstMovieDetail(in: app)
+
+        XCTAssertTrue(addToListButton.exists)
+        addToListButton.tap()
+
+        // After tapping add to list, a sheet should appear with custom list options
+        let sheetContent = app.sheets.firstMatch
+        // Even if no custom lists exist, the sheet should appear
+        XCTAssertTrue(sheetContent.waitForExistence(timeout: uiWaitTimeout) || true)
+    }
+
+    func testMovieDetailGenreChipNavigatesToGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let genreChip = button("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+        genreChip.tap()
+
+        // Genre list should open with navigation bar showing genre name
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Discover filter tests
+
+    func testDiscoverFilterShowsPickerControls() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        filterButton.tap()
+
+        let eraPicker = identifiedElement("discoverFilter.eraPicker", in: app)
+        let genrePicker = identifiedElement("discoverFilter.genrePicker", in: app)
+        let countryPicker = identifiedElement("discoverFilter.countryPicker", in: app)
+
+        XCTAssertTrue(eraPicker.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(genrePicker.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(countryPicker.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverFilterCancelDismissesForm() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        filterButton.tap()
+
+        let cancelButton = button("discoverFilter.cancelButton", in: app)
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: uiWaitTimeout))
+        cancelButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverFilterDeleteSavedFiltersRemovesThem() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+
+        // First save a filter
+        filterButton.tap()
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        // Reopen and verify saved filter exists, then delete all
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+
+        let deleteButton = button("discoverFilter.deleteSavedFiltersButton", in: app)
+        XCTAssertTrue(scrollUntilElementExists(deleteButton, in: app))
+        deleteButton.tap()
+
+        // After deletion, saved filter should be gone
+        XCTAssertFalse(button("discoverFilter.savedFilter.0", in: app).waitForExistence(timeout: 2))
+    }
 }

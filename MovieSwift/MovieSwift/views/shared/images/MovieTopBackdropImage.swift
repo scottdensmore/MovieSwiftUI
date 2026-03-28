@@ -17,9 +17,8 @@ struct MovieTopBackdropImage : View {
     var height: CGFloat = 250
           
     var body: some View {
-        if let image = imageLoader.image {
-            Image(uiImage: image)
-                .resizable()
+        if let imageData = imageLoader.image {
+            DataImage(data: imageData)
                 .blur(radius: 50, opaque: true)
                 .overlay(Color.black.opacity(0.3))
                 .frame(height: fill ? 50 : height)

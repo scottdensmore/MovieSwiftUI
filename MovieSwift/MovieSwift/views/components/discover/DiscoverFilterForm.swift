@@ -159,31 +159,28 @@ struct DiscoverFilterForm : ConnectedView {
 
     private func settingsSection(genres: [Genre]) -> some View {
         Section(header: Text("Filter settings"), content: {
-            Picker(selection: $selectedDate,
-                   label: Text("Era"),
-                   content: {
-                    ForEach(0 ..< self.datesText.count, id: \.self) {
-                        Text(self.datesText[$0]).tag($0)
+            Picker("Era", selection: $selectedDate) {
+                    ForEach(0 ..< self.datesText.count, id: \.self) { index in
+                        Text(self.datesText[index]).tag(index)
                     }
-            })
-            
-            if !genres.isEmpty {
-                Picker(selection: $selectedGenre,
-                       label: Text("Genre"),
-                       content: {
-                        ForEach(0 ..< genres.count, id: \.self) {
-                            Text(genres[$0].name).tag($0)
-                        }
-                })
             }
-            
-            Picker(selection: $selectedCountry,
-                   label: Text("Country of origin"),
-                   content: {
-                    ForEach(0 ..< self.countries.count, id: \.self) {
-                        Text(self.countries[$0]).tag($0)
+            .accessibilityIdentifier("discoverFilter.eraPicker")
+
+            if !genres.isEmpty {
+                Picker("Genre", selection: $selectedGenre) {
+                        ForEach(0 ..< genres.count, id: \.self) { index in
+                            Text(genres[index].name).tag(index)
+                        }
+                }
+                .accessibilityIdentifier("discoverFilter.genrePicker")
+            }
+
+            Picker("Country of origin", selection: $selectedCountry) {
+                    ForEach(0 ..< self.countries.count, id: \.self) { index in
+                        Text(self.countries[index]).tag(index)
                     }
-            })
+            }
+            .accessibilityIdentifier("discoverFilter.countryPicker")
         })
     }
     
@@ -287,6 +284,7 @@ struct DiscoverFilterForm : ConnectedView {
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .foregroundColor(.red)
                     })
+                    .accessibilityIdentifier("discoverFilter.deleteSavedFiltersButton")
                 })
             }
         }
@@ -299,7 +297,7 @@ struct DiscoverFilterForm : ConnectedView {
                 buttonsSection(props: props)
                 savedFiltersSection(props: props)
             }
-            .navigationBarTitle(Text("Discover filter"))
+            .navigationTitle("Discover filter")
             .onAppear {
                 self.syncSelections(currentFilter: props.currentFilter, genres: props.genres)
                 if DiscoverFilterFormFetchPolicy.shouldFetchGenres(genres: props.genres) {
@@ -309,7 +307,10 @@ struct DiscoverFilterForm : ConnectedView {
             .onChange(of: props.genres.count) {
                 self.syncSelections(currentFilter: props.currentFilter, genres: props.genres)
             }
-        }.navigationViewStyle(StackNavigationViewStyle())
+        }
+        #if !os(macOS)
+        .navigationViewStyle(StackNavigationViewStyle())
+        #endif
     }
 }
 

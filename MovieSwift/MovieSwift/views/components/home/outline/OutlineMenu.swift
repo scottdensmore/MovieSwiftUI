@@ -59,7 +59,9 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         NavigationStack {
             content()
                 .navigationTitle(title)
+                #if !os(macOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
         }
     }
     

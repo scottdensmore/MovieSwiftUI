@@ -212,6 +212,375 @@ final class MoviesActionsTests: XCTestCase {
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
 
+    // MARK: - FetchDetail
+
+    func testFetchDetailDispatchesSetDetailOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(makeMovie(id: 42))
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchDetail")
+        )
+
+        let expectation = expectation(description: "Dispatch SetDetail")
+        var dispatchedAction: MoviesActions.SetDetail?
+
+        MoviesActions.FetchDetail(movie: 42).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetDetail
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.movie, 42)
+        XCTAssertEqual(dispatchedAction?.response.id, 42)
+
+        let components = try XCTUnwrap(
+            URLComponents(url: try XCTUnwrap(session.lastRequest?.url), resolvingAgainstBaseURL: false)
+        )
+        XCTAssertTrue(components.path.contains("/movie/42"))
+        let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
+        XCTAssertEqual(queryItems["append_to_response"], "keywords,images")
+    }
+
+    func testFetchDetailDoesNotDispatchOnFailure() {
+        let session = MockNetworkSession()
+        session.nextError = StubError.failed
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchDetailFailure")
+        )
+
+        let expectation = expectation(description: "No dispatch on detail failure")
+        expectation.isInverted = true
+
+        MoviesActions.FetchDetail(movie: 42).execute(state: nil) { _ in
+            expectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 0.2)
+    }
+
+    // MARK: - FetchRecommended
+
+    func testFetchRecommendedDispatchesSetRecommendedOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 10)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRecommended")
+        )
+
+        let expectation = expectation(description: "Dispatch SetRecommended")
+        var dispatchedAction: MoviesActions.SetRecommended?
+
+        MoviesActions.FetchRecommended(movie: 5).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetRecommended
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.movie, 5)
+        XCTAssertEqual(dispatchedAction?.response.results.map(\.id), [10])
+    }
+
+    // MARK: - FetchSimilar
+
+    func testFetchSimilarDispatchesSetSimilarOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 11)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSimilar")
+        )
+
+        let expectation = expectation(description: "Dispatch SetSimilar")
+        var dispatchedAction: MoviesActions.SetSimilar?
+
+        MoviesActions.FetchSimilar(movie: 6).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetSimilar
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.movie, 6)
+        XCTAssertEqual(dispatchedAction?.response.results.map(\.id), [11])
+    }
+
+    // MARK: - FetchVideos
+
+    func testFetchVideosDispatchesSetVideosOnSuccess() throws {
+        let session = MockNetworkSession()
+        let video = Video(id: "v1", name: "Trailer", site: "YouTube", key: "abc", type: "Trailer")
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [video])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchVideos")
+        )
+
+        let expectation = expectation(description: "Dispatch SetVideos")
+        var dispatchedAction: MoviesActions.SetVideos?
+
+        MoviesActions.FetchVideos(movie: 7).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetVideos
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.movie, 7)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.key, "abc")
+    }
+
+    // MARK: - FetchSearch
+
+    func testFetchSearchDispatchesSetSearchOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 2, total_results: 1, total_pages: 2, results: [makeMovie(id: 30)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSearch")
+        )
+
+        let expectation = expectation(description: "Dispatch SetSearch")
+        var dispatchedAction: MoviesActions.SetSearch?
+
+        MoviesActions.FetchSearch(query: "test", page: 2).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetSearch
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.query, "test")
+        XCTAssertEqual(dispatchedAction?.page, 2)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 30)
+    }
+
+    // MARK: - FetchSearchKeyword
+
+    func testFetchSearchKeywordDispatchesSetSearchKeywordOnSuccess() throws {
+        let session = MockNetworkSession()
+        let keyword = Keyword(id: 50, name: "neo-noir")
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [keyword])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSearchKeyword")
+        )
+
+        let expectation = expectation(description: "Dispatch SetSearchKeyword")
+        var dispatchedAction: MoviesActions.SetSearchKeyword?
+
+        MoviesActions.FetchSearchKeyword(query: "noir").execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetSearchKeyword
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.query, "noir")
+        XCTAssertEqual(dispatchedAction?.response.results.first?.name, "neo-noir")
+    }
+
+    // MARK: - FetchMoviesGenre
+
+    func testFetchMoviesGenreDispatchesSetMovieForGenreOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 40)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMoviesGenre")
+        )
+
+        let expectation = expectation(description: "Dispatch SetMovieForGenre")
+        var dispatchedAction: MoviesActions.SetMovieForGenre?
+        let genre = Genre(id: 28, name: "Action")
+
+        MoviesActions.FetchMoviesGenre(genre: genre, page: 1, sortBy: .byPopularity).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetMovieForGenre
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.genre.id, 28)
+        XCTAssertEqual(dispatchedAction?.page, 1)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 40)
+    }
+
+    // MARK: - FetchMovieReviews
+
+    func testFetchMovieReviewsDispatchesSetMovieReviewsOnSuccess() throws {
+        let session = MockNetworkSession()
+        let review = Review(id: "r1", author: "Critic", content: "Great movie")
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [review])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchReviews")
+        )
+
+        let expectation = expectation(description: "Dispatch SetMovieReviews")
+        var dispatchedAction: MoviesActions.SetMovieReviews?
+
+        MoviesActions.FetchMovieReviews(movie: 8).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetMovieReviews
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.movie, 8)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.author, "Critic")
+    }
+
+    // MARK: - FetchMovieWithCrew
+
+    func testFetchMovieWithCrewDispatchesSetMovieWithCrewOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 50)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMovieWithCrew")
+        )
+
+        let expectation = expectation(description: "Dispatch SetMovieWithCrew")
+        var dispatchedAction: MoviesActions.SetMovieWithCrew?
+
+        MoviesActions.FetchMovieWithCrew(crew: 15).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetMovieWithCrew
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.crew, 15)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 50)
+    }
+
+    // MARK: - FetchMovieWithKeywords
+
+    func testFetchMovieWithKeywordsDispatchesSetMovieWithKeywordOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 2, total_results: 1, total_pages: 2, results: [makeMovie(id: 60)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMovieWithKeywords")
+        )
+
+        let expectation = expectation(description: "Dispatch SetMovieWithKeyword")
+        var dispatchedAction: MoviesActions.SetMovieWithKeyword?
+
+        MoviesActions.FetchMovieWithKeywords(keyword: 99, page: 2).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetMovieWithKeyword
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.keyword, 99)
+        XCTAssertEqual(dispatchedAction?.page, 2)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 60)
+    }
+
+    // MARK: - FetchRandomDiscover
+
+    func testFetchRandomDiscoverDispatchesSetRandomDiscoverOnSuccess() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 70)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscover")
+        )
+
+        let expectation = expectation(description: "Dispatch SetRandomDiscover")
+        var dispatchedAction: MoviesActions.SetRandomDiscover?
+        let filter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
+
+        MoviesActions.FetchRandomDiscover(filter: filter).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetRandomDiscover
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertEqual(dispatchedAction?.filter.year, 2000)
+        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 70)
+    }
+
+    func testFetchRandomDiscoverUsesRandomFilterWhenNilProvided() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 80)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscoverNilFilter")
+        )
+
+        let expectation = expectation(description: "Dispatch SetRandomDiscover with random filter")
+        var dispatchedAction: MoviesActions.SetRandomDiscover?
+
+        MoviesActions.FetchRandomDiscover(filter: nil).execute(state: nil) { action in
+            dispatchedAction = action as? MoviesActions.SetRandomDiscover
+            if dispatchedAction != nil { expectation.fulfill() }
+        }
+
+        waitForExpectations(timeout: 1)
+
+        XCTAssertNotNil(dispatchedAction?.filter)
+        XCTAssertGreaterThanOrEqual(dispatchedAction?.filter.year ?? 0, 1950)
+    }
+
+    // MARK: - Helpers
+
     private func makeMovie(id: Int) -> Movie {
         Movie(
             id: id,

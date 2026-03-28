@@ -53,7 +53,7 @@ struct MovieKeywordList : ConnectedView {
                        pageListener: pageListener,
                        navigationRoute: $navigationRoute)
         }
-        .navigationBarTitle(Text(keyword.name.capitalized))
+        .navigationTitle(keyword.name.capitalized)
         .navigationDestination(item: $navigationRoute) { route in
             moviesListDestinationView(for: route)
         }

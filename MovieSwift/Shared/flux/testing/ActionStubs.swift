@@ -7,6 +7,19 @@ struct PeopleActions {
         let crew: [Movie]?
     }
 
+    struct ImagesResponse: Codable {
+        let id: Int
+        let profiles: [ImageData]
+    }
+
+    struct PopularRequestStarted: Action {
+        let page: Int
+    }
+
+    struct PopularRequestFailed: Action {
+        let page: Int
+    }
+
     struct SetDetail: Action {
         let person: People
     }

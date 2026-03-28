@@ -91,6 +91,7 @@ struct CustomListForm : ConnectedView {
                     HStack {
                         Text("Name:")
                         TextField("Name your list", text: $listName)
+                            .accessibilityIdentifier("customListForm.nameField")
                     }
         })
     }
@@ -101,9 +102,7 @@ struct CustomListForm : ConnectedView {
                 SearchField(searchTextWrapper: searchTextWrapper,
                             placeholder: "Search and add a movie as your cover",
                             isSearching: $isSearching)
-                .onPreferenceChange(OffsetTopPreferenceKey.self) { _ in
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
+                .scrollDismissesKeyboard(.interactively)
             }
             if listMovieCover != nil {
                 if let movie = props.coverMovie {
@@ -156,15 +155,17 @@ struct CustomListForm : ConnectedView {
                     props.dispatch(MoviesActions.AddCustomList(list: newList))
                 }
                 self.presentationMode.wrappedValue.dismiss()
-                
+
             }, label: {
                 Text(self.editingListId != nil ? "Save changes" : "Create").foregroundColor(.blue)
             })
+            .accessibilityIdentifier("customListForm.createButton")
             Button(action: {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
                 Text("Cancel").foregroundColor(.red)
             })
+            .accessibilityIdentifier("customListForm.cancelButton")
         }
     }
     
@@ -175,9 +176,11 @@ struct CustomListForm : ConnectedView {
                 coverSection(props: props)
                 buttonsSection(props: props)
             }
-            .navigationBarTitle(Text("New list"))
+            .navigationTitle("New list")
         }
+        #if !os(macOS)
         .navigationViewStyle(StackNavigationViewStyle())
+        #endif
         .onAppear() {
             searchTextWrapper.bindDispatchSearches { text, page in
                 props.dispatch(MoviesActions.FetchSearch(query: text, page: page))

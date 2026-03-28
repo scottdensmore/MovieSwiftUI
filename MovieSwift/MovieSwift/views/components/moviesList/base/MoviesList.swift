@@ -115,7 +115,7 @@ struct MoviesList: ConnectedView {
     @State private var searchTextWrapper = MoviesSearchTextWrapper()
     @State private var isSearching = false
     @FocusState private var isSearchFieldFocused: Bool
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @State private var highlightedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
     #endif
@@ -157,7 +157,7 @@ struct MoviesList: ConnectedView {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("moviesList.movie.\(id)")
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .focusable()
             .focused($focusedMovieId, equals: id)
             .onKeyPress(.return) { navigationRoute = .movie(id); return .handled }
@@ -231,20 +231,11 @@ struct MoviesList: ConnectedView {
     }
         
     private var searchField: some View {
-        #if targetEnvironment(macCatalyst)
         SearchField(searchTextWrapper: searchTextWrapper,
                     placeholder: "Search any movies or person",
                     isSearching: $isSearching,
                     focused: $isSearchFieldFocused)
-        #else
-        SearchField(searchTextWrapper: searchTextWrapper,
-                    placeholder: "Search any movies or person",
-                    isSearching: $isSearching,
-                    focused: $isSearchFieldFocused)
-            .onPreferenceChange(OffsetTopPreferenceKey.self) { _ in
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            }
-        #endif
+            .scrollDismissesKeyboard(.interactively)
     }
     
     private var searchFilterView: some View {
@@ -292,7 +283,7 @@ struct MoviesList: ConnectedView {
     // MARK: - Body
     func body(props: Props) -> some View {
         ZStack {
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             VStack(spacing: 0) {
                 if displaySearch {
                     searchField

@@ -15,9 +15,11 @@ enum MoviesHomeState {
         mode == .grid ? .list : .grid
     }
 
+    #if !os(macOS)
     static func navigationBarTitleDisplayMode(for mode: MoviesHome.HomeMode) -> NavigationBarItem.TitleDisplayMode {
         mode == .list ? .inline : .automatic
     }
+    #endif
 
     static func shouldLoadPage(isRunningUISmokeTests: Bool) -> Bool {
         !isRunningUISmokeTests
@@ -90,8 +92,10 @@ struct MoviesHome : ConnectedView {
                 }
             }
         }
+        #if !os(macOS)
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        #endif
     }
     
     private var homeAsGrid: some View {
@@ -119,9 +123,11 @@ struct MoviesHome : ConnectedView {
                 }
             }
             .navigationTitle(selectedMenu.menu.title())
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(MoviesHomeState.navigationBarTitleDisplayMode(for: homeMode))
+            #endif
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .automatic) {
                     swapHomeButton
                     settingButton
                 }
@@ -129,12 +135,21 @@ struct MoviesHome : ConnectedView {
             .navigationDestination(item: $navigationRoute) { route in
                 moviesListDestinationView(for: route)
             }
+            #if os(macOS) || targetEnvironment(macCatalyst)
+            .sheet(isPresented: $isSettingPresented,
+                   content: {
+                       SettingsForm(onClose: {
+                           isSettingPresented = false
+                       })
+                   })
+            #else
             .fullScreenCover(isPresented: $isSettingPresented,
                              content: {
                                  SettingsForm(onClose: {
                                      isSettingPresented = false
                                  })
                              })
+            #endif
             .onAppear {
                 configurePageListener(props: props)
                 selectedMenu.pageListener.loadPage()

@@ -63,7 +63,7 @@ struct MoviesHomeGrid: ConnectedView {
                                                                                                                  page: page))
                                                             }),
                    navigationRoute: navigationRoute)
-            .navigationBarTitle(menu.title())
+            .navigationTitle(menu.title())
     }
             
     private func moviesRow(menu: MoviesMenu, props: Props) -> some View{
@@ -123,7 +123,7 @@ struct MoviesHomeGrid: ConnectedView {
             }
             .listStyle(PlainListStyle())
         }
-        .navigationBarTitle("Movies", displayMode: .automatic)
+        .navigationTitle("Movies")
         .navigationDestination(item: $selectedMenu) { destination in
             menuListView(for: destination.menu, props: props)
         }

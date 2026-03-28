@@ -14,11 +14,10 @@ struct FullscreenMoviePosterImage: View {
     
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
+            if let imageData = self.imageLoader.image {
                 ZStack {
                     GeometryReader { geometry in
-                        Image(uiImage: self.imageLoader.image!)
-                            .resizable()
+                        DataImage(data: imageData)
                             .blur(radius: 50)
                             .overlay(Color.black.opacity(0.5))
                             .frame(width: geometry.frame(in: .global).width,

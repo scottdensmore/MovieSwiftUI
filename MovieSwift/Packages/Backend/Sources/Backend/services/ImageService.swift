@@ -28,10 +28,10 @@ public class ImageService {
         case decodingError
     }
     
-    public func fetchImage(poster: String, size: Size) -> AnyPublisher<PlatformImage?, Never> {
+    public func fetchImage(poster: String, size: Size) -> AnyPublisher<Data?, Never> {
         return URLSession.shared.dataTaskPublisher(for: size.path(poster: poster))
-            .tryMap { (data, response) -> PlatformImage? in
-                return PlatformImage(data: data)
+            .map { (data, response) -> Data? in
+                return data
         }.catch { error in
             return Just(nil)
         }

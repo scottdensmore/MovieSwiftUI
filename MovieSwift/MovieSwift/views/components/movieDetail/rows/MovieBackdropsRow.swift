@@ -30,7 +30,7 @@ enum MovieBackdropsState {
 struct MovieBackdropsRow : View {
     let backdrops: [ImageData]
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @FocusState private var focusedBackdropId: String?
     #endif
 
@@ -46,7 +46,7 @@ struct MovieBackdropsRow : View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(presentations) { backdrop in
-                        #if targetEnvironment(macCatalyst)
+                        #if os(macOS) || targetEnvironment(macCatalyst)
                         MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.path,
                                                                                           size: .original))
                             .overlay(

@@ -28,10 +28,8 @@ struct DiscoverCoverImage : View {
     @ObservedObject var imageLoader: ImageLoader
         
     var body: some View {
-        if let image = imageLoader.image {
-            Image(uiImage: image)
-                .resizable()
-                .renderingMode(.original)
+        if let imageData = imageLoader.image {
+            DataImage(data: imageData, renderingMode: .original)
                 .discoverPosterStyle()
         } else if imageLoader.path == nil {
             Rectangle()

@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import SwiftUIFlux
 
+#if !os(macOS)
 enum ActionSheetMovieListAction: Equatable {
     case addToWishlist(movie: Int)
     case removeFromWishlist(movie: Int)
@@ -135,3 +136,4 @@ extension ActionSheet {
                            })])
     }
 }
+#endif

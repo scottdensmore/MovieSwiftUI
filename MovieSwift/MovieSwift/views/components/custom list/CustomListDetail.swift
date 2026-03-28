@@ -89,7 +89,7 @@ struct CustomListDetail : ConnectedView {
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @Environment(\.dismiss) private var dismiss
     @State private var selectedMovieId: Int?
     @FocusState private var focusedMovieId: Int?
@@ -145,6 +145,7 @@ struct CustomListDetail : ConnectedView {
         }
     }
     
+    #if !os(macOS)
     private var sortActionSheet: ActionSheet {
         ActionSheet.sortActionSheet { (sort) in
             if let sort = sort{
@@ -152,6 +153,7 @@ struct CustomListDetail : ConnectedView {
             }
         }
     }
+    #endif
     
     func body(props: Props) -> some View {
         List {
@@ -197,7 +199,7 @@ struct CustomListDetail : ConnectedView {
                         }
                     } else {
                         ForEach(props.movies, id: \.self) { movie in
-                            #if targetEnvironment(macCatalyst)
+                            #if os(macOS) || targetEnvironment(macCatalyst)
                             CatalystFocusableLink(id: movie, focusedId: $focusedMovieId) {
                                 selectedMovieId = movie
                             } label: {
@@ -225,17 +227,27 @@ struct CustomListDetail : ConnectedView {
             }
             
         }
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS) || targetEnvironment(macCatalyst)
             .navigationDestination(item: $selectedMovieId) { id in
                 MovieDetail(movieId: id)
             }
             .onKeyPress(.escape) { dismiss(); return .handled }
             #endif
             .navigationTitle(isSearching ? "Add Movies" : "")
+            #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(trailing: navbarButtons(props: props))
+            #else
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    navbarButtons(props: props)
+                }
+            }
+            #endif
             .edgesIgnoringSafeArea(isSearching ? .leading : .top)
+            #if !os(macOS)
             .actionSheet(isPresented: $isSortActionSheetPresented, content: { sortActionSheet })
+            #endif
         .sheet(isPresented: $isEditingFormPresented,
                    content: { CustomListForm(editingListId: self.listId).environmentObject(self.store)
             })

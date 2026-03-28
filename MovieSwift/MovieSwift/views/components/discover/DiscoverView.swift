@@ -119,9 +119,11 @@ struct DiscoverView: ConnectedView {
     @State private var presentedMovie: Movie? = nil
     @State private var isFilterFormPresented = false
     @State private var willEndPosition: CGSize? = nil
+    #if !os(macOS)
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .soft)
+    #endif
     
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     private let bottomSafeInsetFix: CGFloat = 100
     #else
     private let bottomSafeInsetFix: CGFloat = 20
@@ -178,7 +180,9 @@ struct DiscoverView: ConnectedView {
             props.dispatch(MoviesActions.AddToSeenList(movie: movieId))
         }
         previousMovie = currentMovieId
+        #if !os(macOS)
         hapticFeedback.impactOccurred(intensity: 0.8)
+        #endif
         props.dispatch(MoviesActions.PopRandromDiscover())
         willEndPosition = nil
         fetchRandomMovies(props: props, force: false, filter: props.filter)
@@ -264,7 +268,9 @@ struct DiscoverView: ConnectedView {
                 
                 
                 Button(action: {
+                    #if !os(macOS)
                     self.hapticFeedback.impactOccurred(intensity: 0.5)
+                    #endif
                     self.previousMovie = props.currentMovie!.id
                     props.dispatch(MoviesActions.PopRandromDiscover())
                     self.fetchRandomMovies(props: props, force: false, filter: props.filter)
@@ -397,7 +403,7 @@ struct DiscoverView: ConnectedView {
     
     @ViewBuilder
     private func presentMovieDetails<Content: View>(_ content: Content) -> some View {
-        #if targetEnvironment(macCatalyst)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         content
             .popover(item: self.$presentedMovie,
                      attachmentAnchor: .rect(.bounds),
@@ -405,7 +411,6 @@ struct DiscoverView: ConnectedView {
                 NavigationView {
                     MovieDetail(movieId: movie.id)
                 }
-                .navigationViewStyle(StackNavigationViewStyle())
                 .environmentObject(store)
                 .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
                        minHeight: 760, idealHeight: 860, maxHeight: 980)
@@ -446,7 +451,9 @@ struct DiscoverView: ConnectedView {
             .transition(.opacity)
             .animation(.easeInOut, value: props.currentMovie?.poster_path))
         .onAppear {
+            #if !os(macOS)
             self.hapticFeedback.prepare()
+            #endif
             self.fetchRandomMovies(props: props, force: false, filter: props.filter)
             props.dispatch(MoviesActions.FetchGenres())
         }

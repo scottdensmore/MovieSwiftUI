@@ -15,7 +15,7 @@ public struct BorderedButton : View {
     public let isOn: Bool
     public let action: () -> Void
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS)
     @FocusState private var isFocused: Bool
     #endif
     
@@ -42,7 +42,7 @@ public struct BorderedButton : View {
                 .stroke(color, lineWidth: isOn ? 0 : 2)
                 .background(isOn ? color : .clear)
                 .cornerRadius(8))
-            #if targetEnvironment(macCatalyst)
+            #if os(macOS)
             .focusable()
             .focused($isFocused)
             .focusEffectDisabled()

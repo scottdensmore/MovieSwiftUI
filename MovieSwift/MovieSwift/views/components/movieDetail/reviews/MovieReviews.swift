@@ -38,7 +38,7 @@ struct MovieReviews : ConnectedView {
         List(props.reviews) { review in
             ReviewRow(review: review)
         }
-        .navigationBarTitle(Text("Reviews"))
+        .navigationTitle("Reviews")
         .onAppear{
             if MovieReviewsFetchPolicy.shouldFetchReviews(existingReviews: props.reviews) {
                 props.dispatch(MoviesActions.FetchMovieReviews(movie: self.movie))

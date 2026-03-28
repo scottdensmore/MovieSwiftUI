@@ -34,7 +34,7 @@ struct MovieCrosslineRow : View {
     let movies: [Movie]
     let onSelectMovie: (Int) -> Void
     let onSelectSeeAll: () -> Void
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @FocusState private var focusedId: Int?
     private let seeAllSentinel = -999
     #endif
@@ -53,7 +53,7 @@ struct MovieCrosslineRow : View {
                         .foregroundColor(.steam_blue)
                 }
                 .buttonStyle(.plain)
-                #if targetEnvironment(macCatalyst)
+                #if os(macOS) || targetEnvironment(macCatalyst)
                 .focused($focusedId, equals: seeAllSentinel)
                 #endif
             }
@@ -80,7 +80,7 @@ struct MovieDetailRowItem: View {
         MovieCrosslineState.presentation(for: movie)
     }
 
-    #if targetEnvironment(macCatalyst)
+    #if os(macOS) || targetEnvironment(macCatalyst)
     @FocusState private var isFocused: Bool
     #endif
 
@@ -89,7 +89,7 @@ struct MovieDetailRowItem: View {
             movieContent
         }
         .buttonStyle(.plain)
-        #if targetEnvironment(macCatalyst)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         .focusable()
         .focused($isFocused)
         .onKeyPress(.return) { onSelect(); return .handled }

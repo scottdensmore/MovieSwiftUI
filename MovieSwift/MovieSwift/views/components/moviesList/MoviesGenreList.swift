@@ -74,6 +74,7 @@ struct MoviesGenreList: ConnectedView {
                        pageListener: pageListener,
                        navigationRoute: $navigationRoute)
         }
+        #if !os(macOS)
         .navigationBarItems(trailing: (
             Button(action: {
                 self.isSortSheetPresented.toggle()
@@ -83,10 +84,24 @@ struct MoviesGenreList: ConnectedView {
                     .foregroundColor(.steam_gold)
             })
         ))
-        .navigationBarTitle(Text(genre.name))
+        #else
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    self.isSortSheetPresented.toggle()
+                }, label: {
+                    Image(systemName: "line.horizontal.3.decrease.circle")
+                        .imageScale(.large)
+                        .foregroundColor(.steam_gold)
+                })
+            }
+        }
+        #endif
+        .navigationTitle(genre.name)
         .navigationDestination(item: $navigationRoute) { route in
             moviesListDestinationView(for: route)
         }
+        #if !os(macOS)
         .actionSheet(isPresented: $isSortSheetPresented,
                      content: { ActionSheet.sortActionSheet(onAction: { sort in
                         if let sort = sort {
@@ -95,6 +110,7 @@ struct MoviesGenreList: ConnectedView {
                         }
                      })
         })
+        #endif
         .onAppear {
             self.pageListener.dispatch = props.dispatch
             self.pageListener.loadPage()

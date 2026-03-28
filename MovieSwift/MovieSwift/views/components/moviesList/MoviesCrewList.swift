@@ -35,7 +35,7 @@ struct MoviesCrewList : ConnectedView {
                        displaySearch: false,
                        navigationRoute: $navigationRoute)
         }
-        .navigationBarTitle(Text(crew.name))
+        .navigationTitle(crew.name)
         .navigationDestination(item: $navigationRoute) { route in
             moviesListDestinationView(for: route)
         }

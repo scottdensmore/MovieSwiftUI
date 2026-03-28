@@ -11,13 +11,11 @@ import Backend
 
 struct PeopleImage : View {
     @ObservedObject var imageLoader: ImageLoader
-    
+
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
-                Image(uiImage: self.imageLoader.image!)
-                    .resizable()
-                    .renderingMode(.original)
+            if let imageData = self.imageLoader.image {
+                DataImage(data: imageData, renderingMode: .original)
                     .cornerRadius(10)
                     .frame(width: 60, height: 90)
             } else {
@@ -34,13 +32,11 @@ struct PeopleImage : View {
 
 struct BigPeopleImage : View {
     @ObservedObject var imageLoader: ImageLoader
-    
+
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
-                Image(uiImage: self.imageLoader.image!)
-                    .resizable()
-                    .renderingMode(.original)
+            if let imageData = self.imageLoader.image {
+                DataImage(data: imageData, renderingMode: .original)
                     .cornerRadius(10)
                     .frame(width: 100, height: 150)
             } else {

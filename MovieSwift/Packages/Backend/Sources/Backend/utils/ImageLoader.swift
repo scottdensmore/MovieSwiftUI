@@ -34,7 +34,7 @@ public final class ImageLoader: ObservableObject {
     public let path: String?
     public let size: ImageService.Size
 
-    @Published public var image: PlatformImage? = nil
+    @Published public var image: Data? = nil
     
     public var cancellable: AnyCancellable?
         
