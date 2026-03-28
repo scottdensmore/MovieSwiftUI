@@ -24,3 +24,18 @@ extension EnvironmentValues {
         set { self[ArchivedStateSizeDescriptionKey.self] = newValue }
     }
 }
+
+// MARK: - Focused Values (menu bar ↔ view communication)
+
+#if os(iOS) || os(macOS)
+struct SelectedOutlineMenuKey: FocusedValueKey {
+    typealias Value = Binding<OutlineMenu?>
+}
+
+extension FocusedValues {
+    var selectedOutlineMenu: Binding<OutlineMenu?>? {
+        get { self[SelectedOutlineMenuKey.self] }
+        set { self[SelectedOutlineMenuKey.self] = newValue }
+    }
+}
+#endif

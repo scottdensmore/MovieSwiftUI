@@ -37,5 +37,6 @@ struct SplitView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
+        .focusedSceneValue(\.selectedOutlineMenu, $selectedMenu)
     }
 }

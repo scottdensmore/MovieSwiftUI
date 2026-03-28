@@ -19,6 +19,8 @@ struct MovieSwiftMacApp: App {
         environment.runtime.startArchiving(store: store)
     }
 
+    @FocusedValue(\.selectedOutlineMenu) private var selectedMenuBinding
+
     var body: some Scene {
         WindowGroup {
             StoreProvider(store: store) {
@@ -28,8 +30,27 @@ struct MovieSwiftMacApp: App {
                     .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
             }
         }
+        .defaultSize(width: 1200, height: 800)
         .commands {
             CommandGroup(replacing: .newItem) { }
+            CommandGroup(after: .sidebar) {
+                Section {
+                    Button("Popular") { selectedMenuBinding?.wrappedValue = .popular }
+                        .keyboardShortcut("1", modifiers: .command)
+                    Button("Top Rated") { selectedMenuBinding?.wrappedValue = .topRated }
+                        .keyboardShortcut("2", modifiers: .command)
+                    Button("Upcoming") { selectedMenuBinding?.wrappedValue = .upcoming }
+                        .keyboardShortcut("3", modifiers: .command)
+                    Button("Discover") { selectedMenuBinding?.wrappedValue = .discover }
+                        .keyboardShortcut("4", modifiers: .command)
+                    Button("My Lists") { selectedMenuBinding?.wrappedValue = .myLists }
+                        .keyboardShortcut("5", modifiers: .command)
+                    Button("Fan Club") { selectedMenuBinding?.wrappedValue = .fanClub }
+                        .keyboardShortcut("6", modifiers: .command)
+                    Button("Settings") { selectedMenuBinding?.wrappedValue = .settings }
+                        .keyboardShortcut(",", modifiers: .command)
+                }
+            }
         }
     }
 }
