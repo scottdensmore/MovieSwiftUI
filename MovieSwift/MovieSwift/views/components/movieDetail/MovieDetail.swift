@@ -764,12 +764,59 @@ struct MovieDetail: ConnectedView {
     @ViewBuilder
     func addButton(props: Props) -> some View {
         if props.movie != nil {
+            #if os(macOS)
+            addMenu(props: props)
+            #else
             Button(action: onAddButton) {
                 Image(systemName: "text.badge.plus").imageScale(.large)
             }
             .accessibilityIdentifier("movieDetail.addToListButton")
+            #endif
         }
     }
+
+    #if os(macOS)
+    private func addMenu(props: Props) -> some View {
+        Menu {
+            Button(props.isInWishlist ? "Remove from wishlist" : "Add to wishlist") {
+                if props.isInWishlist {
+                    props.dispatch(MoviesActions.RemoveFromWishlist(movie: movieId))
+                } else {
+                    props.dispatch(MoviesActions.AddToWishlist(movie: movieId))
+                }
+                displaySavedBadge()
+            }
+            Button(props.isInSeenlist ? "Remove from seenlist" : "Add to seenlist") {
+                if props.isInSeenlist {
+                    props.dispatch(MoviesActions.RemoveFromSeenList(movie: movieId))
+                } else {
+                    props.dispatch(MoviesActions.AddToSeenList(movie: movieId))
+                }
+                displaySavedBadge()
+            }
+            Divider()
+            ForEach(props.customLists) { list in
+                Button(list.movies.contains(movieId)
+                       ? "Remove from \(list.name)"
+                       : "Add to \(list.name)") {
+                    if list.movies.contains(movieId) {
+                        props.dispatch(MoviesActions.RemoveMovieFromCustomList(list: list.id, movie: movieId))
+                    } else {
+                        props.dispatch(MoviesActions.AddMovieToCustomList(list: list.id, movie: movieId))
+                    }
+                    displaySavedBadge()
+                }
+            }
+            Divider()
+            Button("Create list") {
+                isCreateListFormPresented = true
+            }
+        } label: {
+            Image(systemName: "text.badge.plus").imageScale(.large)
+        }
+        .accessibilityIdentifier("movieDetail.addToListButton")
+    }
+    #endif
     
     func body(props: Props) -> some View {
         let posters = props.movie?.images?.posters ?? []

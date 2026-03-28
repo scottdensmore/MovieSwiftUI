@@ -14,6 +14,7 @@
 		09093FAEC4DABBA6B9125183 /* CastResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695882C022AD19EF00AFABA9 /* CastResponse.swift */; };
 		0BE86B8B9C1527D545E416D6 /* PeopleContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6967C88722E9647600BA49B1 /* PeopleContextMenu.swift */; };
 		0C1E2344ED988A2F9398C6F7 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695D55DC22B2316C00F4E68C /* Color.swift */; };
+		0F186BAAB115AA95F45A1531 /* SortMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37863AE97FB06C0C61DB742 /* SortMenu.swift */; };
 		107B30F973A45019AFD6C0DF /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD65F66DBFDFF7A545881FC /* EnvironmentKeys.swift */; };
 		117CCC8A0ED3370ACBF674DE /* MoviesHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D1D76C22BE57390084C692 /* MoviesHome.swift */; };
 		1294C4DF142353860F4F3FA9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22CAD9FAC4374510B243BDA /* Cocoa.framework */; };
@@ -36,6 +37,7 @@
 		3C0E3FC71D3E8C3C723B37C4 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6953B51222D44F9E00859723 /* Collection.swift */; };
 		3D131F8D32D6145D3759CA43 /* MoviesReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FFAFAB22A9AABB00801F3C /* MoviesReducer.swift */; };
 		3ED3157981E0856EF18436FA /* AppPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000001 /* AppPersistence.swift */; };
+		3EEB10C1DF64067CCAC632F2 /* SortMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37863AE97FB06C0C61DB742 /* SortMenu.swift */; };
 		437AC979087DF678882785DF /* AppReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB11CA22C376D0002EB74A /* AppReducer.swift */; };
 		4495FEE9F6E4AAC7512B1883 /* CustomListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695BBE3E22B96FAE000C7539 /* CustomListRow.swift */; };
 		454ECE2A587D4A1EF35E8EF6 /* People.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695882BE22AD197C00AFABA9 /* People.swift */; };
@@ -432,6 +434,7 @@
 		A1B2C4020000000000000005 /* AppStoreFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreFactory.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000006 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000007 /* AppRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntime.swift; sourceTree = "<group>"; };
+		A37863AE97FB06C0C61DB742 /* SortMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SortMenu.swift; sourceTree = "<group>"; };
 		BF297CD02D518F8E279CD952 /* MovieSwiftMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MovieSwiftMacApp.swift; sourceTree = "<group>"; };
 		C1D2E3020000000000000001 /* MovieSwiftUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieSwiftUITests.swift; sourceTree = "<group>"; };
 		C1D2E3020000000000000002 /* MovieSwiftUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieSwiftUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -603,6 +606,7 @@
 				695D55DE22B2326800F4E68C /* MoviePosterImage.swift */,
 				6993877122E64DE8007AA4E0 /* MoviesMenu.swift */,
 				24AC77131C009F44BD805569 /* SplitView.swift */,
+				A37863AE97FB06C0C61DB742 /* SortMenu.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -1356,6 +1360,7 @@
 				5D6DFF494948945ED2FFAFCA /* PeoplesState.swift in Sources */,
 				5ED39D31A998C04F1CF462C9 /* EnvironmentKeys.swift in Sources */,
 				213144CBDDDEFBAB76964AF2 /* SplitView.swift in Sources */,
+				0F186BAAB115AA95F45A1531 /* SortMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1504,6 +1509,7 @@
 				695882C322AD1A1E00AFABA9 /* PeoplesState.swift in Sources */,
 				107B30F973A45019AFD6C0DF /* EnvironmentKeys.swift in Sources */,
 				D6270392A011A27F305076E0 /* SplitView.swift in Sources */,
+				3EEB10C1DF64067CCAC632F2 /* SortMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

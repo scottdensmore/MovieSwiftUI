@@ -87,13 +87,16 @@ struct MoviesGenreList: ConnectedView {
         #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                Button(action: {
-                    self.isSortSheetPresented.toggle()
-                }, label: {
+                Menu {
+                    sortMenuButtons { sort in
+                        self.selectedSort = sort
+                        self.pageListener.sort = sort
+                    }
+                } label: {
                     Image(systemName: "line.horizontal.3.decrease.circle")
                         .imageScale(.large)
                         .foregroundColor(.steam_gold)
-                })
+                }
             }
         }
         #endif

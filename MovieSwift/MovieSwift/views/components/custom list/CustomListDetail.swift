@@ -132,6 +132,16 @@ struct CustomListDetail : ConnectedView {
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
                     }
+                    #if os(macOS)
+                    Menu {
+                        sortMenuButtons { self.selectedMoviesSort = $0 }
+                    } label: {
+                        Image(systemName: "line.horizontal.3.decrease.circle")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                            .foregroundColor(.steam_gold)
+                    }
+                    #else
                     Button(action: {
                         self.isSortActionSheetPresented.toggle()
                     }, label: {
@@ -140,6 +150,7 @@ struct CustomListDetail : ConnectedView {
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
                     })
+                    #endif
                 }
             }
         }

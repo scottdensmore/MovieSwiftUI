@@ -187,6 +187,15 @@ struct MyLists : ConnectedView {
         #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
+                #if os(macOS)
+                Menu {
+                    sortMenuButtons { self.selectedMoviesSort = $0 }
+                } label: {
+                    Image(systemName: "line.horizontal.3.decrease.circle")
+                        .resizable()
+                        .frame(width: 25, height: 25)
+                }
+                #else
                 Button(action: {
                     self.isSortActionSheetPresented.toggle()
                 }, label: {
@@ -194,6 +203,7 @@ struct MyLists : ConnectedView {
                         .resizable()
                         .frame(width: 25, height: 25)
                 })
+                #endif
             }
         }
     }
