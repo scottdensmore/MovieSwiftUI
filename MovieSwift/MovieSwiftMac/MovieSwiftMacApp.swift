@@ -47,10 +47,17 @@ struct MovieSwiftMacApp: App {
                         .keyboardShortcut("5", modifiers: .command)
                     Button("Fan Club") { selectedMenuBinding?.wrappedValue = .fanClub }
                         .keyboardShortcut("6", modifiers: .command)
-                    Button("Settings") { selectedMenuBinding?.wrappedValue = .settings }
-                        .keyboardShortcut(",", modifiers: .command)
                 }
             }
+        }
+
+        Settings {
+            StoreProvider(store: store) {
+                SettingsForm(embedInNavigationStack: true,
+                             showNavigationTitle: false)
+                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+            }
+            .frame(width: 450, height: 400)
         }
     }
 }

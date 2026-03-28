@@ -25,18 +25,6 @@ struct HomeView: App {
         environment.runtime.startArchiving(store: store)
     }
 
-    #if os(macOS)
-    var body: some Scene {
-        WindowGroup {
-            StoreProvider(store: store) {
-                SplitView(isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests)
-                    .tint(.steam_gold)
-                    .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
-                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
-            }
-        }
-    }
-    #else
     var body: some Scene {
         WindowGroup {
             StoreProvider(store: store) {
@@ -47,7 +35,6 @@ struct HomeView: App {
             }
         }
     }
-    #endif
 }
 
 // MARK: - iOS implementation
