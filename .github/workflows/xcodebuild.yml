@@ -128,6 +128,18 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: macOS app build
+        run: |
+          xcodebuild \
+            -project MovieSwift/MovieSwift.xcodeproj \
+            -scheme MovieSwiftMac \
+            -destination "platform=macOS" \
+            -configuration Debug \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
       - name: tvOS app build
         run: |
           xcodebuild \
