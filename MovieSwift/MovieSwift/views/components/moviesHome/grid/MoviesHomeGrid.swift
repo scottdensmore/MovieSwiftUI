@@ -121,7 +121,7 @@ struct MoviesHomeGrid: ConnectedView {
                     }
                 }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
         }
         .navigationTitle("Movies")
         .navigationDestination(item: $selectedMenu) { destination in
@@ -138,9 +138,7 @@ struct MoviesHomeGrid: ConnectedView {
     }
 }
 
-struct MoviesHomeGrid_Previews: PreviewProvider {
-    static var previews: some View {
-        MoviesHomeGrid(navigationRoute: .constant(nil), isRunningUISmokeTests: false)
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesHomeGrid(navigationRoute: .constant(nil), isRunningUISmokeTests: false)
+        .environmentObject(sampleStore)
 }

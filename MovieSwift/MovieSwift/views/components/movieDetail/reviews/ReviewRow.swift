@@ -25,10 +25,6 @@ struct ReviewRow : View {
     }
 }
 
-#if DEBUG
-struct ReviewRow_Previews : PreviewProvider {
-    static var previews: some View {
-        ReviewRow(review: Review(id: "0", author: "Test", content: "Test body"))
-    }
+#Preview {
+    ReviewRow(review: Review(id: "0", author: "Test", content: "Test body"))
 }
-#endif

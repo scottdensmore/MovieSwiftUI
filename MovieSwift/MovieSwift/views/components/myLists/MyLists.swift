@@ -154,7 +154,7 @@ struct MyLists : ConnectedView {
             Picker(selection: $selectedList, label: Text("")) {
                 Text("Wishlist").tag(0)
                 Text("Seenlist").tag(1)
-            }.pickerStyle(SegmentedPickerStyle())
+            }.pickerStyle(.segmented)
             
             if selectedList == 0 {
                 wishlistSection(props: props)
@@ -163,7 +163,7 @@ struct MyLists : ConnectedView {
             }
         }
         #if os(iOS) || os(tvOS)
-        .listStyle(GroupedListStyle())
+        .listStyle(.grouped)
         #endif
         #if os(macOS)
         .navigationDestination(item: $selectedMovie) { nav in
@@ -226,10 +226,6 @@ struct MyLists : ConnectedView {
     }
 }
 
-#if DEBUG
-struct MyLists_Previews : PreviewProvider {
-    static var previews: some View {
-        MyLists().environmentObject(sampleStore)
-    }
+#Preview {
+    MyLists().environmentObject(sampleStore)
 }
-#endif

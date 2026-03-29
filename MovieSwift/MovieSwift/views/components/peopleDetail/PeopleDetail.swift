@@ -307,15 +307,11 @@ struct PeopleDetail: ConnectedView {
         #if os(macOS)
         .onKeyPress(.escape) { dismiss(); return .handled }
         #endif
-        #if !os(macOS)
-        .navigationBarItems(trailing: barbuttons(props: props))
-        #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 barbuttons(props: props)
             }
         }
-        #endif
         .navigationTitle(props.people.name)
         .onAppear {
             self.fetchPeopleData(props: props)
@@ -375,12 +371,8 @@ extension PeopleDetail {
     
 }
 
-#if DEBUG
-struct PeopleDetail_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            PeopleDetail(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
-        }
+#Preview {
+    NavigationStack {
+        PeopleDetail(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
     }
 }
-#endif

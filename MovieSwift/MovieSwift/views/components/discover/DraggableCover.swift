@@ -71,7 +71,7 @@ struct DraggableCover : View {
     @State private var delayedIsActive = false
     @State private var viewWidth: CGFloat = 0
     @GestureState private var dragState = DragState.inactive
-    #if !os(macOS)
+    #if os(iOS)
     private let hapticFeedback = UISelectionFeedbackGenerator()
     #endif
     
@@ -122,7 +122,7 @@ struct DraggableCover : View {
                 switch value {
                 case .first(true):
                     state = .pressing
-                    #if !os(macOS)
+                    #if os(iOS)
                     self.hapticFeedback.selectionChanged()
                     #endif
                 case .second(true, let drag):
@@ -191,7 +191,7 @@ struct DraggableCover : View {
                 }
             )
             .onAppear{
-                #if !os(macOS)
+                #if os(iOS)
                 self.hapticFeedback.prepare()
                 #endif
         }
@@ -199,20 +199,16 @@ struct DraggableCover : View {
 }
 
 // MARK: - Preview
-#if DEBUG
-struct DraggableCover_Previews : PreviewProvider {
-    static var previews: some View {
-        DraggableCover(posterPath: sampleMovie.poster_path,
-                       gestureViewState: .constant(.inactive),
-                       onTapGesture: {
-                        
-        },
-                       willEndGesture: { _ in
-                        
-        },
-                       endGestureHandler: {handler in
-            
-        })
-    }
+#Preview {
+    DraggableCover(posterPath: sampleMovie.poster_path,
+                   gestureViewState: .constant(.inactive),
+                   onTapGesture: {
+
+    },
+                   willEndGesture: { _ in
+
+    },
+                   endGestureHandler: {handler in
+
+    })
 }
-#endif

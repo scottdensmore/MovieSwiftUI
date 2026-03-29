@@ -48,12 +48,8 @@ struct CustomListHeaderRow : View {
     }
 }
 
-#if DEBUG
-struct CustomListHeaderRow_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListHeaderRow(sorting: .constant(.byAddedDate),
-                            list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]),
-                            coverBackdropMovie: sampleMovie)
-    }
+#Preview {
+    CustomListHeaderRow(sorting: .constant(.byAddedDate),
+                        list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]),
+                        coverBackdropMovie: sampleMovie)
 }
-#endif

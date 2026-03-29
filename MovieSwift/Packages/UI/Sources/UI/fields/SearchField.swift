@@ -48,12 +48,12 @@ public struct SearchField : View {
                     TextField(self.placeholder,
                               text: self.$searchTextWrapper.searchText)
                         .focused(focused)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .padding(.horizontal)
                 } else {
                     TextField(self.placeholder,
                               text: self.$searchTextWrapper.searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .padding(.horizontal)
                 }
                 if !self.searchTextWrapper.searchText.isEmpty {
@@ -64,7 +64,7 @@ public struct SearchField : View {
                     }, label: {
                         Text(self.dismissButtonTitle).foregroundColor(.pink)
                     })
-                    .buttonStyle(BorderlessButtonStyle())
+                    .buttonStyle(.borderless)
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
             }
@@ -75,54 +75,49 @@ public struct SearchField : View {
     }
 }
 
-#if DEBUG
-@available(iOS 13.0, OSX 10.15, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-struct SearchField_Previews : PreviewProvider {
-    static var previews: some View {
-        let withText = SearchTextObservable()
-        withText.searchText = "Test"
-        
-        return VStack {
-            SearchField(searchTextWrapper: SearchTextObservable(),
-                        placeholder: "Search anything",
-                        isSearching: .constant(false))
+#Preview {
+    let withText = SearchTextObservable()
+    withText.searchText = "Test"
+
+    return VStack {
+        SearchField(searchTextWrapper: SearchTextObservable(),
+                    placeholder: "Search anything",
+                    isSearching: .constant(false))
+        SearchField(searchTextWrapper: withText,
+                    placeholder: "Search anything",
+                    isSearching: .constant(false))
+
+        List {
             SearchField(searchTextWrapper: withText,
                         placeholder: "Search anything",
                         isSearching: .constant(false))
-            
-            List {
+            Section(header: SearchField(searchTextWrapper: withText,
+                                        placeholder: "Search anything",
+                                        isSearching: .constant(false)))
+            {
                 SearchField(searchTextWrapper: withText,
                             placeholder: "Search anything",
                             isSearching: .constant(false))
-                Section(header: SearchField(searchTextWrapper: withText,
-                                            placeholder: "Search anything",
-                                            isSearching: .constant(false)))
-                {
-                    SearchField(searchTextWrapper: withText,
-                                placeholder: "Search anything",
-                                isSearching: .constant(false))
-                }
             }
-            
-            List {
-                SearchField(searchTextWrapper: withText,
-                            placeholder: "Search anything",
-                            isSearching: .constant(false))
-                Section(header: SearchField(searchTextWrapper: withText,
-                                            placeholder: "Search anything",
-                                            isSearching: .constant(false)))
-                {
-                    SearchField(searchTextWrapper: withText,
-                                placeholder: "Search anything",
-                                isSearching: .constant(false))
-                }
-            }
-            #if os(iOS) || os(tvOS)
-            .listStyle(GroupedListStyle())
-            #endif
         }
+
+        List {
+            SearchField(searchTextWrapper: withText,
+                        placeholder: "Search anything",
+                        isSearching: .constant(false))
+            Section(header: SearchField(searchTextWrapper: withText,
+                                        placeholder: "Search anything",
+                                        isSearching: .constant(false)))
+            {
+                SearchField(searchTextWrapper: withText,
+                            placeholder: "Search anything",
+                            isSearching: .constant(false))
+            }
+        }
+        #if os(iOS) || os(tvOS)
+        .listStyle(.grouped)
+        #endif
     }
 }
-#endif

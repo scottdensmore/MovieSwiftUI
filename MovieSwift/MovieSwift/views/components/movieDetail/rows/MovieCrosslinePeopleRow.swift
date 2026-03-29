@@ -164,13 +164,9 @@ struct PeopleRowItem: View {
     }
 }
 
-#if DEBUG
-struct CastsRow_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieCrosslinePeopleRow(title: "Sample",
-                                peoples: sampleCasts,
-                                onSelectPeople: { _ in },
-                                onSelectSeeAll: {})
-    }
+#Preview {
+    MovieCrosslinePeopleRow(title: "Sample",
+                            peoples: sampleCasts,
+                            onSelectPeople: { _ in },
+                            onSelectSeeAll: {})
 }
-#endif

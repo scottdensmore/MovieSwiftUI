@@ -63,15 +63,11 @@ public struct PopularityBadge : View {
     }
 }
 
-#if DEBUG
-struct PopularityBadge_Previews : PreviewProvider {
-    static var previews: some View {
-        VStack {
-            PopularityBadge(score: 80)
-            PopularityBadge(score: 10)
-            PopularityBadge(score: 30)
-            PopularityBadge(score: 50)
-        }
+#Preview {
+    VStack {
+        PopularityBadge(score: 80)
+        PopularityBadge(score: 10)
+        PopularityBadge(score: 30)
+        PopularityBadge(score: 50)
     }
 }
-#endif

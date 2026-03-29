@@ -49,8 +49,6 @@ struct MoviesHomeGridMoviesRow: ConnectedView {
     }
 }
 
-struct MoviesHomeGridMoviesRow_Previews: PreviewProvider {
-    static var previews: some View {
-        MoviesHomeGridMoviesRow(movies: [])
-    }
+#Preview {
+    MoviesHomeGridMoviesRow(movies: [])
 }

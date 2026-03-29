@@ -49,12 +49,8 @@ struct PeopleDetailMovieRow : View {
     }
 }
 
-#if DEBUG
-struct PeopleDetailMovieRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailMovieRow(movie: sampleMovie, role: "Test", onMovieContextMenu: {
-            
-        })
-    }
+#Preview {
+    PeopleDetailMovieRow(movie: sampleMovie, role: "Test", onMovieContextMenu: {
+
+    })
 }
-#endif

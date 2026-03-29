@@ -43,10 +43,6 @@ struct PeopleDetailHeaderRow : View {
     }
 }
 
-#if DEBUG
-struct PeopleDetailHeaderRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailHeaderRow(people: sampleCasts.first!)
-    }
+#Preview {
+    PeopleDetailHeaderRow(people: sampleCasts.first!)
 }
-#endif

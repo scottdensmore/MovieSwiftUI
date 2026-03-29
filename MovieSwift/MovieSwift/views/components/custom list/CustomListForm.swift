@@ -170,7 +170,7 @@ struct CustomListForm : ConnectedView {
     }
     
     func body(props: Props) -> some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 topSection
                 coverSection(props: props)
@@ -178,9 +178,6 @@ struct CustomListForm : ConnectedView {
             }
             .navigationTitle("New list")
         }
-        #if !os(macOS)
-        .navigationViewStyle(StackNavigationViewStyle())
-        #endif
         .onAppear() {
             searchTextWrapper.bindDispatchSearches { text, page in
                 props.dispatch(MoviesActions.FetchSearch(query: text, page: page))
@@ -194,10 +191,6 @@ struct CustomListForm : ConnectedView {
     }
 }
 
-#if DEBUG
-struct CustomListForm_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListForm(editingListId: nil).environmentObject(sampleStore)
-    }
+#Preview {
+    CustomListForm(editingListId: nil).environmentObject(sampleStore)
 }
-#endif

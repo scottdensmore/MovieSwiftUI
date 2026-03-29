@@ -238,14 +238,12 @@ struct CustomListDetail : ConnectedView {
             .navigationTitle(isSearching ? "Add Movies" : "")
             #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: navbarButtons(props: props))
-            #else
+            #endif
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     navbarButtons(props: props)
                 }
             }
-            #endif
             .edgesIgnoringSafeArea(isSearching ? .leading : .top)
             #if !os(macOS)
             .confirmationDialog("Sort movies by", isPresented: $isSortActionSheetPresented) {
@@ -263,13 +261,9 @@ struct CustomListDetail : ConnectedView {
     }
 }
 
-#if DEBUG
-struct CustomListDetail_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            CustomListDetail(listId: sampleStore.state.moviesState.customLists.first!.key)
-                .environmentObject(sampleStore)
-        }
+#Preview {
+    NavigationStack {
+        CustomListDetail(listId: sampleStore.state.moviesState.customLists.first!.key)
+            .environmentObject(sampleStore)
     }
 }
-#endif

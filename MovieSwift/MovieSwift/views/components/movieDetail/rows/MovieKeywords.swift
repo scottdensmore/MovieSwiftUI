@@ -53,14 +53,10 @@ struct MovieKeywords : View {
     }
 }
 
-#if DEBUG
-struct MovieKeywords_Previews : PreviewProvider {
-    static var previews: some View {
-        #if os(macOS)
-        MovieKeywords(keywords: [Keyword(id: 0, name: "Test")], onSelectKeyword: { _ in })
-        #else
-        MovieKeywords(keywords: [Keyword(id: 0, name: "Test")])
-        #endif
-    }
+#Preview {
+    #if os(macOS)
+    MovieKeywords(keywords: [Keyword(id: 0, name: "Test")], onSelectKeyword: { _ in })
+    #else
+    MovieKeywords(keywords: [Keyword(id: 0, name: "Test")])
+    #endif
 }
-#endif

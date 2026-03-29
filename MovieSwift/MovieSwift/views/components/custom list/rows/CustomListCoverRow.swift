@@ -18,10 +18,6 @@ struct CustomListCoverRow : View {
     }
 }
 
-#if DEBUG
-struct CustomListCoverRow_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListCoverRow(movie: sampleMovie)
-    }
+#Preview {
+    CustomListCoverRow(movie: sampleMovie)
 }
-#endif

@@ -62,7 +62,7 @@ struct GenresList: ConnectedView {
                     #endif
                 }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
         }
         #if os(macOS)
         .navigationDestination(item: $selectedGenre) { genre in
@@ -82,11 +82,7 @@ struct GenresList: ConnectedView {
     }
 }
 
-#if DEBUG
-struct GenresList_Previews: PreviewProvider {
-    static var previews: some View {
-        GenresList()
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    GenresList()
+        .environmentObject(sampleStore)
 }
-#endif

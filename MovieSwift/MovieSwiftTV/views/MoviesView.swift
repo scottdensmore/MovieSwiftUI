@@ -15,6 +15,7 @@ struct MoviesView: ConnectedView {
     }
 
     let menu: MoviesMenu
+    @State private var currentPage = 1
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(movieIds: state.moviesState.moviesList[menu] ?? [],
@@ -33,6 +34,12 @@ struct MoviesView: ConnectedView {
                             TVMovieCard(movie: movie)
                         }
                         .buttonStyle(.card)
+                        .onAppear {
+                            if id == props.movieIds.last {
+                                currentPage += 1
+                                props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: currentPage))
+                            }
+                        }
                     }
                 }
             }

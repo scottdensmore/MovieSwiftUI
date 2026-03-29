@@ -74,19 +74,9 @@ struct MoviesGenreList: ConnectedView {
                        pageListener: pageListener,
                        navigationRoute: $navigationRoute)
         }
-        #if !os(macOS)
-        .navigationBarItems(trailing: (
-            Button(action: {
-                self.isSortSheetPresented.toggle()
-            }, label: {
-                Image(systemName: "line.horizontal.3.decrease.circle")
-                    .imageScale(.large)
-                    .foregroundColor(.steam_gold)
-            })
-        ))
-        #else
         .toolbar {
             ToolbarItem(placement: .automatic) {
+                #if os(macOS)
                 Menu {
                     sortMenuButtons { sort in
                         self.selectedSort = sort
@@ -97,9 +87,17 @@ struct MoviesGenreList: ConnectedView {
                         .imageScale(.large)
                         .foregroundColor(.steam_gold)
                 }
+                #else
+                Button(action: {
+                    self.isSortSheetPresented.toggle()
+                }, label: {
+                    Image(systemName: "line.horizontal.3.decrease.circle")
+                        .imageScale(.large)
+                        .foregroundColor(.steam_gold)
+                })
+                #endif
             }
         }
-        #endif
         .navigationTitle(genre.name)
         .navigationDestination(item: $navigationRoute) { route in
             moviesListDestinationView(for: route)
@@ -119,10 +117,6 @@ struct MoviesGenreList: ConnectedView {
     }
 }
 
-#if DEBUG
-struct MoviesGenreList_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesGenreList(genre: Genre(id: 0, name: "test")).environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesGenreList(genre: Genre(id: 0, name: "test")).environmentObject(sampleStore)
 }
-#endif

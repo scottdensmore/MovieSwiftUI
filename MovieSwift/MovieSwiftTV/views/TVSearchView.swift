@@ -15,6 +15,7 @@ struct TVSearchView: ConnectedView {
     }
 
     @State private var searchText = ""
+    @State private var searchTask: Task<Void, Never>?
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         let results = searchText.isEmpty ? [] : (state.moviesState.search[searchText] ?? [])
@@ -59,7 +60,11 @@ struct TVSearchView: ConnectedView {
         }
         .searchable(text: $searchText, prompt: "Movie title")
         .onChange(of: searchText) { _, newValue in
-            if !newValue.isEmpty {
+            searchTask?.cancel()
+            guard !newValue.isEmpty else { return }
+            searchTask = Task {
+                try? await Task.sleep(for: .milliseconds(500))
+                guard !Task.isCancelled else { return }
                 props.dispatch(MoviesActions.FetchSearch(query: newValue, page: 1))
             }
         }

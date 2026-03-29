@@ -39,10 +39,6 @@ struct MovieOverview : View {
     }
 }
 
-#if DEBUG
-struct MovieOverview_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieOverview(movie: sampleMovie)
-    }
+#Preview {
+    MovieOverview(movie: sampleMovie)
 }
-#endif

@@ -36,7 +36,7 @@ public struct BorderedButton : View {
                 Text(text).foregroundColor(isOn ? .white : color)
             }
             })
-            .buttonStyle(BorderlessButtonStyle())
+            .buttonStyle(.borderless)
             .padding(6)
             .background(RoundedRectangle(cornerRadius: 8)
                 .stroke(color, lineWidth: isOn ? 0 : 2)
@@ -64,25 +64,21 @@ public struct BorderedButton : View {
     }
 }
 
-#if DEBUG
-struct BorderedButton_Previews : PreviewProvider {
-    static var previews: some View {
-        VStack {
-            BorderedButton(text: "Add to wishlist",
-                           systemImageName: "film",
-                           color: .green,
-                           isOn: false,
-                           action: {
-                            
-            })
-            BorderedButton(text: "Add to wishlist",
-                           systemImageName: "film",
-                           color: .blue,
-                           isOn: true,
-                           action: {
-                            
-            })
-        }
+#Preview {
+    VStack {
+        BorderedButton(text: "Add to wishlist",
+                       systemImageName: "film",
+                       color: .green,
+                       isOn: false,
+                       action: {
+
+        })
+        BorderedButton(text: "Add to wishlist",
+                       systemImageName: "film",
+                       color: .blue,
+                       isOn: true,
+                       action: {
+
+        })
     }
 }
-#endif

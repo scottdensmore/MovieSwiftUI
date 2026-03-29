@@ -52,10 +52,6 @@ struct PeopleDetailImagesRow : View {
     }
 }
 
-#if DEBUG
-struct PeopleDetailImagesRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailImagesRow(images: sampleCasts.first!.images ?? [], selectedPoster: .constant(nil))
-    }
+#Preview {
+    PeopleDetailImagesRow(images: sampleCasts.first!.images ?? [], selectedPoster: .constant(nil))
 }
-#endif

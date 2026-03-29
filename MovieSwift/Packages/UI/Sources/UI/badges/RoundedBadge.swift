@@ -41,10 +41,6 @@ public struct RoundedBadge : View {
     }
 }
 
-#if DEBUG
-struct RoundedBadge_Previews : PreviewProvider {
-    static var previews: some View {
-        RoundedBadge(text: "Test", color: .blue)
-    }
+#Preview {
+    RoundedBadge(text: "Test", color: .blue)
 }
-#endif

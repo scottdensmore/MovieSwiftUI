@@ -70,13 +70,9 @@ struct MovieBackdropsRow : View {
     }
 }
 
-#if DEBUG
-struct MovieBackdropsRow_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
-                                             file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
-                                             height: 1200,
-                                             width: 1800)])
-    }
+#Preview {
+    MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
+                                         file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+                                         height: 1200,
+                                         width: 1800)])
 }
-#endif

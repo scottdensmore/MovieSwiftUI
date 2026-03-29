@@ -53,10 +53,6 @@ struct ListImage: ConnectedView {
     }
 }
 
-#if DEBUG
-struct ListImage_Previews: PreviewProvider {
-    static var previews: some View {
-        ListImage(movieId: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    ListImage(movieId: 0).environmentObject(sampleStore)
 }
-#endif

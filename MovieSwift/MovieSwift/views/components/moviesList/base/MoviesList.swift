@@ -242,7 +242,7 @@ struct MoviesList: ConnectedView {
         Picker(selection: $searchFilter, label: Text("")) {
             Text("Movies").tag(SearchFilter.movies.rawValue)
             Text("People").tag(SearchFilter.peoples.rawValue)
-        }.pickerStyle(SegmentedPickerStyle())
+        }.pickerStyle(.segmented)
     }
     
     // MARK: - List content
@@ -320,7 +320,7 @@ struct MoviesList: ConnectedView {
                     }
                     listContent(props: props)
                 }
-                .listStyle(PlainListStyle())
+                .listStyle(.plain)
                 .defaultFocus($isSearchFieldFocused, true, priority: .userInitiated)
             }
             #endif
@@ -328,13 +328,9 @@ struct MoviesList: ConnectedView {
     }
 }
 
-#if DEBUG
-struct MoviesList_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesList(movies: [sampleMovie.id],
-                   displaySearch: true,
-                   navigationRoute: .constant(nil))
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesList(movies: [sampleMovie.id],
+               displaySearch: true,
+               navigationRoute: .constant(nil))
+        .environmentObject(sampleStore)
 }
-#endif

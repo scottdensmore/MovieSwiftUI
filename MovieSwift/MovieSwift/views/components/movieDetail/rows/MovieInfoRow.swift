@@ -79,10 +79,6 @@ struct MovieInfoRow : View {
     }
 }
 
-#if DEBUG
-struct MovieInfoRow_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieInfoRow(movie: sampleMovie).background(Color.black).environmentObject(sampleStore)
-    }
+#Preview {
+    MovieInfoRow(movie: sampleMovie).background(Color.black).environmentObject(sampleStore)
 }
-#endif

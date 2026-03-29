@@ -73,10 +73,6 @@ struct PeopleRow : ConnectedView {
     }
 }
 
-#if DEBUG
-struct PeopleRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
-    }
+#Preview {
+    PeopleRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
 }
-#endif

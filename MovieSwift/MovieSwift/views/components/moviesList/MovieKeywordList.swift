@@ -68,11 +68,7 @@ struct MovieKeywordList : ConnectedView {
     }
 }
 
-#if DEBUG
-struct MovieKeywordList_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieKeywordList(keyword: Keyword(id: 0, name: "Test"))
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    MovieKeywordList(keyword: Keyword(id: 0, name: "Test"))
+        .environmentObject(sampleStore)
 }
-#endif

@@ -32,10 +32,6 @@ struct OutlineRow : View {
     }
 }
 
-#if DEBUG
-struct OutlineRow_Previews : PreviewProvider {
-    static var previews: some View {
-        OutlineRow(item: .popular, isSelected: true)
-    }
+#Preview {
+    OutlineRow(item: .popular, isSelected: true)
 }
-#endif

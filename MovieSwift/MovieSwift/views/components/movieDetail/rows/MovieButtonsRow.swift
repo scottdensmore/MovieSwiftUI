@@ -75,21 +75,21 @@ struct MovieButtonsRow: ConnectedView {
     func body(props: Props) -> some View {
         HStack(alignment: .center, spacing: 8) {
             #if os(macOS)
-            catalystButton(id: .wishlistButton,
+            macButton(id: .wishlistButton,
                            text: props.isInWishlist ? "In wishlist" : "Wishlist",
                            systemImageName: "heart",
                            color: .pink,
                            isOn: props.isInWishlist,
                            action: props.onWishlistTap)
             
-            catalystButton(id: .seenlistButton,
+            macButton(id: .seenlistButton,
                            text: props.isInSeenlist ? "Seen" : "Seenlist",
                            systemImageName: "eye",
                            color: .green,
                            isOn: props.isInSeenlist,
                            action: props.onSeenlistTap)
             
-            catalystButton(id: .customListButton,
+            macButton(id: .customListButton,
                            text: "List",
                            systemImageName: "pin",
                            color: .steam_gold,
@@ -124,7 +124,7 @@ struct MovieButtonsRow: ConnectedView {
     }
 
     #if os(macOS)
-    private func catalystButton(id: MovieDetailFocusTarget,
+    private func macButton(id: MovieDetailFocusTarget,
                                 text: String,
                                 systemImageName: String,
                                 color: Color,
@@ -169,16 +169,6 @@ struct MovieButtonsRow: ConnectedView {
     #endif
 }
 
-struct MovieButtonsRow_Previews: PreviewProvider {
-    static var previews: some View {
-        #if os(macOS)
-        MovieButtonsRowMacPreviewHost()
-        #else
-        MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environmentObject(sampleStore)
-        #endif
-    }
-}
-
 #if DEBUG && os(macOS)
 private struct MovieButtonsRowMacPreviewHost: View {
     @FocusState private var focusedItem: MovieDetailFocusTarget?
@@ -191,3 +181,11 @@ private struct MovieButtonsRowMacPreviewHost: View {
     }
 }
 #endif
+
+#Preview {
+    #if os(macOS)
+    MovieButtonsRowMacPreviewHost()
+    #else
+    MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environmentObject(sampleStore)
+    #endif
+}

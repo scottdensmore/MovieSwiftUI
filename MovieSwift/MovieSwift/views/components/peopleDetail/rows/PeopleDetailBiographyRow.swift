@@ -74,13 +74,9 @@ struct PeopleDetailBiographyRow : View {
     }
 }
 
-#if DEBUG
-struct PeopleDetailBiography_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailBiographyRow(biography: "Super bio",
-                                 birthDate: "1985-02-03",
-                                 deathDate: "2005-02-05",
-                                 placeOfBirth: "USA")
-    }
+#Preview {
+    PeopleDetailBiographyRow(biography: "Super bio",
+                             birthDate: "1985-02-03",
+                             deathDate: "2005-02-05",
+                             placeOfBirth: "USA")
 }
-#endif

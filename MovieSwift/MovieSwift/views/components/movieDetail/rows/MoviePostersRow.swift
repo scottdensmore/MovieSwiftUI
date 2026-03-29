@@ -93,14 +93,10 @@ struct MoviePostersRow : View {
     }
 }
 
-#if DEBUG
-struct MoviePostersRow_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
-                                             file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
-                                             height: 720,
-                                             width: 1280)],
-                        selectedPoster: .constant(nil))
-    }
+#Preview {
+    MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
+                                         file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                         height: 720,
+                                         width: 1280)],
+                    selectedPoster: .constant(nil))
 }
-#endif

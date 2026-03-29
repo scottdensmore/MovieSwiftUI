@@ -731,15 +731,11 @@ struct MovieDetail: ConnectedView {
                         .navigationTitle("Movie")
                 }
             }
-            #if !os(macOS)
-            .navigationBarItems(trailing: addButton(props: props))
-            #else
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     addButton(props: props)
                 }
             }
-            #endif
             .onAppear {
                 self.fetchMovieDetails(props: props)
             }
@@ -840,15 +836,8 @@ struct MovieDetail: ConnectedView {
 }
 
 // MARK: - Preview
-#if DEBUG
-struct MovieDetail_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            MovieDetail(movieId: sampleMovie.id).environmentObject(sampleStore)
-        }
-        #if !os(macOS)
-        .navigationViewStyle(StackNavigationViewStyle())
-        #endif
+#Preview {
+    NavigationStack {
+        MovieDetail(movieId: sampleMovie.id).environmentObject(sampleStore)
     }
 }
-#endif

@@ -144,7 +144,7 @@ struct MovieCoverRow : ConnectedView {
 
 #if DEBUG
 #if os(macOS)
-private struct MovieCoverRowCatalystPreviewHost: View {
+private struct MovieCoverRowMacPreviewHost: View {
     @FocusState private var focusedItem: MovieDetailFocusTarget?
 
     var body: some View {
@@ -153,15 +153,13 @@ private struct MovieCoverRowCatalystPreviewHost: View {
     }
 }
 #endif
-
-struct MovieCoverRow_Previews : PreviewProvider {
-    static var previews: some View {
-        #if os(macOS)
-        MovieCoverRowCatalystPreviewHost()
-        #else
-        MovieCoverRow(movieId: 0)
-            .environmentObject(sampleStore)
-        #endif
-    }
-}
 #endif
+
+#Preview {
+    #if os(macOS)
+    MovieCoverRowMacPreviewHost()
+    #else
+    MovieCoverRow(movieId: 0)
+        .environmentObject(sampleStore)
+    #endif
+}

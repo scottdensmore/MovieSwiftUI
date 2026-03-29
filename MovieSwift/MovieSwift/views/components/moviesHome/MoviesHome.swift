@@ -162,10 +162,6 @@ struct MoviesHome : ConnectedView {
     }
 }
 
-#if DEBUG
-struct MoviesHome_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesHome(isRunningUISmokeTests: false).environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesHome(isRunningUISmokeTests: false).environmentObject(sampleStore)
 }
-#endif

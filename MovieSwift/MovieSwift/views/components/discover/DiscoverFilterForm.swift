@@ -291,7 +291,7 @@ struct DiscoverFilterForm : ConnectedView {
     }
     
     func body(props: Props) -> some View {
-        return NavigationView {
+        return NavigationStack {
             Form {
                 settingsSection(genres: props.genres)
                 buttonsSection(props: props)
@@ -308,16 +308,9 @@ struct DiscoverFilterForm : ConnectedView {
                 self.syncSelections(currentFilter: props.currentFilter, genres: props.genres)
             }
         }
-        #if !os(macOS)
-        .navigationViewStyle(StackNavigationViewStyle())
-        #endif
     }
 }
 
-#if DEBUG
-struct DiscoverFilterForm_Previews : PreviewProvider {
-    static var previews: some View {
-        DiscoverFilterForm().environmentObject(sampleStore)
-    }
+#Preview {
+    DiscoverFilterForm().environmentObject(sampleStore)
 }
-#endif

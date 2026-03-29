@@ -40,15 +40,11 @@ struct MoviesHomeList: ConnectedView {
     }
 }
 
-#if DEBUG
-struct MoviesHomeList_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            MoviesHomeList(menu: .constant(.popular),
-                           navigationRoute: .constant(nil),
-                           pageListener: MoviesMenuListPageListener(menu: .popular, loadOnInit: false))
-                .environmentObject(sampleStore)
-        }
+#Preview {
+    NavigationStack {
+        MoviesHomeList(menu: .constant(.popular),
+                       navigationRoute: .constant(nil),
+                       pageListener: MoviesMenuListPageListener(menu: .popular, loadOnInit: false))
+            .environmentObject(sampleStore)
     }
 }
-#endif

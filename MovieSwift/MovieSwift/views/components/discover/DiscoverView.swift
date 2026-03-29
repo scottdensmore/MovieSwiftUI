@@ -119,7 +119,7 @@ struct DiscoverView: ConnectedView {
     @State private var presentedMovie: Movie? = nil
     @State private var isFilterFormPresented = false
     @State private var willEndPosition: CGSize? = nil
-    #if !os(macOS)
+    #if os(iOS)
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .soft)
     #endif
     
@@ -180,7 +180,7 @@ struct DiscoverView: ConnectedView {
             props.dispatch(MoviesActions.AddToSeenList(movie: movieId))
         }
         previousMovie = currentMovieId
-        #if !os(macOS)
+        #if os(iOS)
         hapticFeedback.impactOccurred(intensity: 0.8)
         #endif
         props.dispatch(MoviesActions.PopRandromDiscover())
@@ -268,7 +268,7 @@ struct DiscoverView: ConnectedView {
                 
                 
                 Button(action: {
-                    #if !os(macOS)
+                    #if os(iOS)
                     self.hapticFeedback.impactOccurred(intensity: 0.5)
                     #endif
                     self.previousMovie = props.currentMovie!.id
@@ -408,7 +408,7 @@ struct DiscoverView: ConnectedView {
             .popover(item: self.$presentedMovie,
                      attachmentAnchor: .rect(.bounds),
                      arrowEdge: .bottom) { movie in
-                NavigationView {
+                NavigationStack {
                     MovieDetail(movieId: movie.id)
                 }
                 .environmentObject(store)
@@ -420,9 +420,9 @@ struct DiscoverView: ConnectedView {
             .sheet(item: self.$presentedMovie, onDismiss: {
                 self.presentedMovie = nil
             }, content: { movie in
-                NavigationView {
+                NavigationStack {
                     MovieDetail(movieId: movie.id)
-                }.navigationViewStyle(StackNavigationViewStyle())
+                }
                     .environmentObject(store)
             })
         #endif
@@ -451,7 +451,7 @@ struct DiscoverView: ConnectedView {
             .transition(.opacity)
             .animation(.easeInOut, value: props.currentMovie?.poster_path))
         .onAppear {
-            #if !os(macOS)
+            #if os(iOS)
             self.hapticFeedback.prepare()
             #endif
             self.fetchRandomMovies(props: props, force: false, filter: props.filter)
@@ -460,10 +460,6 @@ struct DiscoverView: ConnectedView {
     }
 }
 
-#if DEBUG
-struct DiscoverView_Previews : PreviewProvider {
-    static var previews: some View {
-        DiscoverView().environmentObject(sampleStore)
-    }
+#Preview {
+    DiscoverView().environmentObject(sampleStore)
 }
-#endif

@@ -119,10 +119,6 @@ extension MovieContextMenu {
     
 }
 
-#if DEBUG
-struct MovieContextMenu_Previews: PreviewProvider {
-    static var previews: some View {
-        MovieContextMenu(movieId: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    MovieContextMenu(movieId: 0).environmentObject(sampleStore)
 }
-#endif

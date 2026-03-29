@@ -275,11 +275,7 @@ struct SettingsForm : ConnectedView {
     }
 }
 
-#if DEBUG
-struct SettingsForm_Previews : PreviewProvider {
-    static var previews: some View {
-        SettingsForm()
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    SettingsForm()
+        .environmentObject(sampleStore)
 }
-#endif

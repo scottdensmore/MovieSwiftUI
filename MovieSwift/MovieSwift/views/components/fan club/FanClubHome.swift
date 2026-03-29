@@ -254,10 +254,6 @@ struct FanClubHome: ConnectedView {
     }
 }
 
-#if DEBUG
-struct FanClubHome_Previews: PreviewProvider {
-    static var previews: some View {
-        FanClubHome()
-    }
+#Preview {
+    FanClubHome()
 }
-#endif

@@ -45,11 +45,7 @@ struct MoviesCrewList : ConnectedView {
     }
 }
 
-#if DEBUG
-struct MovieCrewList_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesCrewList(crew: sampleCasts.first!)
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesCrewList(crew: sampleCasts.first!)
+        .environmentObject(sampleStore)
 }
-#endif

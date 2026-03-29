@@ -35,7 +35,7 @@ struct ImagesCarouselView : View {
                 posterPage(poster)
             }
         }
-        #if !os(macOS)
+        #if os(iOS)
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: posters.count > 1 ? .automatic : .never))
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
         #endif
@@ -77,26 +77,22 @@ struct ImagesCarouselView : View {
     }
 }
 
-#if DEBUG
-struct MoviePostersCarouselView_Previews : PreviewProvider {
-    static var previews: some View {
-        ImagesCarouselView(posters: [ImageData(aspect_ratio: 0.666666666666667,
-                                                      file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
-                                                      height: 720,
-                                                      width: 1280),
-                                           ImageData(aspect_ratio: 0.666666666666667,
-                                                      file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
-                                                      height: 720,
-                                                      width: 1280),
-                                           ImageData(aspect_ratio: 0.666666666666667,
-                                                      file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
-                                                      height: 720,
-                                                      width: 1280),
-                                           ImageData(aspect_ratio: 0.666666666666667,
-                                                      file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
-                                                      height: 720,
-                                                      width: 1280)],
-                                 selectedPoster: .constant(nil))
-    }
+#Preview {
+    ImagesCarouselView(posters: [ImageData(aspect_ratio: 0.666666666666667,
+                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                                  height: 720,
+                                                  width: 1280),
+                                       ImageData(aspect_ratio: 0.666666666666667,
+                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                                  height: 720,
+                                                  width: 1280),
+                                       ImageData(aspect_ratio: 0.666666666666667,
+                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                                  height: 720,
+                                                  width: 1280),
+                                       ImageData(aspect_ratio: 0.666666666666667,
+                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                                  height: 720,
+                                                  width: 1280)],
+                             selectedPoster: .constant(nil))
 }
-#endif

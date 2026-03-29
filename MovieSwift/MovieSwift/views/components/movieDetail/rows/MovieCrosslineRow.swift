@@ -117,15 +117,11 @@ struct MovieDetailRowItem: View {
     }
 }
 
-#if DEBUG
-struct MovieDetailRow_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            MovieCrosslineRow(title: "Sample",
-                              movies: [sampleMovie, sampleMovie],
-                              onSelectMovie: { _ in },
-                              onSelectSeeAll: {})
-        }
+#Preview {
+    NavigationStack {
+        MovieCrosslineRow(title: "Sample",
+                          movies: [sampleMovie, sampleMovie],
+                          onSelectMovie: { _ in },
+                          onSelectSeeAll: {})
     }
 }
-#endif

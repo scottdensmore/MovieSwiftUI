@@ -66,12 +66,8 @@ struct MovieRow: ConnectedView {
     }
 }
 
-#if DEBUG
-struct MovieRow_Previews : PreviewProvider {
-    static var previews: some View {
-        List {
-            MovieRow(movieId: sampleMovie.id).environmentObject(sampleStore)
-        }
+#Preview {
+    List {
+        MovieRow(movieId: sampleMovie.id).environmentObject(sampleStore)
     }
 }
-#endif

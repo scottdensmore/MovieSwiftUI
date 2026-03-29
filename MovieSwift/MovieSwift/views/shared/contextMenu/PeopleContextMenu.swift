@@ -65,10 +65,6 @@ struct PeopleContextMenu: ConnectedView {
     }
 }
 
-#if DEBUG
-struct PeopleContextMenu_Previews: PreviewProvider {
-    static var previews: some View {
-        PeopleContextMenu(people: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    PeopleContextMenu(people: 0).environmentObject(sampleStore)
 }
-#endif
