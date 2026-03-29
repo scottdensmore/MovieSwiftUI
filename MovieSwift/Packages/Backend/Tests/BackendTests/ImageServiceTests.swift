@@ -6,7 +6,7 @@ import Foundation
 struct ImageServiceSizeTests {
     @Test("path(poster:) builds correct URL for each size")
     func pathBuildExpectedURLs() {
-        let poster = "/abc123.jpg"
+        let poster = "abc123.jpg"
 
         let small = ImageService.Size.small.path(poster: poster)
         #expect(small.absoluteString == "https://image.tmdb.org/t/p/w154/abc123.jpg")

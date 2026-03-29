@@ -7,7 +7,7 @@ struct UserDefaultWrapperTests {
     @Test("get returns default when key is missing")
     func getReturnsDefault() {
         let key = "test_missing_key_\(UUID().uuidString)"
-        var wrapper = UserDefault<String>(key, defaultValue: "fallback")
+        let wrapper = UserDefault<String>(key, defaultValue: "fallback")
         #expect(wrapper.wrappedValue == "fallback")
     }
 
