@@ -25,6 +25,7 @@ struct MovieSwiftMacApp: App {
         WindowGroup {
             StoreProvider(store: store) {
                 SplitView(isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests)
+                    .frame(minWidth: 800, minHeight: 500)
                     .tint(.steam_gold)
                     .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
                     .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)

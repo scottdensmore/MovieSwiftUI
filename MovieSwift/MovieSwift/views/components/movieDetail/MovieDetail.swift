@@ -671,6 +671,7 @@ struct MovieDetail: ConnectedView {
                 Image(systemName: "text.badge.plus").imageScale(.large)
             }
             .accessibilityIdentifier("movieDetail.addToListButton")
+            .accessibilityLabel("Add to list")
             #endif
         }
     }
@@ -715,6 +716,7 @@ struct MovieDetail: ConnectedView {
             Image(systemName: "text.badge.plus").imageScale(.large)
         }
         .accessibilityIdentifier("movieDetail.addToListButton")
+        .accessibilityLabel("Add to list")
     }
     #endif
     

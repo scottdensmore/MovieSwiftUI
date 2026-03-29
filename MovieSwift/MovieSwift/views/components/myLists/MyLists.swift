@@ -188,6 +188,7 @@ struct MyLists : ConnectedView {
                         .resizable()
                         .frame(width: 25, height: 25)
                 }
+                .accessibilityLabel("Sort")
                 #else
                 Button(action: {
                     self.isSortActionSheetPresented.toggle()
@@ -196,6 +197,7 @@ struct MyLists : ConnectedView {
                         .resizable()
                         .frame(width: 25, height: 25)
                 })
+                .accessibilityLabel("Sort")
                 #endif
             }
         }

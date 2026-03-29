@@ -130,11 +130,7 @@ struct MovieButtonsRow: ConnectedView {
                                 color: Color,
                                 isOn: Bool,
                                 action: @escaping () -> Void) -> some View {
-        Button(action: {
-            DispatchQueue.main.async {
-                action()
-            }
-        }) {
+        Button(action: action) {
             HStack(alignment: .center, spacing: 4) {
                 Image(systemName: systemImageName)
                     .foregroundColor(isOn ? .white : color)

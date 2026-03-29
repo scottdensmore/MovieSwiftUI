@@ -132,6 +132,7 @@ struct CustomListDetail : ConnectedView {
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
                     }
+                    .accessibilityLabel("Edit list")
                     #if os(macOS)
                     Menu {
                         sortMenuButtons { self.selectedMoviesSort = $0 }
@@ -141,6 +142,7 @@ struct CustomListDetail : ConnectedView {
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
                     }
+                    .accessibilityLabel("Sort")
                     #else
                     Button(action: {
                         self.isSortActionSheetPresented.toggle()
@@ -150,6 +152,7 @@ struct CustomListDetail : ConnectedView {
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
                     })
+                    .accessibilityLabel("Sort")
                     #endif
                 }
             }

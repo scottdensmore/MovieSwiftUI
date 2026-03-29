@@ -87,6 +87,7 @@ struct MoviesGenreList: ConnectedView {
                         .imageScale(.large)
                         .foregroundColor(.steam_gold)
                 }
+                .accessibilityLabel("Sort")
                 #else
                 Button(action: {
                     self.isSortSheetPresented.toggle()
@@ -95,6 +96,7 @@ struct MoviesGenreList: ConnectedView {
                         .imageScale(.large)
                         .foregroundColor(.steam_gold)
                 })
+                .accessibilityLabel("Sort")
                 #endif
             }
         }
