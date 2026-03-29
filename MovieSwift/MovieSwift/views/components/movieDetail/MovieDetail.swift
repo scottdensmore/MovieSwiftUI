@@ -450,42 +450,6 @@ struct MovieDetail: ConnectedView {
     }
     
     // MARK: - Computed views
-    #if !os(macOS)
-    func addActionSheet(props: Props) -> ActionSheet {
-        let movieTitle = props.movie?.userTitle ?? "this movie"
-        var buttons: [Alert.Button] = []
-        let wishlistButton = ActionSheet.wishlistButton(isInWishlist: props.isInWishlist,
-                                                        movie: movieId,
-                                                        dispatch: props.dispatch) {
-            self.displaySavedBadge()
-        }
-        let seenButton = ActionSheet.seenListButton(isInSeenlist: props.isInSeenlist,
-                                                    movie: movieId,
-                                                    dispatch: props.dispatch) {
-            self.displaySavedBadge()
-        }
-        let customListButtons = ActionSheet.customListsButttons(customLists: props.customLists,
-                                                                movie: movieId,
-                                                                dispatch: props.dispatch) {
-            self.displaySavedBadge()
-        }
-        let createListButton: Alert.Button = .default(Text("Create list")) {
-            self.isCreateListFormPresented = true
-        }
-        let cancelButton = Alert.Button.cancel {
-
-        }
-        buttons.append(wishlistButton)
-        buttons.append(seenButton)
-        buttons.append(contentsOf: customListButtons)
-        buttons.append(createListButton)
-        buttons.append(cancelButton)
-        let sheet = ActionSheet(title: Text("Add or remove \(movieTitle) from your lists"),
-                                message: nil,
-                                buttons: buttons)
-        return sheet
-    }
-    #endif
     
     // MARK: - Body
     
@@ -780,7 +744,39 @@ struct MovieDetail: ConnectedView {
                 self.fetchMovieDetails(props: props)
             }
             #if !os(macOS)
-            .actionSheet(isPresented: $isAddSheetPresented, content: { addActionSheet(props: props) })
+            .confirmationDialog(
+                "Add or remove from your lists",
+                isPresented: $isAddSheetPresented,
+                titleVisibility: .visible
+            ) {
+                Button(props.isInWishlist ? "Remove from wishlist" : "Add to wishlist",
+                       role: props.isInWishlist ? .destructive : nil) {
+                    props.dispatch(props.isInWishlist
+                        ? MoviesActions.RemoveFromWishlist(movie: movieId)
+                        : MoviesActions.AddToWishlist(movie: movieId))
+                    displaySavedBadge()
+                }
+                Button(props.isInSeenlist ? "Remove from seenlist" : "Add to seenlist",
+                       role: props.isInSeenlist ? .destructive : nil) {
+                    props.dispatch(props.isInSeenlist
+                        ? MoviesActions.RemoveFromSeenList(movie: movieId)
+                        : MoviesActions.AddToSeenList(movie: movieId))
+                    displaySavedBadge()
+                }
+                ForEach(props.customLists) { list in
+                    let isInList = list.movies.contains(movieId)
+                    Button(isInList ? "Remove from \(list.name)" : "Add to \(list.name)",
+                           role: isInList ? .destructive : nil) {
+                        props.dispatch(isInList
+                            ? MoviesActions.RemoveMovieFromCustomList(list: list.id, movie: movieId)
+                            : MoviesActions.AddMovieToCustomList(list: list.id, movie: movieId))
+                        displaySavedBadge()
+                    }
+                }
+                Button("Create list") {
+                    isCreateListFormPresented = true
+                }
+            }
             #endif
             .sheet(isPresented: $isCreateListFormPresented,
                    content: { CustomListForm(editingListId: nil)

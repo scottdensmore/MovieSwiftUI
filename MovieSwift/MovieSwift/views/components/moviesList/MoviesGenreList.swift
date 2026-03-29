@@ -105,14 +105,12 @@ struct MoviesGenreList: ConnectedView {
             moviesListDestinationView(for: route)
         }
         #if !os(macOS)
-        .actionSheet(isPresented: $isSortSheetPresented,
-                     content: { ActionSheet.sortActionSheet(onAction: { sort in
-                        if let sort = sort {
-                            self.selectedSort = sort
-                            self.pageListener.sort = sort
-                        }
-                     })
-        })
+        .confirmationDialog("Sort movies by", isPresented: $isSortSheetPresented) {
+            sortMenuButtons { sort in
+                self.selectedSort = sort
+                self.pageListener.sort = sort
+            }
+        }
         #endif
         .onAppear {
             self.pageListener.dispatch = props.dispatch

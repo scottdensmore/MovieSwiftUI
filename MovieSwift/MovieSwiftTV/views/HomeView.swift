@@ -6,7 +6,12 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var selectedTab = MoviesMenu.popular
+    private enum Tab: Hashable {
+        case movies(MoviesMenu)
+        case search
+    }
+
+    @State private var selectedTab: Tab = .movies(.popular)
 
     private static let movieTabs: [MoviesMenu] = MoviesMenu.allCases.filter { $0 != .genres }
 
@@ -18,8 +23,14 @@ struct HomeView: View {
                         .navigationTitle(menu.title())
                 }
                 .tabItem { Label(menu.title(), systemImage: tabIcon(for: menu)) }
-                .tag(menu)
+                .tag(Tab.movies(menu))
             }
+            NavigationStack {
+                TVSearchView()
+                    .navigationTitle("Search")
+            }
+            .tabItem { Label("Search", systemImage: "magnifyingglass") }
+            .tag(Tab.search)
         }
     }
 

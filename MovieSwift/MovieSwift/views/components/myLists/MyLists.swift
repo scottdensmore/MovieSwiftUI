@@ -56,15 +56,6 @@ struct MyLists : ConnectedView {
     }
     
     // MARK: - Dynamic views
-    #if !os(macOS)
-    private var sortActionSheet: ActionSheet {
-        ActionSheet.sortActionSheet { (sort) in
-            if let sort = sort{
-                self.selectedMoviesSort = sort
-            }
-        }
-    }
-    #endif
     
     private func customListsSection(props: Props) -> some View {
         Section(header: Text("Custom Lists")) {
@@ -183,7 +174,9 @@ struct MyLists : ConnectedView {
         }
         #endif
         #if !os(macOS)
-        .actionSheet(isPresented: $isSortActionSheetPresented, content: { sortActionSheet })
+        .confirmationDialog("Sort movies by", isPresented: $isSortActionSheetPresented) {
+            sortMenuButtons { self.selectedMoviesSort = $0 }
+        }
         #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {

@@ -156,15 +156,6 @@ struct CustomListDetail : ConnectedView {
         }
     }
     
-    #if !os(macOS)
-    private var sortActionSheet: ActionSheet {
-        ActionSheet.sortActionSheet { (sort) in
-            if let sort = sort{
-                self.selectedMoviesSort = sort
-            }
-        }
-    }
-    #endif
     
     func body(props: Props) -> some View {
         List {
@@ -257,7 +248,9 @@ struct CustomListDetail : ConnectedView {
             #endif
             .edgesIgnoringSafeArea(isSearching ? .leading : .top)
             #if !os(macOS)
-            .actionSheet(isPresented: $isSortActionSheetPresented, content: { sortActionSheet })
+            .confirmationDialog("Sort movies by", isPresented: $isSortActionSheetPresented) {
+                sortMenuButtons { self.selectedMoviesSort = $0 }
+            }
             #endif
         .sheet(isPresented: $isEditingFormPresented,
                    content: { CustomListForm(editingListId: self.listId).environmentObject(self.store)
