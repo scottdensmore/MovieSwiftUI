@@ -15,7 +15,7 @@ env:
 
 jobs:
   package-tests:
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage
 
@@ -37,7 +37,7 @@ jobs:
 
   ios-tests:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
@@ -79,7 +79,7 @@ jobs:
 
   ios-tests-ipad:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift-iPad.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data-ipad
@@ -113,7 +113,7 @@ jobs:
 
   mac-tests:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
@@ -133,7 +133,7 @@ jobs:
 
   tvos-tests:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4

@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "MovieSwiftFluxCore",
     platforms: [
-        .macOS("15.0"),
+        .macOS("26.0"),
         .iOS("26.0"),
         .tvOS("26.0")
     ],
