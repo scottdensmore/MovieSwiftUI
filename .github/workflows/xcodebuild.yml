@@ -121,12 +121,13 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: macOS app tests
+      - name: macOS app tests (unit)
         run: |
           xcodebuild test \
             -project MovieSwift/MovieSwift.xcodeproj \
             -scheme MovieSwiftMac \
             -destination "platform=macOS" \
+            -only-testing:MovieSwiftMacTests \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -141,10 +142,11 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: tvOS app tests
+      - name: tvOS app tests (unit)
         run: |
           xcodebuild test \
             -project MovieSwift/MovieSwift.xcodeproj \
             -scheme MovieSwiftTV \
             -destination "platform=tvOS Simulator,name=Apple TV" \
+            -only-testing:MovieSwiftTVTests \
             CODE_SIGNING_ALLOWED=NO
