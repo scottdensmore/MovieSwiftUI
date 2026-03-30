@@ -37,5 +37,14 @@ struct SplitView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .focusedSceneValue(\.selectedOutlineMenu, $selectedMenu)
+        .task {
+            // Allow UI tests to pre-select a sidebar menu via environment variable,
+            // working around headless CI environments where tap() on List rows
+            // does not reliably trigger the selection binding.
+            if let menuTitle = ProcessInfo.processInfo.environment["UI_TEST_SELECT_MENU"],
+               let menu = OutlineMenu.allCases.first(where: { $0.title == menuTitle }) {
+                selectedMenu = menu
+            }
+        }
     }
 }

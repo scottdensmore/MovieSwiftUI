@@ -16,29 +16,31 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     // MARK: - Helpers
 
+    /// Launch the app, optionally pre-selecting a sidebar menu via the
+    /// `UI_TEST_SELECT_MENU` environment variable. This is the reliable way
+    /// to navigate the sidebar in headless CI where `tap()` on SwiftUI
+    /// `List(selection:)` rows does not trigger the selection binding.
     @discardableResult
-    private func launchApp(environment: [String: String] = [:]) -> XCUIApplication {
-        .launchForTesting(environment: environment)
+    private func launchApp(
+        selectMenu menu: String? = nil,
+        environment: [String: String] = [:]
+    ) -> XCUIApplication {
+        var env = environment
+        if let menu {
+            env["UI_TEST_SELECT_MENU"] = menu
+        }
+        return .launchForTesting(environment: env)
     }
 
-    private func selectSidebarItem(_ title: String, in app: XCUIApplication) {
-        // First try the accessibility identifier on the row cell
+    private func waitForSidebarItem(_ title: String, in app: XCUIApplication) {
         let sidebarItem = app.identifiedElement("sidebar.\(title)")
-        if sidebarItem.waitForExistence(timeout: timeout) {
-            sidebarItem.tap()
-            return
-        }
-        // Fallback: find and tap the static text in the sidebar
-        let sidebarText = app.staticTexts[title]
-        XCTAssertTrue(sidebarText.waitForExistence(timeout: timeout),
+        XCTAssertTrue(sidebarItem.waitForExistence(timeout: timeout),
                       "Expected sidebar item '\(title)' to exist")
-        sidebarText.tap()
     }
 
     @discardableResult
     private func openFirstMovieDetail(in app: XCUIApplication) -> XCUIElement {
-        selectSidebarItem("Popular", in: app)
-
+        // Popular is the default selection — no sidebar tap needed
         let firstMovie = app.identifiedElement("moviesList.movie.0")
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
         firstMovie.tap()
@@ -66,16 +68,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testPopularTabShowsMovies() {
-        let app = launchApp()
-        selectSidebarItem("Popular", in: app)
+        let app = launchApp(selectMenu: "Popular")
 
         let firstMovie = app.identifiedElement("moviesList.movie.0")
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
     func testTopRatedTabShowsMovies() {
-        let app = launchApp()
-        selectSidebarItem("Top rated", in: app)
+        let app = launchApp(selectMenu: "Top rated")
 
         let firstMovie = app.identifiedElement("moviesList.movie.0")
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
@@ -156,27 +156,27 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
         genreChip.tap()
 
-        // On macOS, NavigationSplitView may not show a traditional navigation bar;
-        // verify the genre list loaded by checking for a movie list element
-        let genreNavBar = app.navigationBars["test"]
+        // On macOS NavigationSplitView, genre navigation replaces the detail column.
+        // Check for either a navigation bar title or a movie list in the genre view.
         let movieInGenre = app.identifiedElement("moviesList.movie.0")
-        let found = genreNavBar.waitForExistence(timeout: timeout)
-            || movieInGenre.waitForExistence(timeout: timeout)
-        XCTAssertTrue(found, "Expected genre list to appear")
+        let genreTitle = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS[c] %@", "genre")
+        ).firstMatch
+        let found = movieInGenre.waitForExistence(timeout: timeout)
+            || genreTitle.waitForExistence(timeout: timeout)
+        XCTAssertTrue(found, "Expected genre list to appear after tapping genre chip")
     }
 
     // MARK: - Fan Club
 
     func testFanClubShowsExpectedElements() {
-        let app = launchApp()
-        selectSidebarItem("Fan Club", in: app)
+        let app = launchApp(selectMenu: "Fan Club")
 
         XCTAssertTrue(app.staticTexts["Popular people to add to your Fan Club"].waitForExistence(timeout: timeout))
     }
 
     func testFanClubPersonOpensPeopleDetail() {
-        let app = launchApp()
-        selectSidebarItem("Fan Club", in: app)
+        let app = launchApp(selectMenu: "Fan Club")
 
         let personRow = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
@@ -188,8 +188,10 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testFanClubShowsRetryOnFailure() {
-        let app = launchApp(environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"])
-        selectSidebarItem("Fan Club", in: app)
+        let app = launchApp(
+            selectMenu: "Fan Club",
+            environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"]
+        )
 
         XCTAssertTrue(app.identifiedElement("fanClub.errorState").waitForExistence(timeout: timeout))
         XCTAssertTrue(app.identifiedButton("fanClub.retryButton").waitForExistence(timeout: timeout))
@@ -198,16 +200,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     // MARK: - My Lists
 
     func testMyListsShowsSegmentControls() {
-        let app = launchApp()
-        selectSidebarItem("My Lists", in: app)
+        let app = launchApp(selectMenu: "My Lists")
 
         XCTAssertTrue(app.segmentedControls.buttons["Wishlist"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.segmentedControls.buttons["Seenlist"].exists)
     }
 
     func testMyListsWishlistSegmentShowsMovies() {
-        let app = launchApp()
-        selectSidebarItem("My Lists", in: app)
+        let app = launchApp(selectMenu: "My Lists")
 
         let wishlistTab = app.segmentedControls.buttons["Wishlist"]
         XCTAssertTrue(wishlistTab.waitForExistence(timeout: timeout))
@@ -219,8 +219,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testMyListsSeenlistSegmentShowsMovies() {
-        let app = launchApp()
-        selectSidebarItem("My Lists", in: app)
+        let app = launchApp(selectMenu: "My Lists")
 
         let seenlistTab = app.segmentedControls.buttons["Seenlist"]
         XCTAssertTrue(seenlistTab.waitForExistence(timeout: timeout))
@@ -232,8 +231,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testMyListsCustomListOpensDetail() {
-        let app = launchApp()
-        selectSidebarItem("My Lists", in: app)
+        let app = launchApp(selectMenu: "My Lists")
 
         let customListEntry = app.labeledElement("TestName")
         XCTAssertTrue(customListEntry.waitForExistence(timeout: timeout))
@@ -245,16 +243,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     // MARK: - Discover
 
     func testDiscoverShowsContent() {
-        let app = launchApp()
-        selectSidebarItem("Discover", in: app)
+        let app = launchApp(selectMenu: "Discover")
 
         let filterButton = app.identifiedButton("discover.filterButton")
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
     }
 
     func testDiscoverDismissCanBeUndone() {
-        let app = launchApp()
-        selectSidebarItem("Discover", in: app)
+        let app = launchApp(selectMenu: "Discover")
 
         let filterButton = app.identifiedButton("discover.filterButton")
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
@@ -277,8 +273,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testDiscoverFilterShowsPickerControls() {
-        let app = launchApp()
-        selectSidebarItem("Discover", in: app)
+        let app = launchApp(selectMenu: "Discover")
 
         let filterButton = app.identifiedButton("discover.filterButton")
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
@@ -292,16 +287,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     // MARK: - Settings
 
     func testSettingsShowsRegionPicker() {
-        let app = launchApp()
-        selectSidebarItem("Settings", in: app)
+        let app = launchApp(selectMenu: "Settings")
 
         let regionPicker = app.identifiedElement("settings.regionPicker")
         XCTAssertTrue(regionPicker.waitForExistence(timeout: timeout))
     }
 
     func testSettingsShowsDebugInfo() {
-        let app = launchApp()
-        selectSidebarItem("Settings", in: app)
+        let app = launchApp(selectMenu: "Settings")
 
         XCTAssertTrue(app.staticTexts["Movies in state"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["Archived state size"].waitForExistence(timeout: timeout))
