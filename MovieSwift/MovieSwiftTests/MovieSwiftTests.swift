@@ -1,5 +1,9 @@
 import XCTest
+#if os(macOS)
+@testable import Film_O_Matic
+#else
 @testable import MovieSwift
+#endif
 
 final class MovieSwiftTests: XCTestCase {
     private func makeMovie(id: Int,
@@ -1266,10 +1270,12 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(MoviesHomeState.toggledMode(from: .grid), .list)
     }
 
+    #if !os(macOS)
     func testMoviesHomeStateUsesInlineTitleInListMode() {
         XCTAssertEqual(MoviesHomeState.navigationBarTitleDisplayMode(for: .list), .inline)
         XCTAssertEqual(MoviesHomeState.navigationBarTitleDisplayMode(for: .grid), .automatic)
     }
+    #endif
 
     func testMoviesHomeStateSkipsPageLoadDuringUISmokeTests() {
         XCTAssertFalse(MoviesHomeState.shouldLoadPage(isRunningUISmokeTests: true))
@@ -1718,6 +1724,7 @@ final class MovieSwiftTests: XCTestCase {
                        .removeFromWishlist(movie: 12))
     }
 
+    #if !os(macOS)
     func testActionSheetMovieListActionAddsMovieToWishlistWhenMissing() {
         XCTAssertEqual(ActionSheetMovieListAction.wishlist(movie: 12, isInWishlist: false),
                        .addToWishlist(movie: 12))
@@ -1751,6 +1758,7 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertEqual(ActionSheetMovieListAction.customList(list: list, movie: 12),
                        .removeFromCustomList(list: 7, movie: 12))
     }
+    #endif
 
     func testMovieButtonsToggleActionAddsMovieToSeenlistWhenMissing() {
         XCTAssertEqual(MovieButtonsToggleAction.seenlistAction(movieId: 12, isInSeenlist: false),

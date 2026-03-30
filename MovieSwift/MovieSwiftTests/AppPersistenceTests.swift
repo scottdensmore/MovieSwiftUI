@@ -1,5 +1,11 @@
 import XCTest
+#if os(tvOS)
+@testable import MovieSwiftTV
+#elseif os(macOS)
+@testable import Film_O_Matic
+#else
 @testable import MovieSwift
+#endif
 
 final class AppPersistenceTests: XCTestCase {
 

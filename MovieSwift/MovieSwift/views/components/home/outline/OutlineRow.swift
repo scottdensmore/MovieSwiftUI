@@ -29,6 +29,7 @@ struct OutlineRow : View {
         .padding()
         .padding(.horizontal, 8)
         .contentShape(Rectangle())
+        .accessibilityIdentifier("sidebar.\(item.title)")
     }
 }
 

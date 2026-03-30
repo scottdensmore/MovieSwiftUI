@@ -34,6 +34,7 @@ struct MoviesView: ConnectedView {
                             TVMovieCard(movie: movie)
                         }
                         .buttonStyle(.card)
+                        .accessibilityIdentifier("moviesList.movie.\(id)")
                         .onAppear {
                             if id == props.movieIds.last {
                                 currentPage += 1

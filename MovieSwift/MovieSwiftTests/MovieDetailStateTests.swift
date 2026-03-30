@@ -1,5 +1,9 @@
 import XCTest
+#if os(macOS)
+@testable import Film_O_Matic
+#else
 @testable import MovieSwift
+#endif
 
 final class MovieDetailStateTests: XCTestCase {
 

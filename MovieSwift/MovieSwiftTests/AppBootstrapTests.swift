@@ -1,5 +1,11 @@
 import XCTest
+#if os(tvOS)
+@testable import MovieSwiftTV
+#elseif os(macOS)
+@testable import Film_O_Matic
+#else
 @testable import MovieSwift
+#endif
 
 final class AppBootstrapTests: XCTestCase {
 
@@ -104,7 +110,3 @@ final class AppBootstrapTests: XCTestCase {
         XCTAssertTrue(env.runtime.isRunningUISmokeTests)
     }
 }
-
-// MARK: - Equatable conformance for tests
-
-extension AppLaunchMode: Equatable {}

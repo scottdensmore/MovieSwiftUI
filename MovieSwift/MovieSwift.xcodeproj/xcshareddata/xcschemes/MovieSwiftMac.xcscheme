@@ -14,9 +14,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F205D6478A187924D497302D"
-               BuildableName = "MovieSwiftTVTests.xctest"
-               BlueprintName = "MovieSwiftTVTests"
+               BlueprintIdentifier = "4D386734EEABE1ED301C9D74"
+               BuildableName = "MovieSwiftMacTests.xctest"
+               BlueprintName = "MovieSwiftMacTests"
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,9 +28,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A292223EE04170B9495C0B1B"
-               BuildableName = "MovieSwiftTVUITests.xctest"
-               BlueprintName = "MovieSwiftTVUITests"
+               BlueprintIdentifier = "6A5E5D9448B9EAC278219644"
+               BuildableName = "MovieSwiftMacUITests.xctest"
+               BlueprintName = "MovieSwiftMacUITests"
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -42,9 +42,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "69414A0B23C33FBE0056FBDF"
-               BuildableName = "MovieSwiftTV.app"
-               BlueprintName = "MovieSwiftTV"
+               BlueprintIdentifier = "F93388A3A8D3C03D3AC19B42"
+               BuildableName = "MovieSwiftMac.app"
+               BlueprintName = "MovieSwiftMac"
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -60,9 +60,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F205D6478A187924D497302D"
-               BuildableName = "MovieSwiftTVTests.xctest"
-               BlueprintName = "MovieSwiftTVTests"
+               BlueprintIdentifier = "4D386734EEABE1ED301C9D74"
+               BuildableName = "MovieSwiftMacTests.xctest"
+               BlueprintName = "MovieSwiftMacTests"
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -70,9 +70,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A292223EE04170B9495C0B1B"
-               BuildableName = "MovieSwiftTVUITests.xctest"
-               BlueprintName = "MovieSwiftTVUITests"
+               BlueprintIdentifier = "6A5E5D9448B9EAC278219644"
+               BuildableName = "MovieSwiftMacUITests.xctest"
+               BlueprintName = "MovieSwiftMacUITests"
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -92,9 +92,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "69414A0B23C33FBE0056FBDF"
-            BuildableName = "MovieSwiftTV.app"
-            BlueprintName = "MovieSwiftTV"
+            BlueprintIdentifier = "F93388A3A8D3C03D3AC19B42"
+            BuildableName = "MovieSwiftMac.app"
+            BlueprintName = "MovieSwiftMac"
             ReferencedContainer = "container:MovieSwift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -109,9 +109,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "69414A0B23C33FBE0056FBDF"
-            BuildableName = "MovieSwiftTV.app"
-            BlueprintName = "MovieSwiftTV"
+            BlueprintIdentifier = "F93388A3A8D3C03D3AC19B42"
+            BuildableName = "MovieSwiftMac.app"
+            BlueprintName = "MovieSwiftMac"
             ReferencedContainer = "container:MovieSwift.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

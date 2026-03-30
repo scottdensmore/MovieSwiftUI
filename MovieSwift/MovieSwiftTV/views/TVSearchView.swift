@@ -34,12 +34,14 @@ struct TVSearchView: ConnectedView {
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.top, 200)
+                    .accessibilityIdentifier("search.emptyState")
             } else if props.searchResults.isEmpty {
                 Text("No results for \"\(searchText)\"")
                     .font(.headline)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 200)
+                    .accessibilityIdentifier("search.noResults")
             } else {
                 LazyVGrid(columns: Self.gridColumns, spacing: 40) {
                     ForEach(props.searchResults, id: \.self) { id in
@@ -48,6 +50,7 @@ struct TVSearchView: ConnectedView {
                                 TVSearchCard(movie: movie)
                             }
                             .buttonStyle(.card)
+                            .accessibilityIdentifier("search.result.\(id)")
                         }
                     }
                 }

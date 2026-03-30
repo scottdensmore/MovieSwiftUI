@@ -1,6 +1,10 @@
 import XCTest
 import Backend
+#if os(macOS)
+@testable import Film_O_Matic
+#else
 @testable import MovieSwift
+#endif
 
 final class PeopleActionsTests: XCTestCase {
     private final class StubAPIKeyProvider: APIKeyProviding {

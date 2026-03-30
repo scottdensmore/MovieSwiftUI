@@ -51,6 +51,7 @@ struct TVMovieDetail: ConnectedView {
             }
         }
         .navigationTitle(props.movie?.userTitle ?? "Movie")
+        .accessibilityIdentifier("movieDetail")
         .onAppear {
             props.dispatch(MoviesActions.FetchDetail(movie: movieId))
             props.dispatch(PeopleActions.FetchMovieCasts(movie: movieId))
@@ -68,6 +69,7 @@ struct TVMovieDetail: ConnectedView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(movie.userTitle)
                     .font(.title)
+                    .accessibilityIdentifier("movieDetail.title")
                 HStack(spacing: 24) {
                     if let date = movie.release_date {
                         Label(date, systemImage: "calendar")
@@ -108,6 +110,7 @@ struct TVMovieDetail: ConnectedView {
         VStack(alignment: .leading, spacing: 16) {
             Text("Cast")
                 .font(.title3)
+                .accessibilityIdentifier("movieDetail.castHeader")
             ScrollView(.horizontal) {
                 HStack(spacing: 24) {
                     ForEach(characters.prefix(10)) { person in
@@ -140,6 +143,7 @@ struct TVMovieDetail: ConnectedView {
         VStack(alignment: .leading, spacing: 16) {
             Text("Recommended")
                 .font(.title3)
+                .accessibilityIdentifier("movieDetail.recommendedHeader")
             ScrollView(.horizontal) {
                 HStack(spacing: 24) {
                     ForEach(movieIds.prefix(10), id: \.self) { id in
