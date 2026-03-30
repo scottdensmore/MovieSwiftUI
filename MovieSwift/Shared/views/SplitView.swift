@@ -19,9 +19,8 @@ struct SplitView: View {
                         .frame(height: 50)
                         .tag(menu)
                         .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedMenu = menu
-                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("sidebar.\(menu.title)")
                 }
             }
             .listStyle(.sidebar)

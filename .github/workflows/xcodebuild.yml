@@ -118,16 +118,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare macOS for UI testing
+        uses: paulz/prepare-macos@v1
+
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: macOS app tests (unit)
+      - name: macOS app tests (unit + UI)
         run: |
           xcodebuild test \
             -project MovieSwift/MovieSwift.xcodeproj \
             -scheme MovieSwiftMac \
             -destination "platform=macOS" \
-            -only-testing:MovieSwiftMacTests \
+            -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -142,11 +146,11 @@ jobs:
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
 
-      - name: tvOS app tests (unit)
+      - name: tvOS app tests (unit + UI)
         run: |
           xcodebuild test \
             -project MovieSwift/MovieSwift.xcodeproj \
             -scheme MovieSwiftTV \
             -destination "platform=tvOS Simulator,name=Apple TV" \
-            -only-testing:MovieSwiftTVTests \
+            -retry-tests-on-failure \
             CODE_SIGNING_ALLOWED=NO

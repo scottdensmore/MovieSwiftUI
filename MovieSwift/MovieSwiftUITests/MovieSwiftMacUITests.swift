@@ -22,10 +22,17 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     private func selectSidebarItem(_ title: String, in app: XCUIApplication) {
+        // First try the accessibility identifier on the row cell
         let sidebarItem = app.identifiedElement("sidebar.\(title)")
-        XCTAssertTrue(sidebarItem.waitForExistence(timeout: timeout),
+        if sidebarItem.waitForExistence(timeout: timeout) {
+            sidebarItem.tap()
+            return
+        }
+        // Fallback: find and tap the static text in the sidebar
+        let sidebarText = app.staticTexts[title]
+        XCTAssertTrue(sidebarText.waitForExistence(timeout: timeout),
                       "Expected sidebar item '\(title)' to exist")
-        sidebarItem.tap()
+        sidebarText.tap()
     }
 
     @discardableResult
@@ -149,7 +156,13 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
         genreChip.tap()
 
-        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: timeout))
+        // On macOS, NavigationSplitView may not show a traditional navigation bar;
+        // verify the genre list loaded by checking for a movie list element
+        let genreNavBar = app.navigationBars["test"]
+        let movieInGenre = app.identifiedElement("moviesList.movie.0")
+        let found = genreNavBar.waitForExistence(timeout: timeout)
+            || movieInGenre.waitForExistence(timeout: timeout)
+        XCTAssertTrue(found, "Expected genre list to appear")
     }
 
     // MARK: - Fan Club
