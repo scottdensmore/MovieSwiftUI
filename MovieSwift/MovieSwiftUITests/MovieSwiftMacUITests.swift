@@ -214,12 +214,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testMyListsCustomListExists() {
         let app = launchApp(selectMenu: "My Lists")
 
-        // Look for the custom list by checking for its name in any element type
-        let customListEntry = app.staticTexts["TestName"]
-        let customListButton = app.buttons["TestName"]
-        let found = customListEntry.waitForExistence(timeout: timeout)
-            || customListButton.waitForExistence(timeout: timeout)
-        XCTAssertTrue(found, "Expected custom list 'TestName' to exist")
+        // The custom list row contains Text("TestName") but on macOS the
+        // Button wrapper may combine children into a single accessibility
+        // element. Search broadly for any element containing the list name.
+        let customListElement = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@", "TestName"))
+            .firstMatch
+        XCTAssertTrue(customListElement.waitForExistence(timeout: timeout),
+                      "Expected custom list 'TestName' to exist")
     }
 
     // MARK: - Discover
