@@ -8,7 +8,12 @@ import SwiftUI
 // MARK: - MacOS implementation
 struct SplitView: View {
     let isRunningUISmokeTests: Bool
-    @State private var selectedMenu: OutlineMenu? = .popular
+
+    /// The selected sidebar menu. When `UI_TEST_SELECT_MENU` is set in the
+    /// environment (e.g. by XCUITest `launchEnvironment`), the initial selection
+    /// is driven by that value — working around headless CI where `tap()` on
+    /// SwiftUI `List(selection:)` rows does not reliably trigger the binding.
+    @State private var selectedMenu: OutlineMenu? = initialMenu()
 
     @ViewBuilder
     var body: some View {
@@ -37,14 +42,13 @@ struct SplitView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .focusedSceneValue(\.selectedOutlineMenu, $selectedMenu)
-        .task {
-            // Allow UI tests to pre-select a sidebar menu via environment variable,
-            // working around headless CI environments where tap() on List rows
-            // does not reliably trigger the selection binding.
-            if let menuTitle = ProcessInfo.processInfo.environment["UI_TEST_SELECT_MENU"],
-               let menu = OutlineMenu.allCases.first(where: { $0.title == menuTitle }) {
-                selectedMenu = menu
-            }
+    }
+
+    private static func initialMenu() -> OutlineMenu {
+        if let menuTitle = ProcessInfo.processInfo.environment["UI_TEST_SELECT_MENU"],
+           let menu = OutlineMenu.allCases.first(where: { $0.title == menuTitle }) {
+            return menu
         }
+        return .popular
     }
 }
