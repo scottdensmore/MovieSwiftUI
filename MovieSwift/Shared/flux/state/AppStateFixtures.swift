@@ -70,12 +70,14 @@ func makeUISmokeTestState() -> AppState {
                                     movieCastOrder: [0: [smokeTestPrimaryCast.id]],
                                     movieCrewOrder: [0: [smokeTestDirector.id]])
 
-    // Populate popular people so Fan Club view shows content instead of loading
-    peoplesState.popular = [smokeTestPrimaryCast.id, smokeTestDirector.id]
-    peoplesState.popularInitialLoadCompleted = true
-
     if environment[uiSmokeTestFanClubFailureKey] == "1" {
+        // Simulate a failed load with no popular data → shows error state
+        peoplesState.popularInitialLoadCompleted = true
         peoplesState.popularLoadFailed = true
+    } else {
+        // Populate popular people so Fan Club view shows content
+        peoplesState.popular = [smokeTestPrimaryCast.id, smokeTestDirector.id]
+        peoplesState.popularInitialLoadCompleted = true
     }
 
     return AppState(moviesState:
