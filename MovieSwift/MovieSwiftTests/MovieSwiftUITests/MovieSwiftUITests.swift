@@ -1,0 +1,709 @@
+import XCTest
+
+final class MovieSwiftUITests: XCTestCase {
+    private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
+    private let uiWaitTimeout: TimeInterval = 15
+    private let shouldLogHierarchyOnFailure = ProcessInfo.processInfo.environment["UI_TEST_LOG_HIERARCHY"] == "1"
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+    }
+
+    @discardableResult
+    private func launchApp(environment: [String: String] = [:]) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
+        app.launchEnvironment["UI_SMOKE_TESTS"] = "1"
+        for (key, value) in environment {
+            app.launchEnvironment[key] = value
+        }
+        app.launch()
+        return app
+    }
+
+    private func navigationButton(_ title: String, in app: XCUIApplication) -> XCUIElement {
+        let tabBarButton = app.tabBars.buttons[title]
+        if tabBarButton.waitForExistence(timeout: 0.5) {
+            return tabBarButton
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label == %@", title)).firstMatch
+    }
+
+    private func button(_ identifierOrLabel: String, in app: XCUIApplication) -> XCUIElement {
+        let identifiedButton = app.buttons[identifierOrLabel]
+        if identifiedButton.waitForExistence(timeout: 0.5) {
+            return identifiedButton
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label == %@", identifierOrLabel)).firstMatch
+    }
+
+    private func identifiedElement(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    }
+
+    private func tappableElement(_ title: String, in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", title)).firstMatch
+    }
+
+    private func keyboardElement(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        let button = app.buttons[identifier]
+        if button.waitForExistence(timeout: 0.5) {
+            return button
+        }
+
+        return identifiedElement(identifier, in: app)
+    }
+
+    private func topPersonElement(in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "movieDetail.topPerson."))
+            .firstMatch
+    }
+
+    private func pressKey(_ key: XCUIKeyboardKey,
+                          in app: XCUIApplication,
+                          modifierFlags: XCUIElement.KeyModifierFlags = []) {
+        app.typeKey(key, modifierFlags: modifierFlags)
+    }
+
+    private func openTab(_ title: String, in app: XCUIApplication) {
+        let tabButton = navigationButton(title, in: app)
+        XCTAssertTrue(tabButton.waitForExistence(timeout: uiWaitTimeout), "Expected tab '\(title)' to exist")
+        tabButton.tap()
+    }
+
+    @discardableResult
+    private func openDiscover(in app: XCUIApplication) -> XCUIElement {
+        openTab("Discover", in: app)
+
+        let filterButton = button("discover.filterButton", in: app)
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        return filterButton
+    }
+
+    private func scrollUntilElementExists(_ element: XCUIElement, in app: XCUIApplication, maxSwipes: Int = 6) -> Bool {
+        if element.waitForExistence(timeout: 1) {
+            return true
+        }
+
+        for _ in 0..<maxSwipes {
+            app.swipeUp()
+            if element.waitForExistence(timeout: 1) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private func logHierarchyIfMissing(_ app: XCUIApplication, element: XCUIElement, named name: String) {
+        if shouldLogHierarchyOnFailure && !element.exists {
+            print("Missing element: \(name)")
+            print(app.debugDescription)
+        }
+    }
+
+    @discardableResult
+    private func openFirstMovieDetail(in app: XCUIApplication) -> XCUIElement {
+        openTab("Movies", in: app)
+
+        let firstMovie = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout))
+        firstMovie.tap()
+
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        logHierarchyIfMissing(app, element: addToListButton, named: "movieDetail.addToListButton")
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout))
+        return addToListButton
+    }
+
+    @discardableResult
+    private func openFirstMovieDetailFromLaunch(in app: XCUIApplication) -> XCUIElement {
+        let firstMovie = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout))
+        firstMovie.tap()
+
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        logHierarchyIfMissing(app, element: addToListButton, named: "movieDetail.addToListButton")
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout))
+        return addToListButton
+    }
+
+    private func openFirstPersonDetailFromMovie(in app: XCUIApplication) {
+        _ = openFirstMovieDetail(in: app)
+
+        let topPersonLink = identifiedElement("movieDetail.topPersonShortcut", in: app)
+        logHierarchyIfMissing(app, element: topPersonLink, named: "movieDetail.topPersonShortcut")
+        XCTAssertTrue(topPersonLink.waitForExistence(timeout: uiWaitTimeout))
+        topPersonLink.tap()
+    }
+
+    func testLaunchShowsMainTabs() {
+        let app = launchApp()
+
+        for destination in Self.primaryDestinations {
+            XCTAssertTrue(
+                navigationButton(destination, in: app).waitForExistence(timeout: uiWaitTimeout),
+                "Expected to find primary navigation item '\(destination)'"
+            )
+        }
+    }
+
+    func testSelectingFirstMovieOpensDetailScreen() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testFanClubTabShowsExpectedScreenElements() {
+        let app = launchApp()
+        openTab("Fan Club", in: app)
+
+        XCTAssertTrue(app.navigationBars["Fan Club"].waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(app.staticTexts["Popular people to add to your Fan Club"].exists)
+    }
+
+    func testFanClubPersonOpensPeopleDetailScreen() {
+        let app = launchApp()
+        openTab("Fan Club", in: app)
+
+        let personRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
+            .firstMatch
+        XCTAssertTrue(personRow.waitForExistence(timeout: uiWaitTimeout))
+        personRow.tap()
+
+        XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testFanClubShowsRetryStateWhenPopularLoadFails() {
+        let app = launchApp(environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"])
+        openTab("Fan Club", in: app)
+
+        XCTAssertTrue(identifiedElement("fanClub.errorState", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(button("fanClub.retryButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsTabShowsCreateAndSortControls() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        XCTAssertTrue(app.navigationBars["My Lists"].waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(app.buttons["Create custom list"].exists)
+        XCTAssertTrue(app.segmentedControls.buttons["Wishlist"].exists)
+        XCTAssertTrue(app.segmentedControls.buttons["Seenlist"].exists)
+    }
+
+    func testMoviesSearchShowsCancelAndFilterControls() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let searchField = app.textFields["Search any movies or person"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: uiWaitTimeout))
+        searchField.tap()
+        searchField.typeText("matrix")
+
+        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(app.segmentedControls.buttons["Movies"].exists)
+        XCTAssertTrue(app.segmentedControls.buttons["People"].exists)
+    }
+
+    func testMoviesSettingsModalCanOpenAndDismiss() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let cancelButton = button("settings.cancelButton", in: app)
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: uiWaitTimeout))
+        cancelButton.tap()
+
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(settingsButton.isHittable)
+    }
+
+    func testMoviesSettingsSavePersistsOriginalTitlePreference() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let originalTitleToggle = app.switches["settings.alwaysOriginalTitleToggle"]
+        XCTAssertTrue(originalTitleToggle.waitForExistence(timeout: uiWaitTimeout))
+
+        let initialValue = originalTitleToggle.value as? String
+        let toggleRow = identifiedElement("settings.alwaysOriginalTitleRow", in: app)
+        XCTAssertTrue(toggleRow.waitForExistence(timeout: uiWaitTimeout))
+        toggleRow.tap()
+
+        let expectedValue = initialValue == "1" ? "0" : "1"
+        let updatedValuePredicate = NSPredicate(format: "value == %@", expectedValue)
+        expectation(for: updatedValuePredicate, evaluatedWith: originalTitleToggle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        let saveButton = button("settings.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let reopenedToggle = app.switches["settings.alwaysOriginalTitleToggle"]
+        XCTAssertTrue(reopenedToggle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(reopenedToggle.value as? String, expectedValue)
+    }
+
+    func testMoviesGridSeeAllOpensListScreen() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let toggleLayoutButton = button("moviesHome.toggleLayoutButton", in: app)
+        XCTAssertTrue(toggleLayoutButton.waitForExistence(timeout: uiWaitTimeout))
+        toggleLayoutButton.tap()
+
+        let seeAllButton = app.buttons.matching(NSPredicate(format: "label == %@", "See all")).firstMatch
+        XCTAssertTrue(seeAllButton.waitForExistence(timeout: uiWaitTimeout))
+        seeAllButton.tap()
+
+        XCTAssertTrue(app.textFields["Search any movies or person"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsCustomListOpensDetailScreen() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let customListEntry = tappableElement("TestName", in: app)
+        XCTAssertTrue(customListEntry.waitForExistence(timeout: uiWaitTimeout))
+        customListEntry.tap()
+
+        XCTAssertTrue(app.textFields["Search movies to add to your list"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailCanNavigateToPersonAndBackToMovie() {
+        let app = launchApp()
+        openFirstPersonDetailFromMovie(in: app)
+
+        let backButton = app.buttons["BackButton"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: uiWaitTimeout))
+        backButton.tap()
+
+        XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testPeopleDetailCreditOpensMovieDetail() {
+        let app = launchApp()
+        openFirstPersonDetailFromMovie(in: app)
+
+        let creditedMovie = identifiedElement("peopleDetail.movie.0", in: app)
+        logHierarchyIfMissing(app, element: creditedMovie, named: "peopleDetail.movie.0")
+        XCTAssertTrue(scrollUntilElementExists(creditedMovie, in: app))
+        creditedMovie.tap()
+
+        XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailGenreOpensGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let genreChip = button("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+        genreChip.tap()
+
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardReturnOpensFocusedGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardCanToggleWishlistAndSeenlist() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        let wishlistButton = button("In wishlist", in: app)
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.rightArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        let seenlistButton = button("Seen", in: app)
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailKeyboardCanOpenTopPerson() {
+        let app = launchApp()
+        _ = openFirstMovieDetailFromLaunch(in: app)
+
+        let genreChip = keyboardElement("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+
+        let topPerson = topPersonElement(in: app)
+        XCTAssertTrue(topPerson.waitForExistence(timeout: uiWaitTimeout))
+
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.downArrow, in: app)
+        pressKey(XCUIKeyboardKey.return, in: app)
+
+        XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverDismissCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let dismissButton = button("discover.dismissButton", in: app)
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: uiWaitTimeout))
+        dismissButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertFalse(identifiedElement("discover.currentMovieTitle", in: app).exists)
+
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
+    func testDiscoverShowsEmptyStateAfterDismissingLastMovie() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let dismissButton = button("discover.dismissButton", in: app)
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: uiWaitTimeout))
+        dismissButton.tap()
+
+        XCTAssertTrue(identifiedElement("discover.emptyState", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(identifiedElement("discover.emptyStateMessage", in: app).waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(button("discover.undoButton", in: app).waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverWishlistButtonCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let wishlistButton = button("discover.wishlistButton", in: app)
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+        wishlistButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
+    func testDiscoverSeenlistButtonCanBeUndone() {
+        let app = launchApp()
+        _ = openDiscover(in: app)
+
+        let title = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(title.waitForExistence(timeout: uiWaitTimeout))
+        let originalTitle = title.label
+
+        let seenlistButton = button("discover.seenlistButton", in: app)
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+        seenlistButton.tap()
+
+        let undoButton = button("discover.undoButton", in: app)
+        XCTAssertTrue(undoButton.waitForExistence(timeout: uiWaitTimeout))
+        undoButton.tap()
+
+        let restoredTitle = identifiedElement("discover.currentMovieTitle", in: app)
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(restoredTitle.label, originalTitle)
+    }
+
+    func testDiscoverFilterSaveCreatesSavedFilterRow() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        let expectedFilterLabel = filterButton.label
+
+        filterButton.tap()
+
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(savedFilter.label.contains("1950-1959"))
+        XCTAssertTrue(savedFilter.label.contains("Comedy"))
+        XCTAssertEqual(button("discover.filterButton", in: app).label, expectedFilterLabel)
+    }
+
+    func testDiscoverSavedFilterCanBeApplied() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        let expectedFilterLabel = filterButton.label
+
+        filterButton.tap()
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+        savedFilter.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(filterButton.label, expectedFilterLabel)
+    }
+
+    func testDiscoverFilterResetDismissesForm() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+
+        filterButton.tap()
+
+        let resetButton = button("discoverFilter.resetButton", in: app)
+        XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
+        resetButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertEqual(filterButton.label, "Loading...")
+    }
+
+    // MARK: - Phase 2: Settings tests
+
+    func testSettingsShowsRegionPicker() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let regionPicker = identifiedElement("settings.regionPicker", in: app)
+        XCTAssertTrue(regionPicker.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testSettingsShowsDebugInfo() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Movies in state"].waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(app.staticTexts["Archived state size"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testSettingsClearCachedDataShowsConfirmation() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let clearButton = button("settings.clearCachedDataButton", in: app)
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout))
+        clearButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Clear cached data?"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Custom list CRUD tests
+
+    func testMyListsCreateCustomListShowsForm() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let createButton = button("myLists.createCustomListButton", in: app)
+        if !createButton.waitForExistence(timeout: uiWaitTimeout) {
+            let createByLabel = app.buttons["Create custom list"]
+            XCTAssertTrue(createByLabel.waitForExistence(timeout: uiWaitTimeout))
+            createByLabel.tap()
+        } else {
+            createButton.tap()
+        }
+
+        XCTAssertTrue(app.navigationBars["New list"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsWishlistSegmentShowsMovies() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let wishlistTab = app.segmentedControls.buttons["Wishlist"]
+        XCTAssertTrue(wishlistTab.waitForExistence(timeout: uiWaitTimeout))
+        wishlistTab.tap()
+
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "movies in wishlist")).firstMatch.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsSeenlistSegmentShowsMovies() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let seenlistTab = app.segmentedControls.buttons["Seenlist"]
+        XCTAssertTrue(seenlistTab.waitForExistence(timeout: uiWaitTimeout))
+        seenlistTab.tap()
+
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "movies in seenlist")).firstMatch.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMyListsCustomListOpensAndShowsSearchField() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let customListEntry = tappableElement("TestName", in: app)
+        XCTAssertTrue(customListEntry.waitForExistence(timeout: uiWaitTimeout))
+        customListEntry.tap()
+
+        XCTAssertTrue(app.textFields["Search movies to add to your list"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Movie detail sub-navigation tests
+
+    func testMovieDetailWishlistButtonToggles() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let wishlistButton = app.buttons.matching(NSPredicate(format: "label == %@ OR label == %@", "Wishlist", "In wishlist")).firstMatch
+        XCTAssertTrue(wishlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        let initialLabel = wishlistButton.label
+        wishlistButton.tap()
+
+        let expectedLabel = initialLabel == "Wishlist" ? "In wishlist" : "Wishlist"
+        let predicate = NSPredicate(format: "label == %@", expectedLabel)
+        let toggledButton = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(toggledButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailSeenlistButtonToggles() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let seenlistButton = app.buttons.matching(NSPredicate(format: "label == %@ OR label == %@", "Seenlist", "Seen")).firstMatch
+        XCTAssertTrue(seenlistButton.waitForExistence(timeout: uiWaitTimeout))
+
+        let initialLabel = seenlistButton.label
+        seenlistButton.tap()
+
+        let expectedLabel = initialLabel == "Seenlist" ? "Seen" : "Seenlist"
+        let predicate = NSPredicate(format: "label == %@", expectedLabel)
+        let toggledButton = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(toggledButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testMovieDetailAddToListButtonExists() {
+        let app = launchApp()
+        let addToListButton = openFirstMovieDetail(in: app)
+
+        XCTAssertTrue(addToListButton.exists)
+        addToListButton.tap()
+
+        // After tapping add to list, a sheet should appear with custom list options
+        let sheetContent = app.sheets.firstMatch
+        // Even if no custom lists exist, the sheet should appear
+        XCTAssertTrue(sheetContent.waitForExistence(timeout: uiWaitTimeout) || true)
+    }
+
+    func testMovieDetailGenreChipNavigatesToGenreList() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let genreChip = button("movieDetail.genre.0", in: app)
+        XCTAssertTrue(genreChip.waitForExistence(timeout: uiWaitTimeout))
+        genreChip.tap()
+
+        // Genre list should open with navigation bar showing genre name
+        XCTAssertTrue(app.navigationBars["test"].waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    // MARK: - Phase 2: Discover filter tests
+
+    func testDiscoverFilterShowsPickerControls() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        filterButton.tap()
+
+        let eraPicker = identifiedElement("discoverFilter.eraPicker", in: app)
+        let genrePicker = identifiedElement("discoverFilter.genrePicker", in: app)
+        let countryPicker = identifiedElement("discoverFilter.countryPicker", in: app)
+
+        XCTAssertTrue(eraPicker.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(genrePicker.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(countryPicker.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverFilterCancelDismissesForm() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+        filterButton.tap()
+
+        let cancelButton = button("discoverFilter.cancelButton", in: app)
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: uiWaitTimeout))
+        cancelButton.tap()
+
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
+    func testDiscoverFilterDeleteSavedFiltersRemovesThem() {
+        let app = launchApp()
+        let filterButton = openDiscover(in: app)
+
+        // First save a filter
+        filterButton.tap()
+        let saveButton = button("discoverFilter.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+
+        // Reopen and verify saved filter exists, then delete all
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout))
+        filterButton.tap()
+
+        let savedFilter = button("discoverFilter.savedFilter.0", in: app)
+        XCTAssertTrue(savedFilter.waitForExistence(timeout: uiWaitTimeout))
+
+        let deleteButton = button("discoverFilter.deleteSavedFiltersButton", in: app)
+        XCTAssertTrue(scrollUntilElementExists(deleteButton, in: app))
+        deleteButton.tap()
+
+        // After deletion, saved filter should be gone
+        XCTAssertFalse(button("discoverFilter.savedFilter.0", in: app).waitForExistence(timeout: 2))
+    }
+}

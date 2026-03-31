@@ -276,6 +276,9 @@
 		DD27206B900D6B1D07E21184 /* AppPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000004 /* AppPersistenceTests.swift */; };
 		DD9F5A5455EA0E34617EB7F8 /* PeopleReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695882C422AD1A4400AFABA9 /* PeopleReducer.swift */; };
 		DDA383059B74F60847991C61 /* MovieButtonsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699179F1257E1A8300D375E7 /* MovieButtonsRow.swift */; };
+		DEB381682F7B7C2F001D142A /* SwiftUIFlux in Frameworks */ = {isa = PBXBuildFile; productRef = EF1D22F1373D938504E80A8D /* SwiftUIFlux */; };
+		DEB381692F7B7C2F001D142A /* Backend in Frameworks */ = {isa = PBXBuildFile; productRef = C3740CB86A246DD45B7C9DB0 /* Backend */; };
+		DEB3816A2F7B7C2F001D142A /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = 6B3F5D4A3A37799F0DF07DE6 /* UI */; };
 		DF25C37F16C59E947D9CC420 /* MovieOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695882CA22AD2C4700AFABA9 /* MovieOverview.swift */; };
 		DF421BBEA00EAE14BCCA81DC /* AppLaunchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000004 /* AppLaunchMode.swift */; };
 		E051BBA48922959E3C5B958E /* PeopleDetailHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CD111E22D09DD900C5D89D /* PeopleDetailHeaderRow.swift */; };
@@ -351,7 +354,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		02E0668A2050E62CA3C7F731 /* MovieSwiftMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MovieSwiftMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		02E0668A2050E62CA3C7F731 /* Film-O-Matic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Film-O-Matic.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B8F1CEE8368A5255FC15351 /* MovieSwiftMac.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = MovieSwiftMac.entitlements; sourceTree = "<group>"; };
 		24AC77131C009F44BD805569 /* SplitView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SplitView.swift; sourceTree = "<group>"; };
 		4EBFB49BACC02C9F717BB8B7 /* MovieSwiftTVUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MovieSwiftTVUITests.swift; sourceTree = "<group>"; };
@@ -509,6 +512,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEB3816A2F7B7C2F001D142A /* UI in Frameworks */,
+				DEB381692F7B7C2F001D142A /* Backend in Frameworks */,
+				DEB381682F7B7C2F001D142A /* SwiftUIFlux in Frameworks */,
 				1294C4DF142353860F4F3FA9 /* Cocoa.framework in Frameworks */,
 				D46A6252DF1366A79FF3E8DE /* CloudKit.framework in Frameworks */,
 			);
@@ -585,7 +591,6 @@
 				60A94E3D1488D3383E464AAD /* Info.plist */,
 				0B8F1CEE8368A5255FC15351 /* MovieSwiftMac.entitlements */,
 			);
-			name = MovieSwiftMac;
 			path = MovieSwiftMac;
 			sourceTree = "<group>";
 		};
@@ -603,14 +608,6 @@
 				9D98EBFACC74C50871AB5F4C /* Foundation.framework */,
 			);
 			name = tvOS;
-			sourceTree = "<group>";
-		};
-		3D016EDE1E875817C420A2D3 /* MovieSwiftMacTests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = MovieSwiftMacTests;
-			path = MovieSwiftTests;
 			sourceTree = "<group>";
 		};
 		691E905522BF5A3D00AA23FE /* fonts */ = {
@@ -1011,17 +1008,15 @@
 			isa = PBXGroup;
 			children = (
 				69FFAF7E22A99F1100801F3C /* MovieSwift */,
-				69414A0D23C33FBE0056FBDF /* MovieSwiftTV */,
 				A1B2C3040000000000000001 /* MovieSwiftTests */,
 				C1D2E3040000000000000001 /* MovieSwiftUITests */,
+				10BCB951915222BA6E7D444A /* MovieSwiftMac */,
+				69414A0D23C33FBE0056FBDF /* MovieSwiftTV */,
 				69414A2423C35BBB0056FBDF /* Shared */,
 				69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */,
 				69D3320E23ED605500C8A20C /* Packages */,
 				69FFAF7D22A99F1100801F3C /* Products */,
 				69305F6322CFBF9900C4FE07 /* Frameworks */,
-				10BCB951915222BA6E7D444A /* MovieSwiftMac */,
-				3D016EDE1E875817C420A2D3 /* MovieSwiftMacTests */,
-				75528C5E52EDF312A7138633 /* MovieSwiftTVTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1032,7 +1027,7 @@
 				69414A0C23C33FBE0056FBDF /* MovieSwiftTV.app */,
 				A1B2C3020000000000000002 /* MovieSwiftTests.xctest */,
 				C1D2E3020000000000000002 /* MovieSwiftUITests.xctest */,
-				02E0668A2050E62CA3C7F731 /* MovieSwiftMac.app */,
+				02E0668A2050E62CA3C7F731 /* Film-O-Matic.app */,
 				9D10807C8B0DB8E9DE29879C /* MovieSwiftMacTests.xctest */,
 				E02DB6FACAE7772F3ADC0455 /* MovieSwiftTVTests.xctest */,
 				BB5DF2F255EC27E98226FB4C /* MovieSwiftMacUITests.xctest */,
@@ -1137,14 +1132,6 @@
 				695882C622AD1AB500AFABA9 /* PeopleActions.swift */,
 			);
 			path = actions;
-			sourceTree = "<group>";
-		};
-		75528C5E52EDF312A7138633 /* MovieSwiftTVTests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = MovieSwiftTVTests;
-			path = MovieSwiftTests;
 			sourceTree = "<group>";
 		};
 		A1B2C3040000000000000001 /* MovieSwiftTests */ = {
@@ -1344,7 +1331,7 @@
 				6B3F5D4A3A37799F0DF07DE6 /* UI */,
 			);
 			productName = MovieSwiftMac;
-			productReference = 02E0668A2050E62CA3C7F731 /* MovieSwiftMac.app */;
+			productReference = 02E0668A2050E62CA3C7F731 /* Film-O-Matic.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
