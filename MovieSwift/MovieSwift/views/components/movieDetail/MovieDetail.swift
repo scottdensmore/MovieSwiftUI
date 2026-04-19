@@ -175,6 +175,12 @@ enum MovieDetailFocusTarget: Hashable {
     case customListButton
     case reviewLink
     case topPerson(Int)
+    case readMoreButton
+    case keyword(Int)
+    case castPerson(Int)
+    case castSeeAll
+    case crewPerson(Int)
+    case crewSeeAll
 }
 #endif
 
@@ -216,9 +222,21 @@ struct MovieDetail: ConnectedView {
     @State private var isCrosslineMoviesListPresented = false
     @State private var crosslineMoviesListTitle = ""
     @State private var crosslineMoviesListMovieIds: [Int] = []
-    @State private var isPeopleListPresented = false
-    @State private var peopleListTitle = ""
-    @State private var peopleListEntries: [People] = []
+    @State private var peopleListPresentation: PeopleListPresentation?
+
+    struct PeopleListPresentation: Identifiable, Hashable {
+        let id: String
+        let title: String
+        let peopleIds: [Int]
+
+        static func == (lhs: PeopleListPresentation, rhs: PeopleListPresentation) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+    }
 
     #if os(macOS)
     @Environment(\.dismiss) private var dismiss
@@ -310,9 +328,12 @@ struct MovieDetail: ConnectedView {
     }
 
     private func presentPeopleList(title: String, peoples: [People]) {
-        peopleListTitle = title
-        peopleListEntries = peoples
-        isPeopleListPresented = true
+        // Use a stable id based on title so repeated taps don't churn navigation.
+        peopleListPresentation = PeopleListPresentation(
+            id: "peopleList-\(title)-\(movieId)",
+            title: title,
+            peopleIds: peoples.map { $0.id }
+        )
     }
 
     #if os(macOS)
@@ -339,8 +360,43 @@ struct MovieDetail: ConnectedView {
         [reviewTarget(props: props), topPersonTarget(props: props)].compactMap { $0 }
     }
 
+    private func readMoreTarget(props: Props) -> MovieDetailFocusTarget? {
+        guard let movie = props.movie, !movie.overview.isEmpty else {
+            return nil
+        }
+        return .readMoreButton
+    }
+
+    private func keywordTargets(props: Props) -> [MovieDetailFocusTarget] {
+        (props.movie?.keywords?.keywords ?? []).map { .keyword($0.id) }
+    }
+
+    private func castTargets(props: Props) -> [MovieDetailFocusTarget] {
+        guard let characters = props.characters, !characters.isEmpty else {
+            return []
+        }
+        var targets: [MovieDetailFocusTarget] = characters.map { .castPerson($0.id) }
+        targets.append(.castSeeAll)
+        return targets
+    }
+
+    private func crewTargets(props: Props) -> [MovieDetailFocusTarget] {
+        guard let credits = props.credits, !credits.isEmpty else {
+            return []
+        }
+        var targets: [MovieDetailFocusTarget] = credits.map { .crewPerson($0.id) }
+        targets.append(.crewSeeAll)
+        return targets
+    }
+
     private func availableTopTargets(props: Props) -> [MovieDetailFocusTarget] {
-        genreTargets(props: props) + actionTargets + supplementalTargets(props: props)
+        genreTargets(props: props)
+            + actionTargets
+            + supplementalTargets(props: props)
+            + [readMoreTarget(props: props)].compactMap { $0 }
+            + keywordTargets(props: props)
+            + castTargets(props: props)
+            + crewTargets(props: props)
     }
 
     private func preferredFocusTarget(props: Props) -> MovieDetailFocusTarget? {
@@ -440,14 +496,8 @@ struct MovieDetail: ConnectedView {
             .navigationTitle(crosslineMoviesListTitle)
     }
 
-    private var peopleListView: some View {
-        List(peopleListEntries) { people in
-            PeopleListItem(people: people) {
-                selectedPeopleId = people.id
-            }
-        }
-        .navigationTitle(peopleListTitle)
-    }
+    // Kept as a method for backwards-compat but not used as a navigation destination —
+    // using a method there caused MovieDetail.body to be invalidated in a loop.
     
     // MARK: - Computed views
     
@@ -559,24 +609,42 @@ struct MovieDetail: ConnectedView {
             peopleRows(props: props)
         }
         if let movie = props.movie, !movie.overview.isEmpty {
+            #if os(macOS)
+            MovieOverview(movie: movie, focusedItem: $focusedDetailItem)
+            #else
             MovieOverview(movie: movie)
+            #endif
         }
     }
-    
+
     @ViewBuilder
     func bottomContent(props: Props) -> some View {
         if let movie = props.movie,
            movie.keywords?.keywords?.isEmpty == false,
            let keywords = movie.keywords?.keywords {
             #if os(macOS)
-            MovieKeywords(keywords: keywords) { keyword in
-                selectedKeyword = keyword
-            }
+            MovieKeywords(keywords: keywords,
+                          onSelectKeyword: { keyword in
+                              selectedKeyword = keyword
+                          },
+                          focusedItem: $focusedDetailItem)
             #else
             MovieKeywords(keywords: keywords)
             #endif
         }
         if props.characters?.isEmpty == false {
+            #if os(macOS)
+            MovieCrosslinePeopleRow(title: "Cast",
+                                    peoples: props.characters ?? [],
+                                    onSelectPeople: selectPeople,
+                                    onSelectSeeAll: {
+                                        presentPeopleList(title: "Cast",
+                                                          peoples: props.characters ?? [])
+                                    },
+                                    focusedItem: $focusedDetailItem,
+                                    personFocusTarget: { .castPerson($0) },
+                                    seeAllFocusTarget: .castSeeAll)
+            #else
             MovieCrosslinePeopleRow(title: "Cast",
                                     peoples: props.characters ?? [],
                                     onSelectPeople: selectPeople,
@@ -584,8 +652,21 @@ struct MovieDetail: ConnectedView {
                                         presentPeopleList(title: "Cast",
                                                           peoples: props.characters ?? [])
                                     })
+            #endif
         }
         if props.credits?.isEmpty == false {
+            #if os(macOS)
+            MovieCrosslinePeopleRow(title: "Crew",
+                                    peoples: props.credits ?? [],
+                                    onSelectPeople: selectPeople,
+                                    onSelectSeeAll: {
+                                        presentPeopleList(title: "Crew",
+                                                          peoples: props.credits ?? [])
+                                    },
+                                    focusedItem: $focusedDetailItem,
+                                    personFocusTarget: { .crewPerson($0) },
+                                    seeAllFocusTarget: .crewSeeAll)
+            #else
             MovieCrosslinePeopleRow(title: "Crew",
                                     peoples: props.credits ?? [],
                                     onSelectPeople: selectPeople,
@@ -593,6 +674,7 @@ struct MovieDetail: ConnectedView {
                                         presentPeopleList(title: "Crew",
                                                           peoples: props.credits ?? [])
                                     })
+            #endif
         }
         if props.similar?.isEmpty == false {
             MovieCrosslineRow(title: "Similar Movies",
@@ -636,6 +718,10 @@ struct MovieDetail: ConnectedView {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, 24)
         }
+        .onKeyPress(.tab, phases: .down) { press in
+            let forward = !press.modifiers.contains(.shift)
+            return moveTabFocus(props: props, forward: forward)
+        }
         #else
         List {
             Section {
@@ -647,6 +733,26 @@ struct MovieDetail: ConnectedView {
         }
         #endif
     }
+
+    #if os(macOS)
+    private func moveTabFocus(props: Props, forward: Bool) -> KeyPress.Result {
+        let targets = availableTopTargets(props: props)
+        guard !targets.isEmpty else { return .ignored }
+
+        let offset = forward ? 1 : -1
+        if let current = focusedDetailItem,
+           let idx = targets.firstIndex(of: current) {
+            let nextIdx = idx + offset
+            if targets.indices.contains(nextIdx) {
+                focusedDetailItem = targets[nextIdx]
+                return .handled
+            }
+            return .ignored
+        }
+        focusedDetailItem = forward ? targets.first : targets.last
+        return .handled
+    }
+    #endif
 
     @ViewBuilder
     func unavailableView() -> some View {
@@ -721,7 +827,7 @@ struct MovieDetail: ConnectedView {
     #endif
     
     func body(props: Props) -> some View {
-        let posters = props.movie?.images?.posters ?? []
+        _ = props.movie?.images?.posters ?? []
 
         return ZStack(alignment: .bottom) {
             Group {
@@ -786,11 +892,11 @@ struct MovieDetail: ConnectedView {
             NotificationBadge(text: "Added successfully",
                               color: .blue,
                               show: $isAddedToListBadgePresented).padding(.bottom, 10)
-            ImagesCarouselView(posters: props.movie?.images?.posters ?? [],
-                                   selectedPoster: $selectedPoster)
-                .blur(radius: selectedPoster != nil ? 0 : 10)
-                .scaleEffect(selectedPoster != nil ? 1 : 1.2)
-                .opacity(selectedPoster != nil ? 1 : 0)
+            if selectedPoster != nil {
+                ImagesCarouselView(posters: props.movie?.images?.posters ?? [],
+                                       selectedPoster: $selectedPoster)
+                    .transition(.opacity)
+            }
         }
         .navigationDestination(item: $selectedPeopleId) { id in
             PeopleDetail(peopleId: id)
@@ -804,14 +910,30 @@ struct MovieDetail: ConnectedView {
         .navigationDestination(item: $selectedKeyword) { keyword in
             MovieKeywordList(keyword: keyword)
         }
-        .navigationDestination(isPresented: $isPeopleListPresented) {
-            peopleListView
-        }
         .navigationDestination(isPresented: $isCrosslineMoviesListPresented) {
             crosslineMoviesListView
         }
         .navigationDestination(item: $selectedCrosslineRoute) { route in
             moviesListDestinationView(for: route)
+        }
+        // Note: using .sheet instead of .navigationDestination here —
+        // .navigationDestination(item:) with a custom struct type triggers
+        // an infinite body-invalidation loop on macOS 26. Sheet works cleanly.
+        .sheet(item: $peopleListPresentation) { presentation in
+            NavigationStack {
+                MoviePeopleListDestination(
+                    title: presentation.title,
+                    peopleIds: presentation.peopleIds,
+                    selectedPeopleId: $selectedPeopleId,
+                    onDismiss: { peopleListPresentation = nil }
+                )
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { peopleListPresentation = nil }
+                    }
+                }
+            }
+            .frame(minWidth: 460, minHeight: 560)
         }
         #if os(macOS)
         .onAppear {
@@ -835,6 +957,36 @@ struct MovieDetail: ConnectedView {
     }
     
     
+}
+
+// MARK: - People list destination view
+/// Shown as a sheet from MovieDetail's "See all" for cast/crew.
+/// ConnectedView resolves [People] from ids on demand.
+private struct MoviePeopleListDestination: ConnectedView {
+    let title: String
+    let peopleIds: [Int]
+    @Binding var selectedPeopleId: Int?
+    let onDismiss: () -> Void
+
+    struct Props {
+        let peoples: [People]
+    }
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(peoples: peopleIds.compactMap { state.peoplesState.peoples[$0] })
+    }
+
+    func body(props: Props) -> some View {
+        List {
+            ForEach(Array(props.peoples.enumerated()), id: \.offset) { _, people in
+                PeopleListItem(people: people) {
+                    selectedPeopleId = people.id
+                    onDismiss()
+                }
+            }
+        }
+        .navigationTitle(title)
+    }
 }
 
 // MARK: - Preview

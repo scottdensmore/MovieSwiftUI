@@ -11,7 +11,11 @@ import SwiftUI
 struct MovieOverview : View {
     let movie: Movie
     @State var isOverviewExpanded: Bool = false
-    
+
+    #if os(macOS)
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Overview:")
@@ -26,6 +30,17 @@ struct MovieOverview : View {
                         self.isOverviewExpanded.toggle()
                     }
             }
+            #if os(macOS)
+            MacFocusableLink(id: .readMoreButton, focusedId: focusedItem) {
+                withAnimation {
+                    self.isOverviewExpanded.toggle()
+                }
+            } label: {
+                Text(self.isOverviewExpanded ? "Less" : "Read more")
+                    .lineLimit(1)
+                    .foregroundColor(.steam_blue)
+            }
+            #else
             Button(action: {
                 withAnimation {
                     self.isOverviewExpanded.toggle()
@@ -35,10 +50,18 @@ struct MovieOverview : View {
                     .lineLimit(1)
                     .foregroundColor(.steam_blue)
             })
+            #endif
         }
     }
 }
 
+#if os(macOS)
+#Preview {
+    @FocusState var item: MovieDetailFocusTarget?
+    return MovieOverview(movie: sampleMovie, focusedItem: $item)
+}
+#else
 #Preview {
     MovieOverview(movie: sampleMovie)
 }
+#endif

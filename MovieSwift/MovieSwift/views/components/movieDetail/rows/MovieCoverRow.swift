@@ -93,27 +93,47 @@ struct MovieCoverRow : ConnectedView {
     
     private func genresBadges(props: Props) -> some View {
         let presentation = presentation(props: props)
+        #if os(macOS)
+        return ScrollViewReader { scrollProxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(presentation.genres) { genre in
+                        MacFocusableLink(id: .genre(genre.id), focusedId: focusedItem) {
+                            onSelectGenre(genre)
+                        } label: {
+                            coverGenreBadge(text: genre.name)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                        }
+                        .id(genre.id)
+                        .disabled(presentation.areGenresPlaceholder)
+                        .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
+                    }
+                }
+                .padding(.leading, 16)
+                .padding(.trailing, 16)
+                .padding(.vertical, 4)
+                .redacted(reason: presentation.areGenresPlaceholder ? .placeholder : [])
+            }
+            .clipped()
+            .onChange(of: focusedItem.wrappedValue) { _, newValue in
+                if case let .genre(id) = newValue {
+                    withAnimation {
+                        scrollProxy.scrollTo(id, anchor: .center)
+                    }
+                }
+            }
+        }
+        #else
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(presentation.genres) { genre in
-                    #if os(macOS)
-                    MacFocusableLink(id: .genre(genre.id), focusedId: focusedItem) {
-                        onSelectGenre(genre)
-                    } label: {
-                        coverGenreBadge(text: genre.name)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 4)
-                    }
-                    .disabled(presentation.areGenresPlaceholder)
-                    .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
-                    #else
                     NavigationLink(destination: MoviesGenreList(genre: genre)) {
                         coverGenreBadge(text: genre.name)
                             .padding(.vertical, 2)
                     }
                     .disabled(presentation.areGenresPlaceholder)
                     .accessibilityIdentifier(MovieCoverState.accessibilityIdentifier(for: genre))
-                    #endif
                 }
             }
             .padding(.leading, 16)
@@ -121,6 +141,7 @@ struct MovieCoverRow : ConnectedView {
             .padding(.vertical, 4)
             .redacted(reason: presentation.areGenresPlaceholder ? .placeholder : [])
         }
+        #endif
     }
 
     private func coverGenreBadge(text: String) -> some View {
