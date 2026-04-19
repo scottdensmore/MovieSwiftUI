@@ -232,4 +232,31 @@ final class MovieDetailStateTests: XCTestCase {
         let characters = MovieDetailPeopleState.characters(movieId: 1, from: state)
         XCTAssertNil(characters)
     }
+
+    // MARK: - MovieDetail navigation presentation identity
+
+    // These structs gate the See-all sheets. Their Equatable/Hashable must
+    // only consider `id` so that repeat taps on the same button produce a
+    // value SwiftUI treats as stable — otherwise the sheet re-mounts (or,
+    // historically, triggers a body-invalidation loop on macOS 26).
+
+    func testPeopleListPresentationEqualsByIdOnly() {
+        let a = MovieDetail.PeopleListPresentation(id: "same", title: "Cast", peopleIds: [1, 2, 3])
+        let b = MovieDetail.PeopleListPresentation(id: "same", title: "Crew", peopleIds: [7, 8])
+        let c = MovieDetail.PeopleListPresentation(id: "other", title: "Cast", peopleIds: [1, 2, 3])
+
+        XCTAssertEqual(a, b, "Structs with the same id should be considered equal regardless of other fields")
+        XCTAssertNotEqual(a, c)
+        XCTAssertEqual(a.hashValue, b.hashValue)
+    }
+
+    func testCrosslineMoviesPresentationEqualsByIdOnly() {
+        let a = MovieDetail.CrosslineMoviesPresentation(id: "same", title: "Similar", movieIds: [1, 2])
+        let b = MovieDetail.CrosslineMoviesPresentation(id: "same", title: "Recommended", movieIds: [5, 6, 7])
+        let c = MovieDetail.CrosslineMoviesPresentation(id: "other", title: "Similar", movieIds: [1, 2])
+
+        XCTAssertEqual(a, b, "Structs with the same id should be considered equal regardless of other fields")
+        XCTAssertNotEqual(a, c)
+        XCTAssertEqual(a.hashValue, b.hashValue)
+    }
 }
