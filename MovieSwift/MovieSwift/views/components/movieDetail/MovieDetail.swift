@@ -515,7 +515,8 @@ struct MovieDetail: ConnectedView {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
-                    .padding(.horizontal, 10)
+                    .padding(.leading)
+                    .padding(.trailing, 10)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
@@ -530,7 +531,8 @@ struct MovieDetail: ConnectedView {
                         Text(role + ": ").font(.callout)
                         Text(people!.name).font(.body).foregroundColor(.secondary)
                     }
-                    .padding(.horizontal, 10)
+                    .padding(.leading)
+                    .padding(.trailing, 10)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
@@ -589,7 +591,8 @@ struct MovieDetail: ConnectedView {
                 Text("\(props.reviewsCount!) reviews")
                     .foregroundColor(.steam_blue)
                     .lineLimit(1)
-                    .padding(.horizontal, 10)
+                    .padding(.leading)
+                    .padding(.trailing, 10)
                     .padding(.vertical, 8)
             }
             #else
@@ -599,7 +602,8 @@ struct MovieDetail: ConnectedView {
                 Text("\(props.reviewsCount!) reviews")
                     .foregroundColor(.steam_blue)
                     .lineLimit(1)
-                    .padding(.horizontal, 10)
+                    .padding(.leading)
+                    .padding(.trailing, 10)
                     .padding(.vertical, 8)
             }
             .buttonStyle(.plain)
