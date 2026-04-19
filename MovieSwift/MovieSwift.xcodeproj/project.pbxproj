@@ -1992,7 +1992,10 @@
 			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MovieSwiftTV/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwiftTV/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2001,6 +2004,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswifttv";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = 3;
@@ -2013,7 +2017,10 @@
 			baseConfigurationReference = 69E4D1032B0A111100A1B2C3 /* MovieSwiftConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"MovieSwiftTV/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieSwiftTV/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2022,6 +2029,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(ORGANIZATION_IDENTIFIER).movieswifttv";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SWIFT_VERSION = 5;
 				TARGETED_DEVICE_FAMILY = 3;

@@ -97,8 +97,8 @@ struct BottomMenu<Content>: View where Content: View {
                 }
             }
         }
-    }.previewDevice("iPhone 8")
-      .environment(\.colorScheme, .dark)
+    }
+    .environment(\.colorScheme, .dark)
 }
 
 #Preview("BottomMenu Dismissed") {
@@ -114,5 +114,5 @@ struct BottomMenu<Content>: View where Content: View {
                 }
             }
         }
-    }.previewDevice("iPhone 8")
+    }
 }
