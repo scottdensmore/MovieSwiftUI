@@ -62,7 +62,7 @@ public struct SearchField : View {
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
             }
-            .onChange(of: self.searchTextWrapper.searchText) { newValue in
+            .onChange(of: self.searchTextWrapper.searchText) { _, newValue in
                 self.isSearching = !newValue.isEmpty
             }
             .preference(key: OffsetTopPreferenceKey.self,
