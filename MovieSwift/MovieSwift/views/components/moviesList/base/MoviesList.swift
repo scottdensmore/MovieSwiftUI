@@ -117,7 +117,8 @@ struct MoviesList: ConnectedView {
     @FocusState private var isSearchFieldFocused: Bool
     #if os(macOS)
     @State private var highlightedMovieId: Int?
-    @FocusState private var focusedMovieId: Int?
+    @State private var selectedMovieId: Int?
+    @FocusState private var isListFocused: Bool
     #endif
     
     // MARK: - Public var
@@ -147,7 +148,9 @@ struct MoviesList: ConnectedView {
     // MARK: - Computed views
     private func moviesRows(props: Props) -> some View {
         let movieIds = isSearching ? props.searchedMovies ?? [] : movies
-        return ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
+        // Use enumeration-based identity so duplicate movie ids (e.g. 0
+        // placeholders) don't collide in the LazyVStack.
+        return ForEach(Array(movieIds.enumerated()), id: \.offset) { offset, id in
             Button(action: { navigationRoute = .movie(id) }) {
                 MovieRow(movieId: id)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,11 +161,15 @@ struct MoviesList: ConnectedView {
             .buttonStyle(.plain)
             .accessibilityIdentifier("moviesList.movie.\(id)")
             #if os(macOS)
-            .focusable()
-            .focused($focusedMovieId, equals: id)
-            .onKeyPress(.return) { navigationRoute = .movie(id); return .handled }
-            .onKeyPress(characters: .init(charactersIn: " ")) { _ in navigationRoute = .movie(id); return .handled }
-            .macFocusHighlight(isFocused: focusedMovieId == id || highlightedMovieId == id)
+            .id(offset)
+            .macFocusHighlight(isFocused: selectedMovieId == id || highlightedMovieId == id)
+            .onTapGesture {
+                selectedMovieId = id
+                isListFocused = true
+            }
+            .onTapGesture(count: 2) {
+                navigationRoute = .movie(id)
+            }
             #endif
         }
     }
@@ -288,25 +295,65 @@ struct MoviesList: ConnectedView {
                 if displaySearch {
                     searchField
                 }
-                ScrollView {
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        listContent(props: props)
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                            listContent(props: props)
+                        }
+                        .padding(.horizontal, 4)
                     }
-                    .padding(.horizontal, 4)
+                    .focusable()
+                    .focused($isListFocused)
+                    .focusEffectDisabled()
+                    .onKeyPress(.downArrow) {
+                        let movieIds = isSearching ? props.searchedMovies ?? [] : movies
+                        guard !movieIds.isEmpty else { return .ignored }
+                        if let current = selectedMovieId,
+                           let idx = movieIds.firstIndex(of: current),
+                           idx + 1 < movieIds.count {
+                            let nextIdx = idx + 1
+                            selectedMovieId = movieIds[nextIdx]
+                            withAnimation { scrollProxy.scrollTo(nextIdx, anchor: .center) }
+                        } else {
+                            selectedMovieId = movieIds[0]
+                            withAnimation { scrollProxy.scrollTo(0, anchor: .center) }
+                        }
+                        return .handled
+                    }
+                    .onKeyPress(.upArrow) {
+                        let movieIds = isSearching ? props.searchedMovies ?? [] : movies
+                        guard !movieIds.isEmpty else { return .ignored }
+                        if let current = selectedMovieId,
+                           let idx = movieIds.firstIndex(of: current),
+                           idx - 1 >= 0 {
+                            let prevIdx = idx - 1
+                            selectedMovieId = movieIds[prevIdx]
+                            withAnimation { scrollProxy.scrollTo(prevIdx, anchor: .center) }
+                        }
+                        return .handled
+                    }
+                    .onKeyPress(.return) {
+                        if let id = selectedMovieId {
+                            navigationRoute = .movie(id)
+                            return .handled
+                        }
+                        return .ignored
+                    }
                 }
-                .onChange(of: focusedMovieId) { _, newValue in
+                .onChange(of: selectedMovieId) { _, newValue in
                     if newValue != nil {
                         highlightedMovieId = nil
                     }
                 }
                 .onAppear {
-                    if focusedMovieId == nil, let firstMovie = movies.first {
-                        focusedMovieId = firstMovie
+                    if selectedMovieId == nil, let firstMovie = movies.first {
+                        selectedMovieId = firstMovie
                     }
+                    isListFocused = true
                 }
                 .onChange(of: movies) { _, newMovies in
-                    if focusedMovieId == nil, let firstMovie = newMovies.first {
-                        focusedMovieId = firstMovie
+                    if selectedMovieId == nil, let firstMovie = newMovies.first {
+                        selectedMovieId = firstMovie
                     }
                 }
             }
