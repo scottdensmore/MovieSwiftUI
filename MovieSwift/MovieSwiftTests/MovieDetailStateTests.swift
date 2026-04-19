@@ -270,7 +270,9 @@ final class MovieDetailStateTests: XCTestCase {
         [.readMoreButton],
         [.keyword(10), .keyword(11), .keyword(12)],
         [.castPerson(500), .castPerson(501), .castSeeAll],
-        [.crewPerson(600), .crewPerson(601), .crewSeeAll]
+        [.crewPerson(600), .crewPerson(601), .crewSeeAll],
+        [.similarMovie(900), .similarMovie(901), .similarSeeAll],
+        [.recommendedMovie(950), .recommendedMovie(951), .recommendedSeeAll]
     ]
 
     func testTabFromNilGoesToFirstGroupFirstItem() {
@@ -286,7 +288,25 @@ final class MovieDetailStateTests: XCTestCase {
             from: nil,
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(target, .crewPerson(600))
+        XCTAssertEqual(target, .recommendedMovie(950))
+    }
+
+    func testTabFromCrewGoesToSimilarMovies() {
+        // Regression: Tab on a crew person should jump OUT of the crew
+        // row to the first similar movie, not walk through crew items.
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .crewPerson(600),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .similarMovie(900))
+    }
+
+    func testTabFromSimilarGoesToRecommended() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .similarMovie(900),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .recommendedMovie(950))
     }
 
     func testTabLandsOnFirstItemOfNextGroupRegardlessOfPositionWithin() {
@@ -308,8 +328,11 @@ final class MovieDetailStateTests: XCTestCase {
     }
 
     func testTabFromLastGroupReturnsNil() {
+        // Last group is Recommended; Tab from recommendedSeeAll should
+        // return nil so the key press is consumed without leaking into
+        // the system's Tab traversal.
         let target = MovieDetailFocusNavigation.nextGroupStart(
-            from: .crewSeeAll,
+            from: .recommendedSeeAll,
             in: Self.focusSampleGroups,
             forward: true)
         XCTAssertNil(target)

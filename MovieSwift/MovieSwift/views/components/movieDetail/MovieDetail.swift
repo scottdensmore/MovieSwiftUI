@@ -180,6 +180,10 @@ enum MovieDetailFocusTarget: Hashable {
     case castSeeAll
     case crewPerson(Int)
     case crewSeeAll
+    case similarMovie(Int)
+    case similarSeeAll
+    case recommendedMovie(Int)
+    case recommendedSeeAll
 }
 
 /// Pure navigation decisions for the detail view's Tab / arrow focus.
@@ -437,6 +441,24 @@ struct MovieDetail: ConnectedView {
         return targets
     }
 
+    private func similarTargets(props: Props) -> [MovieDetailFocusTarget] {
+        guard let similar = props.similar, !similar.isEmpty else {
+            return []
+        }
+        var targets: [MovieDetailFocusTarget] = similar.map { .similarMovie($0.id) }
+        targets.append(.similarSeeAll)
+        return targets
+    }
+
+    private func recommendedTargets(props: Props) -> [MovieDetailFocusTarget] {
+        guard let recommended = props.recommended, !recommended.isEmpty else {
+            return []
+        }
+        var targets: [MovieDetailFocusTarget] = recommended.map { .recommendedMovie($0.id) }
+        targets.append(.recommendedSeeAll)
+        return targets
+    }
+
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -454,6 +476,10 @@ struct MovieDetail: ConnectedView {
         if !cast.isEmpty { groups.append(cast) }
         let crew = crewTargets(props: props)
         if !crew.isEmpty { groups.append(crew) }
+        let similar = similarTargets(props: props)
+        if !similar.isEmpty { groups.append(similar) }
+        let recommended = recommendedTargets(props: props)
+        if !recommended.isEmpty { groups.append(recommended) }
         return groups
     }
 
@@ -670,6 +696,18 @@ struct MovieDetail: ConnectedView {
             #endif
         }
         if props.similar?.isEmpty == false {
+            #if os(macOS)
+            MovieCrosslineRow(title: "Similar Movies",
+                              movies: props.similar ?? [],
+                              onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                              onSelectSeeAll: {
+                                  presentCrosslineMoviesList(title: "Similar Movies",
+                                                             movies: props.similar ?? [])
+                              },
+                              focusedItem: $focusedDetailItem,
+                              movieFocusTarget: { .similarMovie($0) },
+                              seeAllFocusTarget: .similarSeeAll)
+            #else
             MovieCrosslineRow(title: "Similar Movies",
                               movies: props.similar ?? [],
                               onSelectMovie: { selectedCrosslineRoute = .movie($0) },
@@ -677,8 +715,21 @@ struct MovieDetail: ConnectedView {
                                   presentCrosslineMoviesList(title: "Similar Movies",
                                                              movies: props.similar ?? [])
                               })
+            #endif
         }
         if  props.recommended?.isEmpty == false {
+            #if os(macOS)
+            MovieCrosslineRow(title: "Recommended Movies",
+                              movies: props.recommended ?? [],
+                              onSelectMovie: { selectedCrosslineRoute = .movie($0) },
+                              onSelectSeeAll: {
+                                  presentCrosslineMoviesList(title: "Recommended Movies",
+                                                             movies: props.recommended ?? [])
+                              },
+                              focusedItem: $focusedDetailItem,
+                              movieFocusTarget: { .recommendedMovie($0) },
+                              seeAllFocusTarget: .recommendedSeeAll)
+            #else
             MovieCrosslineRow(title: "Recommended Movies",
                               movies: props.recommended ?? [],
                               onSelectMovie: { selectedCrosslineRoute = .movie($0) },
@@ -686,6 +737,7 @@ struct MovieDetail: ConnectedView {
                                   presentCrosslineMoviesList(title: "Recommended Movies",
                                                              movies: props.recommended ?? [])
                               })
+            #endif
         }
         if let movie = props.movie,
            movie.images?.posters?.isEmpty == false,

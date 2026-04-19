@@ -35,8 +35,9 @@ struct MovieCrosslineRow : View {
     let onSelectMovie: (Int) -> Void
     let onSelectSeeAll: () -> Void
     #if os(macOS)
-    @FocusState private var focusedId: Int?
-    private let seeAllSentinel = -999
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    let movieFocusTarget: (Int) -> MovieDetailFocusTarget
+    let seeAllFocusTarget: MovieDetailFocusTarget
     #endif
 
     var body: some View {
@@ -46,6 +47,14 @@ struct MovieCrosslineRow : View {
                     .titleStyle()
                     .padding(.leading)
                 Spacer()
+                #if os(macOS)
+                MacFocusableLink(id: seeAllFocusTarget, focusedId: focusedItem) {
+                    onSelectSeeAll()
+                } label: {
+                    Text("See all").foregroundColor(.steam_blue)
+                }
+                .padding(.trailing)
+                #else
                 Button(action: {
                     onSelectSeeAll()
                 }) {
@@ -54,10 +63,33 @@ struct MovieCrosslineRow : View {
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing)
-                #if os(macOS)
-                .focused($focusedId, equals: seeAllSentinel)
                 #endif
             }
+            #if os(macOS)
+            ScrollViewReader { scrollProxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 32) {
+                        ForEach(Array(self.movies.enumerated()), id: \.offset) { index, movie in
+                            MovieDetailRowItem(movie: movie,
+                                               onSelect: { onSelectMovie(movie.id) },
+                                               focusedItem: focusedItem,
+                                               focusTarget: movieFocusTarget(movie.id))
+                                .id(index)
+                        }
+                    }.padding(.leading)
+                }
+                .clipped()
+                .onChange(of: focusedItem.wrappedValue) { _, newValue in
+                    guard let newValue,
+                          let index = movies.firstIndex(where: { movieFocusTarget($0.id) == newValue }) else {
+                        return
+                    }
+                    withAnimation {
+                        scrollProxy.scrollTo(index, anchor: .center)
+                    }
+                }
+            }
+            #else
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 32) {
                     ForEach(self.movies) { movie in
@@ -67,6 +99,7 @@ struct MovieCrosslineRow : View {
                     }
                 }.padding(.leading)
             }
+            #endif
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
@@ -76,28 +109,30 @@ struct MovieCrosslineRow : View {
 struct MovieDetailRowItem: View {
     let movie: Movie
     var onSelect: () -> Void
+    #if os(macOS)
+    var focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    var focusTarget: MovieDetailFocusTarget
+    #endif
 
     private var presentation: MovieCrosslineItemPresentation {
         MovieCrosslineState.presentation(for: movie)
     }
 
-    #if os(macOS)
-    @FocusState private var isFocused: Bool
-    #endif
-
     var body: some View {
+        #if os(macOS)
+        MacFocusableLink(id: focusTarget, focusedId: focusedItem) {
+            onSelect()
+        } label: {
+            movieContent
+        }
+        .contextMenu { MovieContextMenu(movieId: movie.id) }
+        #else
         Button(action: onSelect) {
             movieContent
         }
         .buttonStyle(.plain)
-        #if os(macOS)
-        .focusable()
-        .focused($isFocused)
-        .onKeyPress(.return) { onSelect(); return .handled }
-        .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect(); return .handled }
-        .macFocusHighlight(isFocused: isFocused)
+        .contextMenu { MovieContextMenu(movieId: movie.id) }
         #endif
-        .contextMenu{ MovieContextMenu(movieId: movie.id) }
     }
 
     private var movieContent: some View {
@@ -118,6 +153,20 @@ struct MovieDetailRowItem: View {
     }
 }
 
+#if os(macOS)
+#Preview {
+    @FocusState var item: MovieDetailFocusTarget?
+    return NavigationStack {
+        MovieCrosslineRow(title: "Sample",
+                          movies: [sampleMovie, sampleMovie],
+                          onSelectMovie: { _ in },
+                          onSelectSeeAll: {},
+                          focusedItem: $item,
+                          movieFocusTarget: { .similarMovie($0) },
+                          seeAllFocusTarget: .similarSeeAll)
+    }
+}
+#else
 #Preview {
     NavigationStack {
         MovieCrosslineRow(title: "Sample",
@@ -126,3 +175,4 @@ struct MovieDetailRowItem: View {
                           onSelectSeeAll: {})
     }
 }
+#endif
