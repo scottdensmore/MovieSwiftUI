@@ -119,7 +119,9 @@ struct MovieButtonsRow: ConnectedView {
                            })
             #endif
         }
+        .padding(.leading)
         .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .animation(.spring(), value: props.isInWishlist || props.isInSeenlist || props.isInCustomList)
     }
 
