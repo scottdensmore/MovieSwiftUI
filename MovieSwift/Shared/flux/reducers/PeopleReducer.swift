@@ -23,9 +23,34 @@ func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
         state = mergePeople(peoples: action.response.cast, state: state)
         state = mergePeople(peoples: action.response.crew, state: state)
         state.peoplesMovies[action.movie] = Set(action.response.cast.map{ $0.id } + action.response.crew.map{ $0.id })
-        state.movieCastOrder[action.movie] = action.response.cast.map { $0.id }
-        state.movieCrewOrder[action.movie] = action.response.crew.map { $0.id }
+        // Deduplicate by person id while preserving first-seen order so a person
+        // credited multiple times (e.g. writer + director + producer) shows once.
+        state.movieCastOrder[action.movie] = appendUnique(ids: action.response.cast.map { $0.id }, to: [])
+        state.movieCrewOrder[action.movie] = appendUnique(ids: action.response.crew.map { $0.id }, to: [])
         state.movieCreditsLoaded.insert(action.movie)
+
+        // Populate reverse lookups so MovieDetailPeopleState can resolve
+        // character/department per-movie for each cast/crew member. When a
+        // person appears more than once (dual roles, multiple departments),
+        // concatenate the values so all credits are shown.
+        for cast in action.response.cast {
+            guard let character = cast.character,
+                  !character.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                continue
+            }
+            var perMovie = state.casts[cast.id] ?? [:]
+            perMovie[action.movie] = appendRole(character, to: perMovie[action.movie], separator: " / ")
+            state.casts[cast.id] = perMovie
+        }
+        for crew in action.response.crew {
+            guard let department = crew.department,
+                  !department.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                continue
+            }
+            var perMovie = state.crews[crew.id] ?? [:]
+            perMovie[action.movie] = appendRole(department, to: perMovie[action.movie], separator: ", ")
+            state.crews[crew.id] = perMovie
+        }
 
     case let action as PeopleActions.SetSearch:
         if action.page == 1 {
@@ -138,4 +163,19 @@ private func appendUnique(ids: [Int], to current: [Int]) -> [Int] {
         merged.append(id)
     }
     return merged
+}
+
+/// Appends `role` to `existing` using `separator`, skipping duplicates.
+/// Returns a single-role string if there's no existing value.
+private func appendRole(_ role: String, to existing: String?, separator: String) -> String {
+    let trimmed = role.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let existing = existing, !existing.isEmpty else {
+        return trimmed
+    }
+    // Skip if already present (case-insensitive compare for crew departments).
+    let parts = existing.components(separatedBy: separator)
+    if parts.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+        return existing
+    }
+    return existing + separator + trimmed
 }
