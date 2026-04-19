@@ -796,6 +796,13 @@ struct MovieDetail: ConnectedView {
             let forward = !press.modifiers.contains(.shift)
             return moveTabFocus(props: props, forward: forward)
         }
+        // macOS delivers Shift+Tab as the back-tab character (U+0019),
+        // not as Tab with a shift modifier — add an explicit handler so
+        // Shift+Tab walks through section headings in reverse instead
+        // of falling back to the system's per-item traversal.
+        .onKeyPress(characters: CharacterSet(charactersIn: "\u{19}"), phases: .down) { _ in
+            return moveTabFocus(props: props, forward: false)
+        }
         .onKeyPress(.leftArrow) {
             return moveArrowFocus(props: props, forward: false)
         }
