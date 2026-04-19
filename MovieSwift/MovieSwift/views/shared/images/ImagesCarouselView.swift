@@ -56,6 +56,13 @@ struct ImagesCarouselView : View {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
             currentIndex = clamped
         }
+        // Keep the external binding in sync so the caller knows which
+        // poster is currently on screen. Dismissing the carousel then
+        // preserves the "last viewed" selection for focus restoration.
+        let target = posters[clamped]
+        if selectedPoster?.id != target.id {
+            selectedPoster = target
+        }
     }
 
     private func poster3DView(poster: ImageData, index: Int, carouselHeight: CGFloat) -> some View {
@@ -153,6 +160,10 @@ struct ImagesCarouselView : View {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                         dragOffset = 0
                         currentIndex = target
+                    }
+                    let poster = posters[target]
+                    if selectedPoster?.id != poster.id {
+                        selectedPoster = poster
                     }
                 }
         )

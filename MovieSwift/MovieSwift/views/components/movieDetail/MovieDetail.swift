@@ -1176,9 +1176,16 @@ struct MovieDetail: ConnectedView {
         .onAppear {
             restoreDetailFocus(props: props, force: true)
         }
-        .onChange(of: selectedPoster?.id) { _, newValue in
+        .onChange(of: selectedPoster?.id) { oldValue, newValue in
+            // When the carousel closes, keep focus on the poster that was
+            // selected so the user doesn't get snapped back to the top of
+            // the detail view.
             if newValue == nil {
-                restoreDetailFocus(props: props, force: true)
+                if let lastPosterPath = oldValue {
+                    focusedDetailItem = .poster(lastPosterPath)
+                } else {
+                    restoreDetailFocus(props: props)
+                }
             }
         }
         .onChange(of: props.movie?.id) { _, _ in
