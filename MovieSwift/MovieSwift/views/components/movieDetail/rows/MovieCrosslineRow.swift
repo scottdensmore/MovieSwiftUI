@@ -53,6 +53,7 @@ struct MovieCrosslineRow : View {
                         .foregroundColor(.steam_blue)
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing)
                 #if os(macOS)
                 .focused($focusedId, equals: seeAllSentinel)
                 #endif

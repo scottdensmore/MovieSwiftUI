@@ -58,6 +58,7 @@ struct MovieCrosslinePeopleRow : View {
                 } label: {
                     Text("See all").foregroundColor(.steam_blue)
                 }
+                .padding(.trailing)
                 #else
                 Button(action: {
                     onSelectSeeAll()
@@ -65,6 +66,7 @@ struct MovieCrosslinePeopleRow : View {
                     Text("See all").foregroundColor(.steam_blue)
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing)
                 #endif
             }
             #if os(macOS)
