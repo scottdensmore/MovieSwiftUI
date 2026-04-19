@@ -593,6 +593,159 @@ final class MovieSwiftTests: XCTestCase {
         XCTAssertTrue(updated.creditsLoaded.contains(7))
     }
 
+    // MARK: - SetMovieCasts reverse-lookup population & multi-role handling
+
+    func testSetMovieCastsPopulatesReverseRoleLookupsForCastAndCrew() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [makePerson(id: 1, character: "Hero")],
+            crew: [makePerson(id: 2, department: "Directing")]
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        XCTAssertEqual(updated.casts[1]?[42], "Hero")
+        XCTAssertEqual(updated.crews[2]?[42], "Directing")
+        XCTAssertEqual(updated.movieCastOrder[42], [1])
+        XCTAssertEqual(updated.movieCrewOrder[42], [2])
+        XCTAssertTrue(updated.movieCreditsLoaded.contains(42))
+    }
+
+    func testSetMovieCastsDedupesMovieCastOrderForRepeatedPerson() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [
+                makePerson(id: 1, character: "Prince Akeem"),
+                makePerson(id: 1, character: "Randy Watson"),
+                makePerson(id: 1, character: "Clarence"),
+                makePerson(id: 2, character: "Lisa McDowell")
+            ],
+            crew: []
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        // Each person should appear exactly once in the order array.
+        XCTAssertEqual(updated.movieCastOrder[42], [1, 2])
+    }
+
+    func testSetMovieCastsConcatenatesCharactersForActorInMultipleRoles() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [
+                makePerson(id: 1, character: "Prince Akeem"),
+                makePerson(id: 1, character: "Randy Watson"),
+                makePerson(id: 1, character: "Clarence"),
+                makePerson(id: 1, character: "Saul")
+            ],
+            crew: []
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        XCTAssertEqual(updated.casts[1]?[42],
+                       "Prince Akeem / Randy Watson / Clarence / Saul")
+    }
+
+    func testSetMovieCastsConcatenatesDepartmentsForCrewMemberWithMultipleRoles() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [],
+            crew: [
+                makePerson(id: 7, department: "Directing"),
+                makePerson(id: 7, department: "Writing"),
+                makePerson(id: 7, department: "Production")
+            ]
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        XCTAssertEqual(updated.crews[7]?[42], "Directing, Writing, Production")
+        XCTAssertEqual(updated.movieCrewOrder[42], [7])
+    }
+
+    func testSetMovieCastsDoesNotDuplicateSameDepartmentTwice() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [],
+            crew: [
+                makePerson(id: 7, department: "Directing"),
+                makePerson(id: 7, department: "directing"), // case-insensitive duplicate
+                makePerson(id: 7, department: "Writing")
+            ]
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        XCTAssertEqual(updated.crews[7]?[42], "Directing, Writing")
+    }
+
+    func testSetMovieCastsSkipsEmptyOrWhitespaceRoles() {
+        let state = AppState().peoplesState
+        let response = CastResponse(
+            id: 42,
+            cast: [
+                makePerson(id: 1, character: ""),
+                makePerson(id: 2, character: "   "),
+                makePerson(id: 3, character: "Real Role")
+            ],
+            crew: [
+                makePerson(id: 10, department: nil),
+                makePerson(id: 11, department: "Editing")
+            ]
+        )
+
+        let updated = peoplesStateReducer(state: state,
+                                          action: PeopleActions.SetMovieCasts(movie: 42, response: response))
+
+        XCTAssertNil(updated.casts[1]?[42])
+        XCTAssertNil(updated.casts[2]?[42])
+        XCTAssertEqual(updated.casts[3]?[42], "Real Role")
+        XCTAssertNil(updated.crews[10]?[42])
+        XCTAssertEqual(updated.crews[11]?[42], "Editing")
+    }
+
+    func testMovieDetailPeopleStateResolvesCastAndCrewAfterSetMovieCasts() {
+        var state = AppState()
+        let response = CastResponse(
+            id: 42,
+            cast: [
+                makePerson(id: 1, character: "Hero"),
+                makePerson(id: 2, character: "Sidekick")
+            ],
+            crew: [
+                makePerson(id: 10, department: "Directing"),
+                makePerson(id: 10, department: "Writing")
+            ]
+        )
+
+        // Route through the real reducer path — this is the integration surface
+        // that was previously broken: characters()/credits() returned nil even
+        // when the movie credits action had been dispatched.
+        state.peoplesState = peoplesStateReducer(
+            state: state.peoplesState,
+            action: PeopleActions.SetMovieCasts(movie: 42, response: response)
+        )
+
+        let characters = MovieDetailPeopleState.characters(movieId: 42, from: state)
+        let credits = MovieDetailPeopleState.credits(movieId: 42, from: state)
+
+        XCTAssertEqual(characters?.count, 2)
+        XCTAssertEqual(characters?.first?.character, "Hero")
+        XCTAssertEqual(credits?.count, 1)
+        XCTAssertEqual(credits?.first?.department, "Directing, Writing")
+    }
+
     func testPeoplesStateCodableRoundTripPreservesLoadedDetailFlagsAndCredits() throws {
         var state = PeoplesState()
         state.peoples[7] = People(id: 7,
