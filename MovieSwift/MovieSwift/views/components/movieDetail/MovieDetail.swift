@@ -550,13 +550,13 @@ struct MovieDetail: ConnectedView {
     private func posterTargets(props: Props) -> [MovieDetailFocusTarget] {
         let posters = props.movie?.images?.posters ?? []
         guard !posters.isEmpty else { return [] }
-        return posters.prefix(8).map { .poster($0.file_path) }
+        return posters.map { .poster($0.file_path) }
     }
 
     private func backdropTargets(props: Props) -> [MovieDetailFocusTarget] {
         let backdrops = props.movie?.images?.backdrops ?? []
         guard !backdrops.isEmpty else { return [] }
-        return backdrops.prefix(8).map { .backdrop($0.file_path) }
+        return backdrops.map { .backdrop($0.file_path) }
     }
 
 
@@ -861,12 +861,12 @@ struct MovieDetail: ConnectedView {
            movie.images?.posters?.isEmpty == false,
            let posters = movie.images?.posters {
             #if os(macOS)
-            MoviePostersRow(posters: posters.prefix(8).map{ $0 },
+            MoviePostersRow(posters: posters,
                             selectedPoster: $selectedPoster,
                             focusedItem: $focusedDetailItem)
                 .trackedDetailRow("row.posters", visibleRowIds: $visibleRowIds)
             #else
-            MoviePostersRow(posters: posters.prefix(8).map{ $0 },
+            MoviePostersRow(posters: posters,
                             selectedPoster: $selectedPoster)
             #endif
         }
@@ -874,11 +874,11 @@ struct MovieDetail: ConnectedView {
            movie.images?.backdrops?.isEmpty == false,
            let backdrops = movie.images?.backdrops {
             #if os(macOS)
-            MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 },
+            MovieBackdropsRow(backdrops: backdrops,
                               focusedItem: $focusedDetailItem)
                 .trackedDetailRow("row.backdrops", visibleRowIds: $visibleRowIds)
             #else
-            MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
+            MovieBackdropsRow(backdrops: backdrops)
             #endif
         }
     }
