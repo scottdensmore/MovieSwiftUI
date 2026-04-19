@@ -906,9 +906,7 @@ struct MovieDetail: ConnectedView {
                               color: .blue,
                               show: $isAddedToListBadgePresented).padding(.bottom, 10)
             if selectedPoster != nil {
-                // Match MoviePostersRow which also shows up to 8 thumbnails,
-                // so the carousel stays in sync with what the user sees.
-                ImagesCarouselView(posters: Array((props.movie?.images?.posters ?? []).prefix(8)),
+                ImagesCarouselView(posters: props.movie?.images?.posters ?? [],
                                        selectedPoster: $selectedPoster)
                     .transition(.opacity)
             }

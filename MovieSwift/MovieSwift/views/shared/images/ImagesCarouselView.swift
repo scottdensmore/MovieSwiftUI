@@ -9,22 +9,6 @@
 import SwiftUI
 import Backend
 
-/// Pure decision for how to render the carousel page indicator.
-/// Extracted so the switch-over threshold is unit-testable.
-enum CarouselPagingIndicatorStyle: Equatable {
-    case dots
-    case text
-    case hidden
-
-    static let dotsThreshold = 12
-
-    static func style(forCount count: Int) -> CarouselPagingIndicatorStyle {
-        if count <= 1 { return .hidden }
-        if count > dotsThreshold { return .text }
-        return .dots
-    }
-}
-
 struct ImagesCarouselView : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
@@ -49,132 +33,67 @@ struct ImagesCarouselView : View {
 
     #if os(macOS)
     @FocusState private var isCarouselFocused: Bool
-    @State private var dragOffset: CGFloat = 0
+    @State private var scrollPosition: Int?
 
     private let posterWidth: CGFloat = 260
-    private let posterSpacing: CGFloat = 36
 
     private func goTo(_ index: Int) {
         let clamped = max(0, min(index, posters.count - 1))
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) {
-            currentIndex = clamped
-        }
+        scrollPosition = clamped
+        currentIndex = clamped
     }
 
-    private func poster3DView(poster: ImageData, index: Int, carouselHeight: CGFloat) -> some View {
-        let rawOffset = CGFloat(index - currentIndex)
-        let dragItems = dragOffset / (posterWidth + posterSpacing)
-        let offset = rawOffset - dragItems
-        let absOffset = abs(offset)
-
-        // Horizontal position: centered image at 0, side images pushed left/right
-        let xTranslation = offset * (posterWidth * 0.55 + posterSpacing)
-
-        // Scale: center is 1.0, side items shrink down to ~0.7
-        let scale: CGFloat = max(0.65, 1.0 - absOffset * 0.15)
-
-        // 3D rotation: side items tilt inward to create Cover Flow curve
-        let rotationY: Double = Double(offset) * -35
-
-        // Opacity fades out for far items
-        let opacity: Double = max(0.25, 1.0 - Double(absOffset) * 0.3)
-
-        // Z-index: center on top, side items behind
-        let zIndex: Double = 100 - Double(absOffset)
-
-        return BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(
-            path: poster.file_path,
-            size: .medium))
-            .frame(width: posterWidth, height: carouselHeight)
+    private func scrollPoster(poster: ImageData, index: Int, height: CGFloat) -> some View {
+        let loader = ImageLoaderCache.shared.loaderFor(path: poster.file_path, size: .medium)
+        return BigMoviePosterImage(imageLoader: loader)
+            .frame(width: posterWidth, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .shadow(color: .black.opacity(0.5), radius: 12, x: 0, y: 8)
-            .scaleEffect(scale)
-            .rotation3DEffect(
-                .degrees(rotationY),
-                axis: (x: 0, y: 1, z: 0),
-                anchor: .center,
-                perspective: 0.6
-            )
-            .offset(x: xTranslation)
-            .opacity(opacity)
-            .zIndex(zIndex)
-            .onTapGesture {
-                goTo(index)
+            .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                let v = phase.value
+                let absV = abs(v)
+                return content
+                    .scaleEffect(phase.isIdentity ? 1.0 : max(0.7, 1.0 - absV * 0.2))
+                    .rotation3DEffect(.degrees(Double(v) * -35),
+                                      axis: (x: 0, y: 1, z: 0),
+                                      anchor: .center,
+                                      perspective: 0.6)
+                    .opacity(phase.isIdentity ? 1.0 : max(0.3, 1.0 - Double(absV) * 0.35))
             }
+            .id(index)
+            .onTapGesture { goTo(index) }
     }
 
     private func macCarousel(reader: GeometryProxy) -> some View {
         let carouselHeight = min(reader.size.height * 0.7, 420)
+        let sideInset = max((reader.size.width - posterWidth) / 2, 0)
 
-        return VStack(spacing: 20) {
-            ZStack {
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 0) {
                 ForEach(Array(posters.enumerated()), id: \.element.id) { index, poster in
-                    poster3DView(poster: poster, index: index, carouselHeight: carouselHeight)
+                    scrollPoster(poster: poster, index: index, height: carouselHeight)
                 }
             }
-            .frame(width: reader.size.width, height: carouselHeight + 30)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        dragOffset = value.translation.width
-                    }
-                    .onEnded { value in
-                        let itemWidth = posterWidth + posterSpacing
-                        let predicted = value.predictedEndTranslation.width
-                        let change = -Int((predicted / itemWidth).rounded())
-                        let target = max(0, min(currentIndex + change, posters.count - 1))
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) {
-                            dragOffset = 0
-                            currentIndex = target
-                        }
-                    }
-            )
-
-            // Page indicators — dots when the list is short, text when
-            // there would be more dots than fit across the pane, hidden
-            // for a single-item list.
-            Group {
-                switch CarouselPagingIndicatorStyle.style(forCount: posters.count) {
-                case .hidden:
-                    EmptyView()
-                case .text:
-                    Text("\(currentIndex + 1) / \(posters.count)")
-                        .font(.callout)
-                        .foregroundColor(.white.opacity(0.85))
-                case .dots:
-                    HStack(spacing: 10) {
-                        ForEach(0..<posters.count, id: \.self) { index in
-                            Button {
-                                goTo(index)
-                            } label: {
-                                Circle()
-                                    .fill(index == currentIndex ? Color.white : Color.white.opacity(0.35))
-                                    .frame(width: index == currentIndex ? 10 : 7,
-                                           height: index == currentIndex ? 10 : 7)
-                                    .animation(.easeInOut(duration: 0.25), value: currentIndex)
-                            }
-                            .buttonStyle(.plain)
-                            .focusEffectDisabled()
-                            .accessibilityLabel("Go to image \(index + 1)")
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: reader.size.width)
+            .scrollTargetLayout()
         }
-        .frame(width: reader.size.width)
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $scrollPosition, anchor: .center)
+        .contentMargins(.horizontal, sideInset, for: .scrollContent)
+        .frame(width: reader.size.width, height: carouselHeight + 40)
+        .onChange(of: scrollPosition) { _, newValue in
+            if let newValue { currentIndex = newValue }
+        }
         .focusable()
         .focused($isCarouselFocused)
         .focusEffectDisabled()
         .onKeyPress(.leftArrow) {
             guard currentIndex > 0 else { return .ignored }
-            goTo(currentIndex - 1)
+            withAnimation { goTo(currentIndex - 1) }
             return .handled
         }
         .onKeyPress(.rightArrow) {
             guard currentIndex < posters.count - 1 else { return .ignored }
-            goTo(currentIndex + 1)
+            withAnimation { goTo(currentIndex + 1) }
             return .handled
         }
         .onKeyPress(.escape) {
@@ -214,6 +133,9 @@ struct ImagesCarouselView : View {
         if let selected = selectedPoster,
            let index = posters.firstIndex(where: { $0.id == selected.id }) {
             currentIndex = index
+            #if os(macOS)
+            scrollPosition = index
+            #endif
         }
     }
 
