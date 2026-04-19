@@ -9,6 +9,22 @@
 import SwiftUI
 import Backend
 
+/// Pure decision for how to render the carousel page indicator.
+/// Extracted so the switch-over threshold is unit-testable.
+enum CarouselPagingIndicatorStyle: Equatable {
+    case dots
+    case text
+    case hidden
+
+    static let dotsThreshold = 12
+
+    static func style(forCount count: Int) -> CarouselPagingIndicatorStyle {
+        if count <= 1 { return .hidden }
+        if count > dotsThreshold { return .text }
+        return .dots
+    }
+}
+
 struct ImagesCarouselView : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
@@ -115,23 +131,37 @@ struct ImagesCarouselView : View {
                     }
             )
 
-            // Clickable page indicators
-            HStack(spacing: 10) {
-                ForEach(0..<posters.count, id: \.self) { index in
-                    Button {
-                        goTo(index)
-                    } label: {
-                        Circle()
-                            .fill(index == currentIndex ? Color.white : Color.white.opacity(0.35))
-                            .frame(width: index == currentIndex ? 10 : 7,
-                                   height: index == currentIndex ? 10 : 7)
-                            .animation(.easeInOut(duration: 0.25), value: currentIndex)
+            // Page indicators — dots when the list is short, text when
+            // there would be more dots than fit across the pane, hidden
+            // for a single-item list.
+            Group {
+                switch CarouselPagingIndicatorStyle.style(forCount: posters.count) {
+                case .hidden:
+                    EmptyView()
+                case .text:
+                    Text("\(currentIndex + 1) / \(posters.count)")
+                        .font(.callout)
+                        .foregroundColor(.white.opacity(0.85))
+                case .dots:
+                    HStack(spacing: 10) {
+                        ForEach(0..<posters.count, id: \.self) { index in
+                            Button {
+                                goTo(index)
+                            } label: {
+                                Circle()
+                                    .fill(index == currentIndex ? Color.white : Color.white.opacity(0.35))
+                                    .frame(width: index == currentIndex ? 10 : 7,
+                                           height: index == currentIndex ? 10 : 7)
+                                    .animation(.easeInOut(duration: 0.25), value: currentIndex)
+                            }
+                            .buttonStyle(.plain)
+                            .focusEffectDisabled()
+                            .accessibilityLabel("Go to image \(index + 1)")
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .focusEffectDisabled()
-                    .accessibilityLabel("Go to image \(index + 1)")
                 }
             }
+            .frame(maxWidth: reader.size.width)
         }
         .frame(width: reader.size.width)
         .focusable()

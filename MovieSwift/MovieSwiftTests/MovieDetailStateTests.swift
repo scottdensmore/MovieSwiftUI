@@ -259,4 +259,25 @@ final class MovieDetailStateTests: XCTestCase {
         XCTAssertNotEqual(a, c)
         XCTAssertEqual(a.hashValue, b.hashValue)
     }
+
+    // MARK: - Carousel paging indicator style
+
+    func testCarouselPagingIndicatorHiddenWhenSingleOrNoItem() {
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 0), .hidden)
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 1), .hidden)
+    }
+
+    func testCarouselPagingIndicatorUsesDotsForSmallCounts() {
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 2), .dots)
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 8), .dots)
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 12), .dots)
+    }
+
+    func testCarouselPagingIndicatorUsesTextWhenAboveThreshold() {
+        // Guard against dots overflowing the detail pane (and bleeding
+        // under the sidebar) when a movie has many posters.
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 13), .text)
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 30), .text)
+        XCTAssertEqual(CarouselPagingIndicatorStyle.style(forCount: 100), .text)
+    }
 }
