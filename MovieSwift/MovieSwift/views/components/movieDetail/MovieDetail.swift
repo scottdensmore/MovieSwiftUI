@@ -219,9 +219,7 @@ struct MovieDetail: ConnectedView {
     @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
     @State private var selectedGenre: Genre?
     @State private var selectedKeyword: Keyword?
-    @State private var isCrosslineMoviesListPresented = false
-    @State private var crosslineMoviesListTitle = ""
-    @State private var crosslineMoviesListMovieIds: [Int] = []
+    @State private var crosslineMoviesPresentation: CrosslineMoviesPresentation?
     @State private var peopleListPresentation: PeopleListPresentation?
 
     struct PeopleListPresentation: Identifiable, Hashable {
@@ -230,6 +228,20 @@ struct MovieDetail: ConnectedView {
         let peopleIds: [Int]
 
         static func == (lhs: PeopleListPresentation, rhs: PeopleListPresentation) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+    }
+
+    struct CrosslineMoviesPresentation: Identifiable, Hashable {
+        let id: String
+        let title: String
+        let movieIds: [Int]
+
+        static func == (lhs: CrosslineMoviesPresentation, rhs: CrosslineMoviesPresentation) -> Bool {
             lhs.id == rhs.id
         }
 
@@ -322,9 +334,11 @@ struct MovieDetail: ConnectedView {
     }
 
     private func presentCrosslineMoviesList(title: String, movies: [Movie]) {
-        crosslineMoviesListTitle = title
-        crosslineMoviesListMovieIds = MovieCrosslineState.movieIds(from: movies)
-        isCrosslineMoviesListPresented = true
+        crosslineMoviesPresentation = CrosslineMoviesPresentation(
+            id: "crossline-\(title)-\(movieId)",
+            title: title,
+            movieIds: MovieCrosslineState.movieIds(from: movies)
+        )
     }
 
     private func presentPeopleList(title: String, peoples: [People]) {
@@ -488,13 +502,8 @@ struct MovieDetail: ConnectedView {
     }
     #endif
 
-    private var crosslineMoviesListView: some View {
-        MoviesList(movies: crosslineMoviesListMovieIds,
-                   displaySearch: false,
-                   pageListener: nil,
-                   navigationRoute: $selectedCrosslineRoute)
-            .navigationTitle(crosslineMoviesListTitle)
-    }
+    // Crossline movies list is presented as a sheet — see the See-all sheet
+    // explanation on peopleListPresentation.
 
     // Kept as a method for backwards-compat but not used as a navigation destination —
     // using a method there caused MovieDetail.body to be invalidated in a loop.
@@ -914,8 +923,20 @@ struct MovieDetail: ConnectedView {
         .navigationDestination(item: $selectedKeyword) { keyword in
             MovieKeywordList(keyword: keyword)
         }
-        .navigationDestination(isPresented: $isCrosslineMoviesListPresented) {
-            crosslineMoviesListView
+        .sheet(item: $crosslineMoviesPresentation) { presentation in
+            NavigationStack {
+                MoviesList(movies: presentation.movieIds,
+                           displaySearch: false,
+                           pageListener: nil,
+                           navigationRoute: $selectedCrosslineRoute)
+                    .navigationTitle(presentation.title)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { crosslineMoviesPresentation = nil }
+                        }
+                    }
+            }
+            .frame(minWidth: 500, minHeight: 600)
         }
         .navigationDestination(item: $selectedCrosslineRoute) { route in
             moviesListDestinationView(for: route)
