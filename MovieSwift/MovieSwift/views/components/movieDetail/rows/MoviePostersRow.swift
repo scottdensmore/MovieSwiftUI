@@ -34,9 +34,8 @@ enum MoviePostersState {
 struct MoviePostersRow : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
-
     #if os(macOS)
-    @FocusState private var focusedPosterId: String?
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
     #endif
 
     private var presentations: [MoviePosterPresentation] {
@@ -48,31 +47,41 @@ struct MoviePostersRow : View {
             Text("Other posters")
                 .titleStyle()
                 .padding(.leading)
+            #if os(macOS)
+            ScrollViewReader { scrollProxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 32) {
+                        ForEach(Array(presentations.enumerated()), id: \.offset) { index, poster in
+                            MacFocusableLink(id: .poster(poster.path), focusedId: focusedItem) {
+                                withAnimation {
+                                    selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster)
+                                }
+                            } label: {
+                                MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.path,
+                                                                                                size: .medium),
+                                                 posterSize: .medium)
+                            }
+                            .id(index)
+                            .padding(.vertical)
+                        }
+                    }
+                    .padding(.leading)
+                }
+                .clipped()
+                .onChange(of: focusedItem.wrappedValue) { _, newValue in
+                    guard let newValue,
+                          let index = presentations.firstIndex(where: { .poster($0.path) == newValue }) else {
+                        return
+                    }
+                    withAnimation {
+                        scrollProxy.scrollTo(index, anchor: .center)
+                    }
+                }
+            }
+            #else
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 32) {
                     ForEach(presentations) { poster in
-                        #if os(macOS)
-                        Button {
-                            withAnimation {
-                                selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster)
-                            }
-                        } label: {
-                            MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.path,
-                                                                                            size: .medium),
-                                             posterSize: .medium)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(focusedPosterId == poster.id ? Color.accentColor : .clear, lineWidth: 3)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .focusable()
-                        .focused($focusedPosterId, equals: poster.id)
-                        .onKeyPress(.return) { withAnimation { selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster) }; return .handled }
-                        .onKeyPress(characters: .init(charactersIn: " ")) { _ in withAnimation { selectedPoster = MoviePostersState.selectedPoster(afterSelecting: poster) }; return .handled }
-                        .focusEffectDisabled()
-                        .padding(.vertical)
-                        #else
                         MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.path,
                                                                                         size: .medium),
                                          posterSize: .medium)
@@ -82,17 +91,28 @@ struct MoviePostersRow : View {
                                 }
                         }
                         .padding(.vertical)
-                        #endif
                     }
                 }
                 .padding(.leading)
             }
+            #endif
         }
         .listRowInsets(EdgeInsets())
         .padding(.vertical)
     }
 }
 
+#if os(macOS)
+#Preview {
+    @FocusState var item: MovieDetailFocusTarget?
+    return MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
+                                               file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                               height: 720,
+                                               width: 1280)],
+                           selectedPoster: .constant(nil),
+                           focusedItem: $item)
+}
+#else
 #Preview {
     MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
                                          file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
@@ -100,3 +120,4 @@ struct MoviePostersRow : View {
                                          width: 1280)],
                     selectedPoster: .constant(nil))
 }
+#endif

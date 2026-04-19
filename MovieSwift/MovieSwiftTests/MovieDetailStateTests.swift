@@ -272,7 +272,9 @@ final class MovieDetailStateTests: XCTestCase {
         [.castPerson(500), .castPerson(501), .castSeeAll],
         [.crewPerson(600), .crewPerson(601), .crewSeeAll],
         [.similarMovie(900), .similarMovie(901), .similarSeeAll],
-        [.recommendedMovie(950), .recommendedMovie(951), .recommendedSeeAll]
+        [.recommendedMovie(950), .recommendedMovie(951), .recommendedSeeAll],
+        [.poster("/a.jpg"), .poster("/b.jpg"), .poster("/c.jpg")],
+        [.backdrop("/bd1.jpg"), .backdrop("/bd2.jpg")]
     ]
 
     func testTabFromNilGoesToFirstGroupFirstItem() {
@@ -288,7 +290,7 @@ final class MovieDetailStateTests: XCTestCase {
             from: nil,
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(target, .recommendedMovie(950))
+        XCTAssertEqual(target, .backdrop("/bd1.jpg"))
     }
 
     func testTabFromCrewGoesToSimilarMovies() {
@@ -309,6 +311,45 @@ final class MovieDetailStateTests: XCTestCase {
         XCTAssertEqual(target, .recommendedMovie(950))
     }
 
+    func testTabFromRecommendedGoesToFirstPoster() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .recommendedMovie(950),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .poster("/a.jpg"))
+    }
+
+    func testTabFromPostersGoesToFirstBackdrop() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .poster("/b.jpg"),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .backdrop("/bd1.jpg"))
+    }
+
+    func testTabFromLastBackdropReturnsNil() {
+        // Backdrops are the last group; Tab should consume with no move.
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .backdrop("/bd2.jpg"),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertNil(target)
+    }
+
+    func testArrowWithinPostersMovesBetweenPosters() {
+        let forward = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .poster("/a.jpg"),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(forward, .poster("/b.jpg"))
+
+        let backward = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .poster("/b.jpg"),
+            in: Self.focusSampleGroups,
+            forward: false)
+        XCTAssertEqual(backward, .poster("/a.jpg"))
+    }
+
     func testTabLandsOnFirstItemOfNextGroupRegardlessOfPositionWithin() {
         // From the middle of the genres group → first action button.
         let target = MovieDetailFocusNavigation.nextGroupStart(
@@ -327,15 +368,13 @@ final class MovieDetailStateTests: XCTestCase {
         XCTAssertEqual(target, .crewPerson(600))
     }
 
-    func testTabFromLastGroupReturnsNil() {
-        // Last group is Recommended; Tab from recommendedSeeAll should
-        // return nil so the key press is consumed without leaking into
-        // the system's Tab traversal.
+    func testTabFromRecommendedSeeAllJumpsToPosters() {
+        // Recommended is no longer the last group — posters follow it.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .recommendedSeeAll,
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertNil(target)
+        XCTAssertEqual(target, .poster("/a.jpg"))
     }
 
     func testShiftTabFromFirstGroupReturnsNil() {

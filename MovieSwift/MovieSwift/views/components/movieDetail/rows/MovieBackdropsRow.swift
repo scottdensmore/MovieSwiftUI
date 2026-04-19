@@ -29,9 +29,8 @@ enum MovieBackdropsState {
 
 struct MovieBackdropsRow : View {
     let backdrops: [ImageData]
-
     #if os(macOS)
-    @FocusState private var focusedBackdropId: String?
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
     #endif
 
     private var presentations: [MovieBackdropPresentation] {
@@ -43,26 +42,44 @@ struct MovieBackdropsRow : View {
             Text("Images")
                 .titleStyle()
                 .padding(.leading)
+            #if os(macOS)
+            ScrollViewReader { scrollProxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(Array(presentations.enumerated()), id: \.offset) { index, backdrop in
+                            MacFocusableLink(id: .backdrop(backdrop.path), focusedId: focusedItem) {
+                                // Backdrops aren't actionable; Return is a no-op but
+                                // keeps the focus target discoverable via keyboard.
+                            } label: {
+                                MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(
+                                    path: backdrop.path,
+                                    size: .original))
+                            }
+                            .id(index)
+                        }
+                    }.padding(.leading)
+                }
+                .clipped()
+                .onChange(of: focusedItem.wrappedValue) { _, newValue in
+                    guard let newValue,
+                          let index = presentations.firstIndex(where: { .backdrop($0.path) == newValue }) else {
+                        return
+                    }
+                    withAnimation {
+                        scrollProxy.scrollTo(index, anchor: .center)
+                    }
+                }
+            }
+            #else
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(presentations) { backdrop in
-                        #if os(macOS)
                         MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.path,
                                                                                           size: .original))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(focusedBackdropId == backdrop.id ? Color.accentColor : .clear, lineWidth: 3)
-                            )
-                            .focusable()
-                            .focused($focusedBackdropId, equals: backdrop.id)
-                            .focusEffectDisabled()
-                        #else
-                        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: backdrop.path,
-                                                                                          size: .original))
-                        #endif
                     }
                 }.padding(.leading)
             }
+            #endif
         }
         .listRowInsets(EdgeInsets())
         .padding(.top)
@@ -70,9 +87,20 @@ struct MovieBackdropsRow : View {
     }
 }
 
+#if os(macOS)
+#Preview {
+    @FocusState var item: MovieDetailFocusTarget?
+    return MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
+                                                   file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+                                                   height: 1200,
+                                                   width: 1800)],
+                             focusedItem: $item)
+}
+#else
 #Preview {
     MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
                                          file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                          height: 1200,
                                          width: 1800)])
 }
+#endif

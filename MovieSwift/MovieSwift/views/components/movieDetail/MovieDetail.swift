@@ -184,6 +184,8 @@ enum MovieDetailFocusTarget: Hashable {
     case similarSeeAll
     case recommendedMovie(Int)
     case recommendedSeeAll
+    case poster(String)
+    case backdrop(String)
 }
 
 /// Pure navigation decisions for the detail view's Tab / arrow focus.
@@ -459,6 +461,18 @@ struct MovieDetail: ConnectedView {
         return targets
     }
 
+    private func posterTargets(props: Props) -> [MovieDetailFocusTarget] {
+        let posters = props.movie?.images?.posters ?? []
+        guard !posters.isEmpty else { return [] }
+        return posters.prefix(8).map { .poster($0.file_path) }
+    }
+
+    private func backdropTargets(props: Props) -> [MovieDetailFocusTarget] {
+        let backdrops = props.movie?.images?.backdrops ?? []
+        guard !backdrops.isEmpty else { return [] }
+        return backdrops.prefix(8).map { .backdrop($0.file_path) }
+    }
+
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -480,6 +494,10 @@ struct MovieDetail: ConnectedView {
         if !similar.isEmpty { groups.append(similar) }
         let recommended = recommendedTargets(props: props)
         if !recommended.isEmpty { groups.append(recommended) }
+        let posters = posterTargets(props: props)
+        if !posters.isEmpty { groups.append(posters) }
+        let backdrops = backdropTargets(props: props)
+        if !backdrops.isEmpty { groups.append(backdrops) }
         return groups
     }
 
@@ -742,13 +760,24 @@ struct MovieDetail: ConnectedView {
         if let movie = props.movie,
            movie.images?.posters?.isEmpty == false,
            let posters = movie.images?.posters {
+            #if os(macOS)
+            MoviePostersRow(posters: posters.prefix(8).map{ $0 },
+                            selectedPoster: $selectedPoster,
+                            focusedItem: $focusedDetailItem)
+            #else
             MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                             selectedPoster: $selectedPoster)
+            #endif
         }
         if let movie = props.movie,
            movie.images?.backdrops?.isEmpty == false,
            let backdrops = movie.images?.backdrops {
+            #if os(macOS)
+            MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 },
+                              focusedItem: $focusedDetailItem)
+            #else
             MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
+            #endif
         }
     }
 
