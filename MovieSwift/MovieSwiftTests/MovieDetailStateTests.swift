@@ -260,4 +260,111 @@ final class MovieDetailStateTests: XCTestCase {
         XCTAssertEqual(a.hashValue, b.hashValue)
     }
 
+    // MARK: - MovieDetailFocusNavigation
+
+    private static let focusSampleGroups: [[MovieDetailFocusTarget]] = [
+        [.genre(1), .genre(2), .genre(3)],
+        [.wishlistButton, .seenlistButton, .customListButton],
+        [.reviewLink],
+        [.topPerson(100)],
+        [.readMoreButton],
+        [.keyword(10), .keyword(11), .keyword(12)],
+        [.castPerson(500), .castPerson(501), .castSeeAll],
+        [.crewPerson(600), .crewPerson(601), .crewSeeAll]
+    ]
+
+    func testTabFromNilGoesToFirstGroupFirstItem() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: nil,
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .genre(1))
+    }
+
+    func testShiftTabFromNilGoesToLastGroupFirstItem() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: nil,
+            in: Self.focusSampleGroups,
+            forward: false)
+        XCTAssertEqual(target, .crewPerson(600))
+    }
+
+    func testTabLandsOnFirstItemOfNextGroupRegardlessOfPositionWithin() {
+        // From the middle of the genres group → first action button.
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .genre(2),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .wishlistButton)
+    }
+
+    func testTabFromLastItemOfGroupJumpsOverRemainingItemsInNextGroup() {
+        // On the last cast item (castSeeAll) → first crew item.
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .castSeeAll,
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .crewPerson(600))
+    }
+
+    func testTabFromLastGroupReturnsNil() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .crewSeeAll,
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertNil(target)
+    }
+
+    func testShiftTabFromFirstGroupReturnsNil() {
+        let target = MovieDetailFocusNavigation.nextGroupStart(
+            from: .genre(1),
+            in: Self.focusSampleGroups,
+            forward: false)
+        XCTAssertNil(target)
+    }
+
+    func testArrowWithinGenresMovesToNextGenre() {
+        let target = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .genre(2),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertEqual(target, .genre(3))
+    }
+
+    func testArrowAtLastGenreReturnsNilInsteadOfLeakingIntoActions() {
+        // Tab should jump out of the genres group, but a right arrow
+        // should stay put once we're on the last genre.
+        let target = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .genre(3),
+            in: Self.focusSampleGroups,
+            forward: true)
+        XCTAssertNil(target)
+    }
+
+    func testArrowOnSingleItemGroupReturnsNil() {
+        XCTAssertNil(MovieDetailFocusNavigation.adjacentInGroup(
+            from: .readMoreButton,
+            in: Self.focusSampleGroups,
+            forward: true))
+        XCTAssertNil(MovieDetailFocusNavigation.adjacentInGroup(
+            from: .readMoreButton,
+            in: Self.focusSampleGroups,
+            forward: false))
+    }
+
+    func testArrowBackwardsInKeywordsMovesToPreviousKeyword() {
+        let target = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .keyword(11),
+            in: Self.focusSampleGroups,
+            forward: false)
+        XCTAssertEqual(target, .keyword(10))
+    }
+
+    func testArrowFromCastSeeAllBacksIntoLastCastPerson() {
+        let target = MovieDetailFocusNavigation.adjacentInGroup(
+            from: .castSeeAll,
+            in: Self.focusSampleGroups,
+            forward: false)
+        XCTAssertEqual(target, .castPerson(501))
+    }
 }

@@ -167,7 +167,6 @@ enum MovieDetailPeopleState {
     }
 }
 
-#if os(macOS)
 enum MovieDetailFocusTarget: Hashable {
     case genre(Int)
     case wishlistButton
@@ -182,7 +181,42 @@ enum MovieDetailFocusTarget: Hashable {
     case crewPerson(Int)
     case crewSeeAll
 }
-#endif
+
+/// Pure navigation decisions for the detail view's Tab / arrow focus.
+/// Groups are passed in so tests can exercise the logic without a view.
+enum MovieDetailFocusNavigation {
+    /// Tab / Shift+Tab — jump to the first item of the next/previous group.
+    /// When current is nil, returns the first (or last) group's first item.
+    /// Returns nil if at the edge.
+    static func nextGroupStart(from current: MovieDetailFocusTarget?,
+                               in groups: [[MovieDetailFocusTarget]],
+                               forward: Bool) -> MovieDetailFocusTarget? {
+        guard !groups.isEmpty else { return nil }
+        guard let current else {
+            return forward ? groups.first?.first : groups.last?.first
+        }
+        guard let currentGroup = groups.firstIndex(where: { $0.contains(current) }) else {
+            return forward ? groups.first?.first : groups.last?.first
+        }
+        let nextGroup = currentGroup + (forward ? 1 : -1)
+        guard groups.indices.contains(nextGroup) else { return nil }
+        return groups[nextGroup].first
+    }
+
+    /// Left / Right arrow — move within the current group only. Returns nil
+    /// at the edge so the caller can leave focus alone.
+    static func adjacentInGroup(from current: MovieDetailFocusTarget,
+                                in groups: [[MovieDetailFocusTarget]],
+                                forward: Bool) -> MovieDetailFocusTarget? {
+        guard let group = groups.first(where: { $0.contains(current) }),
+              let idx = group.firstIndex(of: current) else {
+            return nil
+        }
+        let nextIdx = idx + (forward ? 1 : -1)
+        guard group.indices.contains(nextIdx) else { return nil }
+        return group[nextIdx]
+    }
+}
 
 struct MovieDetail: ConnectedView {
     struct Props {
@@ -403,86 +437,32 @@ struct MovieDetail: ConnectedView {
         return targets
     }
 
+    /// Groups of focus targets, in Tab order. Each group is a horizontal row
+    /// of related items (genres, action buttons, keywords, cast, crew etc).
+    /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
+    private func focusGroups(props: Props) -> [[MovieDetailFocusTarget]] {
+        var groups: [[MovieDetailFocusTarget]] = []
+        let genres = genreTargets(props: props)
+        if !genres.isEmpty { groups.append(genres) }
+        groups.append(actionTargets)
+        if let review = reviewTarget(props: props) { groups.append([review]) }
+        if let person = topPersonTarget(props: props) { groups.append([person]) }
+        if let readMore = readMoreTarget(props: props) { groups.append([readMore]) }
+        let keywords = keywordTargets(props: props)
+        if !keywords.isEmpty { groups.append(keywords) }
+        let cast = castTargets(props: props)
+        if !cast.isEmpty { groups.append(cast) }
+        let crew = crewTargets(props: props)
+        if !crew.isEmpty { groups.append(crew) }
+        return groups
+    }
+
     private func availableTopTargets(props: Props) -> [MovieDetailFocusTarget] {
-        genreTargets(props: props)
-            + actionTargets
-            + supplementalTargets(props: props)
-            + [readMoreTarget(props: props)].compactMap { $0 }
-            + keywordTargets(props: props)
-            + castTargets(props: props)
-            + crewTargets(props: props)
+        focusGroups(props: props).flatMap { $0 }
     }
 
     private func preferredFocusTarget(props: Props) -> MovieDetailFocusTarget? {
         genreTargets(props: props).first ?? actionTargets.first
-    }
-
-    private func adjacentFocusTarget(in targets: [MovieDetailFocusTarget], offset: Int) -> MovieDetailFocusTarget? {
-        guard let focusedDetailItem,
-              let index = targets.firstIndex(of: focusedDetailItem) else {
-            return nil
-        }
-
-        let nextIndex = index + offset
-        guard targets.indices.contains(nextIndex) else {
-            return nil
-        }
-
-        return targets[nextIndex]
-    }
-
-    private func topFocusLeftTarget(props: Props) -> MovieDetailFocusTarget? {
-        let genres = genreTargets(props: props)
-        let supplemental = supplementalTargets(props: props)
-
-        return adjacentFocusTarget(in: genres, offset: -1) ??
-            adjacentFocusTarget(in: actionTargets, offset: -1) ??
-            adjacentFocusTarget(in: supplemental, offset: -1)
-    }
-
-    private func topFocusRightTarget(props: Props) -> MovieDetailFocusTarget? {
-        let genres = genreTargets(props: props)
-        let supplemental = supplementalTargets(props: props)
-
-        return adjacentFocusTarget(in: genres, offset: 1) ??
-            adjacentFocusTarget(in: actionTargets, offset: 1) ??
-            adjacentFocusTarget(in: supplemental, offset: 1)
-    }
-
-    private func topFocusUpTarget(props: Props) -> MovieDetailFocusTarget? {
-        guard let focusedDetailItem else {
-            return nil
-        }
-
-        if actionTargets.contains(focusedDetailItem),
-           let firstGenre = genreTargets(props: props).first {
-            return firstGenre
-        }
-
-        if supplementalTargets(props: props).contains(focusedDetailItem),
-           let firstAction = actionTargets.first {
-            return firstAction
-        }
-
-        return nil
-    }
-
-    private func topFocusDownTarget(props: Props) -> MovieDetailFocusTarget? {
-        guard let focusedDetailItem else {
-            return nil
-        }
-
-        if genreTargets(props: props).contains(focusedDetailItem),
-           let firstAction = actionTargets.first {
-            return firstAction
-        }
-
-        if actionTargets.contains(focusedDetailItem),
-           let firstSupplemental = supplementalTargets(props: props).first {
-            return firstSupplemental
-        }
-
-        return nil
     }
 
     private func restoreDetailFocus(props: Props, force: Bool = false) {
@@ -735,6 +715,12 @@ struct MovieDetail: ConnectedView {
             let forward = !press.modifiers.contains(.shift)
             return moveTabFocus(props: props, forward: forward)
         }
+        .onKeyPress(.leftArrow) {
+            return moveArrowFocus(props: props, forward: false)
+        }
+        .onKeyPress(.rightArrow) {
+            return moveArrowFocus(props: props, forward: true)
+        }
         #else
         List {
             Section {
@@ -748,22 +734,35 @@ struct MovieDetail: ConnectedView {
     }
 
     #if os(macOS)
+    /// Tab / Shift+Tab moves to the first target of the next / previous group,
+    /// so each Tab lands on a section heading rather than walking through
+    /// every item inside a row.
     private func moveTabFocus(props: Props, forward: Bool) -> KeyPress.Result {
-        let targets = availableTopTargets(props: props)
-        guard !targets.isEmpty else { return .ignored }
-
-        let offset = forward ? 1 : -1
-        if let current = focusedDetailItem,
-           let idx = targets.firstIndex(of: current) {
-            let nextIdx = idx + offset
-            if targets.indices.contains(nextIdx) {
-                focusedDetailItem = targets[nextIdx]
-                return .handled
-            }
-            return .ignored
+        let groups = focusGroups(props: props)
+        guard !groups.isEmpty else { return .ignored }
+        if let next = MovieDetailFocusNavigation.nextGroupStart(from: focusedDetailItem,
+                                                                in: groups,
+                                                                forward: forward) {
+            focusedDetailItem = next
+            return .handled
         }
-        focusedDetailItem = forward ? targets.first : targets.last
-        return .handled
+        return .ignored
+    }
+
+    /// Left / Right arrow moves within the currently focused group only.
+    /// If focus has reached the edge of the group or is on a single-item
+    /// group (e.g. Read more), the event is ignored so the system can
+    /// still scroll or handle it naturally.
+    private func moveArrowFocus(props: Props, forward: Bool) -> KeyPress.Result {
+        guard let current = focusedDetailItem else { return .ignored }
+        let groups = focusGroups(props: props)
+        if let next = MovieDetailFocusNavigation.adjacentInGroup(from: current,
+                                                                 in: groups,
+                                                                 forward: forward) {
+            focusedDetailItem = next
+            return .handled
+        }
+        return .ignored
     }
     #endif
 
