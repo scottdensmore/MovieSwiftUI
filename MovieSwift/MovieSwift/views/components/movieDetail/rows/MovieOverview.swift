@@ -52,6 +52,8 @@ struct MovieOverview : View {
             })
             #endif
         }
+        .padding(.leading)
+        .padding(.trailing)
     }
 }
 
