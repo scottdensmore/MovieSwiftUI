@@ -188,6 +188,40 @@ enum MovieDetailFocusTarget: Hashable {
     case backdrop(String)
 }
 
+#if os(macOS)
+/// Adds standard macOS keyboard shortcuts to pop a pushed NavigationStack
+/// destination: Cmd+[ (native "back" shortcut that matches Safari/Finder)
+/// and Escape.
+private struct MacBackKeyboardShortcut: ViewModifier {
+    @Environment(\.dismiss) private var dismiss
+
+    func body(content: Content) -> some View {
+        content
+            .onExitCommand { dismiss() }
+            .background {
+                Button(action: { dismiss() }) {
+                    EmptyView()
+                }
+                .keyboardShortcut("[", modifiers: .command)
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
+            }
+    }
+}
+
+extension View {
+    /// On macOS, enables Cmd+[ and Escape to pop the current pushed
+    /// NavigationStack destination. No-op on other platforms.
+    func macBackKeyboardShortcut() -> some View {
+        modifier(MacBackKeyboardShortcut())
+    }
+}
+#else
+extension View {
+    func macBackKeyboardShortcut() -> some View { self }
+}
+#endif
+
 private struct TrackedDetailRowModifier: ViewModifier {
     let id: String
     @Binding var visibleRowIds: Set<String>
@@ -1086,15 +1120,19 @@ struct MovieDetail: ConnectedView {
         }
         .navigationDestination(item: $selectedPeopleId) { id in
             PeopleDetail(peopleId: id)
+                .macBackKeyboardShortcut()
         }
         .navigationDestination(item: $selectedReviewMovieId) { id in
             MovieReviews(movie: id)
+                .macBackKeyboardShortcut()
         }
         .navigationDestination(item: $selectedGenre) { genre in
             MoviesGenreList(genre: genre)
+                .macBackKeyboardShortcut()
         }
         .navigationDestination(item: $selectedKeyword) { keyword in
             MovieKeywordList(keyword: keyword)
+                .macBackKeyboardShortcut()
         }
         .sheet(item: $crosslineMoviesPresentation) { presentation in
             NavigationStack {
@@ -1113,6 +1151,7 @@ struct MovieDetail: ConnectedView {
         }
         .navigationDestination(item: $selectedCrosslineRoute) { route in
             moviesListDestinationView(for: route)
+                .macBackKeyboardShortcut()
         }
         // Note: using .sheet instead of .navigationDestination here —
         // .navigationDestination(item:) with a custom struct type triggers
