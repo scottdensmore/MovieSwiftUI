@@ -736,7 +736,9 @@ struct MovieDetail: ConnectedView {
     #if os(macOS)
     /// Tab / Shift+Tab moves to the first target of the next / previous group,
     /// so each Tab lands on a section heading rather than walking through
-    /// every item inside a row.
+    /// every item inside a row. Always returns .handled so the system's
+    /// default Tab traversal can't walk into the focusable items inside a
+    /// group (e.g. individual crew members after the last heading).
     private func moveTabFocus(props: Props, forward: Bool) -> KeyPress.Result {
         let groups = focusGroups(props: props)
         guard !groups.isEmpty else { return .ignored }
@@ -744,9 +746,8 @@ struct MovieDetail: ConnectedView {
                                                                 in: groups,
                                                                 forward: forward) {
             focusedDetailItem = next
-            return .handled
         }
-        return .ignored
+        return .handled
     }
 
     /// Left / Right arrow moves within the currently focused group only.
