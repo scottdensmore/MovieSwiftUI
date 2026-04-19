@@ -20,8 +20,6 @@ public struct SearchField : View {
     var dismissButtonCallback: (() -> Void)?
     var focused: FocusState<Bool>.Binding?
     
-    private var searchCancellable: Cancellable? = nil
-    
     public init(searchTextWrapper: SearchTextObservable,
          placeholder: String,
          isSearching: Binding<Bool>,
@@ -34,10 +32,6 @@ public struct SearchField : View {
         self.dismissButtonTitle = dismissButtonTitle
         self.dismissButtonCallback = dismissButtonCallback
         self.focused = focused
-        
-        self.searchCancellable = searchTextWrapper.searchSubject.sink(receiveValue: { value in
-            isSearching.wrappedValue = !value.isEmpty
-        })
     }
     
     public var body: some View {
@@ -67,6 +61,9 @@ public struct SearchField : View {
                     .buttonStyle(.borderless)
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
+            }
+            .onChange(of: self.searchTextWrapper.searchText) { newValue in
+                self.isSearching = !newValue.isEmpty
             }
             .preference(key: OffsetTopPreferenceKey.self,
                         value: reader.frame(in: .global).minY)
@@ -121,3 +118,4 @@ public struct SearchField : View {
         #endif
     }
 }
+

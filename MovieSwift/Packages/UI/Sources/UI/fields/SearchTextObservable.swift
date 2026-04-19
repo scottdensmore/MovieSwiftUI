@@ -12,46 +12,42 @@ import Combine
 open class SearchTextObservable: ObservableObject {
     @Published public var searchText = "" {
         willSet {
-            DispatchQueue.main.async {
-                self.searchSubject.send(newValue)
-            }
+            // Forward raw changes immediately for anyone observing the subject
+            searchSubject.send(newValue)
         }
         didSet {
-            DispatchQueue.main.async {
-                self.onUpdateText(text: self.searchText)
-            }
+            onUpdateText(text: searchText)
         }
     }
-        
+
     public let searchSubject = PassthroughSubject<String, Never>()
-    
-    private var searchCancellable: Cancellable? {
-        didSet {
-            oldValue?.cancel()
-        }
-    }
-    
+
+    // Store all subscriptions here to ensure proper lifetime management
+    private var cancellables = Set<AnyCancellable>()
+
     deinit {
-        searchCancellable?.cancel()
+        // Not strictly necessary because AnyCancellable in the set cancels on deinit,
+        // but explicit for clarity
+        cancellables.forEach { $0.cancel() }
+        cancellables.removeAll()
     }
-    
+
     public init() {
-        searchCancellable = searchSubject.eraseToAnyPublisher()
-            .map {
-                $0
-        }
-        .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-        .removeDuplicates()
-        .filter { !$0.isEmpty }
-        .sink(receiveValue: { (searchText) in
-            self.onUpdateTextDebounced(text: searchText)
-        })
+        // Debounced, distinct, non-empty search text
+        searchSubject
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .filter { !$0.isEmpty }
+            .sink { [weak self] searchText in
+                self?.onUpdateTextDebounced(text: searchText)
+            }
+            .store(in: &cancellables)
     }
-    
+
     open func onUpdateText(text: String) {
         /// Overwrite by your subclass to get instant text update.
     }
-    
+
     open func onUpdateTextDebounced(text: String) {
         /// Overwrite by your subclass to get debounced text update.
     }
