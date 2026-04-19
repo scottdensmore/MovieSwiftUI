@@ -339,6 +339,7 @@ struct MovieDetail: ConnectedView {
     @State var isCreateListFormPresented = false
     @State var isAddedToListBadgePresented = false
     @State var selectedPoster: ImageData?
+    @State var selectedBackdrop: ImageData?
     @State private var selectedPeopleId: Int?
     @State private var selectedReviewMovieId: Int?
     @State private var selectedCrosslineRoute: MoviesListNavigationRoute?
@@ -875,7 +876,8 @@ struct MovieDetail: ConnectedView {
            let backdrops = movie.images?.backdrops {
             #if os(macOS)
             MovieBackdropsRow(backdrops: backdrops,
-                              focusedItem: $focusedDetailItem)
+                              focusedItem: $focusedDetailItem,
+                              selectedBackdrop: $selectedBackdrop)
                 .trackedDetailRow("row.backdrops", visibleRowIds: $visibleRowIds)
             #else
             MovieBackdropsRow(backdrops: backdrops)
@@ -1105,16 +1107,21 @@ struct MovieDetail: ConnectedView {
             .sheet(isPresented: $isCreateListFormPresented,
                    content: { CustomListForm(editingListId: nil)
                     .environmentObject(store) })
-            .disabled(selectedPoster != nil)
-            .blur(radius: selectedPoster != nil ? 30 : 0)
-            .scaleEffect(selectedPoster != nil ? 0.8 : 1)
-            
+            .disabled(selectedPoster != nil || selectedBackdrop != nil)
+            .blur(radius: (selectedPoster != nil || selectedBackdrop != nil) ? 30 : 0)
+            .scaleEffect((selectedPoster != nil || selectedBackdrop != nil) ? 0.8 : 1)
+
             NotificationBadge(text: "Added successfully",
                               color: .blue,
                               show: $isAddedToListBadgePresented).padding(.bottom, 10)
             if selectedPoster != nil {
                 ImagesCarouselView(posters: props.movie?.images?.posters ?? [],
                                        selectedPoster: $selectedPoster)
+                    .transition(.opacity)
+            }
+            if selectedBackdrop != nil {
+                ImagesCarouselView(posters: props.movie?.images?.backdrops ?? [],
+                                       selectedPoster: $selectedBackdrop)
                     .transition(.opacity)
             }
         }
@@ -1183,6 +1190,15 @@ struct MovieDetail: ConnectedView {
             if newValue == nil {
                 if let lastPosterPath = oldValue {
                     focusedDetailItem = .poster(lastPosterPath)
+                } else {
+                    restoreDetailFocus(props: props)
+                }
+            }
+        }
+        .onChange(of: selectedBackdrop?.id) { oldValue, newValue in
+            if newValue == nil {
+                if let lastBackdropPath = oldValue {
+                    focusedDetailItem = .backdrop(lastBackdropPath)
                 } else {
                     restoreDetailFocus(props: props)
                 }

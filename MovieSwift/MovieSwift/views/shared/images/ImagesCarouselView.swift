@@ -12,6 +12,37 @@ import Backend
 import AppKit
 #endif
 
+/// Renders a remote image at an arbitrary size without the fixed-aspect
+/// portrait framing BigMoviePosterImage bakes in. Used by the carousel
+/// so both posters (portrait) and backdrops (landscape) fill the size
+/// the carousel computes from each image's aspect ratio.
+struct CarouselImageView: View {
+    let path: String
+    let size: CGSize
+
+    @StateObject private var loader: ImageLoader
+
+    init(path: String, size: CGSize) {
+        self.path = path
+        self.size = size
+        self._loader = StateObject(wrappedValue: ImageLoaderCache.shared.loaderFor(path: path, size: .medium))
+    }
+
+    var body: some View {
+        Group {
+            if let data = loader.image {
+                DataImage(data: data, renderingMode: .original)
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                Rectangle().foregroundColor(.gray)
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: .black.opacity(0.5), radius: 12, x: 0, y: 8)
+    }
+}
+
 struct ImagesCarouselView : View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
@@ -47,9 +78,22 @@ struct ImagesCarouselView : View {
     @State private var scrollAccumulator: CGFloat = 0
     @State private var scrollMonitor: Any?
 
-    private let posterWidth: CGFloat = 260
     private let posterSpacing: CGFloat = 36
     private let scrollSensitivity: CGFloat = 60  // scroll wheel delta per item step
+
+    /// Width / height of the centered item, derived from the source
+    /// images' aspect ratio so posters (portrait) and backdrops
+    /// (landscape) both render correctly.
+    private func itemSize(in reader: GeometryProxy) -> CGSize {
+        let aspect = CGFloat(posters.first?.aspect_ratio ?? 0.666666)
+        let maxHeight = min(reader.size.height * 0.7, 420)
+        let maxWidth = reader.size.width * 0.55
+        let widthFromHeight = maxHeight * aspect
+        if widthFromHeight <= maxWidth {
+            return CGSize(width: widthFromHeight, height: maxHeight)
+        }
+        return CGSize(width: maxWidth, height: maxWidth / aspect)
+    }
 
     private func goTo(_ index: Int) {
         let clamped = max(0, min(index, posters.count - 1))
@@ -65,23 +109,19 @@ struct ImagesCarouselView : View {
         }
     }
 
-    private func poster3DView(poster: ImageData, index: Int, carouselHeight: CGFloat) -> some View {
+    private func poster3DView(poster: ImageData, index: Int, size: CGSize) -> some View {
         let rawOffset = CGFloat(index - currentIndex)
-        let dragItems = dragOffset / (posterWidth + posterSpacing)
+        let dragItems = dragOffset / (size.width + posterSpacing)
         let offset = rawOffset - dragItems
         let absOffset = abs(offset)
 
-        let xTranslation = offset * (posterWidth * 0.55 + posterSpacing)
+        let xTranslation = offset * (size.width * 0.55 + posterSpacing)
         let scale: CGFloat = max(0.65, 1.0 - absOffset * 0.15)
         let rotationY: Double = Double(offset) * -35
         let opacity: Double = max(0.25, 1.0 - Double(absOffset) * 0.3)
         let zIndex: Double = 100 - Double(absOffset)
 
-        let loader = ImageLoaderCache.shared.loaderFor(path: poster.file_path, size: .medium)
-        return BigMoviePosterImage(imageLoader: loader)
-            .frame(width: posterWidth, height: carouselHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .shadow(color: .black.opacity(0.5), radius: 12, x: 0, y: 8)
+        return CarouselImageView(path: poster.file_path, size: size)
             .scaleEffect(scale)
             .rotation3DEffect(
                 .degrees(rotationY),
@@ -138,14 +178,14 @@ struct ImagesCarouselView : View {
     }
 
     private func macCarousel(reader: GeometryProxy) -> some View {
-        let carouselHeight = min(reader.size.height * 0.7, 420)
+        let size = itemSize(in: reader)
 
         return ZStack {
             ForEach(Array(posters.enumerated()), id: \.element.id) { index, poster in
-                poster3DView(poster: poster, index: index, carouselHeight: carouselHeight)
+                poster3DView(poster: poster, index: index, size: size)
             }
         }
-        .frame(width: reader.size.width, height: carouselHeight + 40)
+        .frame(width: reader.size.width, height: size.height + 40)
         .contentShape(Rectangle())
         .gesture(
             DragGesture()
@@ -153,9 +193,9 @@ struct ImagesCarouselView : View {
                     dragOffset = value.translation.width
                 }
                 .onEnded { value in
-                    let itemWidth = posterWidth + posterSpacing
+                    let stride = size.width + posterSpacing
                     let predicted = value.predictedEndTranslation.width
-                    let change = -Int((predicted / itemWidth).rounded())
+                    let change = -Int((predicted / stride).rounded())
                     let target = max(0, min(currentIndex + change, posters.count - 1))
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                         dragOffset = 0

@@ -31,6 +31,7 @@ struct MovieBackdropsRow : View {
     let backdrops: [ImageData]
     #if os(macOS)
     let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    @Binding var selectedBackdrop: ImageData?
     #endif
 
     private var presentations: [MovieBackdropPresentation] {
@@ -48,8 +49,9 @@ struct MovieBackdropsRow : View {
                     HStack(spacing: 16) {
                         ForEach(Array(presentations.enumerated()), id: \.offset) { index, backdrop in
                             MacFocusableLink(id: .backdrop(backdrop.path), focusedId: focusedItem) {
-                                // Backdrops aren't actionable; Return is a no-op but
-                                // keeps the focus target discoverable via keyboard.
+                                withAnimation {
+                                    selectedBackdrop = backdrop.image
+                                }
                             } label: {
                                 MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(
                                     path: backdrop.path,
@@ -94,7 +96,8 @@ struct MovieBackdropsRow : View {
                                                    file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                                    height: 1200,
                                                    width: 1800)],
-                             focusedItem: $item)
+                             focusedItem: $item,
+                             selectedBackdrop: .constant(nil))
 }
 #else
 #Preview {
