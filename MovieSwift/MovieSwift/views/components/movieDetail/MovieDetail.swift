@@ -854,7 +854,11 @@ struct MovieDetail: ConnectedView {
         #if os(macOS)
         ScrollViewReader { scrollProxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
+                // Non-lazy so every row's .id() is registered with the
+                // ScrollViewReader from the start — LazyVStack would
+                // hold back posters / backdrops until they scroll into
+                // view, and scrollTo(id) can't target an unbuilt view.
+                VStack(alignment: .leading, spacing: 0) {
                     topContent(props: props)
                     bottomContent(props: props)
                 }
