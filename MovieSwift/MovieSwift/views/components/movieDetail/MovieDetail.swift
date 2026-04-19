@@ -188,6 +188,33 @@ enum MovieDetailFocusTarget: Hashable {
     case backdrop(String)
 }
 
+private struct TrackedDetailRowModifier: ViewModifier {
+    let id: String
+    @Binding var visibleRowIds: Set<String>
+
+    func body(content: Content) -> some View {
+        content
+            .id(id)
+            .onScrollVisibilityChange(threshold: 0.5) { visible in
+                if visible {
+                    visibleRowIds.insert(id)
+                } else {
+                    visibleRowIds.remove(id)
+                }
+            }
+    }
+}
+
+extension View {
+    /// Tags a detail-view row with a stable scroll-anchor id and tracks
+    /// whether it's at least 50% on-screen, feeding visibility into
+    /// `visibleRowIds` so Tab navigation can skip scrolling when the
+    /// focused row is already visible.
+    func trackedDetailRow(_ id: String, visibleRowIds: Binding<Set<String>>) -> some View {
+        modifier(TrackedDetailRowModifier(id: id, visibleRowIds: visibleRowIds))
+    }
+}
+
 /// Maps a focus target to the scroll-anchor id of the row it lives in.
 /// Used by the outer ScrollViewReader to scroll the focused row into
 /// view when Tab / Shift+Tab jumps to an off-screen section.
@@ -317,6 +344,7 @@ struct MovieDetail: ConnectedView {
     #if os(macOS)
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedDetailItem: MovieDetailFocusTarget?
+    @State private var visibleRowIds: Set<String> = []
     #endif
         
     // MARK: Computed Props
@@ -633,11 +661,11 @@ struct MovieDetail: ConnectedView {
         MovieCoverRow(movieId: movieId, focusedItem: $focusedDetailItem) { genre in
             selectedGenre = genre
         }
-        .id("row.cover")
+        .trackedDetailRow("row.cover", visibleRowIds: $visibleRowIds)
         MovieButtonsRow(movieId: movieId,
                         showCustomListSheet: $isAddSheetPresented,
                         focusedItem: $focusedDetailItem)
-        .id("row.buttons")
+        .trackedDetailRow("row.buttons", visibleRowIds: $visibleRowIds)
         #else
         MovieCoverRow(movieId: movieId)
         MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
@@ -655,7 +683,7 @@ struct MovieDetail: ConnectedView {
                     .padding(.trailing, 10)
                     .padding(.vertical, 8)
             }
-            .id("row.review")
+            .trackedDetailRow("row.review", visibleRowIds: $visibleRowIds)
             #else
             Button(action: {
                 selectedReviewMovieId = movieId
@@ -672,7 +700,7 @@ struct MovieDetail: ConnectedView {
         }
         if props.credits?.isEmpty == false {
             #if os(macOS)
-            peopleRows(props: props).id("row.director")
+            peopleRows(props: props).trackedDetailRow("row.director", visibleRowIds: $visibleRowIds)
             #else
             peopleRows(props: props)
             #endif
@@ -680,7 +708,7 @@ struct MovieDetail: ConnectedView {
         if let movie = props.movie, !movie.overview.isEmpty {
             #if os(macOS)
             MovieOverview(movie: movie, focusedItem: $focusedDetailItem)
-                .id("row.overview")
+                .trackedDetailRow("row.overview", visibleRowIds: $visibleRowIds)
             #else
             MovieOverview(movie: movie)
             #endif
@@ -698,7 +726,7 @@ struct MovieDetail: ConnectedView {
                               selectedKeyword = keyword
                           },
                           focusedItem: $focusedDetailItem)
-                .id("row.keywords")
+                .trackedDetailRow("row.keywords", visibleRowIds: $visibleRowIds)
             #else
             MovieKeywords(keywords: keywords)
             #endif
@@ -715,7 +743,7 @@ struct MovieDetail: ConnectedView {
                                     focusedItem: $focusedDetailItem,
                                     personFocusTarget: { .castPerson($0) },
                                     seeAllFocusTarget: .castSeeAll)
-                .id("row.cast")
+                .trackedDetailRow("row.cast", visibleRowIds: $visibleRowIds)
             #else
             MovieCrosslinePeopleRow(title: "Cast",
                                     peoples: props.characters ?? [],
@@ -738,7 +766,7 @@ struct MovieDetail: ConnectedView {
                                     focusedItem: $focusedDetailItem,
                                     personFocusTarget: { .crewPerson($0) },
                                     seeAllFocusTarget: .crewSeeAll)
-                .id("row.crew")
+                .trackedDetailRow("row.crew", visibleRowIds: $visibleRowIds)
             #else
             MovieCrosslinePeopleRow(title: "Crew",
                                     peoples: props.credits ?? [],
@@ -761,7 +789,7 @@ struct MovieDetail: ConnectedView {
                               focusedItem: $focusedDetailItem,
                               movieFocusTarget: { .similarMovie($0) },
                               seeAllFocusTarget: .similarSeeAll)
-                .id("row.similar")
+                .trackedDetailRow("row.similar", visibleRowIds: $visibleRowIds)
             #else
             MovieCrosslineRow(title: "Similar Movies",
                               movies: props.similar ?? [],
@@ -784,7 +812,7 @@ struct MovieDetail: ConnectedView {
                               focusedItem: $focusedDetailItem,
                               movieFocusTarget: { .recommendedMovie($0) },
                               seeAllFocusTarget: .recommendedSeeAll)
-                .id("row.recommended")
+                .trackedDetailRow("row.recommended", visibleRowIds: $visibleRowIds)
             #else
             MovieCrosslineRow(title: "Recommended Movies",
                               movies: props.recommended ?? [],
@@ -802,7 +830,7 @@ struct MovieDetail: ConnectedView {
             MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                             selectedPoster: $selectedPoster,
                             focusedItem: $focusedDetailItem)
-                .id("row.posters")
+                .trackedDetailRow("row.posters", visibleRowIds: $visibleRowIds)
             #else
             MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                             selectedPoster: $selectedPoster)
@@ -814,7 +842,7 @@ struct MovieDetail: ConnectedView {
             #if os(macOS)
             MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 },
                               focusedItem: $focusedDetailItem)
-                .id("row.backdrops")
+                .trackedDetailRow("row.backdrops", visibleRowIds: $visibleRowIds)
             #else
             MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
             #endif
@@ -835,9 +863,13 @@ struct MovieDetail: ConnectedView {
             }
             .onChange(of: focusedDetailItem) { _, newValue in
                 guard let newValue else { return }
+                let rowId = MovieDetailFocusRow.scrollId(for: newValue)
+                // Only scroll if the row isn't already on-screen — otherwise
+                // every Tab would snap the focused row to the top edge even
+                // when the user could already see it.
+                guard !visibleRowIds.contains(rowId) else { return }
                 withAnimation {
-                    scrollProxy.scrollTo(MovieDetailFocusRow.scrollId(for: newValue),
-                                         anchor: .top)
+                    scrollProxy.scrollTo(rowId, anchor: .top)
                 }
             }
         }
