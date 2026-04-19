@@ -429,4 +429,35 @@ final class MovieDetailStateTests: XCTestCase {
             forward: false)
         XCTAssertEqual(target, .castPerson(501))
     }
+
+    // MARK: - MovieDetailFocusRow scroll anchors
+
+    func testRowScrollIdMapsEveryTargetCaseToItsSection() {
+        let assertions: [(MovieDetailFocusTarget, String)] = [
+            (.genre(1), "row.cover"),
+            (.wishlistButton, "row.buttons"),
+            (.seenlistButton, "row.buttons"),
+            (.customListButton, "row.buttons"),
+            (.reviewLink, "row.review"),
+            (.topPerson(10), "row.director"),
+            (.readMoreButton, "row.overview"),
+            (.keyword(42), "row.keywords"),
+            (.castPerson(100), "row.cast"),
+            (.castSeeAll, "row.cast"),
+            (.crewPerson(200), "row.crew"),
+            (.crewSeeAll, "row.crew"),
+            (.similarMovie(300), "row.similar"),
+            (.similarSeeAll, "row.similar"),
+            (.recommendedMovie(400), "row.recommended"),
+            (.recommendedSeeAll, "row.recommended"),
+            (.poster("/a.jpg"), "row.posters"),
+            (.backdrop("/b.jpg"), "row.backdrops")
+        ]
+
+        for (target, expected) in assertions {
+            XCTAssertEqual(MovieDetailFocusRow.scrollId(for: target),
+                           expected,
+                           "Unexpected scroll id for \(target)")
+        }
+    }
 }

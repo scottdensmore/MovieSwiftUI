@@ -188,6 +188,30 @@ enum MovieDetailFocusTarget: Hashable {
     case backdrop(String)
 }
 
+/// Maps a focus target to the scroll-anchor id of the row it lives in.
+/// Used by the outer ScrollViewReader to scroll the focused row into
+/// view when Tab / Shift+Tab jumps to an off-screen section.
+enum MovieDetailFocusRow {
+    static func scrollId(for target: MovieDetailFocusTarget) -> String {
+        switch target {
+        case .genre:                                return "row.cover"
+        case .wishlistButton,
+             .seenlistButton,
+             .customListButton:                     return "row.buttons"
+        case .reviewLink:                           return "row.review"
+        case .topPerson:                            return "row.director"
+        case .readMoreButton:                       return "row.overview"
+        case .keyword:                              return "row.keywords"
+        case .castPerson, .castSeeAll:              return "row.cast"
+        case .crewPerson, .crewSeeAll:              return "row.crew"
+        case .similarMovie, .similarSeeAll:         return "row.similar"
+        case .recommendedMovie, .recommendedSeeAll: return "row.recommended"
+        case .poster:                               return "row.posters"
+        case .backdrop:                             return "row.backdrops"
+        }
+    }
+}
+
 /// Pure navigation decisions for the detail view's Tab / arrow focus.
 /// Groups are passed in so tests can exercise the logic without a view.
 enum MovieDetailFocusNavigation {
@@ -473,6 +497,7 @@ struct MovieDetail: ConnectedView {
         return backdrops.prefix(8).map { .backdrop($0.file_path) }
     }
 
+
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -608,9 +633,11 @@ struct MovieDetail: ConnectedView {
         MovieCoverRow(movieId: movieId, focusedItem: $focusedDetailItem) { genre in
             selectedGenre = genre
         }
+        .id("row.cover")
         MovieButtonsRow(movieId: movieId,
                         showCustomListSheet: $isAddSheetPresented,
                         focusedItem: $focusedDetailItem)
+        .id("row.buttons")
         #else
         MovieCoverRow(movieId: movieId)
         MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
@@ -628,6 +655,7 @@ struct MovieDetail: ConnectedView {
                     .padding(.trailing, 10)
                     .padding(.vertical, 8)
             }
+            .id("row.review")
             #else
             Button(action: {
                 selectedReviewMovieId = movieId
@@ -643,11 +671,16 @@ struct MovieDetail: ConnectedView {
             #endif
         }
         if props.credits?.isEmpty == false {
+            #if os(macOS)
+            peopleRows(props: props).id("row.director")
+            #else
             peopleRows(props: props)
+            #endif
         }
         if let movie = props.movie, !movie.overview.isEmpty {
             #if os(macOS)
             MovieOverview(movie: movie, focusedItem: $focusedDetailItem)
+                .id("row.overview")
             #else
             MovieOverview(movie: movie)
             #endif
@@ -665,6 +698,7 @@ struct MovieDetail: ConnectedView {
                               selectedKeyword = keyword
                           },
                           focusedItem: $focusedDetailItem)
+                .id("row.keywords")
             #else
             MovieKeywords(keywords: keywords)
             #endif
@@ -681,6 +715,7 @@ struct MovieDetail: ConnectedView {
                                     focusedItem: $focusedDetailItem,
                                     personFocusTarget: { .castPerson($0) },
                                     seeAllFocusTarget: .castSeeAll)
+                .id("row.cast")
             #else
             MovieCrosslinePeopleRow(title: "Cast",
                                     peoples: props.characters ?? [],
@@ -703,6 +738,7 @@ struct MovieDetail: ConnectedView {
                                     focusedItem: $focusedDetailItem,
                                     personFocusTarget: { .crewPerson($0) },
                                     seeAllFocusTarget: .crewSeeAll)
+                .id("row.crew")
             #else
             MovieCrosslinePeopleRow(title: "Crew",
                                     peoples: props.credits ?? [],
@@ -725,6 +761,7 @@ struct MovieDetail: ConnectedView {
                               focusedItem: $focusedDetailItem,
                               movieFocusTarget: { .similarMovie($0) },
                               seeAllFocusTarget: .similarSeeAll)
+                .id("row.similar")
             #else
             MovieCrosslineRow(title: "Similar Movies",
                               movies: props.similar ?? [],
@@ -747,6 +784,7 @@ struct MovieDetail: ConnectedView {
                               focusedItem: $focusedDetailItem,
                               movieFocusTarget: { .recommendedMovie($0) },
                               seeAllFocusTarget: .recommendedSeeAll)
+                .id("row.recommended")
             #else
             MovieCrosslineRow(title: "Recommended Movies",
                               movies: props.recommended ?? [],
@@ -764,6 +802,7 @@ struct MovieDetail: ConnectedView {
             MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                             selectedPoster: $selectedPoster,
                             focusedItem: $focusedDetailItem)
+                .id("row.posters")
             #else
             MoviePostersRow(posters: posters.prefix(8).map{ $0 },
                             selectedPoster: $selectedPoster)
@@ -775,6 +814,7 @@ struct MovieDetail: ConnectedView {
             #if os(macOS)
             MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 },
                               focusedItem: $focusedDetailItem)
+                .id("row.backdrops")
             #else
             MovieBackdropsRow(backdrops: backdrops.prefix(8).map{ $0 })
             #endif
@@ -784,13 +824,22 @@ struct MovieDetail: ConnectedView {
     @ViewBuilder
     func detailContent(props: Props) -> some View {
         #if os(macOS)
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                topContent(props: props)
-                bottomContent(props: props)
+        ScrollViewReader { scrollProxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    topContent(props: props)
+                    bottomContent(props: props)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 24)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, 24)
+            .onChange(of: focusedDetailItem) { _, newValue in
+                guard let newValue else { return }
+                withAnimation {
+                    scrollProxy.scrollTo(MovieDetailFocusRow.scrollId(for: newValue),
+                                         anchor: .top)
+                }
+            }
         }
         .onKeyPress(.tab, phases: .down) { press in
             let forward = !press.modifiers.contains(.shift)
