@@ -99,7 +99,8 @@ struct FanClubHome: ConnectedView {
     @State private var lastTriggeredPopularId: Int?
     #if os(macOS)
     @State private var selectedPeopleId: Int?
-    @FocusState private var focusedPeopleId: Int?
+    @State private var highlightedPeopleId: Int?
+    @FocusState private var isFanClubFocused: Bool
     #endif
     
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
@@ -114,16 +115,21 @@ struct FanClubHome: ConnectedView {
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
         #if os(macOS)
-        MacFocusableLink(id: people, focusedId: $focusedPeopleId) {
-            selectedPeopleId = people
-        } label: {
-            PeopleRow(peopleId: people)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .accessibilityIdentifier("fanClub.person.\(people)")
+        PeopleRow(peopleId: people)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .macFocusHighlight(isFocused: highlightedPeopleId == people)
+            .id(people)
+            .accessibilityIdentifier("fanClub.person.\(people)")
+            .onTapGesture {
+                highlightedPeopleId = people
+                isFanClubFocused = true
+            }
+            .onTapGesture(count: 2) {
+                selectedPeopleId = people
+            }
         #else
         NavigationLink(destination: PeopleDetail(peopleId: people).id(people)) {
             PeopleRow(peopleId: people)
@@ -137,6 +143,97 @@ struct FanClubHome: ConnectedView {
     }
     
     private func listView(props: Props) -> some View {
+        #if os(macOS)
+        let allPeople = props.peoples + props.popular
+        return ScrollViewReader { scrollProxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    if !props.peoples.isEmpty {
+                        ForEach(props.peoples, id: \.self) { people in
+                            peopleNavigationLink(people: people)
+                        }
+                        Divider().padding(.vertical, 8)
+                    }
+                    Text("Popular people to add to your Fan Club")
+                        .titleStyle()
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+                        .padding(.bottom, 6)
+                    ForEach(props.popular, id: \.self) { people in
+                        peopleNavigationLink(people: people)
+                    }
+                    if let lastPopularId = props.popular.last {
+                        Rectangle()
+                            .foregroundColor(.clear)
+                            .frame(height: 1)
+                            .onAppear {
+                                fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+                            }
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+            .focusable()
+            .focused($isFanClubFocused)
+            .focusEffectDisabled()
+            .onKeyPress(.downArrow) {
+                guard !allPeople.isEmpty else { return .ignored }
+                if let current = highlightedPeopleId,
+                   let idx = allPeople.firstIndex(of: current),
+                   idx + 1 < allPeople.count {
+                    let next = allPeople[idx + 1]
+                    highlightedPeopleId = next
+                    withAnimation { scrollProxy.scrollTo(next, anchor: .center) }
+                } else {
+                    highlightedPeopleId = allPeople.first
+                    if let first = allPeople.first {
+                        withAnimation { scrollProxy.scrollTo(first, anchor: .center) }
+                    }
+                }
+                return .handled
+            }
+            .onKeyPress(.upArrow) {
+                guard !allPeople.isEmpty else { return .ignored }
+                if let current = highlightedPeopleId,
+                   let idx = allPeople.firstIndex(of: current),
+                   idx > 0 {
+                    let prev = allPeople[idx - 1]
+                    highlightedPeopleId = prev
+                    withAnimation { scrollProxy.scrollTo(prev, anchor: .center) }
+                }
+                return .handled
+            }
+            .onKeyPress(.return) {
+                if let id = highlightedPeopleId {
+                    selectedPeopleId = id
+                    return .handled
+                }
+                return .ignored
+            }
+            .onKeyPress(characters: .init(charactersIn: " ")) { _ in
+                if let id = highlightedPeopleId {
+                    selectedPeopleId = id
+                    return .handled
+                }
+                return .ignored
+            }
+            .onAppear {
+                if highlightedPeopleId == nil {
+                    highlightedPeopleId = allPeople.first
+                }
+            }
+            .onChange(of: allPeople) { _, newList in
+                if highlightedPeopleId == nil {
+                    highlightedPeopleId = newList.first
+                }
+            }
+        }
+        .animation(.spring(), value: props.peoples.count + props.popular.count)
+        .navigationDestination(item: $selectedPeopleId) { id in
+            PeopleDetail(peopleId: id)
+                .macBackKeyboardShortcut()
+        }
+        #else
         List {
             Section {
                 ForEach(props.peoples, id: \.self) { people in
@@ -145,13 +242,13 @@ struct FanClubHome: ConnectedView {
                     props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
                 })
             }
-        
+
             Section(header: Text("Popular people to add to your Fan Club")) {
                 ForEach(props.popular, id: \.self) { people in
                     peopleNavigationLink(people: people)
                 }
             }
-            
+
             if let lastPopularId = props.popular.last {
                 Rectangle()
                     .foregroundColor(.clear)
@@ -161,10 +258,6 @@ struct FanClubHome: ConnectedView {
             }
         }
         .animation(.spring(), value: props.peoples.count + props.popular.count)
-        #if os(macOS)
-        .navigationDestination(item: $selectedPeopleId) { id in
-            PeopleDetail(peopleId: id)
-        }
         #endif
     }
 
