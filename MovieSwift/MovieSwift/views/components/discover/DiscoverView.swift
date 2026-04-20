@@ -431,7 +431,11 @@ struct DiscoverView: ConnectedView {
         #endif
     }
     
+    @ViewBuilder
     func body(props: Props) -> some View {
+        #if os(macOS)
+        macOSBody(props: props)
+        #else
         ZStack(alignment: .center) {
             draggableMovies(props: props)
             GeometryReader { reader in
@@ -454,13 +458,204 @@ struct DiscoverView: ConnectedView {
             .transition(.opacity)
             .animation(.easeInOut, value: props.currentMovie?.poster_path))
         .onAppear {
-            #if os(iOS)
             self.hapticFeedback.prepare()
-            #endif
             self.fetchRandomMovies(props: props, force: false, filter: props.filter)
             props.dispatch(MoviesActions.FetchGenres())
         }
+        #endif
     }
+
+    #if os(macOS)
+    private func macOSBody(props: Props) -> some View {
+        ZStack {
+            // Blurred poster backdrop
+            FullscreenMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(
+                path: props.currentMovie?.poster_path,
+                size: .original))
+                .allowsHitTesting(false)
+                .transition(.opacity)
+                .animation(.easeInOut, value: props.currentMovie?.poster_path)
+                .overlay(Color.black.opacity(0.55))
+
+            if let movie = props.currentMovie {
+                VStack(spacing: 22) {
+                    HStack {
+                        filterView(props: props)
+                            .sheet(isPresented: $isFilterFormPresented) {
+                                DiscoverFilterForm().environmentObject(store)
+                            }
+                        Spacer()
+                        resetButton(props: props)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                    Spacer(minLength: 0)
+
+                    cardDeck(props: props)
+                        .frame(maxWidth: 340, maxHeight: 500)
+
+                    VStack(spacing: 6) {
+                        Text(movie.userTitle)
+                            .font(.FjallaOne(size: 28))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .accessibilityIdentifier("discover.currentMovieTitle")
+                        if !movie.overview.isEmpty {
+                            Text(movie.overview)
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(3)
+                                .padding(.horizontal, 40)
+                        }
+                    }
+
+                    discoverActionsRow(props: props, movie: movie)
+                        .padding(.bottom, 40)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .popover(item: $presentedMovie,
+                         attachmentAnchor: .rect(.bounds),
+                         arrowEdge: .bottom) { movie in
+                    NavigationStack {
+                        MovieDetail(movieId: movie.id)
+                    }
+                    .environmentObject(store)
+                    .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
+                           minHeight: 760, idealHeight: 860, maxHeight: 980)
+                }
+            } else {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("Loading random movies…")
+                        .foregroundColor(.white.opacity(0.9))
+                }
+            }
+        }
+        .onAppear {
+            fetchRandomMovies(props: props, force: false, filter: props.filter)
+            props.dispatch(MoviesActions.FetchGenres())
+        }
+    }
+
+    /// A ZStack deck of the top-of-queue movies so Discover visually
+    /// reads as a stack of cards the user is flipping through.
+    private func cardDeck(props: Props) -> some View {
+        let queue = Array(props.movies.reversed().prefix(4))
+        return ZStack {
+            ForEach(Array(queue.enumerated()).reversed(), id: \.element) { index, movieId in
+                let depth = CGFloat(index)
+                Button {
+                    if index == 0, let movie = props.currentMovie {
+                        presentedMovie = movie
+                    }
+                } label: {
+                    DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(
+                        path: props.posters[movieId],
+                        size: .medium))
+                }
+                .buttonStyle(.plain)
+                .disabled(index != 0)
+                .accessibilityHidden(index != 0)
+                .scaleEffect(1.0 - depth * 0.04)
+                .offset(y: depth * 6)
+                .shadow(color: .black.opacity(0.5 - Double(depth) * 0.1),
+                        radius: 14 - depth * 3,
+                        y: 10 - depth * 2)
+                .zIndex(Double(queue.count - index))
+                .animation(.spring(response: 0.4, dampingFraction: 0.85),
+                           value: props.currentMovie?.id)
+            }
+        }
+    }
+
+    private func discoverActionsRow(props: Props, movie: Movie) -> some View {
+        HStack(spacing: 18) {
+            discoverKeyButton(systemImage: "heart.fill",
+                              tint: .pink,
+                              title: "Wishlist",
+                              hint: "←",
+                              shortcut: .leftArrow,
+                              accessibilityIdentifier: "discover.wishlistButton") {
+                performDiscoverAction(decision: .wishlist, props: props)
+            }
+            discoverKeyButton(systemImage: "info.circle.fill",
+                              tint: .steam_blue,
+                              title: "Info",
+                              hint: "↩",
+                              shortcut: .return,
+                              accessibilityIdentifier: "discover.infoButton") {
+                presentedMovie = movie
+            }
+            discoverKeyButton(systemImage: "xmark",
+                              tint: .gray,
+                              title: "Skip",
+                              hint: "esc",
+                              shortcut: .escape,
+                              accessibilityIdentifier: "discover.dismissButton") {
+                previousMovie = movie.id
+                props.dispatch(MoviesActions.PopRandromDiscover())
+                fetchRandomMovies(props: props, force: false, filter: props.filter)
+            }
+            discoverKeyButton(systemImage: "eye.fill",
+                              tint: .green,
+                              title: "Seenlist",
+                              hint: "→",
+                              shortcut: .rightArrow,
+                              accessibilityIdentifier: "discover.seenlistButton") {
+                performDiscoverAction(decision: .seenlist, props: props)
+            }
+        }
+    }
+
+    private func resetButton(props: Props) -> some View {
+        Button {
+            props.dispatch(MoviesActions.ResetRandomDiscover())
+            fetchRandomMovies(props: props, force: true, filter: nil)
+        } label: {
+            Label("Reset", systemImage: "arrow.swap")
+                .foregroundColor(.steam_blue)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("discover.resetButton")
+        .accessibilityLabel("Reset discover")
+    }
+
+    private func discoverKeyButton(systemImage: String,
+                                   tint: Color,
+                                   title: String,
+                                   hint: String,
+                                   shortcut: KeyEquivalent,
+                                   accessibilityIdentifier: String,
+                                   action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .strokeBorder(tint, lineWidth: 1.5)
+                        .background(Circle().fill(Color.black.opacity(0.35)))
+                        .frame(width: 58, height: 58)
+                    Image(systemName: systemImage)
+                        .font(.title2)
+                        .foregroundColor(tint)
+                }
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white.opacity(0.95))
+                Text(hint)
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.55))
+            }
+        }
+        .buttonStyle(.plain)
+        .keyboardShortcut(shortcut, modifiers: [])
+        .accessibilityIdentifier(accessibilityIdentifier)
+        .accessibilityLabel(title)
+    }
+    #endif
 }
 
 #Preview {
