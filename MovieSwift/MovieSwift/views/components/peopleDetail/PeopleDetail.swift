@@ -305,7 +305,17 @@ struct PeopleDetail: ConnectedView {
             MovieDetail(movieId: id)
         }
         #if os(macOS)
-        .onKeyPress(.escape) { dismiss(); return .handled }
+        .onKeyPress(.escape) {
+            // When the image carousel overlay is up, let it handle
+            // Escape (it clears selectedPoster to dismiss itself).
+            // Only pop PeopleDetail once no overlay is showing.
+            if selectedPoster != nil {
+                selectedPoster = nil
+                return .handled
+            }
+            dismiss()
+            return .handled
+        }
         #endif
         .toolbar {
             ToolbarItem(placement: .automatic) {
