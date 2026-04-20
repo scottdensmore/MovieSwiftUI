@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftUIFlux
+import UI
 
 enum FanClubState {
     static func fanClubPeople(from state: AppState) -> [Int] {
@@ -90,26 +91,40 @@ struct FanClubHome: ConnectedView {
         let popularLoading: Bool
         let popularInitialLoadCompleted: Bool
         let popularLoadFailed: Bool
+        let searchResults: [Int]?
         let dispatch: DispatchFunction
     }
-    
+
     var embedInNavigationStack = true
     var showNavigationTitle = true
     @State private var nextPopularPage = 1
     @State private var lastTriggeredPopularId: Int?
+    @State private var searchTextWrapper = MoviesSearchTextWrapper()
+    @State private var isSearching = false
+    @FocusState private var isSearchFieldFocused: Bool
     #if os(macOS)
     @State private var selectedPeopleId: Int?
     @State private var highlightedPeopleId: Int?
     @FocusState private var isFanClubFocused: Bool
     #endif
-    
+
     func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
-        Props(peoples: FanClubState.fanClubPeople(from: state),
-              popular: FanClubState.popularPeople(from: state),
-              popularLoading: state.peoplesState.popularLoading,
-              popularInitialLoadCompleted: state.peoplesState.popularInitialLoadCompleted,
-              popularLoadFailed: state.peoplesState.popularLoadFailed,
-              dispatch: dispatch)
+        searchTextWrapper.bindDispatchSearches { text, page in
+            dispatch(PeopleActions.FetchSearch(query: text, page: page))
+        }
+
+        let query = searchTextWrapper.searchText
+        let searchResults: [Int]? = (isSearching && !query.isEmpty)
+            ? state.peoplesState.search[query]
+            : nil
+
+        return Props(peoples: FanClubState.fanClubPeople(from: state),
+                     popular: FanClubState.popularPeople(from: state),
+                     popularLoading: state.peoplesState.popularLoading,
+                     popularInitialLoadCompleted: state.peoplesState.popularInitialLoadCompleted,
+                     popularLoadFailed: state.peoplesState.popularLoadFailed,
+                     searchResults: searchResults,
+                     dispatch: dispatch)
     }
     
     @ViewBuilder
@@ -142,33 +157,66 @@ struct FanClubHome: ConnectedView {
         #endif
     }
     
+    private var searchField: some View {
+        SearchField(searchTextWrapper: searchTextWrapper,
+                    placeholder: "Search actors",
+                    isSearching: $isSearching,
+                    focused: $isSearchFieldFocused)
+    }
+
     private func listView(props: Props) -> some View {
         #if os(macOS)
-        let allPeople = props.peoples + props.popular
+        let isActivelySearching = isSearching && !searchTextWrapper.searchText.isEmpty
+        let allPeople: [Int] = isActivelySearching
+            ? (props.searchResults ?? [])
+            : (props.peoples + props.popular)
+
         return ScrollViewReader { scrollProxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    if !props.peoples.isEmpty {
-                        ForEach(props.peoples, id: \.self) { people in
+                    searchField
+                        .padding(.horizontal, 12)
+                        .padding(.top, 8)
+                        .padding(.bottom, 8)
+
+                    if isActivelySearching {
+                        if props.searchResults == nil {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                        } else if (props.searchResults ?? []).isEmpty {
+                            Text("No actors found for \"\(searchTextWrapper.searchText)\"")
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 40)
+                        } else {
+                            ForEach(props.searchResults ?? [], id: \.self) { people in
+                                peopleNavigationLink(people: people)
+                            }
+                        }
+                    } else {
+                        if !props.peoples.isEmpty {
+                            ForEach(props.peoples, id: \.self) { people in
+                                peopleNavigationLink(people: people)
+                            }
+                            Divider().padding(.vertical, 8)
+                        }
+                        Text("Popular people to add to your Fan Club")
+                            .titleStyle()
+                            .padding(.horizontal)
+                            .padding(.top, 4)
+                            .padding(.bottom, 6)
+                        ForEach(props.popular, id: \.self) { people in
                             peopleNavigationLink(people: people)
                         }
-                        Divider().padding(.vertical, 8)
-                    }
-                    Text("Popular people to add to your Fan Club")
-                        .titleStyle()
-                        .padding(.horizontal)
-                        .padding(.top, 4)
-                        .padding(.bottom, 6)
-                    ForEach(props.popular, id: \.self) { people in
-                        peopleNavigationLink(people: people)
-                    }
-                    if let lastPopularId = props.popular.last {
-                        Rectangle()
-                            .foregroundColor(.clear)
-                            .frame(height: 1)
-                            .onAppear {
-                                fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
-                            }
+                        if let lastPopularId = props.popular.last {
+                            Rectangle()
+                                .foregroundColor(.clear)
+                                .frame(height: 1)
+                                .onAppear {
+                                    fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+                                }
+                        }
                     }
                 }
                 .padding(.horizontal, 4)
@@ -223,7 +271,12 @@ struct FanClubHome: ConnectedView {
                 }
             }
             .onChange(of: allPeople) { _, newList in
-                if highlightedPeopleId == nil {
+                // If current highlight is no longer in the visible list
+                // (e.g. user started searching and the list switched to
+                // results), snap highlight to the first new item.
+                if let current = highlightedPeopleId, !newList.contains(current) {
+                    highlightedPeopleId = newList.first
+                } else if highlightedPeopleId == nil {
                     highlightedPeopleId = newList.first
                 }
             }
@@ -234,27 +287,47 @@ struct FanClubHome: ConnectedView {
                 .macBackKeyboardShortcut()
         }
         #else
-        List {
+        let isActivelySearching = isSearching && !searchTextWrapper.searchText.isEmpty
+        return List {
             Section {
-                ForEach(props.peoples, id: \.self) { people in
-                    peopleNavigationLink(people: people)
-                }.onDelete(perform: { index in
-                    props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
-                })
+                searchField
             }
 
-            Section(header: Text("Popular people to add to your Fan Club")) {
-                ForEach(props.popular, id: \.self) { people in
-                    peopleNavigationLink(people: people)
-                }
-            }
-
-            if let lastPopularId = props.popular.last {
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .onAppear {
-                        fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+            if isActivelySearching {
+                if props.searchResults == nil {
+                    ProgressView()
+                } else if (props.searchResults ?? []).isEmpty {
+                    Text("No actors found for \"\(searchTextWrapper.searchText)\"")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Section(header: Text("Search results")) {
+                        ForEach(props.searchResults ?? [], id: \.self) { people in
+                            peopleNavigationLink(people: people)
+                        }
                     }
+                }
+            } else {
+                Section {
+                    ForEach(props.peoples, id: \.self) { people in
+                        peopleNavigationLink(people: people)
+                    }.onDelete(perform: { index in
+                        props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
+                    })
+                }
+
+                Section(header: Text("Popular people to add to your Fan Club")) {
+                    ForEach(props.popular, id: \.self) { people in
+                        peopleNavigationLink(people: people)
+                    }
+                }
+
+                if let lastPopularId = props.popular.last {
+                    Rectangle()
+                        .foregroundColor(.clear)
+                        .onAppear {
+                            fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+                        }
+                }
             }
         }
         .animation(.spring(), value: props.peoples.count + props.popular.count)
