@@ -61,10 +61,13 @@ func moviesListDestinationView(for route: MoviesListNavigationRoute) -> some Vie
     switch route {
     case .movie(let id):
         MovieDetail(movieId: id)
+            .macBackKeyboardShortcut()
     case .people(let id):
         PeopleDetail(peopleId: id)
+            .macBackKeyboardShortcut()
     case .keyword(let keyword):
         MovieKeywordList(keyword: keyword)
+            .macBackKeyboardShortcut()
     }
 }
 
@@ -349,7 +352,10 @@ struct MoviesList: ConnectedView {
                     if selectedMovieId == nil, let firstMovie = movies.first {
                         selectedMovieId = firstMovie
                     }
-                    isListFocused = true
+                    // Don't auto-grab focus on appear — it would steal the
+                    // keyboard away from the sidebar whenever the user
+                    // arrow-keys to a different menu. Focus moves here
+                    // when the user clicks into the list or Tabs into it.
                 }
                 .onChange(of: movies) { _, newMovies in
                     if selectedMovieId == nil, let firstMovie = newMovies.first {
