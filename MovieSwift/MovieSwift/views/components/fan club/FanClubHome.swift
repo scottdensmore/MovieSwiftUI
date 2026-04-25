@@ -171,59 +171,63 @@ struct FanClubHome: ConnectedView {
             ? (props.searchResults ?? [])
             : (props.peoples + props.popular)
 
-        return ScrollViewReader { scrollProxy in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    searchField
-                        .padding(.horizontal, 12)
-                        .padding(.top, 8)
-                        .padding(.bottom, 8)
+        // Search field is outside the ScrollView so Tab from the
+        // sidebar lands on it first; a second Tab moves focus into
+        // the list for arrow-key navigation.
+        return VStack(spacing: 0) {
+            searchField
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
 
-                    if isActivelySearching {
-                        if props.searchResults == nil {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
-                        } else if (props.searchResults ?? []).isEmpty {
-                            Text("No actors found for \"\(searchTextWrapper.searchText)\"")
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 40)
-                        } else {
-                            ForEach(props.searchResults ?? [], id: \.self) { people in
-                                peopleNavigationLink(people: people)
-                            }
-                        }
-                    } else {
-                        if !props.peoples.isEmpty {
-                            ForEach(props.peoples, id: \.self) { people in
-                                peopleNavigationLink(people: people)
-                            }
-                            Divider().padding(.vertical, 8)
-                        }
-                        Text("Popular people to add to your Fan Club")
-                            .titleStyle()
-                            .padding(.horizontal)
-                            .padding(.top, 4)
-                            .padding(.bottom, 6)
-                        ForEach(props.popular, id: \.self) { people in
-                            peopleNavigationLink(people: people)
-                        }
-                        if let lastPopularId = props.popular.last {
-                            Rectangle()
-                                .foregroundColor(.clear)
-                                .frame(height: 1)
-                                .onAppear {
-                                    fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        if isActivelySearching {
+                            if props.searchResults == nil {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 40)
+                            } else if (props.searchResults ?? []).isEmpty {
+                                Text("No actors found for \"\(searchTextWrapper.searchText)\"")
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 40)
+                            } else {
+                                ForEach(props.searchResults ?? [], id: \.self) { people in
+                                    peopleNavigationLink(people: people)
                                 }
+                            }
+                        } else {
+                            if !props.peoples.isEmpty {
+                                ForEach(props.peoples, id: \.self) { people in
+                                    peopleNavigationLink(people: people)
+                                }
+                                Divider().padding(.vertical, 8)
+                            }
+                            Text("Popular people to add to your Fan Club")
+                                .titleStyle()
+                                .padding(.horizontal)
+                                .padding(.top, 4)
+                                .padding(.bottom, 6)
+                            ForEach(props.popular, id: \.self) { people in
+                                peopleNavigationLink(people: people)
+                            }
+                            if let lastPopularId = props.popular.last {
+                                Rectangle()
+                                    .foregroundColor(.clear)
+                                    .frame(height: 1)
+                                    .onAppear {
+                                        fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
+                                    }
+                            }
                         }
                     }
+                    .padding(.horizontal, 4)
                 }
-                .padding(.horizontal, 4)
-            }
-            .focusable()
-            .focused($isFanClubFocused)
-            .focusEffectDisabled()
+                .focusable()
+                .focused($isFanClubFocused)
+                .focusEffectDisabled()
             .onKeyPress(.downArrow) {
                 guard !allPeople.isEmpty else { return .ignored }
                 if let current = highlightedPeopleId,
@@ -280,7 +284,8 @@ struct FanClubHome: ConnectedView {
                     highlightedPeopleId = newList.first
                 }
             }
-        }
+            }  // end ScrollViewReader
+        }  // end VStack
         .animation(.spring(), value: props.peoples.count + props.popular.count)
         .navigationDestination(item: $selectedPeopleId) { id in
             PeopleDetail(peopleId: id)
