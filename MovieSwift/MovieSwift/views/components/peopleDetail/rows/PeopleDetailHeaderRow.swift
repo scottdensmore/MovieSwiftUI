@@ -20,16 +20,21 @@ enum PeopleDetailHeaderState {
 
 struct PeopleDetailHeaderRow : View {
     let people: People
-    
+
     var body: some View {
-        HStack(alignment: .top) {
-            BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
-                                                    size: .original))
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Spacer()
+                BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
+                                                                              size: .original))
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Known for")
                     .titleStyle()
                     .accessibilityIdentifier("peopleDetail.knownFor")
-                if people.known_for_department != nil{
+                if people.known_for_department != nil {
                     Text(people.known_for_department!)
                 }
                 Text(PeopleDetailHeaderState.knownForText(for: people))
@@ -37,9 +42,10 @@ struct PeopleDetailHeaderRow : View {
                     .font(.body)
                     .lineLimit(nil)
             }
-            .padding(.leading, 8)
-                .padding(.top, 8)
         }
+        .padding(.horizontal)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
 }
 

@@ -24,6 +24,16 @@ enum PeopleDetailFetchPolicy {
     }
 }
 
+/// Navigable focus target for the actor detail view. Images live in a
+/// horizontal group (left/right arrows), movies live in per-year
+/// vertical groups (up/down arrows). Tab walks between groups and
+/// lands on the first item.
+enum PeopleDetailFocusTarget: Hashable {
+    case readMoreButton
+    case image(String)
+    case movie(year: String, id: Int)
+}
+
 enum PeopleDetailState {
     static func people(for peopleId: Int, from state: AppState) -> People {
         state.peoplesState.peoples[peopleId] ?? People(id: peopleId,
@@ -153,7 +163,7 @@ struct PeopleDetail: ConnectedView {
 
     #if os(macOS)
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var focusedMovieId: Int?
+    @FocusState private var focusedDetailItem: PeopleDetailFocusTarget?
     #endif
     
     private func fetchPeopleData(props: Props) {
@@ -191,11 +201,18 @@ struct PeopleDetail: ConnectedView {
         }
     }
     
+    @ViewBuilder
     private func moviesSection(props: Props, year: String) -> some View {
-        Section(header: Text(year)) {
+        #if os(macOS)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(year)
+                .titleStyle()
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 4)
             ForEach(props.movieByYears[year]!) { meta in
-                #if os(macOS)
-                MacFocusableLink(id: meta.id, focusedId: $focusedMovieId) {
+                MacFocusableLink(id: PeopleDetailFocusTarget.movie(year: year, id: meta.id),
+                                 focusedId: $focusedDetailItem) {
                     selectMovie(meta.id)
                 } label: {
                     PeopleDetailMovieRow(movie: meta.movie, role: meta.role, onMovieContextMenu: {
@@ -205,7 +222,13 @@ struct PeopleDetail: ConnectedView {
                     })
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                #else
+                .id(PeopleDetailFocusTarget.movie(year: year, id: meta.id))
+                .accessibilityIdentifier(movieAccessibilityIdentifier(meta.id))
+            }
+        }
+        #else
+        Section(header: Text(year)) {
+            ForEach(props.movieByYears[year]!) { meta in
                 Button(action: {
                     selectMovie(meta.id)
                 }) {
@@ -217,9 +240,9 @@ struct PeopleDetail: ConnectedView {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier(movieAccessibilityIdentifier(meta.id))
-                #endif
             }
         }
+        #endif
     }
     
     private func barbuttons(props: Props) -> some View {
@@ -266,6 +289,45 @@ struct PeopleDetail: ConnectedView {
     }
     
     func body(props: Props) -> some View {
+        platformBody(props: props)
+            .animation(.spring(), value: isFanScoreUpdated)
+            .navigationDestination(item: $selectedMovieId) { id in
+                MovieDetail(movieId: id)
+            }
+            #if os(macOS)
+            .onKeyPress(.escape) {
+                // When the image carousel overlay is up, let it handle
+                // Escape (it clears selectedPoster to dismiss itself).
+                // Only pop PeopleDetail once no overlay is showing.
+                if selectedPoster != nil {
+                    selectedPoster = nil
+                    return .handled
+                }
+                dismiss()
+                return .handled
+            }
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    barbuttons(props: props)
+                }
+            }
+            .navigationTitle(props.people.name)
+            .onAppear {
+                self.fetchPeopleData(props: props)
+            }
+            .onChange(of: self.peopleId) { _, _ in
+                self.selectedPoster = nil
+                self.isFanScoreUpdated = false
+                self.fetchPeopleData(props: props)
+            }
+    }
+
+    @ViewBuilder
+    private func platformBody(props: Props) -> some View {
+        #if os(macOS)
+        macOSBody(props: props)
+        #else
         ZStack(alignment: .center) {
             List {
                 Section {
@@ -300,38 +362,140 @@ struct PeopleDetail: ConnectedView {
             imagesCarouselView(props: props)
             scoreUpdateView(props: props)
         }
-        .animation(.spring(), value: isFanScoreUpdated)
-        .navigationDestination(item: $selectedMovieId) { id in
-            MovieDetail(movieId: id)
-        }
-        #if os(macOS)
-        .onKeyPress(.escape) {
-            // When the image carousel overlay is up, let it handle
-            // Escape (it clears selectedPoster to dismiss itself).
-            // Only pop PeopleDetail once no overlay is showing.
-            if selectedPoster != nil {
-                selectedPoster = nil
-                return .handled
-            }
-            dismiss()
-            return .handled
-        }
         #endif
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                barbuttons(props: props)
+    }
+
+    #if os(macOS)
+    private func macOSBody(props: Props) -> some View {
+        ZStack(alignment: .center) {
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        PeopleDetailHeaderRow(people: props.people)
+                        if PeopleDetailState.shouldShowBiographySection(for: props.people) {
+                            PeopleDetailBiographyRow(biography: props.people.biography,
+                                                     birthDate: props.people.birthDay,
+                                                     deathDate: props.people.deathDay,
+                                                     placeOfBirth: props.people.place_of_birth,
+                                                     focusedItem: $focusedDetailItem)
+                        }
+                        if props.isInFanClub.wrappedValue {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Fan level")
+                                    .titleStyle()
+                                PopularityBadge(score: props.movieScore ?? 0)
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                        }
+                        if PeopleDetailState.shouldShowImagesSection(for: props.people.images) {
+                            PeopleDetailImagesRow(images: props.people.images ?? [],
+                                                  selectedPoster: $selectedPoster,
+                                                  focusedItem: $focusedDetailItem)
+                        }
+                        ForEach(sortedYears(props: props), id: \.self) { year in
+                            moviesSection(props: props, year: year)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 24)
+                }
+                .onChange(of: focusedDetailItem) { _, newValue in
+                    guard let newValue else { return }
+                    withAnimation {
+                        scrollProxy.scrollTo(newValue, anchor: .center)
+                    }
+                }
+                .onKeyPress(.tab, phases: .down) { press in
+                    let forward = !press.modifiers.contains(.shift)
+                    return movePeopleTab(props: props, forward: forward)
+                }
+                .onKeyPress(characters: CharacterSet(charactersIn: "\u{19}"), phases: .down) { _ in
+                    return movePeopleTab(props: props, forward: false)
+                }
+                .onKeyPress(.leftArrow) {
+                    return movePeopleArrow(props: props, axis: .horizontal, forward: false)
+                }
+                .onKeyPress(.rightArrow) {
+                    return movePeopleArrow(props: props, axis: .horizontal, forward: true)
+                }
+                .onKeyPress(.upArrow) {
+                    return movePeopleArrow(props: props, axis: .vertical, forward: false)
+                }
+                .onKeyPress(.downArrow) {
+                    return movePeopleArrow(props: props, axis: .vertical, forward: true)
+                }
             }
-        }
-        .navigationTitle(props.people.name)
-        .onAppear {
-            self.fetchPeopleData(props: props)
-        }
-        .onChange(of: self.peopleId) { _, _ in
-            self.selectedPoster = nil
-            self.isFanScoreUpdated = false
-            self.fetchPeopleData(props: props)
+            .blur(radius: selectedPoster != nil || isFanScoreUpdated ? 30 : 0)
+            .scaleEffect(selectedPoster != nil ? 0.8 : 1)
+            .animation(.interactiveSpring(), value: selectedPoster != nil || isFanScoreUpdated)
+            imagesCarouselView(props: props)
+            scoreUpdateView(props: props)
         }
     }
+
+    private enum PeopleFocusAxis { case horizontal, vertical }
+
+    private func peopleFocusGroups(props: Props) -> [[PeopleDetailFocusTarget]] {
+        var groups: [[PeopleDetailFocusTarget]] = []
+        if PeopleDetailState.shouldShowBiographySection(for: props.people),
+           PeopleDetailBiographyState.shouldShowBiographyToggle(props.people.biography) {
+            groups.append([.readMoreButton])
+        }
+        if PeopleDetailState.shouldShowImagesSection(for: props.people.images),
+           let images = props.people.images, !images.isEmpty {
+            groups.append(images.map { .image($0.file_path) })
+        }
+        for year in sortedYears(props: props) {
+            let metas = props.movieByYears[year] ?? []
+            if !metas.isEmpty {
+                groups.append(metas.map { .movie(year: year, id: $0.id) })
+            }
+        }
+        return groups
+    }
+
+    private func isHorizontalGroup(_ first: PeopleDetailFocusTarget) -> Bool {
+        if case .image = first { return true }
+        return false
+    }
+
+    private func movePeopleTab(props: Props, forward: Bool) -> KeyPress.Result {
+        let groups = peopleFocusGroups(props: props)
+        guard !groups.isEmpty else { return .ignored }
+        if let current = focusedDetailItem,
+           let idx = groups.firstIndex(where: { $0.contains(current) }) {
+            let next = idx + (forward ? 1 : -1)
+            if groups.indices.contains(next),
+               let first = groups[next].first {
+                focusedDetailItem = first
+            }
+        } else {
+            focusedDetailItem = forward ? groups.first?.first : groups.last?.first
+        }
+        return .handled
+    }
+
+    private func movePeopleArrow(props: Props, axis: PeopleFocusAxis, forward: Bool) -> KeyPress.Result {
+        guard let current = focusedDetailItem else { return .ignored }
+        let groups = peopleFocusGroups(props: props)
+        guard let group = groups.first(where: { $0.contains(current) }),
+              let first = group.first else {
+            return .ignored
+        }
+        // Images group responds to horizontal arrows; movie groups respond
+        // to vertical arrows. Other axes pass through.
+        let groupIsHorizontal = isHorizontalGroup(first)
+        if groupIsHorizontal && axis != .horizontal { return .ignored }
+        if !groupIsHorizontal && axis != .vertical { return .ignored }
+
+        guard let idx = group.firstIndex(of: current) else { return .ignored }
+        let next = idx + (forward ? 1 : -1)
+        guard group.indices.contains(next) else { return .ignored }
+        focusedDetailItem = group[next]
+        return .handled
+    }
+    #endif
 }
 
 // MARK: - Map state to props

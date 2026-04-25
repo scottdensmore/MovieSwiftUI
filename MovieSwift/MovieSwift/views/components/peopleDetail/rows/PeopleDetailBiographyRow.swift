@@ -25,8 +25,11 @@ struct PeopleDetailBiographyRow : View {
     let birthDate: String?
     let deathDate: String?
     let placeOfBirth: String?
+    #if os(macOS)
+    var focusedItem: FocusState<PeopleDetailFocusTarget?>.Binding?
+    #endif
     @State private var isExpanded = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let biography, PeopleDetailBiographyState.shouldShowBiographyToggle(biography) {
@@ -37,11 +40,7 @@ struct PeopleDetailBiographyRow : View {
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(isExpanded ? 1000 : 4)
-                Button(action: {
-                    self.isExpanded.toggle()
-                }) {
-                    Text(isExpanded ? "Less": "Read more").foregroundColor(.steam_blue)
-                }
+                readMoreButton
             }
             if birthDate != nil {
                 Text("Birthday")
@@ -70,6 +69,38 @@ struct PeopleDetailBiographyRow : View {
                     .font(.body)
                     .lineLimit(1)
             }
+        }
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private var readMoreButton: some View {
+        #if os(macOS)
+        if let focusedItem {
+            MacFocusableLink(id: PeopleDetailFocusTarget.readMoreButton,
+                             focusedId: focusedItem) {
+                withAnimation { isExpanded.toggle() }
+            } label: {
+                Text(isExpanded ? "Less" : "Read more")
+                    .foregroundColor(.steam_blue)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .padding(.top, 2)
+        } else {
+            plainReadMoreButton
+        }
+        #else
+        plainReadMoreButton
+        #endif
+    }
+
+    private var plainReadMoreButton: some View {
+        Button(action: {
+            isExpanded.toggle()
+        }) {
+            Text(isExpanded ? "Less" : "Read more").foregroundColor(.steam_blue)
         }
     }
 }
