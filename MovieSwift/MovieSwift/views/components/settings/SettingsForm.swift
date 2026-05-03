@@ -85,6 +85,8 @@ struct SettingsForm : ConnectedView {
     @State private var backupErrorMessage: String?
     @State private var backupSuccessDate: Date?
     @State private var lastICloudBackupDate: Date? = AppDataICloudBackup.resolvedLastBackupDate()
+    @State private var userAPIKeyDraft: String = AppUserDefaults.userTMDBAPIKey
+    @FocusState private var isUserAPIKeyFocused: Bool
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
@@ -296,6 +298,48 @@ struct SettingsForm : ConnectedView {
         "Your data was backed up to iCloud Drive at \(formattedBackupDate(date))."
     }
 
+    // MARK: - TMDB API key
+
+    /// Which key the app is currently using for TMDB requests.
+    private enum APIKeySource {
+        case userProvided
+        case bundled
+        case missing
+    }
+
+    private var currentAPIKeySource: APIKeySource {
+        if !AppUserDefaults.userTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return .userProvided
+        }
+        if BundleAPIKeyProvider().apiKey() != nil {
+            return .bundled
+        }
+        return .missing
+    }
+
+    /// Persist the draft key to UserDefaults — the LayeredAPIKeyProvider
+    /// inside APIService.shared re-reads on every call, so subsequent
+    /// requests immediately use the new key.
+    private func saveUserAPIKey() {
+        AppUserDefaults.userTMDBAPIKey = userAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        isUserAPIKeyFocused = false
+    }
+
+    private func clearUserAPIKey() {
+        userAPIKeyDraft = ""
+        AppUserDefaults.userTMDBAPIKey = ""
+        isUserAPIKeyFocused = false
+    }
+
+    private var canSaveUserAPIKey: Bool {
+        let trimmed = userAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed != AppUserDefaults.userTMDBAPIKey
+    }
+
+    private var hasUserAPIKey: Bool {
+        !AppUserDefaults.userTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private var originalTitlePreferenceRow: some View {
         Button {
             alwaysOriginalTitle.toggle()
@@ -336,6 +380,48 @@ struct SettingsForm : ConnectedView {
                             }
                     }
                     .accessibilityIdentifier("settings.regionPicker")
+            })
+            Section(header: Text("TMDB API key"),
+                    footer: Text("MovieSwift uses the TMDB API for everything you see. The bundled key is shared by every install — paste your own key from your TMDB account to use your own quota."),
+                    content: {
+                HStack {
+                    Text("Status")
+                    Spacer()
+                    switch currentAPIKeySource {
+                    case .userProvided: Text("Using your key").foregroundColor(.secondary)
+                    case .bundled:      Text("Using bundled").foregroundColor(.secondary)
+                    case .missing:      Text("No key configured").foregroundColor(.red)
+                    }
+                }
+                .accessibilityIdentifier("settings.tmdb.statusLabel")
+
+                SecureField("Paste your TMDB API key", text: $userAPIKeyDraft)
+                    .focused($isUserAPIKeyFocused)
+                    .submitLabel(.done)
+                    .onSubmit { saveUserAPIKey() }
+                    .accessibilityIdentifier("settings.tmdb.apiKeyField")
+
+                Button {
+                    saveUserAPIKey()
+                } label: {
+                    Label("Save key", systemImage: "checkmark.circle")
+                }
+                .disabled(!canSaveUserAPIKey)
+                .accessibilityIdentifier("settings.tmdb.saveButton")
+
+                if hasUserAPIKey {
+                    Button(role: .destructive) {
+                        clearUserAPIKey()
+                    } label: {
+                        Label("Clear key", systemImage: "xmark.circle")
+                    }
+                    .accessibilityIdentifier("settings.tmdb.clearButton")
+                }
+
+                Link(destination: URL(string: "https://www.themoviedb.org/settings/api")!) {
+                    Label("Get a TMDB API key", systemImage: "arrow.up.right.square")
+                }
+                .accessibilityIdentifier("settings.tmdb.getKeyLink")
             })
             Section(header: Text("App data"),
                     footer: Text("Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting any previous backup), and Restore merges the latest iCloud backup back into your library. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate."),
@@ -422,6 +508,7 @@ struct SettingsForm : ConnectedView {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 regionPreferencesSection
+                tmdbAPIKeySection
                 appDataSection
                 debugInfoSection(props: props)
             }
@@ -497,6 +584,17 @@ struct SettingsForm : ConnectedView {
             regionRow
             rowDivider
             originalTitleRow
+        }
+    }
+
+    private var tmdbAPIKeySection: some View {
+        sectionCard(title: "TMDB API key",
+                    footer: "MovieSwift uses the TMDB API for everything you see. The bundled key is shared by every install — paste your own key from your TMDB account to use your own quota and avoid shared rate limits.") {
+            apiKeyStatusRow
+            rowDivider
+            apiKeyEntryRow
+            rowDivider
+            apiKeyActionsRow
         }
     }
 
@@ -699,6 +797,92 @@ struct SettingsForm : ConnectedView {
         .buttonStyle(.plain)
         .disabled(!hasBackup)
         .accessibilityIdentifier("settings.restoreFromICloudButton")
+    }
+
+    // MARK: - TMDB API key rows
+
+    private var apiKeyStatusRow: some View {
+        let (icon, iconColor, label, labelColor): (String, Color, String, Color) = {
+            switch currentAPIKeySource {
+            case .userProvided:
+                return ("checkmark.seal.fill", .steam_gold, "Using your key", .primary)
+            case .bundled:
+                return ("checkmark.seal", .steam_blue, "Using the bundled key", .primary)
+            case .missing:
+                return ("exclamationmark.triangle.fill", .steam_rust,
+                        "No API key configured — TMDB requests will fail", .steam_rust)
+            }
+        }()
+
+        return HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundColor(iconColor)
+                .frame(width: 22)
+            Text(label)
+                .foregroundColor(labelColor)
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .accessibilityIdentifier("settings.tmdb.statusLabel")
+    }
+
+    private var apiKeyEntryRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "key.fill")
+                .font(.body)
+                .foregroundColor(.steam_blue)
+                .frame(width: 22)
+            SecureField("Paste your TMDB API key", text: $userAPIKeyDraft)
+                .textFieldStyle(.plain)
+                .focused($isUserAPIKeyFocused)
+                .submitLabel(.done)
+                .onSubmit { saveUserAPIKey() }
+                .accessibilityIdentifier("settings.tmdb.apiKeyField")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private var apiKeyActionsRow: some View {
+        HStack(spacing: 8) {
+            Link(destination: URL(string: "https://www.themoviedb.org/settings/api")!) {
+                Label("Get a TMDB API key", systemImage: "arrow.up.right.square")
+                    .font(.callout)
+                    .foregroundColor(.steam_blue)
+            }
+            .accessibilityIdentifier("settings.tmdb.getKeyLink")
+
+            Spacer()
+
+            if hasUserAPIKey {
+                Button("Clear", role: .destructive) {
+                    clearUserAPIKey()
+                }
+                .buttonStyle(.borderless)
+                .foregroundColor(.steam_rust)
+                .accessibilityIdentifier("settings.tmdb.clearButton")
+            }
+
+            Button {
+                saveUserAPIKey()
+            } label: {
+                Text("Save")
+                    .font(.callout.weight(.semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule().fill(canSaveUserAPIKey ? Color.steam_gold : Color.secondary.opacity(0.25))
+                    )
+                    .foregroundColor(canSaveUserAPIKey ? .black : .secondary)
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSaveUserAPIKey)
+            .accessibilityIdentifier("settings.tmdb.saveButton")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 
     private func comingSoonRow(title: String, systemImage: String) -> some View {

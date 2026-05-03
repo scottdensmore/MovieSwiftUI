@@ -14,11 +14,11 @@ public protocol APIKeyProviding {
 
 public struct BundleAPIKeyProvider: APIKeyProviding {
     private let bundle: Bundle
-    
+
     public init(bundle: Bundle = .main) {
         self.bundle = bundle
     }
-    
+
     public func apiKey() -> String? {
         guard let rawAPIKey = bundle.object(forInfoDictionaryKey: "TMDB_API_KEY") as? String else {
             return nil
@@ -28,6 +28,56 @@ public struct BundleAPIKeyProvider: APIKeyProviding {
             return nil
         }
         return value
+    }
+}
+
+/// Resolves the user-supplied TMDB key from `AppUserDefaults`.
+///
+/// Returns nil when the stored value is empty or only whitespace so a
+/// chained `LayeredAPIKeyProvider` cleanly falls through to the
+/// bundled key. The provider re-reads UserDefaults on every
+/// `apiKey()` call, so changes the user makes in Settings are picked
+/// up by the next API request without needing to reinitialize
+/// `APIService.shared`.
+public struct UserDefaultsAPIKeyProvider: APIKeyProviding {
+    public init() {}
+
+    public func apiKey() -> String? {
+        let value = AppUserDefaults.userTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+}
+
+/// Tries each child provider in order and returns the first non-nil
+/// key. Used to layer "user-supplied" over "bundled-default" so a
+/// user's own TMDB key takes precedence without removing the bundled
+/// fallback when the user hasn't entered one.
+public struct LayeredAPIKeyProvider: APIKeyProviding {
+    private let providers: [APIKeyProviding]
+
+    public init(providers: [APIKeyProviding]) {
+        self.providers = providers
+    }
+
+    public func apiKey() -> String? {
+        for provider in providers {
+            if let key = provider.apiKey() {
+                return key
+            }
+        }
+        return nil
+    }
+}
+
+extension APIKeyProviding where Self == LayeredAPIKeyProvider {
+    /// Default production resolution: try the user's saved key from
+    /// AppUserDefaults first, then fall back to the bundle-substituted
+    /// `TMDB_API_KEY` Info.plist value.
+    public static var userKeyOverridingBundle: LayeredAPIKeyProvider {
+        LayeredAPIKeyProvider(providers: [
+            UserDefaultsAPIKeyProvider(),
+            BundleAPIKeyProvider()
+        ])
     }
 }
 
@@ -70,7 +120,7 @@ public struct APIService {
     public init(
         baseURL: URL = URL(string: "https://api.themoviedb.org/3")!,
         decoder: JSONDecoder = JSONDecoder(),
-        apiKeyProvider: APIKeyProviding = BundleAPIKeyProvider(),
+        apiKeyProvider: APIKeyProviding = LayeredAPIKeyProvider.userKeyOverridingBundle,
         session: NetworkSession = URLSessionNetworkSession(),
         callbackQueue: DispatchQueue = .main
     ) {
