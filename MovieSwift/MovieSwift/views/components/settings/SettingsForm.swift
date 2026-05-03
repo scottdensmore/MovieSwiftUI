@@ -82,6 +82,9 @@ struct SettingsForm : ConnectedView {
     @State private var pendingImportCounts: AppDataImport.Counts?
     @State private var importErrorMessage: String?
     @State private var importSuccessCounts: AppDataImport.Counts?
+    @State private var backupErrorMessage: String?
+    @State private var backupSuccessDate: Date?
+    @State private var lastICloudBackupDate: Date? = AppDataICloudBackup.resolvedLastBackupDate()
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
@@ -254,6 +257,45 @@ struct SettingsForm : ConnectedView {
         return "Imported \(counts.total) item\(counts.total == 1 ? "" : "s") into your library."
     }
 
+    // MARK: - iCloud backup / restore
+
+    private func performICloudBackup() {
+        let now = Date()
+        do {
+            try AppDataICloudBackup.writeBackupToICloud(state: store.state, date: now)
+            lastICloudBackupDate = now
+            backupSuccessDate = now
+        } catch let error as AppDataICloudBackup.BackupError {
+            backupErrorMessage = error.errorDescription
+        } catch {
+            backupErrorMessage = "Backup failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func performICloudRestore() {
+        do {
+            let envelope = try AppDataICloudBackup.readBackupFromICloud()
+            let counts = AppDataImport.previewCounts(for: envelope, against: store.state)
+            pendingImportEnvelope = envelope
+            pendingImportCounts = counts
+        } catch let error as AppDataICloudBackup.BackupError {
+            backupErrorMessage = error.errorDescription
+        } catch {
+            backupErrorMessage = "Restore failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func formattedBackupDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
+    private func backupSuccessMessage(_ date: Date) -> String {
+        "Your data was backed up to iCloud Drive at \(formattedBackupDate(date))."
+    }
+
     private var originalTitlePreferenceRow: some View {
         Button {
             alwaysOriginalTitle.toggle()
@@ -296,7 +338,7 @@ struct SettingsForm : ConnectedView {
                     .accessibilityIdentifier("settings.regionPicker")
             })
             Section(header: Text("App data"),
-                    footer: Text("Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Import merges a previously exported file into your current library — your existing data is preserved. Backup and restore via iCloud are not implemented yet."),
+                    footer: Text("Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting any previous backup), and Restore merges the latest iCloud backup back into your library. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate."),
                     content: {
                 Button(role: .destructive) {
                     isClearCacheConfirmationPresented = true
@@ -319,8 +361,28 @@ struct SettingsForm : ConnectedView {
                 }
                 .accessibilityIdentifier("settings.importDataButton")
 
-                Text("Backup to iCloud").foregroundColor(.secondary)
-                Text("Restore from iCloud").foregroundColor(.secondary)
+                Button {
+                    performICloudBackup()
+                } label: {
+                    HStack {
+                        Label("Back up to iCloud", systemImage: "icloud.and.arrow.up")
+                        Spacer()
+                        if let date = lastICloudBackupDate {
+                            Text(formattedBackupDate(date))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .accessibilityIdentifier("settings.backupToICloudButton")
+
+                Button {
+                    performICloudRestore()
+                } label: {
+                    Label("Restore from iCloud", systemImage: "icloud.and.arrow.down")
+                }
+                .disabled(lastICloudBackupDate == nil)
+                .accessibilityIdentifier("settings.restoreFromICloudButton")
             })
 
             Section(header: Text("Debug info")) {
@@ -440,16 +502,16 @@ struct SettingsForm : ConnectedView {
 
     private var appDataSection: some View {
         sectionCard(title: "App data",
-                    footer: "Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Import merges a previously exported file into your current library — your existing data is preserved. Backup and restore via iCloud are not implemented yet.") {
+                    footer: "Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting any previous backup), and Restore merges the latest iCloud backup back into your library. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate.") {
             clearCachedDataRow
             rowDivider
             exportDataRow
             rowDivider
             importDataRow
             rowDivider
-            comingSoonRow(title: "Backup to iCloud", systemImage: "icloud.and.arrow.up")
+            backupToICloudRow
             rowDivider
-            comingSoonRow(title: "Restore from iCloud", systemImage: "icloud.and.arrow.down")
+            restoreFromICloudRow
         }
     }
 
@@ -579,6 +641,64 @@ struct SettingsForm : ConnectedView {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("settings.importDataButton")
+    }
+
+    private var backupToICloudRow: some View {
+        Button {
+            performICloudBackup()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "icloud.and.arrow.up")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Back up to iCloud")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                if let date = lastICloudBackupDate {
+                    Text(formattedBackupDate(date))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.backupToICloudButton")
+    }
+
+    private var restoreFromICloudRow: some View {
+        let hasBackup = lastICloudBackupDate != nil
+        return Button {
+            performICloudRestore()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "icloud.and.arrow.down")
+                    .font(.body)
+                    .foregroundColor(hasBackup ? .steam_blue : .secondary)
+                    .frame(width: 22)
+                Text("Restore from iCloud")
+                    .foregroundColor(hasBackup ? .steam_blue : .secondary)
+                Spacer()
+                if hasBackup {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                } else {
+                    Text("No backup")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!hasBackup)
+        .accessibilityIdentifier("settings.restoreFromICloudButton")
     }
 
     private func comingSoonRow(title: String, systemImage: String) -> some View {
@@ -721,6 +841,26 @@ struct SettingsForm : ConnectedView {
             Button("OK", role: .cancel) { importSuccessCounts = nil }
         } message: { counts in
             Text(importSuccessMessage(counts))
+        }
+        .alert("Backed up to iCloud",
+               isPresented: Binding(
+                get: { backupSuccessDate != nil },
+                set: { if !$0 { backupSuccessDate = nil } }
+               ),
+               presenting: backupSuccessDate) { _ in
+            Button("OK", role: .cancel) { backupSuccessDate = nil }
+        } message: { date in
+            Text(backupSuccessMessage(date))
+        }
+        .alert("iCloud backup",
+               isPresented: Binding(
+                get: { backupErrorMessage != nil },
+                set: { if !$0 { backupErrorMessage = nil } }
+               ),
+               presenting: backupErrorMessage) { _ in
+            Button("OK", role: .cancel) { backupErrorMessage = nil }
+        } message: { message in
+            Text(message)
         }
     }
 }
