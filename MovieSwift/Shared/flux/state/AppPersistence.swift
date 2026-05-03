@@ -7,8 +7,6 @@ import Foundation
 
 enum AppPersistence {
     private static var savePath: URL?
-    private static let encoder = JSONEncoder()
-    private static let decoder = JSONDecoder()
 
     private static func resolvedSavePath() throws -> URL {
         let icloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)
@@ -39,13 +37,22 @@ enum AppPersistence {
 
     static func loadState() -> AppState? {
         guard let savePath = ensureSavePath(),
-              let data = try? Data(contentsOf: savePath),
-              var savedState = try? decoder.decode(AppState.self, from: data) else {
+              let data = try? Data(contentsOf: savePath) else {
             return nil
         }
-
-        savedState.ensurePlaceholderData()
-        return savedState
+        do {
+            var savedState = try AppStatePersistedFormat.decode(data: data)
+            savedState.ensurePlaceholderData()
+            return savedState
+        } catch {
+            // Same outcome as the legacy `try?` path on unrecoverable
+            // files: log and let the app start with a fresh state.
+            // Future-version files don't get auto-overwritten because
+            // the next archive() will write a new envelope at the
+            // current build's format version.
+            print("Error while loading app state: \(error.localizedDescription)")
+            return nil
+        }
     }
 
     static func archive(state: AppState) {
@@ -82,13 +89,11 @@ enum AppPersistence {
     }
 
     private static func write(state: AppState, to path: URL) {
-        guard let data = try? encoder.encode(state) else {
-            return
-        }
         do {
+            let data = try AppStatePersistedFormat.encode(state: state)
             try data.write(to: path)
         } catch let error {
-            print("Error while saving app state :\(error)")
+            print("Error while saving app state: \(error)")
         }
     }
 }
