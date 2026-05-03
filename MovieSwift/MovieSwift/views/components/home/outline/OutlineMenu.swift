@@ -56,19 +56,30 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     
     private func detailRoot<Content: View>(title: String,
                                            @ViewBuilder content: () -> Content) -> some View {
+        #if os(macOS)
+        // On macOS, SplitView wraps the detail column in a single
+        // NavigationStack with a path binding it can reset on menu
+        // change, so the inner per-menu NavigationStack is omitted
+        // here to avoid stranding pushed destinations across menu
+        // switches.
+        content()
+            .navigationTitle(title)
+        #else
         NavigationStack {
             content()
                 .navigationTitle(title)
-                #if !os(macOS)
                 .navigationBarTitleDisplayMode(.inline)
-                #endif
         }
+        #endif
     }
     
-    private func moviesList(menu: MoviesMenu, isRunningUISmokeTests: Bool) -> some View {
+    private func moviesList(menu: MoviesMenu,
+                            isRunningUISmokeTests: Bool,
+                            navigationRoute: Binding<MoviesListNavigationRoute?>) -> some View {
         return detailRoot(title: menu.title()) {
             OutlineMoviesMenuList(menu: menu,
-                                  shouldLoadInitialPage: OutlineMoviesMenuListFetchPolicy.shouldLoadInitialPage(isRunningUISmokeTests: isRunningUISmokeTests))
+                                  shouldLoadInitialPage: OutlineMoviesMenuListFetchPolicy.shouldLoadInitialPage(isRunningUISmokeTests: isRunningUISmokeTests),
+                                  navigationRoute: navigationRoute)
         }
     }
     
@@ -106,13 +117,14 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     }
     
     @ViewBuilder
-    func contentView(isRunningUISmokeTests: Bool) -> some View {
+    func contentView(isRunningUISmokeTests: Bool,
+                     navigationRoute: Binding<MoviesListNavigationRoute?>) -> some View {
         switch self {
-        case .popular:    moviesList(menu: .popular, isRunningUISmokeTests: isRunningUISmokeTests)
-        case .topRated:   moviesList(menu: .topRated, isRunningUISmokeTests: isRunningUISmokeTests)
-        case .upcoming:   moviesList(menu: .upcoming, isRunningUISmokeTests: isRunningUISmokeTests)
-        case .nowPlaying: moviesList(menu: .nowPlaying, isRunningUISmokeTests: isRunningUISmokeTests)
-        case .trending:   moviesList(menu: .trending, isRunningUISmokeTests: isRunningUISmokeTests)
+        case .popular:    moviesList(menu: .popular, isRunningUISmokeTests: isRunningUISmokeTests, navigationRoute: navigationRoute)
+        case .topRated:   moviesList(menu: .topRated, isRunningUISmokeTests: isRunningUISmokeTests, navigationRoute: navigationRoute)
+        case .upcoming:   moviesList(menu: .upcoming, isRunningUISmokeTests: isRunningUISmokeTests, navigationRoute: navigationRoute)
+        case .nowPlaying: moviesList(menu: .nowPlaying, isRunningUISmokeTests: isRunningUISmokeTests, navigationRoute: navigationRoute)
+        case .trending:   moviesList(menu: .trending, isRunningUISmokeTests: isRunningUISmokeTests, navigationRoute: navigationRoute)
         case .genres:     genresList
         case .fanClub:    fanClubList
         case .discover:   discoverList
@@ -130,11 +142,14 @@ private struct OutlineMoviesMenuList: ConnectedView {
     let menu: MoviesMenu
     let shouldLoadInitialPage: Bool
     private let listener: MoviesMenuListPageListener
-    @State private var navigationRoute: MoviesListNavigationRoute?
+    @Binding var navigationRoute: MoviesListNavigationRoute?
 
-    init(menu: MoviesMenu, shouldLoadInitialPage: Bool) {
+    init(menu: MoviesMenu,
+         shouldLoadInitialPage: Bool,
+         navigationRoute: Binding<MoviesListNavigationRoute?>) {
         self.menu = menu
         self.shouldLoadInitialPage = shouldLoadInitialPage
+        self._navigationRoute = navigationRoute
         self.listener = MoviesMenuListPageListener(menu: menu,
                                                    loadOnInit: false,
                                                    shouldLoadPage: { shouldLoadInitialPage })

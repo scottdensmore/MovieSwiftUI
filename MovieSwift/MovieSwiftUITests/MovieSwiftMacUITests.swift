@@ -148,6 +148,35 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(toggled.waitForExistence(timeout: timeout))
     }
 
+    func testSidebarMenuChangePopsPushedMovieDetail() {
+        // Regression test: clicking a different sidebar menu while a
+        // MovieDetail is pushed in the right pane must pop the pushed
+        // destination. NavigationSplitView on macOS used to hold on to
+        // the pushed view across menu changes; SplitView now lifts the
+        // navigationRoute up and nils it before swapping menus.
+        let app = launchApp()
+
+        // Push MovieDetail from the default Popular menu.
+        let addToListButton = openFirstMovieDetail(in: app)
+        XCTAssertTrue(addToListButton.exists,
+                      "MovieDetail should be visible after tapping the first movie")
+
+        // Switch sidebar to Top rated.
+        let topRated = app.identifiedElement("sidebar.Top rated")
+        XCTAssertTrue(topRated.waitForExistence(timeout: timeout))
+        topRated.tap()
+
+        // The pushed MovieDetail must be gone and the new menu's
+        // movie list must be at the root.
+        let detailGone = NSPredicate(format: "exists == false")
+        let detailDismissed = expectation(for: detailGone, evaluatedWith: addToListButton)
+        wait(for: [detailDismissed], timeout: timeout)
+
+        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
+                      "Expected the new menu's movies list to be visible at the root")
+    }
+
     func testMovieDetailGenreChipExists() {
         // Verify genre chip exists and is tappable. Full genre navigation
         // (navigationDestination push within the detail NavigationStack)
