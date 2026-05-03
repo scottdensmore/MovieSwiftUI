@@ -233,6 +233,9 @@
 		A1B2C3010000000000000004 /* AppBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000005 /* AppBootstrapTests.swift */; };
 		A1B2C3010000000000000005 /* MovieDetailStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000006 /* MovieDetailStateTests.swift */; };
 		A1B2C3010000000000000006 /* PeopleActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000007 /* PeopleActionsTests.swift */; };
+		A1B2C30100000000000000F1 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
+		A1B2C30100000000000000F2 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
+		A1B2C30100000000000000F3 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
 		A1B2C4010000000000000001 /* AppPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000001 /* AppPersistence.swift */; };
 		A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000002 /* AppBootstrap.swift */; };
 		A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000003 /* AppStateFixtures.swift */; };
@@ -247,6 +250,11 @@
 		A1B2C4010000000000000012 /* AppStoreFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000005 /* AppStoreFactory.swift */; };
 		A1B2C4010000000000000013 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000006 /* AppEnvironment.swift */; };
 		A1B2C4010000000000000014 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000007 /* AppRuntime.swift */; };
+		A1B2C40100000000000000E1 /* AppDataExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000E1 /* AppDataExport.swift */; };
+		A1B2C40100000000000000E2 /* AppDataExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000E1 /* AppDataExport.swift */; };
+		A1B2C40100000000000000E3 /* AppDataExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000E1 /* AppDataExport.swift */; };
+		A1B2C40100000000000000F1 /* UserDataDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F1 /* UserDataDocument.swift */; };
+		A1B2C40100000000000000F2 /* UserDataDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F1 /* UserDataDocument.swift */; };
 		A3E555D90FCDFB21E4048756 /* PeopleDetailImagesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6920B8F122D0A1B5004C7528 /* PeopleDetailImagesRow.swift */; };
 		A4204A0A2302CC4DE09C04E4 /* MovieRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B2560422A9BDD5009F4413 /* MovieRow.swift */; };
 		A508FD220F9125D980C08FDE /* CustomList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69DEA9A722B904CB00DFF551 /* CustomList.swift */; };
@@ -480,6 +488,7 @@
 		A1B2C3020000000000000005 /* AppBootstrapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrapTests.swift; sourceTree = "<group>"; };
 		A1B2C3020000000000000006 /* MovieDetailStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetailStateTests.swift; sourceTree = "<group>"; };
 		A1B2C3020000000000000007 /* PeopleActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeopleActionsTests.swift; sourceTree = "<group>"; };
+		A1B2C30200000000000000F1 /* AppDataExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataExportTests.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000001 /* AppPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPersistence.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000002 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000003 /* AppStateFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateFixtures.swift; sourceTree = "<group>"; };
@@ -487,6 +496,8 @@
 		A1B2C4020000000000000005 /* AppStoreFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreFactory.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000006 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000007 /* AppRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntime.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000E1 /* AppDataExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataExport.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000F1 /* UserDataDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataDocument.swift; sourceTree = "<group>"; };
 		A37863AE97FB06C0C61DB742 /* SortMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SortMenu.swift; sourceTree = "<group>"; };
 		AC5EEEB18CC8FC9A70406B36 /* TVMovieDetail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TVMovieDetail.swift; sourceTree = "<group>"; };
 		BB5DF2F255EC27E98226FB4C /* MovieSwiftMacUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieSwiftMacUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -870,6 +881,7 @@
 			isa = PBXGroup;
 			children = (
 				697E531D22C2627B003A7C01 /* SettingsForm.swift */,
+				A1B2C40200000000000000F1 /* UserDataDocument.swift */,
 			);
 			path = settings;
 			sourceTree = "<group>";
@@ -1102,6 +1114,7 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C4020000000000000001 /* AppPersistence.swift */,
+				A1B2C40200000000000000E1 /* AppDataExport.swift */,
 				A1B2C4020000000000000002 /* AppBootstrap.swift */,
 				A1B2C4020000000000000003 /* AppStateFixtures.swift */,
 				A1B2C4020000000000000004 /* AppLaunchMode.swift */,
@@ -1139,6 +1152,7 @@
 			children = (
 				A1B2C3020000000000000001 /* MovieSwiftTests.swift */,
 				A1B2C3020000000000000004 /* AppPersistenceTests.swift */,
+				A1B2C30200000000000000F1 /* AppDataExportTests.swift */,
 				A1B2C3020000000000000005 /* AppBootstrapTests.swift */,
 				A1B2C3020000000000000006 /* MovieDetailStateTests.swift */,
 				A1B2C3020000000000000007 /* PeopleActionsTests.swift */,
@@ -1513,6 +1527,7 @@
 				F5CE01010D728187A8A92A3F /* MoviesSearch.swift in Sources */,
 				202E52E6E227E65DBA0406D5 /* PaginatedResponse.swift in Sources */,
 				DA93225E716148976F63EEBE /* SettingsForm.swift in Sources */,
+				A1B2C40100000000000000F1 /* UserDataDocument.swift in Sources */,
 				1DFE124AA01C89AC08063974 /* PeopleActions.swift in Sources */,
 				7C4BD716A463F02197018516 /* MoviesPageListener.swift in Sources */,
 				25A69505191727156E0ADD87 /* MovieCrosslinePeopleRow.swift in Sources */,
@@ -1565,6 +1580,7 @@
 				454ECE2A587D4A1EF35E8EF6 /* People.swift in Sources */,
 				822849CA4B79197220F63DE8 /* AppState.swift in Sources */,
 				3ED3157981E0856EF18436FA /* AppPersistence.swift in Sources */,
+				A1B2C40100000000000000E1 /* AppDataExport.swift in Sources */,
 				D66C0ACA32B1B28F15E02EC5 /* AppBootstrap.swift in Sources */,
 				3173918980EB7A1C42512E1C /* AppStateFixtures.swift in Sources */,
 				DF421BBEA00EAE14BCCA81DC /* AppLaunchMode.swift in Sources */,
@@ -1611,6 +1627,7 @@
 				69414A2D23C35BF10056FBDF /* PeopleReducer.swift in Sources */,
 				69414A2E23C35BF40056FBDF /* AppState.swift in Sources */,
 				A1B2C4010000000000000001 /* AppPersistence.swift in Sources */,
+				A1B2C40100000000000000E2 /* AppDataExport.swift in Sources */,
 				A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000007 /* AppLaunchMode.swift in Sources */,
@@ -1663,6 +1680,7 @@
 				695F0F9622D4AB570066E168 /* MoviesSearch.swift in Sources */,
 				69FFAF9D22A9A6D500801F3C /* PaginatedResponse.swift in Sources */,
 				697E531E22C2627B003A7C01 /* SettingsForm.swift in Sources */,
+				A1B2C40100000000000000F2 /* UserDataDocument.swift in Sources */,
 				695882C722AD1AB500AFABA9 /* PeopleActions.swift in Sources */,
 				695F0F9822D4AB710066E168 /* MoviesPageListener.swift in Sources */,
 				695882CD22AD2F3000AFABA9 /* MovieCrosslinePeopleRow.swift in Sources */,
@@ -1715,6 +1733,7 @@
 				695882BF22AD197C00AFABA9 /* People.swift in Sources */,
 				69FB11C822C36B24002EB74A /* AppState.swift in Sources */,
 				A1B2C4010000000000000004 /* AppPersistence.swift in Sources */,
+				A1B2C40100000000000000E3 /* AppDataExport.swift in Sources */,
 				A1B2C4010000000000000005 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000006 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000011 /* AppLaunchMode.swift in Sources */,
@@ -1755,6 +1774,7 @@
 			files = (
 				A1B2C3010000000000000001 /* MovieSwiftTests.swift in Sources */,
 				A1B2C3010000000000000003 /* AppPersistenceTests.swift in Sources */,
+				A1B2C30100000000000000F1 /* AppDataExportTests.swift in Sources */,
 				A1B2C3010000000000000004 /* AppBootstrapTests.swift in Sources */,
 				A1B2C3010000000000000005 /* MovieDetailStateTests.swift in Sources */,
 				A1B2C3010000000000000006 /* PeopleActionsTests.swift in Sources */,
@@ -1776,6 +1796,7 @@
 			files = (
 				1AB9112C4AA846F45F555BA4 /* MovieSwiftTests.swift in Sources */,
 				DD27206B900D6B1D07E21184 /* AppPersistenceTests.swift in Sources */,
+				A1B2C30100000000000000F2 /* AppDataExportTests.swift in Sources */,
 				D2D28CA5EB0024B9833717DA /* AppBootstrapTests.swift in Sources */,
 				2908D79F1645B8F720DF3EFF /* MovieDetailStateTests.swift in Sources */,
 				3AACC34FD6890829501E05D1 /* PeopleActionsTests.swift in Sources */,
@@ -1796,6 +1817,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B732640A59B3E7C10811E51 /* AppPersistenceTests.swift in Sources */,
+				A1B2C30100000000000000F3 /* AppDataExportTests.swift in Sources */,
 				AF9AC036F8E4FCA06774294A /* AppBootstrapTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

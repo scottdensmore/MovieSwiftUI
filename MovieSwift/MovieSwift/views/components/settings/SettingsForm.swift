@@ -73,6 +73,10 @@ struct SettingsForm : ConnectedView {
     @State var selectedRegionCode: String = AppUserDefaults.region
     @State var alwaysOriginalTitle: Bool = false
     @State private var isClearCacheConfirmationPresented = false
+    @State private var isExportPresented = false
+    @State private var exportDocument: UserDataDocument?
+    @State private var exportSuggestedFilename: String = AppDataExport.suggestedFilename(for: Date())
+    @State private var exportErrorMessage: String?
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
@@ -148,6 +152,32 @@ struct SettingsForm : ConnectedView {
                                                      dispatch: props.dispatch)
     }
 
+    private func startExport() {
+        let now = Date()
+        do {
+            let data = try AppDataExport.data(from: store.state, exportDate: now)
+            exportDocument = UserDataDocument(data: data)
+            exportSuggestedFilename = AppDataExport.suggestedFilename(for: now)
+            isExportPresented = true
+        } catch {
+            exportErrorMessage = "Couldn't build the export file: \(error.localizedDescription)"
+        }
+    }
+
+    private func handleExportResult(_ result: Result<URL, Error>) {
+        // Drop the in-memory document either way — the user has either
+        // saved it or cancelled, and we don't want to keep ~20 KB of
+        // their state in @State for the lifetime of the view.
+        exportDocument = nil
+        if case .failure(let error) = result {
+            // The user cancelling is reported as a CancellationError on
+            // some OS versions, so don't surface that as a real error.
+            if (error as NSError).domain != NSCocoaErrorDomain || (error as NSError).code != NSUserCancelledError {
+                exportErrorMessage = "Export failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
     private var originalTitlePreferenceRow: some View {
         Button {
             alwaysOriginalTitle.toggle()
@@ -167,7 +197,16 @@ struct SettingsForm : ConnectedView {
         .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
     }
 
+    @ViewBuilder
     private func formContent(props: Props) -> some View {
+        #if os(macOS)
+        macOSContent(props: props)
+        #else
+        iOSFormContent(props: props)
+        #endif
+    }
+
+    private func iOSFormContent(props: Props) -> some View {
         Form {
             Section(header: Text("Region preferences"),
                     footer: Text("Region is used to display a more accurate movies list"),
@@ -181,7 +220,7 @@ struct SettingsForm : ConnectedView {
                     .accessibilityIdentifier("settings.regionPicker")
             })
             Section(header: Text("App data"),
-                    footer: Text("Clears cached movies, people, details, and images while keeping your lists and preferences. Backup and restore are not implemented yet."),
+                    footer: Text("Clears cached movies, people, details, and images while keeping your lists and preferences. Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Backup and restore via iCloud are not implemented yet."),
                     content: {
                 Button(role: .destructive) {
                     isClearCacheConfirmationPresented = true
@@ -190,11 +229,17 @@ struct SettingsForm : ConnectedView {
                 }
                 .accessibilityIdentifier("settings.clearCachedDataButton")
 
-                Text("Export my data").foregroundColor(.secondary)
+                Button {
+                    startExport()
+                } label: {
+                    Label("Export my data", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("settings.exportDataButton")
+
                 Text("Backup to iCloud").foregroundColor(.secondary)
                 Text("Restore from iCloud").foregroundColor(.secondary)
             })
-            
+
             Section(header: Text("Debug info")) {
                 debugInfoView(title: "Movies in state",
                               info: "\(props.debugMoviesCount)")
@@ -218,6 +263,251 @@ struct SettingsForm : ConnectedView {
             .scrollContentBackground(.hidden)
             .background(Color.steam_background)
             .safeAreaPadding(.horizontal, isModalPresentation ? 0 : 12)
+    }
+
+    // MARK: - macOS styled layout
+    //
+    // The system Form / Section look fights the rest of the app's
+    // steam-themed design. This rebuilds Settings as a ScrollView of
+    // grouped cards with FjallaOne section headers, steam_gold accents,
+    // and steam_rust for destructive actions — matching the language used
+    // by My Lists, Fan Club, Discover, and the sidebar.
+
+    private func macOSContent(props: Props) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                regionPreferencesSection
+                appDataSection
+                debugInfoSection(props: props)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 24)
+            .frame(maxWidth: 720, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .background(Color.steam_background)
+        .tint(.steam_gold)
+        .onAppear(perform: loadCurrentPreferences)
+        .onChange(of: selectedRegionCode) { _, _ in
+            if !isModalPresentation {
+                savePreferences(dispatch: props.dispatch)
+            }
+        }
+        .onChange(of: alwaysOriginalTitle) { _, _ in
+            if !isModalPresentation {
+                savePreferences(dispatch: props.dispatch)
+            }
+        }
+    }
+
+    // MARK: Section primitives
+
+    @ViewBuilder
+    private func sectionCard<Content: View>(
+        title: String,
+        footer: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(.FjallaOne(size: 14))
+                .tracking(1.4)
+                .foregroundColor(.steam_gold)
+                .padding(.horizontal, 4)
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.primary.opacity(0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+
+            if let footer {
+                Text(footer)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var rowDivider: some View {
+        Divider()
+            .padding(.leading, 14)
+            .background(Color.primary.opacity(0.04))
+    }
+
+    // MARK: Sections
+
+    private var regionPreferencesSection: some View {
+        sectionCard(title: "Region preferences",
+                    footer: "Region is used to display a more accurate movies list.") {
+            regionRow
+            rowDivider
+            originalTitleRow
+        }
+    }
+
+    private var appDataSection: some View {
+        sectionCard(title: "App data",
+                    footer: "Clears cached movies, people, details, and images while keeping your lists and preferences. Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Backup and restore via iCloud are not implemented yet.") {
+            clearCachedDataRow
+            rowDivider
+            exportDataRow
+            rowDivider
+            comingSoonRow(title: "Backup to iCloud", systemImage: "icloud.and.arrow.up")
+            rowDivider
+            comingSoonRow(title: "Restore from iCloud", systemImage: "icloud.and.arrow.down")
+        }
+    }
+
+    private func debugInfoSection(props: Props) -> some View {
+        sectionCard(title: "Debug info") {
+            debugRow(title: "Movies in state",
+                     info: "\(props.debugMoviesCount)")
+            rowDivider
+            debugRow(title: "Archived state size",
+                     info: archivedStateSizeDescription())
+        }
+    }
+
+    // MARK: Rows
+
+    private var regionRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "globe")
+                .font(.body)
+                .foregroundColor(.steam_blue)
+                .frame(width: 22)
+            Text("Region")
+            Spacer(minLength: 12)
+            Picker("Region", selection: $selectedRegionCode) {
+                ForEach(regions) { region in
+                    Text(region.name).tag(region.code)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .tint(.steam_gold)
+            .accessibilityIdentifier("settings.regionPicker")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private var originalTitleRow: some View {
+        Button {
+            alwaysOriginalTitle.toggle()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "character.book.closed")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Always show original title")
+                Spacer(minLength: 12)
+                Toggle("", isOn: $alwaysOriginalTitle)
+                    .labelsHidden()
+                    .allowsHitTesting(false)
+                    .tint(.steam_gold)
+                    .accessibilityIdentifier("settings.alwaysOriginalTitleToggle")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
+    }
+
+    private var clearCachedDataRow: some View {
+        Button {
+            isClearCacheConfirmationPresented = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "trash")
+                    .font(.body)
+                    .foregroundColor(.steam_rust)
+                    .frame(width: 22)
+                Text("Clear cached data")
+                    .foregroundColor(.steam_rust)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.clearCachedDataButton")
+    }
+
+    private var exportDataRow: some View {
+        Button {
+            startExport()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Export my data")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.exportDataButton")
+    }
+
+    private func comingSoonRow(title: String, systemImage: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+            Text(title)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text("Soon")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(Color.primary.opacity(0.10))
+                )
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private func debugRow(title: String, info: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "info.circle")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+            Text(title)
+            Spacer(minLength: 12)
+            Text(info)
+                .font(.callout.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
     
     @ViewBuilder
@@ -271,6 +561,21 @@ struct SettingsForm : ConnectedView {
             }
         } message: {
             Text("This removes cached movie and people data and clears downloaded image responses, but keeps your lists and preferences.")
+        }
+        .fileExporter(isPresented: $isExportPresented,
+                      document: exportDocument,
+                      contentType: .json,
+                      defaultFilename: exportSuggestedFilename,
+                      onCompletion: handleExportResult)
+        .alert("Export failed",
+               isPresented: Binding(
+                get: { exportErrorMessage != nil },
+                set: { if !$0 { exportErrorMessage = nil } }
+               ),
+               presenting: exportErrorMessage) { _ in
+            Button("OK", role: .cancel) { exportErrorMessage = nil }
+        } message: { message in
+            Text(message)
         }
     }
 }
