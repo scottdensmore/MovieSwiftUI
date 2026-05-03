@@ -77,6 +77,11 @@ struct SettingsForm : ConnectedView {
     @State private var exportDocument: UserDataDocument?
     @State private var exportSuggestedFilename: String = AppDataExport.suggestedFilename(for: Date())
     @State private var exportErrorMessage: String?
+    @State private var isImportPickerPresented = false
+    @State private var pendingImportEnvelope: AppDataExportEnvelope?
+    @State private var pendingImportCounts: AppDataImport.Counts?
+    @State private var importErrorMessage: String?
+    @State private var importSuccessCounts: AppDataImport.Counts?
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
@@ -178,6 +183,77 @@ struct SettingsForm : ConnectedView {
         }
     }
 
+    private func handleImportSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .failure(let error):
+            // User cancellation isn't an error worth showing.
+            if (error as NSError).domain != NSCocoaErrorDomain || (error as NSError).code != NSUserCancelledError {
+                importErrorMessage = "Import failed: \(error.localizedDescription)"
+            }
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            // .fileImporter returns a security-scoped URL on macOS sandbox.
+            // We must explicitly start/stop access while reading the file.
+            let didStart = url.startAccessingSecurityScopedResource()
+            defer { if didStart { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let data = try Data(contentsOf: url)
+                let envelope = try AppDataImport.decodeEnvelope(from: data)
+                let counts = AppDataImport.previewCounts(for: envelope, against: store.state)
+                pendingImportEnvelope = envelope
+                pendingImportCounts = counts
+            } catch let error as AppDataImport.ImportError {
+                importErrorMessage = error.errorDescription
+            } catch {
+                importErrorMessage = "Couldn't read the export file: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func confirmImport(props: Props) {
+        guard let envelope = pendingImportEnvelope else { return }
+        let counts = pendingImportCounts
+        pendingImportEnvelope = nil
+        pendingImportCounts = nil
+        props.dispatch(AppActions.ImportAppData(envelope: envelope))
+        importSuccessCounts = counts
+    }
+
+    private func cancelPendingImport() {
+        pendingImportEnvelope = nil
+        pendingImportCounts = nil
+    }
+
+    private func importPreviewMessage(_ counts: AppDataImport.Counts) -> String {
+        guard counts.hasAnyChanges else {
+            return "This export doesn't add anything new — your library already contains all of these items."
+        }
+        var lines: [String] = []
+        if counts.wishlistAdded > 0 {
+            lines.append("• \(counts.wishlistAdded) movie\(counts.wishlistAdded == 1 ? "" : "s") to your wishlist")
+        }
+        if counts.seenlistAdded > 0 {
+            lines.append("• \(counts.seenlistAdded) movie\(counts.seenlistAdded == 1 ? "" : "s") to your seenlist")
+        }
+        if counts.fanClubAdded > 0 {
+            lines.append("• \(counts.fanClubAdded) \(counts.fanClubAdded == 1 ? "person" : "people") to your fan club")
+        }
+        if counts.customListsAdded > 0 {
+            lines.append("• \(counts.customListsAdded) new custom list\(counts.customListsAdded == 1 ? "" : "s")")
+        }
+        if counts.customListsUpdated > 0 {
+            lines.append("• \(counts.customListsUpdated) existing custom list\(counts.customListsUpdated == 1 ? "" : "s") will be replaced")
+        }
+        return "Will add:\n" + lines.joined(separator: "\n")
+    }
+
+    private func importSuccessMessage(_ counts: AppDataImport.Counts) -> String {
+        guard counts.hasAnyChanges else {
+            return "Import finished. Nothing new was added — your library already contained these items."
+        }
+        return "Imported \(counts.total) item\(counts.total == 1 ? "" : "s") into your library."
+    }
+
     private var originalTitlePreferenceRow: some View {
         Button {
             alwaysOriginalTitle.toggle()
@@ -220,7 +296,7 @@ struct SettingsForm : ConnectedView {
                     .accessibilityIdentifier("settings.regionPicker")
             })
             Section(header: Text("App data"),
-                    footer: Text("Clears cached movies, people, details, and images while keeping your lists and preferences. Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Backup and restore via iCloud are not implemented yet."),
+                    footer: Text("Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Import merges a previously exported file into your current library — your existing data is preserved. Backup and restore via iCloud are not implemented yet."),
                     content: {
                 Button(role: .destructive) {
                     isClearCacheConfirmationPresented = true
@@ -235,6 +311,13 @@ struct SettingsForm : ConnectedView {
                     Label("Export my data", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("settings.exportDataButton")
+
+                Button {
+                    isImportPickerPresented = true
+                } label: {
+                    Label("Import my data", systemImage: "square.and.arrow.down")
+                }
+                .accessibilityIdentifier("settings.importDataButton")
 
                 Text("Backup to iCloud").foregroundColor(.secondary)
                 Text("Restore from iCloud").foregroundColor(.secondary)
@@ -357,10 +440,12 @@ struct SettingsForm : ConnectedView {
 
     private var appDataSection: some View {
         sectionCard(title: "App data",
-                    footer: "Clears cached movies, people, details, and images while keeping your lists and preferences. Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Backup and restore via iCloud are not implemented yet.") {
+                    footer: "Export saves a JSON copy of your wishlist, seenlist, custom lists, and fan club. Import merges a previously exported file into your current library — your existing data is preserved. Backup and restore via iCloud are not implemented yet.") {
             clearCachedDataRow
             rowDivider
             exportDataRow
+            rowDivider
+            importDataRow
             rowDivider
             comingSoonRow(title: "Backup to iCloud", systemImage: "icloud.and.arrow.up")
             rowDivider
@@ -472,6 +557,30 @@ struct SettingsForm : ConnectedView {
         .accessibilityIdentifier("settings.exportDataButton")
     }
 
+    private var importDataRow: some View {
+        Button {
+            isImportPickerPresented = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Import my data")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.importDataButton")
+    }
+
     private func comingSoonRow(title: String, systemImage: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
@@ -576,6 +685,42 @@ struct SettingsForm : ConnectedView {
             Button("OK", role: .cancel) { exportErrorMessage = nil }
         } message: { message in
             Text(message)
+        }
+        .fileImporter(isPresented: $isImportPickerPresented,
+                      allowedContentTypes: [.json],
+                      allowsMultipleSelection: false,
+                      onCompletion: handleImportSelection)
+        .alert("Import data?",
+               isPresented: Binding(
+                get: { pendingImportEnvelope != nil },
+                set: { if !$0 { cancelPendingImport() } }
+               ),
+               presenting: pendingImportCounts) { _ in
+            Button("Import", action: { confirmImport(props: props) })
+                .accessibilityIdentifier("settings.import.confirmButton")
+            Button("Cancel", role: .cancel, action: cancelPendingImport)
+        } message: { counts in
+            Text(importPreviewMessage(counts))
+        }
+        .alert("Import failed",
+               isPresented: Binding(
+                get: { importErrorMessage != nil },
+                set: { if !$0 { importErrorMessage = nil } }
+               ),
+               presenting: importErrorMessage) { _ in
+            Button("OK", role: .cancel) { importErrorMessage = nil }
+        } message: { message in
+            Text(message)
+        }
+        .alert("Import complete",
+               isPresented: Binding(
+                get: { importSuccessCounts != nil },
+                set: { if !$0 { importSuccessCounts = nil } }
+               ),
+               presenting: importSuccessCounts) { _ in
+            Button("OK", role: .cancel) { importSuccessCounts = nil }
+        } message: { counts in
+            Text(importSuccessMessage(counts))
         }
     }
 }

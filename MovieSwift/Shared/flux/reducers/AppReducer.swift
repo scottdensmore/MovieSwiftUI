@@ -11,6 +11,12 @@ import SwiftUIFlux
 
 enum AppActions {
     struct ClearCachedData: Action { }
+
+    /// Merges the provided import envelope into the current state.
+    /// See `AppDataImport.merge(envelope:into:)` for the merge rules.
+    struct ImportAppData: Action {
+        let envelope: AppDataExportEnvelope
+    }
 }
 
 enum AppStateCacheReset {
@@ -54,6 +60,9 @@ enum AppStateCacheReset {
 func appStateReducer(state: AppState, action: Action) -> AppState {
     if action is AppActions.ClearCachedData {
         return AppStateCacheReset.persistentSnapshot(from: state)
+    }
+    if let importAction = action as? AppActions.ImportAppData {
+        return AppDataImport.merge(envelope: importAction.envelope, into: state)
     }
 
     var state = state
