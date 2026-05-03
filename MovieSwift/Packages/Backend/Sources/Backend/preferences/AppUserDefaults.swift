@@ -23,4 +23,12 @@ public struct AppUserDefaults {
     /// (their own TMDB quota) is comparatively low.
     @UserDefault("user_tmdb_api_key", defaultValue: "")
     public static var userTMDBAPIKey: String
+
+    /// Whether the user has finished the first-launch onboarding flow.
+    /// Set to true when they reach the Ready step and tap "Open
+    /// MovieSwift". `OnboardingFlow.shouldShow` re-displays the flow
+    /// even when this is true if there's no usable API key, since the
+    /// app can't function without one.
+    @UserDefault("has_completed_onboarding", defaultValue: false)
+    public static var hasCompletedOnboarding: Bool
 }

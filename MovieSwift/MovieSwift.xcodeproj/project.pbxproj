@@ -242,6 +242,8 @@
 		A1B2C30100000000000000B1 /* AppDataICloudBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */; };
 		A1B2C30100000000000000B2 /* AppDataICloudBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */; };
 		A1B2C30100000000000000B3 /* AppDataICloudBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */; };
+		A1B2C30100000000000000A1 /* OnboardingFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */; };
+		A1B2C30100000000000000A2 /* OnboardingFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */; };
 		A1B2C4010000000000000001 /* AppPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000001 /* AppPersistence.swift */; };
 		A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000002 /* AppBootstrap.swift */; };
 		A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000003 /* AppStateFixtures.swift */; };
@@ -265,6 +267,10 @@
 		A1B2C40100000000000000C1 /* AppDataICloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */; };
 		A1B2C40100000000000000C2 /* AppDataICloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */; };
 		A1B2C40100000000000000C3 /* AppDataICloudBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */; };
+		A1B2C40100000000000000A1 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A1 /* OnboardingFlow.swift */; };
+		A1B2C40100000000000000A2 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A1 /* OnboardingFlow.swift */; };
+		A1B2C40100000000000000A3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A2 /* OnboardingView.swift */; };
+		A1B2C40100000000000000A4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A2 /* OnboardingView.swift */; };
 		A1B2C40100000000000000F1 /* UserDataDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F1 /* UserDataDocument.swift */; };
 		A1B2C40100000000000000F2 /* UserDataDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F1 /* UserDataDocument.swift */; };
 		A3E555D90FCDFB21E4048756 /* PeopleDetailImagesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6920B8F122D0A1B5004C7528 /* PeopleDetailImagesRow.swift */; };
@@ -503,6 +509,7 @@
 		A1B2C30200000000000000F1 /* AppDataExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataExportTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000D1 /* AppDataImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataImportTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataICloudBackupTests.swift; sourceTree = "<group>"; };
+		A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowTests.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000001 /* AppPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPersistence.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000002 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000003 /* AppStateFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateFixtures.swift; sourceTree = "<group>"; };
@@ -513,6 +520,8 @@
 		A1B2C40200000000000000E1 /* AppDataExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataExport.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000D1 /* AppDataImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataImport.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataICloudBackup.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000A1 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000A2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000F1 /* UserDataDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataDocument.swift; sourceTree = "<group>"; };
 		A37863AE97FB06C0C61DB742 /* SortMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SortMenu.swift; sourceTree = "<group>"; };
 		AC5EEEB18CC8FC9A70406B36 /* TVMovieDetail.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TVMovieDetail.swift; sourceTree = "<group>"; };
@@ -735,8 +744,18 @@
 				6993877122E64DE8007AA4E0 /* MoviesMenu.swift */,
 				24AC77131C009F44BD805569 /* SplitView.swift */,
 				A37863AE97FB06C0C61DB742 /* SortMenu.swift */,
+				A1B2C40300000000000000A1 /* onboarding */,
 			);
 			path = views;
+			sourceTree = "<group>";
+		};
+		A1B2C40300000000000000A1 /* onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C40200000000000000A1 /* OnboardingFlow.swift */,
+				A1B2C40200000000000000A2 /* OnboardingView.swift */,
+			);
+			path = onboarding;
 			sourceTree = "<group>";
 		};
 		69414A5223C35F6C0056FBDF /* views */ = {
@@ -1173,6 +1192,7 @@
 				A1B2C30200000000000000F1 /* AppDataExportTests.swift */,
 				A1B2C30200000000000000D1 /* AppDataImportTests.swift */,
 				A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */,
+				A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */,
 				A1B2C3020000000000000005 /* AppBootstrapTests.swift */,
 				A1B2C3020000000000000006 /* MovieDetailStateTests.swift */,
 				A1B2C3020000000000000007 /* PeopleActionsTests.swift */,
@@ -1623,6 +1643,8 @@
 				5D6DFF494948945ED2FFAFCA /* PeoplesState.swift in Sources */,
 				5ED39D31A998C04F1CF462C9 /* EnvironmentKeys.swift in Sources */,
 				213144CBDDDEFBAB76964AF2 /* SplitView.swift in Sources */,
+				A1B2C40100000000000000A1 /* OnboardingFlow.swift in Sources */,
+				A1B2C40100000000000000A3 /* OnboardingView.swift in Sources */,
 				0F186BAAB115AA95F45A1531 /* SortMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1781,6 +1803,8 @@
 				695882C322AD1A1E00AFABA9 /* PeoplesState.swift in Sources */,
 				107B30F973A45019AFD6C0DF /* EnvironmentKeys.swift in Sources */,
 				D6270392A011A27F305076E0 /* SplitView.swift in Sources */,
+				A1B2C40100000000000000A2 /* OnboardingFlow.swift in Sources */,
+				A1B2C40100000000000000A4 /* OnboardingView.swift in Sources */,
 				3EEB10C1DF64067CCAC632F2 /* SortMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1803,6 +1827,7 @@
 				A1B2C30100000000000000F1 /* AppDataExportTests.swift in Sources */,
 				A1B2C30100000000000000D1 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B1 /* AppDataICloudBackupTests.swift in Sources */,
+				A1B2C30100000000000000A1 /* OnboardingFlowTests.swift in Sources */,
 				A1B2C3010000000000000004 /* AppBootstrapTests.swift in Sources */,
 				A1B2C3010000000000000005 /* MovieDetailStateTests.swift in Sources */,
 				A1B2C3010000000000000006 /* PeopleActionsTests.swift in Sources */,
@@ -1827,6 +1852,7 @@
 				A1B2C30100000000000000F2 /* AppDataExportTests.swift in Sources */,
 				A1B2C30100000000000000D2 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B2 /* AppDataICloudBackupTests.swift in Sources */,
+				A1B2C30100000000000000A2 /* OnboardingFlowTests.swift in Sources */,
 				D2D28CA5EB0024B9833717DA /* AppBootstrapTests.swift in Sources */,
 				2908D79F1645B8F720DF3EFF /* MovieDetailStateTests.swift in Sources */,
 				3AACC34FD6890829501E05D1 /* PeopleActionsTests.swift in Sources */,

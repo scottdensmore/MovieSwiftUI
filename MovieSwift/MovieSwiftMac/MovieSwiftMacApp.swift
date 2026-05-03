@@ -11,12 +11,16 @@ import AppIntents
 struct MovieSwiftMacApp: App {
     private let environment: AppEnvironment
     private let store: Store<AppState>
+    @State private var isOnboardingPresented: Bool
 
     init() {
         let environment = AppEnvironment.current()
         self.environment = environment
         self.store = environment.store
         environment.runtime.startArchiving(store: store)
+        _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
+            isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
+        ))
     }
 
     @FocusedValue(\.selectedOutlineMenu) private var selectedMenuBinding
@@ -29,6 +33,10 @@ struct MovieSwiftMacApp: App {
                     .tint(.steam_gold)
                     .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
                     .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+                    .sheet(isPresented: $isOnboardingPresented) {
+                        OnboardingView(onComplete: { isOnboardingPresented = false })
+                            .interactiveDismissDisabled()
+                    }
             }
         }
         .defaultSize(width: 1200, height: 800)

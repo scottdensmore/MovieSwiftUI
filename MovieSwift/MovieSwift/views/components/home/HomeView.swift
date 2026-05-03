@@ -14,6 +14,7 @@ import AppIntents
 struct HomeView: App {
     private let environment: AppEnvironment
     private let store: Store<AppState>
+    @State private var isOnboardingPresented: Bool
 
     init() {
         self.init(environment: AppEnvironment.current())
@@ -23,6 +24,9 @@ struct HomeView: App {
         self.environment = environment
         self.store = environment.store
         environment.runtime.startArchiving(store: store)
+        _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
+            isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
+        ))
     }
 
     var body: some Scene {
@@ -32,6 +36,9 @@ struct HomeView: App {
                     .tint(.steam_gold)
                     .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
                     .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+                    .fullScreenCover(isPresented: $isOnboardingPresented) {
+                        OnboardingView(onComplete: { isOnboardingPresented = false })
+                    }
             }
         }
     }

@@ -87,6 +87,7 @@ struct SettingsForm : ConnectedView {
     @State private var lastICloudBackupDate: Date? = AppDataICloudBackup.resolvedLastBackupDate()
     @State private var userAPIKeyDraft: String = AppUserDefaults.userTMDBAPIKey
     @FocusState private var isUserAPIKeyFocused: Bool
+    @State private var isOnboardingResetConfirmationPresented = false
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)? = nil
@@ -476,7 +477,12 @@ struct SettingsForm : ConnectedView {
                               info: "\(props.debugMoviesCount)")
                 debugInfoView(title: "Archived state size",
                               info: archivedStateSizeDescription())
-
+                Button {
+                    isOnboardingResetConfirmationPresented = true
+                } label: {
+                    Label("Show onboarding again", systemImage: "arrow.counterclockwise")
+                }
+                .accessibilityIdentifier("settings.resetOnboardingButton")
             }
         }
         .onAppear(perform: loadCurrentPreferences)
@@ -620,7 +626,30 @@ struct SettingsForm : ConnectedView {
             rowDivider
             debugRow(title: "Archived state size",
                      info: archivedStateSizeDescription())
+            rowDivider
+            resetOnboardingRow
         }
+    }
+
+    private var resetOnboardingRow: some View {
+        Button {
+            isOnboardingResetConfirmationPresented = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Show onboarding again")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.resetOnboardingButton")
     }
 
     // MARK: Rows
@@ -1045,6 +1074,16 @@ struct SettingsForm : ConnectedView {
             Button("OK", role: .cancel) { backupErrorMessage = nil }
         } message: { message in
             Text(message)
+        }
+        .confirmationDialog("Show onboarding again?",
+                            isPresented: $isOnboardingResetConfirmationPresented,
+                            titleVisibility: .visible) {
+            Button("Show onboarding") {
+                AppUserDefaults.hasCompletedOnboarding = false
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("The onboarding wizard will appear next time you launch MovieSwift.")
         }
     }
 }
