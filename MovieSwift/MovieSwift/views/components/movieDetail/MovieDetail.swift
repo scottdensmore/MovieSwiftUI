@@ -327,6 +327,13 @@ struct MovieDetail: ConnectedView {
         let isInWishlist: Bool
         let isInSeenlist: Bool
         let customLists: [CustomList]
+        /// Failure for the top-level FetchDetail. Sub-row failures
+        /// (recommended / similar / videos / reviews) are ignored
+        /// here — those rows degrade gracefully when their data
+        /// isn't loaded, and showing five separate banners would be
+        /// noisy. The detail-level failure matters most because
+        /// without it the whole page is empty.
+        let detailFailure: MoviesListLoadFailure?
         let dispatch: DispatchFunction
     }
     
@@ -393,6 +400,12 @@ struct MovieDetail: ConnectedView {
         if let simillarIds = state.moviesState.similar[movieId] {
             similar = simillarIds.compactMap{ state.moviesState.movies[$0] }
         }
+        let detailFailure: MoviesListLoadFailure?
+        if case .failed(let f) = state.moviesState.loadingStates[.movieDetail(movieId)] {
+            detailFailure = f
+        } else {
+            detailFailure = nil
+        }
         return Props(movie: MovieDetailState.movie(movieId: movieId, from: state),
                      characters: MovieDetailPeopleState.characters(movieId: movieId, from: state),
                      credits: MovieDetailPeopleState.credits(movieId: movieId, from: state),
@@ -409,6 +422,7 @@ struct MovieDetail: ConnectedView {
                      isInWishlist: MovieDetailListState.isInWishlist(movieId: movieId, from: state),
                      isInSeenlist: MovieDetailListState.isInSeenlist(movieId: movieId, from: state),
                      customLists: MovieDetailListState.customLists(from: state),
+                     detailFailure: detailFailure,
                      dispatch: dispatch)
     }
     
@@ -977,13 +991,23 @@ struct MovieDetail: ConnectedView {
     #endif
 
     @ViewBuilder
-    func unavailableView() -> some View {
+    func unavailableView(props: Props) -> some View {
         VStack(spacing: 12) {
-            Text("Movie not available")
-                .font(.headline)
-            Text("This movie could not be loaded.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            // When the load failed, show the structured error banner
+            // with a retry. When it didn't fail (e.g. movie isn't in
+            // the cache for some other reason), fall back to the
+            // generic "not available" message.
+            if let failure = props.detailFailure {
+                MoviesListErrorBanner(failure: failure) {
+                    props.dispatch(MoviesActions.FetchDetail(movie: movieId))
+                }
+            } else {
+                Text("Movie not available")
+                    .font(.headline)
+                Text("This movie could not be loaded.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
@@ -1057,7 +1081,7 @@ struct MovieDetail: ConnectedView {
                     detailContent(props: props)
                     .navigationTitle(movie.userTitle)
                 } else {
-                    unavailableView()
+                    unavailableView(props: props)
                         .navigationTitle("Movie")
                 }
             }

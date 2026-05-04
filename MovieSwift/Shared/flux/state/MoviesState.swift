@@ -12,12 +12,17 @@ import SwiftUIFlux
 struct MoviesState: FluxState, Codable {
     var movies: [Int: Movie] = [:]
     var moviesList: [MoviesMenu: [Int]] = [:]
-    /// Transient: per-menu loading lifecycle state. Excluded from
-    /// CodingKeys because it represents in-flight network state, not
-    /// data the user owns. A missing entry means "no in-flight
-    /// request" — `moviesList[menu]` (if present) is the latest known
-    /// good data.
-    var moviesListLoadingState: [MoviesMenu: MoviesListLoadingState] = [:]
+    /// Transient: in-flight / failed-state tracker for every async
+    /// fetcher in the app, keyed by `LoadingKey`. A missing entry
+    /// means "no in-flight request" — the cached data (if any) is the
+    /// latest known good. Excluded from CodingKeys because it
+    /// represents network state, not data the user owns.
+    ///
+    /// Lives in MoviesState rather than PeoplesState (or AppState)
+    /// because moviesStateReducer is the natural single owner — both
+    /// Movies and People AsyncActions dispatch
+    /// `MoviesActions.SetLoadingState` here.
+    var loadingStates: [LoadingKey: MoviesListLoadingState] = [:]
     var detailed: Set<Int> = Set()
     
     var recommended: [Int: [Int]] = [:]

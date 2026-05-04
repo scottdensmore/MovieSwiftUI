@@ -124,6 +124,7 @@ struct GenresList: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let genres: [Genre]
+        let loadingFailure: MoviesListLoadFailure?
     }
 
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
@@ -137,9 +138,21 @@ struct GenresList: ConnectedView {
     @ViewBuilder
     func body(props: Props) -> some View {
         #if os(macOS)
-        macOSBody(props: props)
+        VStack(spacing: 0) {
+            if let failure = props.loadingFailure {
+                MoviesListErrorBanner(failure: failure) {
+                    props.dispatch(MoviesActions.FetchGenres())
+                }
+            }
+            macOSBody(props: props)
+        }
         #else
         VStack(spacing: 0) {
+            if let failure = props.loadingFailure {
+                MoviesListErrorBanner(failure: failure) {
+                    props.dispatch(MoviesActions.FetchGenres())
+                }
+            }
             List {
                 ForEach(props.genres) { genre in
                     NavigationLink(destination: MoviesGenreList(genre: genre)) {
@@ -267,8 +280,15 @@ struct GenresList: ConnectedView {
     #endif
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(dispatch: dispatch,
-              genres: GenresListState.genres(from: state))
+        let loadingFailure: MoviesListLoadFailure?
+        if case .failed(let f) = state.moviesState.loadingStates[.genres] {
+            loadingFailure = f
+        } else {
+            loadingFailure = nil
+        }
+        return Props(dispatch: dispatch,
+                     genres: GenresListState.genres(from: state),
+                     loadingFailure: loadingFailure)
     }
 }
 

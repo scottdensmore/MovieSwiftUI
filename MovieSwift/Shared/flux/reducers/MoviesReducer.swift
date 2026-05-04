@@ -24,15 +24,18 @@ func moviesStateReducer(state: MoviesState, action: Action) -> MoviesState {
             }
         }
         state.movies += action.response.results
-        // Successful response clears any prior loading or failed
-        // state for this menu so the UI's error banner disappears.
-        state.moviesListLoadingState.removeValue(forKey: action.list)
 
-    case let action as MoviesActions.SetMoviesMenuListLoading:
-        state.moviesListLoadingState[action.list] = .loading
-
-    case let action as MoviesActions.SetMoviesMenuListFailure:
-        state.moviesListLoadingState[action.list] = .failed(action.failure)
+    case let action as MoviesActions.SetLoadingState:
+        // Generic loading-state transition: nil-state clears the
+        // entry. Success paths in AsyncAction completion handlers
+        // dispatch SetLoadingState(state: nil), so a successful
+        // response banishes any prior error banner without an
+        // additional reducer hook here.
+        if let s = action.state {
+            state.loadingStates[action.key] = s
+        } else {
+            state.loadingStates.removeValue(forKey: action.key)
+        }
 
     case let action as MoviesActions.SetDetail:
         state.movies[action.movie] = action.response

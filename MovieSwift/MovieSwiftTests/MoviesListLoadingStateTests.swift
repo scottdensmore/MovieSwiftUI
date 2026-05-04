@@ -87,63 +87,83 @@ final class MoviesListLoadingStateTests: XCTestCase {
 
     // MARK: - Reducer integration
 
-    func testReducerSetsLoadingStateOnSetMoviesMenuListLoading() {
+    func testReducerSetsLoadingStateForKey() {
         let initial = MoviesState()
         let result = moviesStateReducer(
             state: initial,
-            action: MoviesActions.SetMoviesMenuListLoading(list: .popular)
+            action: MoviesActions.SetLoadingState(key: .homeMenu(.popular),
+                                                   state: .loading)
         )
-        XCTAssertEqual(result.moviesListLoadingState[.popular], .loading)
+        XCTAssertEqual(result.loadingStates[.homeMenu(.popular)], .loading)
     }
 
-    func testReducerSetsFailureStateOnSetMoviesMenuListFailure() {
+    func testReducerSetsFailureStateForKey() {
         let initial = MoviesState()
         let failure = MoviesListLoadFailure(kind: .offline, message: "offline")
         let result = moviesStateReducer(
             state: initial,
-            action: MoviesActions.SetMoviesMenuListFailure(list: .topRated, failure: failure)
+            action: MoviesActions.SetLoadingState(key: .homeMenu(.topRated),
+                                                   state: .failed(failure))
         )
-        XCTAssertEqual(result.moviesListLoadingState[.topRated], .failed(failure))
+        XCTAssertEqual(result.loadingStates[.homeMenu(.topRated)], .failed(failure))
     }
 
-    func testReducerClearsFailureStateOnSuccessfulFetch() {
+    func testReducerClearsLoadingStateWhenStateIsNil() {
         // Arrange: a menu currently sitting in a failed state.
         var initial = MoviesState()
-        initial.moviesListLoadingState[.popular] = .failed(
+        initial.loadingStates[.homeMenu(.popular)] = .failed(
             MoviesListLoadFailure(kind: .offline, message: "offline")
         )
 
-        // Act: a successful response lands.
-        let response = PaginatedResponse<Movie>(
-            page: 1,
-            total_results: 0,
-            total_pages: 1,
-            results: []
-        )
+        // Act: nil-state clears the entry — used by the success path
+        // in `makeTrackedHandler` so the banner disappears on retry
+        // success.
         let result = moviesStateReducer(
             state: initial,
-            action: MoviesActions.SetMovieMenuList(page: 1,
-                                                   list: .popular,
-                                                   response: response)
+            action: MoviesActions.SetLoadingState(key: .homeMenu(.popular),
+                                                   state: nil)
         )
 
-        // Assert: the entry is gone — UI banner disappears.
-        XCTAssertNil(result.moviesListLoadingState[.popular])
+        XCTAssertNil(result.loadingStates[.homeMenu(.popular)])
     }
 
-    func testReducerKeepsLoadingStatePerMenu() {
-        // Two menus shouldn't trample each other's loading state.
+    func testReducerKeepsLoadingStatePerKey() {
+        // Different keys shouldn't trample each other's state.
         var state = MoviesState()
         state = moviesStateReducer(
             state: state,
-            action: MoviesActions.SetMoviesMenuListLoading(list: .popular)
+            action: MoviesActions.SetLoadingState(key: .homeMenu(.popular),
+                                                   state: .loading)
         )
         let failure = MoviesListLoadFailure(kind: .server, message: "500")
         state = moviesStateReducer(
             state: state,
-            action: MoviesActions.SetMoviesMenuListFailure(list: .topRated, failure: failure)
+            action: MoviesActions.SetLoadingState(key: .homeMenu(.topRated),
+                                                   state: .failed(failure))
         )
-        XCTAssertEqual(state.moviesListLoadingState[.popular], .loading)
-        XCTAssertEqual(state.moviesListLoadingState[.topRated], .failed(failure))
+        XCTAssertEqual(state.loadingStates[.homeMenu(.popular)], .loading)
+        XCTAssertEqual(state.loadingStates[.homeMenu(.topRated)], .failed(failure))
+    }
+
+    func testReducerHandlesPeopleAndMovieKeysInTheSameDict() {
+        // The unified LoadingKey enum spans both Movies and People
+        // fetchers. Verify entries don't collide.
+        var state = MoviesState()
+        state = moviesStateReducer(
+            state: state,
+            action: MoviesActions.SetLoadingState(key: .movieDetail(42),
+                                                   state: .loading)
+        )
+        state = moviesStateReducer(
+            state: state,
+            action: MoviesActions.SetLoadingState(key: .personDetail(42),
+                                                   state: .failed(MoviesListLoadFailure(kind: .server, message: "500")))
+        )
+        XCTAssertEqual(state.loadingStates[.movieDetail(42)], .loading)
+        if case .failed = state.loadingStates[.personDetail(42)] {
+            // ok
+        } else {
+            XCTFail("Expected personDetail(42) to be in failed state")
+        }
     }
 }

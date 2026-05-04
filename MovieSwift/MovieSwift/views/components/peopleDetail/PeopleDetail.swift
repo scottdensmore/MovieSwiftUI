@@ -146,6 +146,10 @@ struct PeopleDetail: ConnectedView {
         let hasLoadedCredits: Bool
         let isInFanClub: Binding<Bool>
         let movieScore: Int?
+        /// Failure for the top-level FetchDetail. Sub-row failures
+        /// (images, credits) degrade gracefully; the detail-level
+        /// failure matters most because without it the page is empty.
+        let detailFailure: MoviesListLoadFailure?
     }
     
     struct MovieRole: Identifiable {
@@ -330,6 +334,13 @@ struct PeopleDetail: ConnectedView {
         #else
         ZStack(alignment: .center) {
             List {
+                if let failure = props.detailFailure {
+                    MoviesListErrorBanner(failure: failure) {
+                        props.dispatch(PeopleActions.FetchDetail(people: peopleId))
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
                 Section {
                     PeopleDetailHeaderRow(people: props.people)
                     if PeopleDetailState.shouldShowBiographySection(for: props.people) {
@@ -371,6 +382,11 @@ struct PeopleDetail: ConnectedView {
             ScrollViewReader { scrollProxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
+                        if let failure = props.detailFailure {
+                            MoviesListErrorBanner(failure: failure) {
+                                props.dispatch(PeopleActions.FetchDetail(people: peopleId))
+                            }
+                        }
                         PeopleDetailHeaderRow(people: props.people)
                         if PeopleDetailState.shouldShowBiographySection(for: props.people) {
                             PeopleDetailBiographyRow(biography: props.people.biography,
@@ -532,6 +548,12 @@ extension PeopleDetail {
             movieScore = userMovies.count > 0 ? Int((Float(userMovies.count) / Float(rolesCount)) * 100) : 0
         }
         
+        let detailFailure: MoviesListLoadFailure?
+        if case .failed(let f) = state.moviesState.loadingStates[.personDetail(peopleId)] {
+            detailFailure = f
+        } else {
+            detailFailure = nil
+        }
         return Props(dispatch: dispatch,
                      people: PeopleDetailState.people(for: peopleId, from: state),
                      movieByYears: years,
@@ -539,8 +561,9 @@ extension PeopleDetail {
                      hasLoadedImages: state.peoplesState.imagesLoaded.contains(peopleId),
                      hasLoadedCredits: state.peoplesState.creditsLoaded.contains(peopleId),
                      isInFanClub: isInFanClub,
-                     movieScore: movieScore)
-        
+                     movieScore: movieScore,
+                     detailFailure: detailFailure)
+
     }
     
 }

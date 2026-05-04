@@ -102,11 +102,17 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchDetailFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on detail failure")
+        let expectation = expectation(description: "No SetDetail on detail failure")
         expectation.isInverted = true
 
-        PeopleActions.FetchDetail(people: 5).execute(state: nil) { _ in
-            expectation.fulfill()
+        // FetchDetail also dispatches SetLoadingState(.loading)
+        // synchronously and SetLoadingState(.failed(...)) on failure.
+        // This test specifically checks the data action — ignoring
+        // those.
+        PeopleActions.FetchDetail(people: 5).execute(state: nil) { action in
+            if action is PeopleActions.SetDetail {
+                expectation.fulfill()
+            }
         }
 
         waitForExpectations(timeout: 0.2)
@@ -154,11 +160,13 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchImagesFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on images failure")
+        let expectation = expectation(description: "No SetImages on images failure")
         expectation.isInverted = true
 
-        PeopleActions.FetchImages(people: 7).execute(state: nil) { _ in
-            expectation.fulfill()
+        PeopleActions.FetchImages(people: 7).execute(state: nil) { action in
+            if action is PeopleActions.SetImages {
+                expectation.fulfill()
+            }
         }
 
         waitForExpectations(timeout: 0.2)
@@ -205,11 +213,13 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchCreditsFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on credits failure")
+        let expectation = expectation(description: "No SetPeopleCredits on credits failure")
         expectation.isInverted = true
 
-        PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil) { _ in
-            expectation.fulfill()
+        PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil) { action in
+            if action is PeopleActions.SetPeopleCredits {
+                expectation.fulfill()
+            }
         }
 
         waitForExpectations(timeout: 0.2)
@@ -260,11 +270,13 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchMovieCastsFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on movie casts failure")
+        let expectation = expectation(description: "No SetMovieCasts on movie casts failure")
         expectation.isInverted = true
 
-        PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil) { _ in
-            expectation.fulfill()
+        PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil) { action in
+            if action is PeopleActions.SetMovieCasts {
+                expectation.fulfill()
+            }
         }
 
         waitForExpectations(timeout: 0.2)
@@ -309,11 +321,13 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchSearchFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on search failure")
+        let expectation = expectation(description: "No SetSearch on search failure")
         expectation.isInverted = true
 
-        PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil) { _ in
-            expectation.fulfill()
+        PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil) { action in
+            if action is PeopleActions.SetSearch {
+                expectation.fulfill()
+            }
         }
 
         waitForExpectations(timeout: 0.2)
@@ -373,8 +387,13 @@ final class PeopleActionsTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
 
-        XCTAssertTrue(actions.first is PeopleActions.PopularRequestStarted)
-        let failed = actions.last as? PeopleActions.PopularRequestFailed
+        // FetchPopular now also dispatches SetLoadingState transitions
+        // through makeTrackedHandler in addition to its existing
+        // PopularRequestStarted / PopularRequestFailed pair. The
+        // existing pair remains the source of truth for paginated
+        // retry — we just verify it still fires as before.
+        XCTAssertTrue(actions.contains { $0 is PeopleActions.PopularRequestStarted })
+        let failed = actions.compactMap { $0 as? PeopleActions.PopularRequestFailed }.last
         XCTAssertEqual(failed?.page, 2)
     }
 

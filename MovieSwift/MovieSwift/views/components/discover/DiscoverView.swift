@@ -110,6 +110,7 @@ struct DiscoverView: ConnectedView {
         let currentMovie: Movie?
         let filter: DiscoverFilter?
         let genres: [Genre]
+        let loadingFailure: MoviesListLoadFailure?
         let dispatch: DispatchFunction
     }
     
@@ -136,11 +137,18 @@ struct DiscoverView: ConnectedView {
         for movie in movies {
             posters[movie] = state.moviesState.movies[movie]?.poster_path
         }
+        let loadingFailure: MoviesListLoadFailure?
+        if case .failed(let f) = state.moviesState.loadingStates[.randomDiscover] {
+            loadingFailure = f
+        } else {
+            loadingFailure = nil
+        }
         return Props(movies: movies,
                      posters: posters,
                      currentMovie: movies.isEmpty ? nil : state.moviesState.movies[movies.reversed()[0]],
                      filter: state.moviesState.discoverFilter,
                      genres: state.moviesState.genres,
+                     loadingFailure: loadingFailure,
                      dispatch: dispatch)
     }
     
@@ -450,6 +458,13 @@ struct DiscoverView: ConnectedView {
                 self.actionsButtons(props: props)
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).maxY - reader.safeAreaInsets.bottom - self.bottomSafeInsetFix)
+                if let failure = props.loadingFailure {
+                    MoviesListErrorBanner(failure: failure) {
+                        props.dispatch(MoviesActions.FetchRandomDiscover(filter: props.filter))
+                    }
+                    .position(x: reader.frame(in: .local).midX,
+                              y: reader.frame(in: .local).minY + reader.safeAreaInsets.top + 80)
+                }
             }
         }
         .background(FullscreenMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.currentMovie?.poster_path,
@@ -490,6 +505,12 @@ struct DiscoverView: ConnectedView {
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
 
+                    if let failure = props.loadingFailure {
+                        MoviesListErrorBanner(failure: failure) {
+                            props.dispatch(MoviesActions.FetchRandomDiscover(filter: props.filter))
+                        }
+                    }
+
                     Spacer(minLength: 0)
 
                     cardDeck(props: props)
@@ -527,10 +548,20 @@ struct DiscoverView: ConnectedView {
                            minHeight: 760, idealHeight: 860, maxHeight: 980)
                 }
             } else {
+                // No current movie — either still loading the first
+                // random batch, or the most recent fetch failed and
+                // there's nothing to show. The banner tells the user
+                // which case it is and offers a retry.
                 VStack(spacing: 12) {
-                    ProgressView()
-                    Text("Loading random movies…")
-                        .foregroundColor(.white.opacity(0.9))
+                    if let failure = props.loadingFailure {
+                        MoviesListErrorBanner(failure: failure) {
+                            props.dispatch(MoviesActions.FetchRandomDiscover(filter: props.filter))
+                        }
+                    } else {
+                        ProgressView()
+                        Text("Loading random movies…")
+                            .foregroundColor(.white.opacity(0.9))
+                    }
                 }
             }
         }
