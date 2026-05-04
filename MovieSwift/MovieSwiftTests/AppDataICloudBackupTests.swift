@@ -162,4 +162,54 @@ final class AppDataICloudBackupTests: XCTestCase {
                               "Mod date should be within 5 seconds of now")
         }
     }
+
+    // MARK: - availableVersions
+    //
+    // NSFileVersion-backed iCloud version history can't be set up in
+    // a unit test (it requires the iCloud file coordination
+    // machinery). These tests cover what we can: the empty-file and
+    // missing-file paths, and the shape of BackupVersionInfo for
+    // freshly written non-iCloud files.
+
+    func testAvailableVersionsReturnsEmptyWhenFileMissing() {
+        let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+        XCTAssertTrue(AppDataICloudBackup.availableVersions(at: fileURL).isEmpty,
+                      "Missing file should produce no versions, not crash")
+    }
+
+    func testAvailableVersionsExposesCurrentVersionForLocalFile() throws {
+        // For a local (non-iCloud) file NSFileVersion still returns
+        // a "current" version with the file's modification date —
+        // verify our wrapper surfaces it as isCurrent = true and
+        // doesn't fabricate any conflict state.
+        let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
+        try AppDataICloudBackup.writeBackup(state: AppState(), to: fileURL)
+
+        let versions = AppDataICloudBackup.availableVersions(at: fileURL)
+        XCTAssertGreaterThanOrEqual(versions.count, 1,
+                                     "A written file should yield at least one version")
+        XCTAssertTrue(versions.contains { $0.isCurrent },
+                      "One version should be marked current")
+        XCTAssertFalse(versions.contains { $0.isUnresolvedConflict },
+                       "A freshly written local file shouldn't have unresolved conflicts")
+    }
+
+    func testReadBackupAtVersionRoundTripsLocalFile() throws {
+        let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
+        var state = AppState()
+        state.moviesState.wishlist.insert(42)
+        try AppDataICloudBackup.writeBackup(state: state, to: fileURL)
+
+        // Pick the "current" version and read through the
+        // version-aware path. Should match what readBackup(from:)
+        // would have returned.
+        let versions = AppDataICloudBackup.availableVersions(at: fileURL)
+        let current = try XCTUnwrap(versions.first(where: \.isCurrent),
+                                     "Expected a current version for the freshly written file")
+
+        let envelope = try AppDataICloudBackup.readBackup(at: current.version)
+        XCTAssertTrue(envelope.snapshot.moviesState.wishlist.contains(42),
+                      "Reading at a specific version should return the same data as reading the file directly")
+    }
 }

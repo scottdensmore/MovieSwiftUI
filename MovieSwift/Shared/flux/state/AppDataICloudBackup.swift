@@ -176,4 +176,129 @@ enum AppDataICloudBackup {
         }
         return try readBackup(from: url, fileManager: fileManager)
     }
+
+    // MARK: - Previous-version handling
+    //
+    // iCloud Drive automatically retains version history for every
+    // file in a CloudKit-backed container. NSFileVersion wraps that
+    // history so the user can restore a backup from before today's
+    // overwrite — e.g. they accidentally Cleared all their data,
+    // then Backed up the empty state, and want to recover yesterday's
+    // backup. Conflict versions (created when two devices back up
+    // simultaneously) live in the same list and need explicit
+    // resolution after the user picks a winner.
+
+    /// User-facing description of one available backup version.
+    /// Wraps the underlying `NSFileVersion` so the caller can
+    /// invoke `readBackup(at:)` / `restoreVersion(_:to:)` without
+    /// re-querying the version list.
+    struct BackupVersionInfo: Identifiable {
+        /// Stable id for SwiftUI ForEach. The version's URL path is
+        /// unique across the version list and stays valid for the
+        /// version's lifetime.
+        let id: String
+        let modificationDate: Date
+        /// Name of the device that wrote this version, when iCloud
+        /// has it. Used to disambiguate conflict versions ("Backup
+        /// from Scott's MacBook" vs "Backup from Scott's iPhone").
+        let computerName: String?
+        /// True for the current "winning" version that
+        /// `readBackupFromICloud` would otherwise return.
+        let isCurrent: Bool
+        /// True when this version is part of an unresolved conflict
+        /// (two devices wrote at the same time). Picking it for
+        /// restore should also mark all other unresolved versions
+        /// as resolved so iCloud stops surfacing the conflict.
+        let isUnresolvedConflict: Bool
+        /// The underlying NSFileVersion. Held strongly so the URL
+        /// stays valid until the caller is done with it.
+        let version: NSFileVersion
+    }
+
+    /// Lists every version of the backup file at `fileURL` — the
+    /// current one plus historical and conflict versions — sorted
+    /// newest-first. Returns `[]` if the file doesn't exist yet.
+    static func availableVersions(at fileURL: URL,
+                                  fileManager: FileManager = .default) -> [BackupVersionInfo] {
+        guard fileManager.fileExists(atPath: fileURL.path) else {
+            return []
+        }
+        var infos: [BackupVersionInfo] = []
+        if let current = NSFileVersion.currentVersionOfItem(at: fileURL) {
+            infos.append(makeInfo(from: current,
+                                  isCurrent: true,
+                                  isUnresolvedConflict: false))
+        }
+        let unresolved = Set((NSFileVersion.unresolvedConflictVersionsOfItem(at: fileURL) ?? [])
+            .compactMap { $0.url.path })
+        for version in NSFileVersion.otherVersionsOfItem(at: fileURL) ?? [] {
+            infos.append(makeInfo(from: version,
+                                  isCurrent: false,
+                                  isUnresolvedConflict: unresolved.contains(version.url.path)))
+        }
+        return infos.sorted { $0.modificationDate > $1.modificationDate }
+    }
+
+    /// Production convenience: resolves the iCloud container and
+    /// lists versions there. Returns `[]` if iCloud is unavailable
+    /// or no backup exists yet.
+    static func resolvedAvailableVersions(fileManager: FileManager = .default) -> [BackupVersionInfo] {
+        guard let url = resolvedBackupFileURL(fileManager: fileManager) else {
+            return []
+        }
+        return availableVersions(at: url, fileManager: fileManager)
+    }
+
+    /// Reads and decodes the backup envelope from a specific version
+    /// (rather than always reading the current one). Useful when the
+    /// user picks a previous backup from `availableVersions(at:)`.
+    static func readBackup(at version: NSFileVersion,
+                           fileManager: FileManager = .default) throws -> AppDataExportEnvelope {
+        // Same iCloud-download nudge as readBackup(from:).
+        try? fileManager.startDownloadingUbiquitousItem(at: version.url)
+        do {
+            let data = try Data(contentsOf: version.url)
+            return try AppDataImport.decodeEnvelope(from: data)
+        } catch let error as AppDataImport.ImportError {
+            throw BackupError.readFailed(underlying: error)
+        } catch {
+            throw BackupError.readFailed(underlying: error)
+        }
+    }
+
+    /// Marks any unresolved conflict versions at `fileURL` as
+    /// resolved. Call after the user has picked which version to
+    /// restore from — without this iCloud keeps surfacing the
+    /// conflict on every subsequent read.
+    static func markAllConflictsResolved(at fileURL: URL) {
+        guard let unresolved = NSFileVersion.unresolvedConflictVersionsOfItem(at: fileURL) else {
+            return
+        }
+        for version in unresolved {
+            version.isResolved = true
+        }
+    }
+
+    /// Production convenience: marks conflicts on the resolved
+    /// iCloud backup file.
+    static func resolvedMarkAllConflictsResolved(fileManager: FileManager = .default) {
+        guard let url = resolvedBackupFileURL(fileManager: fileManager) else {
+            return
+        }
+        markAllConflictsResolved(at: url)
+    }
+
+    /// Builds a `BackupVersionInfo` from an `NSFileVersion`.
+    private static func makeInfo(from version: NSFileVersion,
+                                 isCurrent: Bool,
+                                 isUnresolvedConflict: Bool) -> BackupVersionInfo {
+        BackupVersionInfo(
+            id: version.url.absoluteString,
+            modificationDate: version.modificationDate ?? .distantPast,
+            computerName: version.localizedNameOfSavingComputer,
+            isCurrent: isCurrent,
+            isUnresolvedConflict: isUnresolvedConflict,
+            version: version
+        )
+    }
 }

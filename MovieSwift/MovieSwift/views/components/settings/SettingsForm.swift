@@ -85,6 +85,8 @@ struct SettingsForm : ConnectedView {
     @State private var backupErrorMessage: String?
     @State private var backupSuccessDate: Date?
     @State private var lastICloudBackupDate: Date? = AppDataICloudBackup.resolvedLastBackupDate()
+    @State private var isPreviousVersionsSheetPresented = false
+    @State private var availableICloudVersions: [AppDataICloudBackup.BackupVersionInfo] = []
     @State private var userAPIKeyDraft: String = AppUserDefaults.userTMDBAPIKey
     @FocusState private var isUserAPIKeyFocused: Bool
     @State private var isOnboardingResetConfirmationPresented = false
@@ -281,6 +283,34 @@ struct SettingsForm : ConnectedView {
             let counts = AppDataImport.previewCounts(for: envelope, against: store.state)
             pendingImportEnvelope = envelope
             pendingImportCounts = counts
+        } catch let error as AppDataICloudBackup.BackupError {
+            backupErrorMessage = error.errorDescription
+        } catch {
+            backupErrorMessage = "Restore failed: \(error.localizedDescription)"
+        }
+    }
+
+    /// Reload the version list from iCloud and present the sheet.
+    /// Called when the user taps "Show previous backups…" — we
+    /// re-query NSFileVersion each time rather than caching, so a
+    /// freshly-uploaded backup from another device shows up.
+    private func showPreviousICloudVersions() {
+        availableICloudVersions = AppDataICloudBackup.resolvedAvailableVersions()
+        isPreviousVersionsSheetPresented = true
+    }
+
+    /// Restore from a specific version (rather than the current one).
+    /// After reading, marks any unresolved conflicts as resolved so
+    /// iCloud stops surfacing them — the user has now picked a
+    /// winner.
+    private func restoreFromICloudVersion(_ info: AppDataICloudBackup.BackupVersionInfo) {
+        do {
+            let envelope = try AppDataICloudBackup.readBackup(at: info.version)
+            let counts = AppDataImport.previewCounts(for: envelope, against: store.state)
+            pendingImportEnvelope = envelope
+            pendingImportCounts = counts
+            AppDataICloudBackup.resolvedMarkAllConflictsResolved()
+            isPreviousVersionsSheetPresented = false
         } catch let error as AppDataICloudBackup.BackupError {
             backupErrorMessage = error.errorDescription
         } catch {
@@ -631,7 +661,7 @@ struct SettingsForm : ConnectedView {
 
     private var appDataSection: some View {
         sectionCard(title: "App data",
-                    footer: "Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting any previous backup), and Restore merges the latest iCloud backup back into your library. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate.") {
+                    footer: "Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting the latest version), and Restore merges the latest iCloud backup back into your library. Show previous backups lets you pick from older versions iCloud Drive has retained — useful if you accidentally backed up empty state. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate.") {
             clearCachedDataRow
             rowDivider
             exportDataRow
@@ -641,6 +671,10 @@ struct SettingsForm : ConnectedView {
             backupToICloudRow
             rowDivider
             restoreFromICloudRow
+            if lastICloudBackupDate != nil {
+                rowDivider
+                showPreviousVersionsRow
+            }
         }
     }
 
@@ -916,6 +950,30 @@ struct SettingsForm : ConnectedView {
         .accessibilityIdentifier("settings.restoreFromICloudButton")
     }
 
+    private var showPreviousVersionsRow: some View {
+        Button {
+            showPreviousICloudVersions()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Show previous backups…")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.showPreviousBackupsButton")
+    }
+
     // MARK: - TMDB API key rows
 
     private var apiKeyStatusRow: some View {
@@ -1173,6 +1231,121 @@ struct SettingsForm : ConnectedView {
         } message: {
             Text("The onboarding wizard will appear next time you launch MovieSwift.")
         }
+        .sheet(isPresented: $isPreviousVersionsSheetPresented) {
+            PreviousICloudBackupsSheet(
+                versions: availableICloudVersions,
+                onRestore: restoreFromICloudVersion,
+                onDismiss: { isPreviousVersionsSheetPresented = false }
+            )
+        }
+    }
+}
+
+/// Picker sheet for restoring an older iCloud backup. Each row
+/// shows the version's date, the originating device when iCloud has
+/// it, and a Restore action. Conflict versions are flagged so the
+/// user knows why two backups exist for the same minute.
+private struct PreviousICloudBackupsSheet: View {
+    let versions: [AppDataICloudBackup.BackupVersionInfo]
+    let onRestore: (AppDataICloudBackup.BackupVersionInfo) -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Previous iCloud backups")
+                    .font(.FjallaOne(size: 22))
+                Spacer()
+                Button("Close", action: onDismiss)
+                    .buttonStyle(.plain)
+                    .foregroundColor(.steam_blue)
+                    .accessibilityIdentifier("previousBackupsSheet.closeButton")
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 18)
+            .padding(.bottom, 10)
+
+            if versions.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("No previous backups available")
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, 18)
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(versions) { info in
+                            row(info: info)
+                            if info.id != versions.last?.id {
+                                Divider().padding(.leading, 16)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                }
+            }
+        }
+        .frame(minWidth: 460, idealWidth: 520, minHeight: 320, idealHeight: 380)
+        .background(Color.steam_background.ignoresSafeArea())
+    }
+
+    private func row(info: AppDataICloudBackup.BackupVersionInfo) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: info.isUnresolvedConflict ? "exclamationmark.icloud" : "icloud")
+                .font(.title3)
+                .foregroundColor(info.isUnresolvedConflict ? .steam_rust : .steam_blue)
+                .frame(width: 26)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
+                    Text(formattedDate(info.modificationDate))
+                        .font(.callout.weight(.semibold))
+                    if info.isCurrent {
+                        Text("Latest")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.steam_gold.opacity(0.25)))
+                            .foregroundColor(.primary)
+                    }
+                    if info.isUnresolvedConflict {
+                        Text("Conflict")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.steam_rust.opacity(0.25)))
+                            .foregroundColor(.steam_rust)
+                    }
+                }
+                if let device = info.computerName {
+                    Text(device)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Button("Restore") {
+                onRestore(info)
+            }
+            .buttonStyle(.plain)
+            .font(.callout.weight(.semibold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Capsule().fill(Color.steam_gold.opacity(0.25)))
+            .accessibilityIdentifier("previousBackupsSheet.restore.\(info.id)")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 
