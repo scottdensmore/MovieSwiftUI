@@ -51,12 +51,14 @@ final class APIServiceTests: XCTestCase {
     private func makeService(
         apiKey: String?,
         session: MockNetworkSession,
-        callbackQueue: DispatchQueue = DispatchQueue(label: "APIServiceTests.callbackQueue")
+        callbackQueue: DispatchQueue = DispatchQueue(label: "APIServiceTests.callbackQueue"),
+        authMode: APIService.AuthMode = .queryParameter(name: "api_key")
     ) -> APIService {
         APIService(
             apiKeyProvider: StubAPIKeyProvider(apiKey),
             session: session,
-            callbackQueue: callbackQueue
+            callbackQueue: callbackQueue,
+            authMode: authMode
         )
     }
     
@@ -364,5 +366,88 @@ final class APIServiceTests: XCTestCase {
         // Returning nil keeps the UI's retry behaviour predictable
         // rather than silently waiting an arbitrarily long time.
         XCTAssertNil(APIService.retryAfterSeconds(from: response))
+    }
+
+    // MARK: - AuthMode
+
+    func testGETWithQueryParameterAuthAppendsAPIKeyToURL() {
+        let session = MockNetworkSession()
+        session.nextData = Data(#"{"value":"ok"}"#.utf8)
+        let service = makeService(apiKey: "secret-key",
+                                   session: session,
+                                   authMode: .queryParameter(name: "api_key"))
+        let expectation = expectation(description: "Request with api_key query")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            _ = result
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+
+        let request = try! XCTUnwrap(session.lastRequest)
+        let components = try! XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let query = (components.queryItems ?? []).reduce(into: [String: String]()) { acc, item in
+            acc[item.name] = item.value
+        }
+        XCTAssertEqual(query["api_key"], "secret-key",
+                       "Default authMode should append api_key as query parameter")
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"),
+                     "Query-parameter auth should NOT also send a Bearer header")
+    }
+
+    func testGETWithBearerAuthSendsAuthorizationHeaderAndOmitsAPIKeyQuery() {
+        let session = MockNetworkSession()
+        session.nextData = Data(#"{"value":"ok"}"#.utf8)
+        let service = makeService(apiKey: "v4-token",
+                                   session: session,
+                                   authMode: .bearer)
+        let expectation = expectation(description: "Bearer auth request")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            _ = result
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+
+        let request = try! XCTUnwrap(session.lastRequest)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"),
+                       "Bearer v4-token",
+                       "Bearer auth should send the key in the Authorization header")
+        let components = try! XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let queryNames = (components.queryItems ?? []).map(\.name)
+        XCTAssertFalse(queryNames.contains("api_key"),
+                       "Bearer auth should NOT also pass the key as a query parameter")
+        XCTAssertTrue(queryNames.contains("language"),
+                      "Bearer auth should still pass non-credential query params (e.g. language)")
+    }
+
+    func testGETWithBearerAuthStillReturnsMissingAPIKeyWhenProviderIsEmpty() {
+        // The auth mode shouldn't change how a missing key is
+        // surfaced — the failure path remains the same.
+        let session = MockNetworkSession()
+        let service = makeService(apiKey: nil,
+                                   session: session,
+                                   authMode: .bearer)
+        let expectation = expectation(description: "Missing key, bearer mode")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case .failure(.missingAPIKey) = result else {
+                XCTFail("Expected missingAPIKey, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    // MARK: - defaultBaseURL
+
+    func testDefaultBaseURLFallsBackToTMDBDirect() {
+        // The Backend Swift Package test runner doesn't load the
+        // app bundle's Info.plist, so TMDB_BASE_URL is unset and
+        // the static accessor returns the literal fallback.
+        XCTAssertEqual(APIService.defaultBaseURL.absoluteString,
+                       "https://api.themoviedb.org/3")
     }
 }

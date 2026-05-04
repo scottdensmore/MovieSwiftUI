@@ -110,27 +110,61 @@ public struct URLSessionNetworkSession: NetworkSession {
 }
 
 public struct APIService {
+
+    /// How the API key is presented to the upstream service.
+    ///
+    /// `.queryParameter` matches TMDB v3 direct usage today: append
+    /// `api_key=<key>` to the URL. `.bearer` sends the key in an
+    /// `Authorization: Bearer <key>` header instead — used for
+    /// TMDB v4-style tokens AND for proxy deployments where the
+    /// proxy forwards a static bearer to TMDB and rejects requests
+    /// without it. New deployments can swap auth mode without
+    /// touching call sites.
+    public enum AuthMode: Equatable {
+        case queryParameter(name: String)
+        case bearer
+    }
+
+    /// Falls back to the bundled TMDB direct URL if the build hasn't
+    /// substituted `TMDB_BASE_URL` from xcconfig. Production builds
+    /// pick up the substituted value; tests that don't load the app
+    /// bundle's Info.plist get the literal default.
+    public static var defaultBaseURL: URL {
+        let fallback = URL(string: "https://api.themoviedb.org/3")!
+        let raw = (Bundle.main.object(forInfoDictionaryKey: "TMDB_BASE_URL") as? String) ?? ""
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed != "$(TMDB_BASE_URL)",
+              let url = URL(string: trimmed) else {
+            return fallback
+        }
+        return url
+    }
+
     public static var shared = APIService()
     let baseURL: URL
     let decoder: JSONDecoder
     private let apiKeyProvider: APIKeyProviding
     private let session: NetworkSession
     private let callbackQueue: DispatchQueue
-    
+    private let authMode: AuthMode
+
     public init(
-        baseURL: URL = URL(string: "https://api.themoviedb.org/3")!,
+        baseURL: URL = APIService.defaultBaseURL,
         decoder: JSONDecoder = JSONDecoder(),
         apiKeyProvider: APIKeyProviding = LayeredAPIKeyProvider.userKeyOverridingBundle,
         session: NetworkSession = URLSessionNetworkSession(),
-        callbackQueue: DispatchQueue = .main
+        callbackQueue: DispatchQueue = .main,
+        authMode: AuthMode = .queryParameter(name: "api_key")
     ) {
         self.baseURL = baseURL
         self.decoder = decoder
         self.apiKeyProvider = apiKeyProvider
         self.session = session
         self.callbackQueue = callbackQueue
+        self.authMode = authMode
     }
-    
+
     private var apiKey: String? {
         apiKeyProvider.apiKey()
     }
@@ -234,15 +268,22 @@ public struct APIService {
         
         let queryURL = baseURL.appendingPathComponent(endpoint.path())
         var components = URLComponents(url: queryURL, resolvingAgainstBaseURL: true)!
-        components.queryItems = [
-           URLQueryItem(name: "api_key", value: apiKey),
-           URLQueryItem(name: "language", value: Locale.preferredLanguages[0])
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "language", value: Locale.preferredLanguages[0])
         ]
-        if let params = params {
+        // Auth path: query parameter for direct TMDB v3 usage,
+        // header for TMDB v4 / proxy deployments. Both modes
+        // ignore the credential's exact form; the apiKeyProvider
+        // is the single source of truth.
+        if case .queryParameter(let name) = authMode {
+            queryItems.append(URLQueryItem(name: name, value: apiKey))
+        }
+        if let params {
             for (_, value) in params.enumerated() {
-                components.queryItems?.append(URLQueryItem(name: value.key, value: value.value))
+                queryItems.append(URLQueryItem(name: value.key, value: value.value))
             }
         }
+        components.queryItems = queryItems
         // `components.url` is non-nil for all the well-formed
         // endpoint paths we construct above — but if it ever does
         // come back nil (e.g. a future caller passes a path with
@@ -256,6 +297,9 @@ public struct APIService {
         }
         var request = URLRequest(url: composedURL)
         request.httpMethod = "GET"
+        if case .bearer = authMode {
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
         let task = session.dataTask(with: request) { (data, response, error) in
             // Transport-level error first — distinguishes "device is
             // offline" from other failures so the UI can surface a

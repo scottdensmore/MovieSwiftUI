@@ -7,6 +7,14 @@ CODE_SIGN_STYLE = Automatic
 ORGANIZATION_IDENTIFIER = com.example
 TMDB_API_KEY =
 
+// Base URL of the TMDB-compatible HTTP service this build talks
+// to. Default is TMDB direct; override in DeveloperSettings.xcconfig
+// to point at a proxy that hides the API key (e.g. a Cloudflare
+// Worker that attaches the key server-side and forwards to TMDB).
+// The proxy contract is "drop in /3-style endpoints". URL values
+// in xcconfig need the `//` escaped per Xcode parsing rules.
+TMDB_BASE_URL = https:/$()/api.themoviedb.org/3
+
 // Localization: turn on String Catalog auto-extraction so SwiftUI
 // `Text("...")` literals (and other LocalizedStringKey-accepting
 // APIs) populate Localizable.xcstrings on each build.
