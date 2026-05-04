@@ -177,4 +177,106 @@ final class CrashReportStoreTests: XCTestCase {
         XCTAssertTrue(names[1].hasPrefix("metric-"))
         XCTAssertLessThan(names[1], names[2])
     }
+
+    // MARK: - Filename round-trip parsing
+
+    func testParseKindAndDateRoundTripsFilenamesProducedByFilename() {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 5
+        components.day = 3
+        components.hour = 9
+        components.minute = 41
+        components.second = 27
+
+        var calendar = Calendar(identifier: .gregorian)
+        let utc = TimeZone(identifier: "UTC")!
+        calendar.timeZone = utc
+        let date = calendar.date(from: components)!
+
+        for kind: CrashReportKind in [.metric, .diagnostic] {
+            let name = CrashReportStore.filename(for: kind,
+                                                  date: date,
+                                                  suffix: "deadbeef",
+                                                  calendar: calendar,
+                                                  timeZone: utc)
+            let parsed = CrashReportStore.parseKindAndDate(fromFilename: name,
+                                                            calendar: calendar,
+                                                            timeZone: utc)
+            XCTAssertNotNil(parsed)
+            XCTAssertEqual(parsed?.kind, kind)
+            XCTAssertEqual(parsed?.date, date,
+                           "Round-trip date for \(kind) should match the input")
+        }
+    }
+
+    func testParseKindAndDateReturnsNilForUnknownFilename() {
+        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "README.txt"))
+        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "metric.json"),
+                     "Filenames missing the date components should not parse")
+        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "telemetry-2026-05-03-090000-deadbeef.json"),
+                     "Unknown kinds should not parse")
+    }
+
+    // MARK: - listReportFiles
+
+    func testListReportFilesReturnsMetadataNewestFirst() throws {
+        // Three reports written at known different dates. The
+        // listing helper should return them newest-first (the
+        // filename-sorted order is reversed for date-desc).
+        let payload = Data("{}".utf8)
+        let earliest = Date(timeIntervalSince1970: 1_700_000_000)
+        let middle = Date(timeIntervalSince1970: 1_700_000_500)
+        let latest = Date(timeIntervalSince1970: 1_700_001_000)
+
+        try CrashReportStore.write(payload: payload, kind: .diagnostic,
+                                    to: tempContainer,
+                                    date: middle,
+                                    suffix: "bbbbbbbb")
+        try CrashReportStore.write(payload: payload, kind: .metric,
+                                    to: tempContainer,
+                                    date: latest,
+                                    suffix: "cccccccc")
+        try CrashReportStore.write(payload: payload, kind: .metric,
+                                    to: tempContainer,
+                                    date: earliest,
+                                    suffix: "aaaaaaaa")
+
+        let files = CrashReportStore.listReportFiles(in: tempContainer)
+        XCTAssertEqual(files.count, 3)
+        XCTAssertEqual(files[0].date, latest)
+        XCTAssertEqual(files[1].date, middle)
+        XCTAssertEqual(files[2].date, earliest)
+    }
+
+    func testListReportFilesReturnsEmptyWhenDirectoryMissing() {
+        // Brand-new install: directory hasn't been created yet,
+        // viewer should render the empty state, not crash.
+        let files = CrashReportStore.listReportFiles(in: tempContainer)
+        XCTAssertEqual(files, [])
+    }
+
+    func testMetadataIncludesFileSize() throws {
+        // The viewer shows "X KB" per row so the user has a rough
+        // idea of how big a payload is before sharing. Verify
+        // metadata reports the actual on-disk byte count.
+        let payload = Data(repeating: 0x41, count: 1234)
+        let url = try CrashReportStore.write(payload: payload,
+                                              kind: .diagnostic,
+                                              to: tempContainer,
+                                              suffix: "deadbeef")
+
+        let info = try XCTUnwrap(CrashReportStore.metadata(forReportAt: url))
+        XCTAssertEqual(info.sizeBytes, 1234)
+    }
+
+    func testMetadataReturnsNilForUnparseableFilename() throws {
+        try FileManager.default.createDirectory(at: tempContainer,
+                                                withIntermediateDirectories: true)
+        let bogus = tempContainer.appendingPathComponent("README.txt")
+        try Data("hi".utf8).write(to: bogus)
+
+        XCTAssertNil(CrashReportStore.metadata(forReportAt: bogus),
+                     "Files that don't match the kind-date-suffix shape shouldn't appear in the viewer list")
+    }
 }

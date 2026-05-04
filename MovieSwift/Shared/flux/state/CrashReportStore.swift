@@ -155,4 +155,85 @@ enum CrashReportStore {
     static func countOfStoredReports(fileManager: FileManager = .default) -> Int {
         listReportsInDefaultDirectory(fileManager: fileManager).count
     }
+
+    // MARK: - Report metadata for the in-app viewer
+
+    /// User-facing description of one stored crash report file.
+    /// Surfaces the kind, the captured date (parsed from the
+    /// filename so we don't depend on filesystem mtime), the file
+    /// size for "is this big enough to bother sharing?" UX hints,
+    /// and the URL for ShareLink / Data(contentsOf:).
+    struct CrashReportFile: Identifiable, Hashable {
+        /// Stable id for SwiftUI ForEach. Filename is unique within
+        /// the directory and doesn't change once written.
+        let id: String
+        let url: URL
+        let kind: CrashReportKind
+        /// Capture date encoded in the filename. Falls back to file
+        /// modification date if the filename doesn't parse for any
+        /// reason (e.g. a hand-named legacy file).
+        let date: Date
+        let sizeBytes: Int
+    }
+
+    /// Parses a filename produced by `filename(for:date:suffix:)`
+    /// back into its kind + date components. Returns nil for
+    /// unrecognised names so the caller can fall back to filesystem
+    /// metadata.
+    static func parseKindAndDate(fromFilename filename: String,
+                                 calendar: Calendar = .init(identifier: .gregorian),
+                                 timeZone: TimeZone = TimeZone(secondsFromGMT: 0) ?? .current)
+    -> (kind: CrashReportKind, date: Date)? {
+        // Filename shape: "<kind>-<yyyy>-<MM>-<dd>-<HHmmss>-<suffix>.json"
+        let stem = (filename as NSString).deletingPathExtension
+        let parts = stem.split(separator: "-")
+        guard parts.count >= 5,
+              let kind = CrashReportKind(rawValue: String(parts[0])) else {
+            return nil
+        }
+        let dateString = "\(parts[1])-\(parts[2])-\(parts[3])-\(parts[4])"
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = timeZone
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd-HHmmss"
+        guard let date = formatter.date(from: dateString) else { return nil }
+        return (kind, date)
+    }
+
+    /// Builds a `CrashReportFile` from a URL, reading filesystem
+    /// metadata to fill in the size and (if needed) date fields.
+    /// Returns nil if the URL doesn't point at a recognisable
+    /// crash report.
+    static func metadata(forReportAt url: URL,
+                         fileManager: FileManager = .default) -> CrashReportFile? {
+        guard let parsed = parseKindAndDate(fromFilename: url.lastPathComponent) else {
+            return nil
+        }
+        let attributes = (try? fileManager.attributesOfItem(atPath: url.path)) ?? [:]
+        let size = (attributes[.size] as? NSNumber)?.intValue ?? 0
+        return CrashReportFile(id: url.lastPathComponent,
+                               url: url,
+                               kind: parsed.kind,
+                               date: parsed.date,
+                               sizeBytes: size)
+    }
+
+    /// Returns metadata for every parseable report in `directory`,
+    /// newest-first.
+    static func listReportFiles(in directory: URL,
+                                fileManager: FileManager = .default) -> [CrashReportFile] {
+        listReports(in: directory, fileManager: fileManager)
+            .compactMap { metadata(forReportAt: $0, fileManager: fileManager) }
+            .sorted { $0.date > $1.date }
+    }
+
+    /// Production convenience: lists report files from the resolved
+    /// Documents directory.
+    static func listReportFilesInDefaultDirectory(fileManager: FileManager = .default) -> [CrashReportFile] {
+        guard let directory = resolvedDirectory(fileManager: fileManager) else {
+            return []
+        }
+        return listReportFiles(in: directory, fileManager: fileManager)
+    }
 }

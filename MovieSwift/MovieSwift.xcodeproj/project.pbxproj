@@ -291,6 +291,9 @@
 		A1B2C40100000000000000F6 /* MetricKitCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F3 /* MetricKitCrashReporter.swift */; };
 		A1B2C40100000000000000F7 /* MetricKitCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F3 /* MetricKitCrashReporter.swift */; };
 		A1B2C40100000000000000F8 /* MetricKitCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F3 /* MetricKitCrashReporter.swift */; };
+		A1B2C40100000000000000F9 /* CrashReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F4 /* CrashReportsView.swift */; };
+		A1B2C40100000000000000FA /* CrashReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F4 /* CrashReportsView.swift */; };
+		A1B2C40100000000000000FB /* CrashReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000F4 /* CrashReportsView.swift */; };
 		A1B2C40500000000000000A1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
@@ -558,6 +561,7 @@
 		A1B2C40200000000000000B3 /* MoviesListErrorBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesListErrorBanner.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000F2 /* CrashReportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportStore.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000F3 /* MetricKitCrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricKitCrashReporter.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000F4 /* CrashReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportsView.swift; sourceTree = "<group>"; };
 		A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A1B2C40800000000000000A1 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A1B2C40200000000000000A1 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
@@ -787,6 +791,7 @@
 				24AC77131C009F44BD805569 /* SplitView.swift */,
 				A37863AE97FB06C0C61DB742 /* SortMenu.swift */,
 				A1B2C40200000000000000B3 /* MoviesListErrorBanner.swift */,
+				A1B2C40200000000000000F4 /* CrashReportsView.swift */,
 				A1B2C40300000000000000A1 /* onboarding */,
 			);
 			path = views;
@@ -1684,6 +1689,7 @@
 				A1B2C40100000000000000B7 /* MoviesListErrorBanner.swift in Sources */,
 				A1B2C40100000000000000F3 /* CrashReportStore.swift in Sources */,
 				A1B2C40100000000000000F6 /* MetricKitCrashReporter.swift in Sources */,
+				A1B2C40100000000000000F9 /* CrashReportsView.swift in Sources */,
 				D66C0ACA32B1B28F15E02EC5 /* AppBootstrap.swift in Sources */,
 				3173918980EB7A1C42512E1C /* AppStateFixtures.swift in Sources */,
 				DF421BBEA00EAE14BCCA81DC /* AppLaunchMode.swift in Sources */,
@@ -1740,6 +1746,7 @@
 				A1B2C40100000000000000B8 /* MoviesListErrorBanner.swift in Sources */,
 				A1B2C40100000000000000F4 /* CrashReportStore.swift in Sources */,
 				A1B2C40100000000000000F7 /* MetricKitCrashReporter.swift in Sources */,
+				A1B2C40100000000000000FA /* CrashReportsView.swift in Sources */,
 				A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000007 /* AppLaunchMode.swift in Sources */,
@@ -1853,6 +1860,7 @@
 				A1B2C40100000000000000B9 /* MoviesListErrorBanner.swift in Sources */,
 				A1B2C40100000000000000F5 /* CrashReportStore.swift in Sources */,
 				A1B2C40100000000000000F8 /* MetricKitCrashReporter.swift in Sources */,
+				A1B2C40100000000000000FB /* CrashReportsView.swift in Sources */,
 				A1B2C4010000000000000005 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000006 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000011 /* AppLaunchMode.swift in Sources */,

@@ -87,6 +87,8 @@ struct SettingsForm : ConnectedView {
     @State private var lastICloudBackupDate: Date? = AppDataICloudBackup.resolvedLastBackupDate()
     @State private var isPreviousVersionsSheetPresented = false
     @State private var availableICloudVersions: [AppDataICloudBackup.BackupVersionInfo] = []
+    @State private var isCrashReportsSheetPresented = false
+    @State private var crashReportFiles: [CrashReportStore.CrashReportFile] = []
     @State private var userAPIKeyDraft: String = AppUserDefaults.userTMDBAPIKey
     @FocusState private var isUserAPIKeyFocused: Bool
     @State private var isOnboardingResetConfirmationPresented = false
@@ -510,6 +512,14 @@ struct SettingsForm : ConnectedView {
                 debugInfoView(title: "Crash reports stored",
                               info: "\(CrashReportStore.countOfStoredReports())")
                 Button {
+                    crashReportFiles = CrashReportStore.listReportFilesInDefaultDirectory()
+                    isCrashReportsSheetPresented = true
+                } label: {
+                    Label("View crash reports…", systemImage: "doc.text.magnifyingglass")
+                }
+                .accessibilityIdentifier("settings.viewCrashReportsButton")
+
+                Button {
                     isOnboardingResetConfirmationPresented = true
                 } label: {
                     Label("Show onboarding again", systemImage: "arrow.counterclockwise")
@@ -689,8 +699,35 @@ struct SettingsForm : ConnectedView {
             debugRow(title: "Crash reports stored",
                      info: "\(CrashReportStore.countOfStoredReports())")
             rowDivider
+            viewCrashReportsRow
+            rowDivider
             resetOnboardingRow
         }
+    }
+
+    private var viewCrashReportsRow: some View {
+        Button {
+            crashReportFiles = CrashReportStore.listReportFilesInDefaultDirectory()
+            isCrashReportsSheetPresented = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("View crash reports…")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.viewCrashReportsButton")
     }
 
     // MARK: - About / TMDB attribution
@@ -1236,6 +1273,12 @@ struct SettingsForm : ConnectedView {
                 versions: availableICloudVersions,
                 onRestore: restoreFromICloudVersion,
                 onDismiss: { isPreviousVersionsSheetPresented = false }
+            )
+        }
+        .sheet(isPresented: $isCrashReportsSheetPresented) {
+            CrashReportsSheet(
+                reports: crashReportFiles,
+                onDismiss: { isCrashReportsSheetPresented = false }
             )
         }
     }
