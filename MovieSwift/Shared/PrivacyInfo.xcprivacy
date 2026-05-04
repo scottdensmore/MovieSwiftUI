@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		MovieSwift's privacy manifest. The app does not track users
+		(no identifier-for-advertising / fingerprinting / cross-site
+		correlation) and does not collect data linked or unlinked to
+		identity. The user's wishlist, seenlist, custom lists, and fan
+		club live on-device (with optional iCloud Drive backup the
+		user explicitly triggers); none of that data leaves the device
+		except as user-initiated TMDB lookups.
+	-->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<!--
+		Apple-required-reason APIs we use, with the documented reason
+		codes from
+		https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!--
+				attributesOfItem(atPath:) + .modificationDate in
+				AppDataICloudBackup so the Settings UI can show a
+				"Last: May 2, 7:30 PM" stamp next to "Restore from
+				iCloud" and so Restore is disabled when no backup file
+				exists. Files live inside the app's own CloudKit /
+				ubiquity container.
+			-->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- Files inside the app's CloudKit container. -->
+				<string>C617.1</string>
+				<!-- Display file timestamps to the person. -->
+				<string>DDA9.1</string>
+			</array>
+		</dict>
+		<dict>
+			<!--
+				UserDefaults.standard via the @UserDefault property
+				wrapper (Backend package). Stores per-user preferences
+				only — region, original-title preference, the user's
+				own TMDB API key, and the onboarding-completed flag.
+				No data crosses the app boundary.
+			-->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<!-- Information accessible only to the app itself. -->
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

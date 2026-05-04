@@ -484,6 +484,28 @@ struct SettingsForm : ConnectedView {
                 }
                 .accessibilityIdentifier("settings.resetOnboardingButton")
             }
+            Section(header: Text("About"),
+                    footer: Text("Movie and people data, posters, and biographies are provided by The Movie Database (TMDB). MovieSwift is an unofficial client.")) {
+                HStack {
+                    Label("MovieSwift", systemImage: "app.badge.fill")
+                    Spacer()
+                    Text("\(AppDataExport.bundleVersion()) (\(AppDataExport.bundleBuild()))")
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("settings.about.versionRow")
+
+                Link(destination: URL(string: "https://www.themoviedb.org")!) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Label("Powered by TMDB", systemImage: "film.stack")
+                            .foregroundColor(.steam_blue)
+                        Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("settings.about.tmdbAttributionLink")
+            }
         }
         .onAppear(perform: loadCurrentPreferences)
             .onChange(of: selectedRegionCode) { _, _ in
@@ -517,6 +539,7 @@ struct SettingsForm : ConnectedView {
                 tmdbAPIKeySection
                 appDataSection
                 debugInfoSection(props: props)
+                aboutSection
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
@@ -629,6 +652,66 @@ struct SettingsForm : ConnectedView {
             rowDivider
             resetOnboardingRow
         }
+    }
+
+    // MARK: - About / TMDB attribution
+    //
+    // TMDB's terms require attribution wherever their data is used in
+    // an app. This section makes that visible, alongside the app's
+    // version & build for support purposes.
+
+    private var aboutSection: some View {
+        sectionCard(title: "About",
+                    footer: "Movie and people data, posters, and biographies are provided by The Movie Database (TMDB). MovieSwift is an unofficial client.") {
+            appVersionRow
+            rowDivider
+            tmdbAttributionRow
+        }
+    }
+
+    private var appVersionRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "app.badge.fill")
+                .font(.body)
+                .foregroundColor(.steam_gold)
+                .frame(width: 22)
+            Text("MovieSwift")
+            Spacer(minLength: 12)
+            Text("\(AppDataExport.bundleVersion()) (\(AppDataExport.bundleBuild()))")
+                .font(.callout.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .accessibilityIdentifier("settings.about.versionRow")
+    }
+
+    private var tmdbAttributionRow: some View {
+        Link(destination: URL(string: "https://www.themoviedb.org")!) {
+            HStack(spacing: 12) {
+                Image(systemName: "film.stack")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Powered by TMDB")
+                        .foregroundColor(.steam_blue)
+                    Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.about.tmdbAttributionLink")
     }
 
     private var resetOnboardingRow: some View {
