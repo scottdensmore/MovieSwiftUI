@@ -28,6 +28,7 @@ struct SplitView: View {
     /// pushed view alive even after a full subtree rebuild).
     @State private var detailNavigationRoute: MoviesListNavigationRoute?
     @FocusState private var isSidebarFocused: Bool
+    @StateObject private var intentNavigation = IntentNavigationStore.shared
 
     @ViewBuilder
     var body: some View {
@@ -126,6 +127,28 @@ struct SplitView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .focusedSceneValue(\.selectedOutlineMenu, $selectedMenu)
+        // App Intents (Spotlight / Siri / Shortcuts) write a
+        // pending destination here; route it to the corresponding
+        // sidebar menu on the same path the sidebar Button taps
+        // use, so any pushed MovieDetail / PeopleDetail pops cleanly.
+        .onChange(of: intentNavigation.pendingDestination) { _, destination in
+            guard let destination else { return }
+            let target: OutlineMenu? = {
+                switch destination {
+                case .popularMovies: return .popular
+                case .discover:      return .discover
+                case .fanClub:       return .fanClub
+                case .wishlist:      return .myLists
+                }
+            }()
+            if let target, target != selectedMenu {
+                detailNavigationRoute = nil
+                detailRebuildKey = UUID()
+                detailPath = NavigationPath()
+                selectedMenu = target
+            }
+            intentNavigation.consume()
+        }
     }
 
     /// macOS-style "active vs. inactive selection" background:

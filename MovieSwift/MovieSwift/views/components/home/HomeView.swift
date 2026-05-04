@@ -55,11 +55,12 @@ struct HomeView: App {
 struct TabbarView: View {
     let isRunningUISmokeTests: Bool
     @State var selectedTab = Tab.movies
-    
+    @StateObject private var intentNavigation = IntentNavigationStore.shared
+
     enum Tab: Int {
         case movies, discover, fanClub, myLists
     }
-    
+
     func tabbarItem(text: String, image: String) -> some View {
         VStack {
             Image(systemName: image)
@@ -67,7 +68,7 @@ struct TabbarView: View {
             Text(text)
         }
     }
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             MoviesHome(isRunningUISmokeTests: isRunningUISmokeTests).tabItem{
@@ -82,6 +83,20 @@ struct TabbarView: View {
             MyLists().tabItem{
                 self.tabbarItem(text: "My Lists", image: "heart.circle")
             }.tag(Tab.myLists)
+        }
+        // Listen for App Intent navigation requests. Pending
+        // destinations are written by intents like OpenWishlistIntent
+        // running outside of SwiftUI's view scope; we read here on
+        // the main actor and switch tabs.
+        .onChange(of: intentNavigation.pendingDestination) { _, destination in
+            guard let destination else { return }
+            switch destination {
+            case .popularMovies: selectedTab = .movies
+            case .discover:      selectedTab = .discover
+            case .fanClub:       selectedTab = .fanClub
+            case .wishlist:      selectedTab = .myLists
+            }
+            intentNavigation.consume()
         }
     }
 }
