@@ -24,6 +24,13 @@ struct HomeView: App {
         self.environment = environment
         self.store = environment.store
         environment.runtime.startArchiving(store: store)
+        // Subscribe to MetricKit so any future crashes/hangs/CPU
+        // exceptions land in <Documents>/CrashReports/. Skipped under
+        // UI smoke tests so the test rig doesn't accidentally start
+        // capturing payloads while the suite is running.
+        if !environment.runtime.isRunningUISmokeTests {
+            MetricKitCrashReporter.shared.startObserving()
+        }
         _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
             isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
         ))

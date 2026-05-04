@@ -20,6 +20,11 @@ struct MovieSwiftTVApp: App {
         self.environment = environment
         self.store = environment.store
         environment.runtime.startArchiving(store: store)
+        // No-op on tvOS (MetricKit isn't available); call retained
+        // for symmetry with the iOS / macOS entry points.
+        if !environment.runtime.isRunningUISmokeTests {
+            MetricKitCrashReporter.shared.startObserving()
+        }
     }
 
     var body: some Scene {

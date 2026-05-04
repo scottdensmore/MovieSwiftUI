@@ -477,6 +477,8 @@ struct SettingsForm : ConnectedView {
                               info: "\(props.debugMoviesCount)")
                 debugInfoView(title: "Archived state size",
                               info: archivedStateSizeDescription())
+                debugInfoView(title: "Crash reports stored",
+                              info: "\(CrashReportStore.countOfStoredReports())")
                 Button {
                     isOnboardingResetConfirmationPresented = true
                 } label: {
@@ -649,6 +651,9 @@ struct SettingsForm : ConnectedView {
             rowDivider
             debugRow(title: "Archived state size",
                      info: archivedStateSizeDescription())
+            rowDivider
+            debugRow(title: "Crash reports stored",
+                     info: "\(CrashReportStore.countOfStoredReports())")
             rowDivider
             resetOnboardingRow
         }
