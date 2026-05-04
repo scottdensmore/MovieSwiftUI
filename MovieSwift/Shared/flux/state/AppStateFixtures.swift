@@ -1,8 +1,3 @@
-//
-//  AppStateFixtures.swift
-//  MovieSwift
-//
-
 import Foundation
 
 #if DEBUG

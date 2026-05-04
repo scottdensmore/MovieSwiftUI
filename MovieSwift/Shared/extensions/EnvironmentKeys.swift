@@ -1,8 +1,3 @@
-//
-//  EnvironmentKeys.swift
-//  MovieSwift
-//
-
 import SwiftUI
 
 private struct IsRunningUISmokeTestsKey: EnvironmentKey {

@@ -1,8 +1,3 @@
-//
-//  TVSearchView.swift
-//  MovieSwiftTV
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend

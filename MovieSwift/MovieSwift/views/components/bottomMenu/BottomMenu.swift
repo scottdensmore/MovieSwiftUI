@@ -1,11 +1,3 @@
-//
-//  BottomMenu.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 05/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 
 private struct BottomMenuAnimationState: Equatable {

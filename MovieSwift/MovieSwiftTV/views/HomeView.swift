@@ -1,8 +1,3 @@
-//
-//  HomeView.swift
-//  MovieSwiftTV
-//
-
 import SwiftUI
 
 struct HomeView: View {

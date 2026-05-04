@@ -1,7 +1,3 @@
-//
-//  OnboardingView.swift
-//  MovieSwift
-//
 //  First-launch onboarding wizard. Four steps:
 //   1. Welcome — explain what the app does.
 //   2. TMDB API key — paste your own or fall back to the bundled key.
@@ -11,7 +7,6 @@
 //
 //  Stateless step decisions live in OnboardingFlow so they can be
 //  unit-tested without a SwiftUI view tree.
-//
 
 import SwiftUI
 import Backend

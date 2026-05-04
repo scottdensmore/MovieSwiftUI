@@ -1,11 +1,3 @@
-//
-//  Collection.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 09/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import Foundation
 
 enum MoviesSort {

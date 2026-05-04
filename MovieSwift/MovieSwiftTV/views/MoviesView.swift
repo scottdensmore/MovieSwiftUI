@@ -1,8 +1,3 @@
-//
-//  MoviesView.swift
-//  MovieSwiftTV
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend

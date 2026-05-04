@@ -1,8 +1,3 @@
-//
-//  SplitView.swift
-//  MovieSwift
-//
-
 import SwiftUI
 #if os(macOS)
 import AppKit

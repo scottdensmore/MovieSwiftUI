@@ -1,7 +1,3 @@
-//
-//  AppDataImport.swift
-//  MovieSwift
-//
 //  Inverse of AppDataExport: reads a JSON envelope produced by Export
 //  my data, validates the format version, and merges the imported user
 //  data (wishlist, seenlist, custom lists, fan club, cached movie /
@@ -11,7 +7,6 @@
 //  preserved and the imported data is unioned in. This prevents an
 //  accidental import from wiping a user's collection. To replace
 //  state outright a caller would clear it first, then import.
-//
 
 import Foundation
 

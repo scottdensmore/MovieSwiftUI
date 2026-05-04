@@ -1,7 +1,3 @@
-//
-//  CrashReportStore.swift
-//  MovieSwift
-//
 //  On-device persistence for MetricKit crash + metric payloads.
 //
 //  Pure logic so the directory composition, write behaviour, and
@@ -16,7 +12,6 @@
 //     (iOS) or via Xcode > Devices and Simulators > Download
 //     Container (iOS device) / ~/Library/Containers/<bundle>/...
 //     (macOS sandbox).
-//
 
 import Foundation
 

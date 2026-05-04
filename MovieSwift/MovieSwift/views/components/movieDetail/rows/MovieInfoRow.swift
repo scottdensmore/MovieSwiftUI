@@ -1,11 +1,3 @@
-//
-//  MovieInfoRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 07/12/2020.
-//  Copyright © 2020 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import UI
 

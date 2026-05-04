@@ -1,8 +1,3 @@
-//
-//  AppStoreFactory.swift
-//  MovieSwift
-//
-
 import Foundation
 import SwiftUIFlux
 

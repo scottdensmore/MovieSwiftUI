@@ -1,12 +1,7 @@
-//
-//  UserDataDocument.swift
-//  MovieSwift
-//
 //  Thin FileDocument wrapper around exported user-data JSON so the
 //  cross-platform `.fileExporter` modifier in SwiftUI can write it to
 //  disk on macOS / iOS / tvOS without dropping into platform-specific
 //  NSSavePanel / UIActivityViewController code.
-//
 
 import SwiftUI
 import UniformTypeIdentifiers

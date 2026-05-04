@@ -1,13 +1,8 @@
-//
-//  AppDataExport.swift
-//  MovieSwift
-//
 //  Builds a JSON-encoded export of the user's persistent app data —
 //  wishlist, seenlist, custom lists, fan club, and the cached metadata
 //  for those movies / people. Wraps the snapshot in an envelope with a
 //  format version, export date, and app version so future imports can
 //  detect format drift.
-//
 
 import Foundation
 

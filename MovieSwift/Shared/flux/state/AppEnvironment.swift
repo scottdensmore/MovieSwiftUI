@@ -1,8 +1,3 @@
-//
-//  AppEnvironment.swift
-//  MovieSwift
-//
-
 import Foundation
 import SwiftUIFlux
 

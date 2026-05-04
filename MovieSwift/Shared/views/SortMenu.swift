@@ -1,8 +1,3 @@
-//
-//  SortMenu.swift
-//  MovieSwift
-//
-
 import SwiftUI
 
 @ViewBuilder

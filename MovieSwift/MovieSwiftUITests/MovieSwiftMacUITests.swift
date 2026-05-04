@@ -1,9 +1,4 @@
-//
-//  MovieSwiftMacUITests.swift
-//  MovieSwiftUITests
-//
 //  UI tests for the native macOS target. Uses NavigationSplitView sidebar navigation.
-//
 
 import XCTest
 

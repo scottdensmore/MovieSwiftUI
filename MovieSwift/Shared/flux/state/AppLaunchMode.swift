@@ -1,8 +1,3 @@
-//
-//  AppLaunchMode.swift
-//  MovieSwift
-//
-
 import Foundation
 
 enum AppLaunchMode {

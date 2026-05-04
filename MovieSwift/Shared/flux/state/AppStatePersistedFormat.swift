@@ -1,7 +1,3 @@
-//
-//  AppStatePersistedFormat.swift
-//  MovieSwift
-//
 //  Versioned envelope for the on-disk persisted state file.
 //
 //  Without a format version, the day someone adds a non-optional
@@ -18,7 +14,6 @@
 //  (app version, export date) that doesn't make sense on the local
 //  cache file, while the persisted envelope is internal-only and
 //  optimised for fast load.
-//
 
 import Foundation
 

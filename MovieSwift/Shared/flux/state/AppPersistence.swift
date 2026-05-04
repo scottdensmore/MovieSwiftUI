@@ -1,8 +1,3 @@
-//
-//  AppPersistence.swift
-//  MovieSwift
-//
-
 import Foundation
 
 enum AppPersistence {

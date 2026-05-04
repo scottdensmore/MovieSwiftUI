@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Thomas Ricouard on 26/03/2020.
-//
-
 import Foundation
 import SwiftUI
 

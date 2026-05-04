@@ -1,8 +1,3 @@
-//
-//  MovieSwiftMacApp.swift
-//  MovieSwiftMac
-//
-
 import SwiftUI
 import SwiftUIFlux
 import AppIntents

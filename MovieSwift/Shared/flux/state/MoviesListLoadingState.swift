@@ -1,7 +1,3 @@
-//
-//  MoviesListLoadingState.swift
-//  MovieSwift
-//
 //  Per-menu loading state for the home movie lists (Popular, Top
 //  Rated, Upcoming, Now Playing, Trending). Lets the UI show an
 //  inline error + retry banner when a TMDB request fails instead of
@@ -10,7 +6,6 @@
 //
 //  This file holds the pure-logic types and an APIError → presenter
 //  translator. The reducer wires it into MoviesState.
-//
 
 import Foundation
 import Backend

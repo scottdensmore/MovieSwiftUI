@@ -1,7 +1,3 @@
-//
-//  MetricKitCrashReporter.swift
-//  MovieSwift
-//
 //  Apple-native crash reporting via MetricKit. No third-party SDK,
 //  no transmission — payloads are written to <Documents>/CrashReports/
 //  for local inspection.
@@ -16,7 +12,6 @@
 //  MetricKit isn't available on tvOS. The code paths here compile
 //  to a no-op there so the app entry point doesn't need a platform
 //  branch.
-//
 
 import Foundation
 #if canImport(MetricKit) && !os(tvOS)

@@ -1,7 +1,3 @@
-//
-//  IntentNavigation.swift
-//  MovieSwift
-//
 //  Tiny shared bus that lets `AppIntent`s drive navigation in the
 //  SwiftUI root views without coupling them to the iOS TabView,
 //  the macOS SplitView, or the tvOS HomeView directly.
@@ -19,7 +15,6 @@
 //  The store is a singleton because AppIntent runs outside SwiftUI
 //  view scope. We can't pass an EnvironmentObject in, so the
 //  AppIntent and the view both reach for `.shared`.
-//
 
 import Foundation
 import Combine

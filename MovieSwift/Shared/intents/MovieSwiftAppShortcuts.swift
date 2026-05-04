@@ -1,7 +1,3 @@
-//
-//  MovieSwiftAppShortcuts.swift
-//  MovieSwift
-//
 //  Registers the app's intents with the system so they appear in:
 //   - Spotlight search ("wishlist" / "discover" / "movieswift")
 //   - The Shortcuts app gallery
@@ -11,7 +7,6 @@
 //  @main entry point. It's discovered automatically by Xcode's
 //  appintentsmetadataprocessor build step (visible in the build
 //  log around the app target's late phases).
-//
 
 import Foundation
 import AppIntents

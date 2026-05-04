@@ -1,11 +1,3 @@
-//
-//  MovieGridRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 24/06/2020.
-//  Copyright © 2020 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend

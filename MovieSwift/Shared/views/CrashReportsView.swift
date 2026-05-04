@@ -1,7 +1,3 @@
-//
-//  CrashReportsView.swift
-//  MovieSwift
-//
 //  In-app viewer for the crash + metric payloads MetricKit captured
 //  to <Documents>/CrashReports/. Lets the user see what's there and
 //  share an individual report off the device without needing Xcode
@@ -12,7 +8,6 @@
 //     button per row. Empty-state when nothing's been captured.
 //   - CrashReportDetailView: pretty-printed JSON for one report,
 //     selectable for copy + a ShareLink in the toolbar.
-//
 
 import SwiftUI
 

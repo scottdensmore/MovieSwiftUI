@@ -1,9 +1,4 @@
-//
-//  MovieSwiftTVUITests.swift
-//  MovieSwiftUITests
-//
 //  UI tests for the tvOS target. Uses focus-based navigation with Siri Remote.
-//
 
 import XCTest
 

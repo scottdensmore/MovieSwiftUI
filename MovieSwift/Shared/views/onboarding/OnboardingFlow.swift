@@ -1,12 +1,7 @@
-//
-//  OnboardingFlow.swift
-//  MovieSwift
-//
 //  Pure-logic helpers for the first-launch onboarding flow:
 //  what step is the user on, can they advance, can they finish, and
 //  should we be showing onboarding at all? UI lives in
 //  OnboardingView; everything testable lives here.
-//
 
 import Foundation
 import Backend

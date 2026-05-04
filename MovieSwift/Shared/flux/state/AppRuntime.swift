@@ -1,8 +1,3 @@
-//
-//  AppRuntime.swift
-//  MovieSwift
-//
-
 import Foundation
 import SwiftUIFlux
 

@@ -1,14 +1,9 @@
-//
-//  MoviesListErrorBanner.swift
-//  MovieSwift
-//
 //  Inline error banner shared across every list/detail view that
 //  reads from `MoviesState.loadingStates`. Adapts copy and CTA to
 //  the failure kind (offline / rate-limited / missing key / etc.)
 //  and provides a one-tap retry. Lives in Shared so MoviesHomeList,
 //  MovieDetail, PeopleDetail, MoviesSearch, DiscoverView, and
 //  GenresList can all render the same component.
-//
 
 import SwiftUI
 

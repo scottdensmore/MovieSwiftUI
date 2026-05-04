@@ -1,7 +1,3 @@
-//
-//  MovieSpotlightIndexer.swift
-//  MovieSwift
-//
 //  Indexes user-saved movies (wishlist, seenlist, and every custom
 //  list) into Apple's Core Spotlight so they appear in the system
 //  search on iOS, iPadOS, and macOS. tvOS doesn't ship Core
@@ -13,7 +9,6 @@
 //  asked to remember. Only items the user has explicitly added to a
 //  list are surfaced so search results match the user's mental
 //  model of "movies I saved".
-//
 
 import Foundation
 #if canImport(CoreSpotlight) && !os(tvOS)

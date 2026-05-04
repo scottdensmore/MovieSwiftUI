@@ -1,11 +1,3 @@
-//
-//  PeopleDetailBiography.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 06/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 

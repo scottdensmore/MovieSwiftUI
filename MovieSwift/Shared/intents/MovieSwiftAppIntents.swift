@@ -1,7 +1,3 @@
-//
-//  MovieSwiftAppIntents.swift
-//  MovieSwift
-//
 //  AppIntent definitions that surface MovieSwift in Siri,
 //  Spotlight search, and the Shortcuts app. Each intent opens the
 //  app and (where applicable) writes a destination to
@@ -12,7 +8,6 @@
 //  — the provider must be in the same target as the intents and
 //  the @main App entry point so the system can discover the
 //  shortcuts when it indexes the app.
-//
 
 import Foundation
 import AppIntents

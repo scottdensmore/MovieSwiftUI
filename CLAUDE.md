@@ -43,3 +43,25 @@ If a fix can only be verified visually (layout, animation, focus
 ring), still note that in the commit message and add at least a
 structural assertion (e.g. view builds without crashing, the
 relevant accessibility identifier is present) where possible.
+
+## No file-header boilerplate
+
+New `.swift` files must NOT include the Xcode-template file header
+block — i.e. the lines that look like:
+
+```
+//
+//  Foo.swift
+//  MovieSwift
+//
+//  Created by Person on Date.
+//  Copyright © Year Person. All rights reserved.
+//
+```
+
+The project's `MovieSwift.xcodeproj/xcshareddata/IDETemplateMacros.plist`
+sets `FILEHEADER` to empty so Xcode's templates don't add it. When
+creating files outside Xcode (or via a Claude tool), start the file
+directly at the first `import` statement. If you need to leave a
+design note at the top, write it as ordinary `//` comments — but
+don't include filename, project name, author, or copyright lines.

@@ -1,7 +1,3 @@
-//
-//  AppDataICloudBackup.swift
-//  MovieSwift
-//
 //  Reads and writes a single rolling backup of the user's data to
 //  iCloud Drive. Reuses AppDataExport's envelope format so a backup
 //  is just an export saved to a known iCloud path; restore reuses
@@ -11,7 +7,6 @@
 //
 //  so it shows up under the user's iCloud Drive in Files.app and is
 //  automatically synced across devices that share the iCloud account.
-//
 
 import Foundation
 

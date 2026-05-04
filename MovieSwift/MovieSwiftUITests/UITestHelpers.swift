@@ -1,9 +1,4 @@
-//
-//  UITestHelpers.swift
-//  MovieSwiftUITests
-//
 //  Shared UI test utilities used across iOS, macOS, and tvOS UI test targets.
-//
 
 import XCTest
 
