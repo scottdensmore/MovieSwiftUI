@@ -108,6 +108,7 @@ private struct CrashReportRow: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Share crash report")
                 .accessibilityIdentifier("crashReportsSheet.share.\(report.id)")
                 #endif
                 Image(systemName: "chevron.right")

@@ -260,6 +260,9 @@ struct PeopleDetail: ConnectedView {
                 .frame(width: 25, height: 25)
                 .animation(.spring(), value: props.isInFanClub.wrappedValue)
         })
+        .accessibilityLabel(props.isInFanClub.wrappedValue
+                            ? "Remove from fan club"
+                            : "Add to fan club")
     }
     
     private func scoreUpdateView(props: Props) -> some View {

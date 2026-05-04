@@ -50,7 +50,9 @@ enum AppPersistence {
             // Future-version files don't get auto-overwritten because
             // the next archive() will write a new envelope at the
             // current build's format version.
+            #if DEBUG
             print("Error while loading app state: \(error.localizedDescription)")
+            #endif
             return nil
         }
     }
@@ -93,7 +95,9 @@ enum AppPersistence {
             let data = try AppStatePersistedFormat.encode(state: state)
             try data.write(to: path)
         } catch let error {
+            #if DEBUG
             print("Error while saving app state: \(error)")
+            #endif
         }
     }
 }
