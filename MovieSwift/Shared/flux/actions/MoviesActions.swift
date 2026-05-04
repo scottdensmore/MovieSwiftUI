@@ -17,8 +17,12 @@ struct MoviesActions {
     struct FetchMoviesMenuList: AsyncAction {
         let list: MoviesMenu
         let page: Int
-        
+
         func execute(state: FluxState?, dispatch: @escaping DispatchFunction) {
+            // Mark the list as loading so MoviesHomeList can hide any
+            // stale error banner / show a spinner before the response
+            // lands.
+            dispatch(SetMoviesMenuListLoading(list: self.list))
             APIService.shared.GET(endpoint: list.endpoint(), params: ["page": "\(page)",
                 "region": AppUserDefaults.region])
             {
@@ -29,8 +33,8 @@ struct MoviesActions {
                                         list: self.list,
                                         response: response))
                 case let .failure(error):
-                    print(error)
-                    break
+                    let failure = MoviesListLoadFailurePresenter.failure(from: error)
+                    dispatch(SetMoviesMenuListFailure(list: self.list, failure: failure))
                 }
             }
         }
@@ -265,6 +269,21 @@ struct MoviesActions {
         let page: Int
         let list: MoviesMenu
         let response: PaginatedResponse<Movie>
+    }
+
+    /// Marks `list`'s home menu as loading. Reducer should clear any
+    /// existing failure for that menu so the UI doesn't show a stale
+    /// error banner across a retry.
+    struct SetMoviesMenuListLoading: Action {
+        let list: MoviesMenu
+    }
+
+    /// Records a failed home-menu fetch so the UI can show an inline
+    /// error + retry banner. Reducer stores under
+    /// `moviesListLoadingState[list]`; success clears the entry.
+    struct SetMoviesMenuListFailure: Action {
+        let list: MoviesMenu
+        let failure: MoviesListLoadFailure
     }
     
     struct SetDetail: Action {

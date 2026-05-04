@@ -247,6 +247,9 @@
 		A1B2C30100000000000000B5 /* AppStatePersistedFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B5 /* AppStatePersistedFormatTests.swift */; };
 		A1B2C30100000000000000B6 /* AppStatePersistedFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B5 /* AppStatePersistedFormatTests.swift */; };
 		A1B2C30100000000000000B7 /* AppStatePersistedFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B5 /* AppStatePersistedFormatTests.swift */; };
+		A1B2C30100000000000000B8 /* MoviesListLoadingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B6 /* MoviesListLoadingStateTests.swift */; };
+		A1B2C30100000000000000B9 /* MoviesListLoadingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B6 /* MoviesListLoadingStateTests.swift */; };
+		A1B2C30100000000000000BA /* MoviesListLoadingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000B6 /* MoviesListLoadingStateTests.swift */; };
 		A1B2C4010000000000000001 /* AppPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000001 /* AppPersistence.swift */; };
 		A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000002 /* AppBootstrap.swift */; };
 		A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000003 /* AppStateFixtures.swift */; };
@@ -273,6 +276,9 @@
 		A1B2C40100000000000000B1 /* AppStatePersistedFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B1 /* AppStatePersistedFormat.swift */; };
 		A1B2C40100000000000000B2 /* AppStatePersistedFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B1 /* AppStatePersistedFormat.swift */; };
 		A1B2C40100000000000000B3 /* AppStatePersistedFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B1 /* AppStatePersistedFormat.swift */; };
+		A1B2C40100000000000000B4 /* MoviesListLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B2 /* MoviesListLoadingState.swift */; };
+		A1B2C40100000000000000B5 /* MoviesListLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B2 /* MoviesListLoadingState.swift */; };
+		A1B2C40100000000000000B6 /* MoviesListLoadingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000B2 /* MoviesListLoadingState.swift */; };
 		A1B2C40500000000000000A1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
@@ -520,6 +526,7 @@
 		A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataICloudBackupTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000B5 /* AppStatePersistedFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatePersistedFormatTests.swift; sourceTree = "<group>"; };
+		A1B2C30200000000000000B6 /* MoviesListLoadingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesListLoadingStateTests.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000001 /* AppPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPersistence.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000002 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		A1B2C4020000000000000003 /* AppStateFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateFixtures.swift; sourceTree = "<group>"; };
@@ -531,6 +538,7 @@
 		A1B2C40200000000000000D1 /* AppDataImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataImport.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataICloudBackup.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000B1 /* AppStatePersistedFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatePersistedFormat.swift; sourceTree = "<group>"; };
+		A1B2C40200000000000000B2 /* MoviesListLoadingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesListLoadingState.swift; sourceTree = "<group>"; };
 		A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A1B2C40200000000000000A1 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000A2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -1166,6 +1174,7 @@
 				A1B2C40200000000000000D1 /* AppDataImport.swift */,
 				A1B2C40200000000000000C1 /* AppDataICloudBackup.swift */,
 				A1B2C40200000000000000B1 /* AppStatePersistedFormat.swift */,
+				A1B2C40200000000000000B2 /* MoviesListLoadingState.swift */,
 				A1B2C4020000000000000002 /* AppBootstrap.swift */,
 				A1B2C4020000000000000003 /* AppStateFixtures.swift */,
 				A1B2C4020000000000000004 /* AppLaunchMode.swift */,
@@ -1208,6 +1217,7 @@
 				A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */,
 				A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */,
 				A1B2C30200000000000000B5 /* AppStatePersistedFormatTests.swift */,
+				A1B2C30200000000000000B6 /* MoviesListLoadingStateTests.swift */,
 				A1B2C3020000000000000005 /* AppBootstrapTests.swift */,
 				A1B2C3020000000000000006 /* MovieDetailStateTests.swift */,
 				A1B2C3020000000000000007 /* PeopleActionsTests.swift */,
@@ -1642,6 +1652,7 @@
 				A1B2C40100000000000000D1 /* AppDataImport.swift in Sources */,
 				A1B2C40100000000000000C1 /* AppDataICloudBackup.swift in Sources */,
 				A1B2C40100000000000000B1 /* AppStatePersistedFormat.swift in Sources */,
+				A1B2C40100000000000000B4 /* MoviesListLoadingState.swift in Sources */,
 				D66C0ACA32B1B28F15E02EC5 /* AppBootstrap.swift in Sources */,
 				3173918980EB7A1C42512E1C /* AppStateFixtures.swift in Sources */,
 				DF421BBEA00EAE14BCCA81DC /* AppLaunchMode.swift in Sources */,
@@ -1694,6 +1705,7 @@
 				A1B2C40100000000000000D2 /* AppDataImport.swift in Sources */,
 				A1B2C40100000000000000C2 /* AppDataICloudBackup.swift in Sources */,
 				A1B2C40100000000000000B2 /* AppStatePersistedFormat.swift in Sources */,
+				A1B2C40100000000000000B5 /* MoviesListLoadingState.swift in Sources */,
 				A1B2C4010000000000000002 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000003 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000007 /* AppLaunchMode.swift in Sources */,
@@ -1803,6 +1815,7 @@
 				A1B2C40100000000000000D3 /* AppDataImport.swift in Sources */,
 				A1B2C40100000000000000C3 /* AppDataICloudBackup.swift in Sources */,
 				A1B2C40100000000000000B3 /* AppStatePersistedFormat.swift in Sources */,
+				A1B2C40100000000000000B6 /* MoviesListLoadingState.swift in Sources */,
 				A1B2C4010000000000000005 /* AppBootstrap.swift in Sources */,
 				A1B2C4010000000000000006 /* AppStateFixtures.swift in Sources */,
 				A1B2C4010000000000000011 /* AppLaunchMode.swift in Sources */,
@@ -1850,6 +1863,7 @@
 				A1B2C30100000000000000B1 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000A1 /* OnboardingFlowTests.swift in Sources */,
 				A1B2C30100000000000000B5 /* AppStatePersistedFormatTests.swift in Sources */,
+				A1B2C30100000000000000B8 /* MoviesListLoadingStateTests.swift in Sources */,
 				A1B2C3010000000000000004 /* AppBootstrapTests.swift in Sources */,
 				A1B2C3010000000000000005 /* MovieDetailStateTests.swift in Sources */,
 				A1B2C3010000000000000006 /* PeopleActionsTests.swift in Sources */,
@@ -1876,6 +1890,7 @@
 				A1B2C30100000000000000B2 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000A2 /* OnboardingFlowTests.swift in Sources */,
 				A1B2C30100000000000000B6 /* AppStatePersistedFormatTests.swift in Sources */,
+				A1B2C30100000000000000B9 /* MoviesListLoadingStateTests.swift in Sources */,
 				D2D28CA5EB0024B9833717DA /* AppBootstrapTests.swift in Sources */,
 				2908D79F1645B8F720DF3EFF /* MovieDetailStateTests.swift in Sources */,
 				3AACC34FD6890829501E05D1 /* PeopleActionsTests.swift in Sources */,
@@ -1900,6 +1915,7 @@
 				A1B2C30100000000000000D3 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B3 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000B7 /* AppStatePersistedFormatTests.swift in Sources */,
+				A1B2C30100000000000000BA /* MoviesListLoadingStateTests.swift in Sources */,
 				AF9AC036F8E4FCA06774294A /* AppBootstrapTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

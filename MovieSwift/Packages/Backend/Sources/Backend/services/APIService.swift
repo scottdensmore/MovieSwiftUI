@@ -136,10 +136,29 @@ public struct APIService {
     }
     
     public enum APIError: Error {
+        /// No usable TMDB key from any provider in the chain.
         case missingAPIKey
+        /// URLSession returned no data and no error — shouldn't happen
+        /// in practice but kept as a safety net.
         case noResponse
+        /// JSON returned by TMDB couldn't be decoded into the expected
+        /// model. Often indicates a TMDB-side error response (which
+        /// has a different shape) being decoded as a success type.
         case jsonDecodingError(error: Error)
+        /// URLSession reported a transport-level error that wasn't a
+        /// recognised offline condition (DNS issue, TLS failure, etc).
         case networkError(error: Error)
+        /// Device is reported offline by URLSession's error code.
+        /// Distinguished from `networkError` so the UI can show a
+        /// "you're offline" message rather than a generic failure.
+        case offline
+        /// TMDB throttled the request. `retryAfterSeconds` is parsed
+        /// from the HTTP `Retry-After` header when present.
+        case rateLimited(retryAfterSeconds: TimeInterval?)
+        /// Any other non-2xx HTTP response. The status code tells the
+        /// UI whether it's worth retrying (5xx) vs whether something
+        /// is misconfigured (4xx — most commonly 401 from a bad key).
+        case httpStatus(code: Int)
     }
     
     public enum Endpoint {
@@ -227,18 +246,48 @@ public struct APIService {
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
         let task = session.dataTask(with: request) { (data, response, error) in
+            // Transport-level error first — distinguishes "device is
+            // offline" from other failures so the UI can surface a
+            // tailored message.
+            if let error {
+                let nsError = error as NSError
+                if nsError.domain == NSURLErrorDomain
+                    && APIService.offlineURLErrorCodes.contains(nsError.code) {
+                    callbackQueue.async {
+                        completionHandler(.failure(.offline))
+                    }
+                } else {
+                    callbackQueue.async {
+                        completionHandler(.failure(.networkError(error: error)))
+                    }
+                }
+                return
+            }
+
+            // HTTP status next — without this, a 401 from a bad API
+            // key gets mis-reported as `jsonDecodingError` because the
+            // error body shape doesn't match the success type.
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                if http.statusCode == 429 {
+                    let retryAfter = APIService.retryAfterSeconds(from: http)
+                    callbackQueue.async {
+                        completionHandler(.failure(.rateLimited(retryAfterSeconds: retryAfter)))
+                    }
+                } else {
+                    callbackQueue.async {
+                        completionHandler(.failure(.httpStatus(code: http.statusCode)))
+                    }
+                }
+                return
+            }
+
             guard let data = data else {
                 callbackQueue.async {
                     completionHandler(.failure(.noResponse))
                 }
                 return
             }
-            guard error == nil else {
-                callbackQueue.async {
-                    completionHandler(.failure(.networkError(error: error!)))
-                }
-                return
-            }
+
             do {
                 let object = try self.decoder.decode(T.self, from: data)
                 callbackQueue.async {
@@ -255,5 +304,26 @@ public struct APIService {
         }
         task.resume()
     }
-    
+
+    /// URLError codes that indicate the device is offline rather than
+    /// hitting a generic transport failure. Surfaced as
+    /// `APIError.offline` so the UI can show "you're offline" instead
+    /// of a generic networking message.
+    static let offlineURLErrorCodes: Set<Int> = [
+        URLError.notConnectedToInternet.rawValue,
+        URLError.networkConnectionLost.rawValue,
+        URLError.dataNotAllowed.rawValue,
+        URLError.internationalRoamingOff.rawValue
+    ]
+
+    /// Parses the `Retry-After` header from a 429 response. TMDB
+    /// returns it as a number-of-seconds. Returns nil when the header
+    /// is missing or unparseable.
+    static func retryAfterSeconds(from response: HTTPURLResponse) -> TimeInterval? {
+        guard let raw = response.value(forHTTPHeaderField: "Retry-After"),
+              let seconds = TimeInterval(raw.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            return nil
+        }
+        return seconds
+    }
 }

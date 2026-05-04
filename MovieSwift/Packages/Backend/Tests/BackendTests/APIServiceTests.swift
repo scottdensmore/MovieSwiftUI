@@ -170,7 +170,7 @@ final class APIServiceTests: XCTestCase {
         session.nextError = nil
         let service = makeService(apiKey: "abc123", session: session)
         let expectation = expectation(description: "Decoding error failure")
-        
+
         service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
             guard case .failure(.jsonDecodingError) = result else {
                 XCTFail("Expected jsonDecodingError")
@@ -179,7 +179,190 @@ final class APIServiceTests: XCTestCase {
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1)
+    }
+
+    // MARK: - HTTP status + offline error mapping
+    //
+    // Without these, a 401 from a bad API key would mis-report as
+    // jsonDecodingError (because TMDB's error body shape doesn't
+    // match the requested success type) and the UI would have no way
+    // to distinguish "your key is bad" from "TMDB returned junk".
+
+    private func httpResponse(statusCode: Int,
+                              headers: [String: String] = [:]) -> HTTPURLResponse? {
+        HTTPURLResponse(
+            url: URL(string: "https://api.themoviedb.org/3/movie/popular")!,
+            statusCode: statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: headers
+        )
+    }
+
+    func testGETReturnsHTTPStatusFor401() {
+        let session = MockNetworkSession()
+        session.nextData = Data(#"{"status_message":"Invalid API key"}"#.utf8)
+        session.nextResponse = httpResponse(statusCode: 401)
+        let service = makeService(apiKey: "bogus", session: session)
+        let expectation = expectation(description: "HTTP 401 surfaces as httpStatus")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case let .failure(.httpStatus(code)) = result else {
+                XCTFail("Expected httpStatus error, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            XCTAssertEqual(code, 401)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETReturnsHTTPStatusFor500() {
+        let session = MockNetworkSession()
+        session.nextData = Data()
+        session.nextResponse = httpResponse(statusCode: 500)
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "HTTP 500 surfaces as httpStatus")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case let .failure(.httpStatus(code)) = result else {
+                XCTFail("Expected httpStatus error, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            XCTAssertEqual(code, 500)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETReturnsRateLimitedWithRetryAfterFor429() {
+        let session = MockNetworkSession()
+        session.nextData = Data()
+        session.nextResponse = httpResponse(statusCode: 429,
+                                            headers: ["Retry-After": "12"])
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "HTTP 429 surfaces as rateLimited with parsed Retry-After")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case let .failure(.rateLimited(retryAfter)) = result else {
+                XCTFail("Expected rateLimited error, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            XCTAssertEqual(retryAfter, 12)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETReturnsRateLimitedWithoutRetryAfterWhenHeaderMissing() {
+        let session = MockNetworkSession()
+        session.nextData = Data()
+        session.nextResponse = httpResponse(statusCode: 429)
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "HTTP 429 with no Retry-After header still surfaces as rateLimited")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case let .failure(.rateLimited(retryAfter)) = result else {
+                XCTFail("Expected rateLimited error, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            XCTAssertNil(retryAfter)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETReturnsOfflineForNotConnectedURLError() {
+        let session = MockNetworkSession()
+        session.nextData = Data()
+        session.nextError = URLError(.notConnectedToInternet)
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "URLError.notConnectedToInternet surfaces as offline")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case .failure(.offline) = result else {
+                XCTFail("Expected offline error, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETStillReturnsNetworkErrorForNonOfflineURLError() {
+        // Domain-resolution-style failure shouldn't masquerade as
+        // "you're offline" — the user has a network, the server is
+        // just unreachable.
+        let session = MockNetworkSession()
+        session.nextData = Data()
+        session.nextError = URLError(.cannotFindHost)
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "Other URLErrors stay as networkError")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case .failure(.networkError) = result else {
+                XCTFail("Expected networkError, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    func testGETSucceedsWhen2xxStatusEvenWithHTTPResponse() {
+        // Regression guard: adding the HTTP status check shouldn't
+        // change the success path. A 200 with valid JSON should still
+        // decode normally.
+        let session = MockNetworkSession()
+        session.nextData = Data(#"{"value":"ok"}"#.utf8)
+        session.nextResponse = httpResponse(statusCode: 200)
+        let service = makeService(apiKey: "abc123", session: session)
+        let expectation = expectation(description: "200 + valid JSON still succeeds")
+
+        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
+            guard case .success(let payload) = result else {
+                XCTFail("Expected success, got \(result)")
+                expectation.fulfill()
+                return
+            }
+            XCTAssertEqual(payload, Payload(value: "ok"))
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1)
+    }
+
+    // MARK: - retryAfterSeconds(from:)
+
+    func testRetryAfterParsesIntegerSeconds() {
+        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "5"])!
+        XCTAssertEqual(APIService.retryAfterSeconds(from: response), 5)
+    }
+
+    func testRetryAfterTrimsWhitespace() {
+        // HTTPURLResponse rejects header values containing newlines
+        // per HTTP spec, so the realistic case is leading/trailing
+        // spaces (which a misbehaving proxy might emit).
+        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "  10  "])!
+        XCTAssertEqual(APIService.retryAfterSeconds(from: response), 10)
+    }
+
+    func testRetryAfterReturnsNilWhenHeaderMissing() {
+        let response = httpResponse(statusCode: 429)!
+        XCTAssertNil(APIService.retryAfterSeconds(from: response))
+    }
+
+    func testRetryAfterReturnsNilWhenHeaderUnparseable() {
+        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "Wed, 01 Jan 2025 00:00:00 GMT"])!
+        // We don't currently support HTTP-date format, only seconds.
+        // Returning nil keeps the UI's retry behaviour predictable
+        // rather than silently waiting an arbitrarily long time.
+        XCTAssertNil(APIService.retryAfterSeconds(from: response))
     }
 }

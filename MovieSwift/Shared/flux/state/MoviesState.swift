@@ -12,6 +12,12 @@ import SwiftUIFlux
 struct MoviesState: FluxState, Codable {
     var movies: [Int: Movie] = [:]
     var moviesList: [MoviesMenu: [Int]] = [:]
+    /// Transient: per-menu loading lifecycle state. Excluded from
+    /// CodingKeys because it represents in-flight network state, not
+    /// data the user owns. A missing entry means "no in-flight
+    /// request" — `moviesList[menu]` (if present) is the latest known
+    /// good data.
+    var moviesListLoadingState: [MoviesMenu: MoviesListLoadingState] = [:]
     var detailed: Set<Int> = Set()
     
     var recommended: [Int: [Int]] = [:]
