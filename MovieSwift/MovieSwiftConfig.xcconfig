@@ -15,6 +15,13 @@ TMDB_API_KEY =
 // in xcconfig need the `//` escaped per Xcode parsing rules.
 TMDB_BASE_URL = https:/$()/api.themoviedb.org/3
 
+// Optional. URL string for the hosted privacy policy displayed in
+// Settings > About. Required for App Store submission. Override
+// in DeveloperSettings.xcconfig with the production URL once it's
+// hosted; until then the Settings row is hidden so the placeholder
+// doesn't ship.
+PRIVACY_POLICY_URL =
+
 // Localization: turn on String Catalog auto-extraction so SwiftUI
 // `Text("...")` literals (and other LocalizedStringKey-accepting
 // APIs) populate Localizable.xcstrings on each build.

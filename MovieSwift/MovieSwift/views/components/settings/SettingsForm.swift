@@ -547,6 +547,14 @@ struct SettingsForm : ConnectedView {
                     }
                 }
                 .accessibilityIdentifier("settings.about.tmdbAttributionLink")
+
+                if let privacyURL = privacyPolicyURL {
+                    Link(destination: privacyURL) {
+                        Label("Privacy policy", systemImage: "lock.shield")
+                            .foregroundColor(.steam_blue)
+                    }
+                    .accessibilityIdentifier("settings.about.privacyPolicyLink")
+                }
             }
         }
         .onAppear(perform: loadCurrentPreferences)
@@ -742,7 +750,53 @@ struct SettingsForm : ConnectedView {
             appVersionRow
             rowDivider
             tmdbAttributionRow
+            // Privacy policy row only renders when an URL has been
+            // configured via PRIVACY_POLICY_URL — keeps a placeholder
+            // link out of dev builds and out of the App Store
+            // submission until a real policy is hosted.
+            if let privacyURL = privacyPolicyURL {
+                rowDivider
+                privacyPolicyRow(url: privacyURL)
+            }
         }
+    }
+
+    /// Reads `PRIVACY_POLICY_URL` from the app bundle's Info.plist
+    /// and validates it parses as a real URL. Returns nil when
+    /// unset (the substitution wasn't filled in) so the Settings
+    /// row can be hidden.
+    private var privacyPolicyURL: URL? {
+        let raw = (Bundle.main.object(forInfoDictionaryKey: "PRIVACY_POLICY_URL") as? String) ?? ""
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed != "$(PRIVACY_POLICY_URL)",
+              let url = URL(string: trimmed),
+              url.scheme == "https" else {
+            return nil
+        }
+        return url
+    }
+
+    private func privacyPolicyRow(url: URL) -> some View {
+        Link(destination: url) {
+            HStack(spacing: 12) {
+                Image(systemName: "lock.shield")
+                    .font(.body)
+                    .foregroundColor(.steam_blue)
+                    .frame(width: 22)
+                Text("Privacy policy")
+                    .foregroundColor(.steam_blue)
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.about.privacyPolicyLink")
     }
 
     private var appVersionRow: some View {

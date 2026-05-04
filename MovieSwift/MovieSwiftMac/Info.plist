@@ -28,6 +28,8 @@
 	<string>$(TMDB_API_KEY)</string>
 	<key>TMDB_BASE_URL</key>
 	<string>$(TMDB_BASE_URL)</string>
+	<key>PRIVACY_POLICY_URL</key>
+	<string>$(PRIVACY_POLICY_URL)</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 </dict>

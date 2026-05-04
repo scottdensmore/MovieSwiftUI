@@ -20,6 +20,26 @@ MovieSwiftUI is in pure Swift UI, the goal is to see how far SwiftUI can go in i
 
 It'll evolve with SwiftUI, every time Apple edits existing or adds new features to the framework.
 
+## Features
+
+The app ships across iOS / iPadOS / macOS / tvOS. Beyond browsing TMDB, it covers the polish layer most movie-tracker apps cut corners on:
+
+- **First-launch onboarding** — three-step wizard for TMDB key, region, and reset-from-Settings re-entry. Re-runs automatically when no usable API key is configured so a misconfigured install doesn't silently fail.
+- **Network error UX** — every TMDB fetcher (~19 of them across Movies + People actions) routes through a `MoviesListLoadFailurePresenter` that translates `APIError` into user-facing copy. Inline retry banners on Home menu lists, Movie Detail, People Detail, Discover, and Genres surface offline / 401 / 403 / 429 / 5xx / decode failures with kind-specific icons and CTAs ("Try again" vs "Open Settings").
+- **iCloud Drive backup + restore** — single rolling JSON envelope written to `Documents/Backups/`, browseable previous versions through `NSFileVersion`, conflict resolution after a multi-device race.
+- **Local export / import** — same envelope format as iCloud backup, exposed through SwiftUI's `.fileExporter` / `.fileImporter` with merge semantics that union user collections rather than clobber.
+- **MetricKit crash reporting** — Apple-native, no third-party SDK. Crash + hang + CPU + disk-write payloads land in `Documents/CrashReports/` and are visible inside the app via Settings → Debug info → View crash reports… with per-report `ShareLink` export.
+- **User-supplied TMDB API key** — Settings exposes a `SecureField` for the user to paste their own TMDB v3 key. Layered provider checks user-supplied first, falls back to the bundled key. Power users with their own TMDB account get full personal quota.
+- **Versioned persisted state** — on-disk format wraps `AppState` in a `formatVersion`-stamped envelope. Reading transparently falls back to the legacy bare-AppState format for installs upgrading from earlier builds; future-version files are rejected with a clear error rather than mis-decoded.
+- **Accessibility** — Dynamic Type via `relativeTo:` on every custom font, `.isHeader` rotor traits on section titles, hit targets at the 44pt HIG minimum, VoiceOver labels on every icon-only button.
+
+## Privacy & Attribution
+
+- **Privacy manifest** — `Shared/PrivacyInfo.xcprivacy` declares `NSPrivacyTracking = false`, empty tracking domains, empty collected data types. Required-reason API declarations cover file-timestamp reads (the iCloud backup last-modified date in Settings) and the `@UserDefault` wrapper.
+- **TMDB attribution** — visible in Settings → About. The app surfaces "Powered by TMDB" with a tappable link to themoviedb.org and the required line: "This product uses the TMDB API but is not endorsed or certified by TMDB."
+- **No data leaves the device** unless the user initiates it: TMDB fetches the movies they look at, iCloud Drive carries the backup file they write, and the local export writes the JSON envelope they pick a destination for.
+- **Privacy policy URL** — set `PRIVACY_POLICY_URL` in `DeveloperSettings.xcconfig` to enable the Settings → About → Privacy policy row. Required for App Store submission.
+
 ## Local Setup (Code Signing + TMDB API Key)
 
 This project is configured so each developer can use their own Apple Developer signing settings without modifying tracked project files.
@@ -51,9 +71,20 @@ DEVELOPMENT_TEAM = <YOUR_TEAM_ID>
 CODE_SIGN_STYLE = Automatic
 ORGANIZATION_IDENTIFIER = <YOUR_REVERSED_DOMAIN>
 TMDB_API_KEY = <YOUR_TMDB_V3_API_KEY>
+
+// Optional. Override to point at your own TMDB-compatible
+// proxy that hides the API key server-side. URL escape is
+// `https:/$()/example.com/tmdb` because Xcode parses `//` as
+// a comment.
+TMDB_BASE_URL = https:/$()/api.themoviedb.org/3
+
+// Optional but required for App Store submission.
+// URL string of your hosted privacy policy. When set, the
+// Settings > About section shows a "Privacy policy" link row.
+PRIVACY_POLICY_URL = https:/$()/yoursite.com/privacy
 ```
 
-After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift` or `MovieSwiftTV`.
+After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift`, `MovieSwiftMac`, or `MovieSwiftTV`.
 
 ## Testing and Coverage
 
@@ -123,4 +154,24 @@ The GitHub Actions CI workflow (`.github/workflows/xcodebuild.yml`) enforces:
 
 ## Platforms
 
-Currently MovieSwiftUI runs on iPhone, iPad, and macOS.
+MovieSwiftUI ships across iPhone, iPad, macOS, and tvOS targets. macOS is a native
+build (not Mac Catalyst) — it uses a `NavigationSplitView` sidebar with custom
+`@FocusState`-driven keyboard navigation, a steam-themed selection highlight that
+respects light/dark and active/inactive selection state, and `Cmd+1`-`Cmd+6`
+shortcuts for jumping between sidebar menus.
+
+## Architecture summary
+
+- **Redux/Flux** state — `AppState`, persisted via `AppStatePersistedFormat`
+  envelope (versioned, with legacy bare-AppState fallback).
+- **Backend** Swift Package — `APIService` (config-driven `baseURL`, layered
+  `APIKeyProviding` chain, query-param or bearer auth), `ImageLoaderCache`,
+  `AppUserDefaults`. 34 unit tests.
+- **Shared** — flux state / actions / reducers, all transient loading state
+  centralised in `MoviesState.loadingStates: [LoadingKey: MoviesListLoadingState]`,
+  one `SetLoadingState(key:state:)` action handles all 19 fetchers.
+- **App targets** — iOS uses a `TabView`, macOS a `NavigationSplitView`, tvOS
+  a focus-driven `HomeView`. Settings, onboarding, and crash-report viewer
+  views are shared.
+
+Suite is **349/349 in the app + 34/34 in Backend** across iOS / macOS / tvOS.
