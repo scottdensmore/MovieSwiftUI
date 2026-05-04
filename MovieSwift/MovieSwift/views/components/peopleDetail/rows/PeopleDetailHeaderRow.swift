@@ -34,8 +34,8 @@ struct PeopleDetailHeaderRow : View {
                 Text("Known for")
                     .titleStyle()
                     .accessibilityIdentifier("peopleDetail.knownFor")
-                if people.known_for_department != nil {
-                    Text(people.known_for_department!)
+                if let department = people.known_for_department {
+                    Text(department)
                 }
                 Text(PeopleDetailHeaderState.knownForText(for: people))
                     .foregroundColor(.secondary)

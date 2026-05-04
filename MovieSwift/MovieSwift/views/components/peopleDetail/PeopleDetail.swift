@@ -207,6 +207,11 @@ struct PeopleDetail: ConnectedView {
     
     @ViewBuilder
     private func moviesSection(props: Props, year: String) -> some View {
+        // ForEach iterates sortedYears(from: movieByYears) so every
+        // year key is guaranteed to be present in the dict when this
+        // function runs — but defending with `?? []` removes a
+        // crash class for free if the helper ever drifts.
+        let metas = props.movieByYears[year] ?? []
         #if os(macOS)
         VStack(alignment: .leading, spacing: 0) {
             Text(year)
@@ -214,7 +219,7 @@ struct PeopleDetail: ConnectedView {
                 .padding(.horizontal)
                 .padding(.top, 12)
                 .padding(.bottom, 4)
-            ForEach(props.movieByYears[year]!) { meta in
+            ForEach(metas) { meta in
                 MacFocusableLink(id: PeopleDetailFocusTarget.movie(year: year, id: meta.id),
                                  focusedId: $focusedDetailItem) {
                     selectMovie(meta.id)
@@ -232,7 +237,7 @@ struct PeopleDetail: ConnectedView {
         }
         #else
         Section(header: Text(year)) {
-            ForEach(props.movieByYears[year]!) { meta in
+            ForEach(metas) { meta in
                 Button(action: {
                     selectMovie(meta.id)
                 }) {
@@ -259,6 +264,10 @@ struct PeopleDetail: ConnectedView {
                 .scaleEffect(props.isInFanClub.wrappedValue ? 1.2 : 1.0)
                 .frame(width: 25, height: 25)
                 .animation(.spring(), value: props.isInFanClub.wrappedValue)
+                // Bump the tappable area to the 44×44 HIG minimum
+                // without changing the visual icon size.
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         })
         .accessibilityLabel(props.isInFanClub.wrappedValue
                             ? "Remove from fan club"

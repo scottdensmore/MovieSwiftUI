@@ -243,7 +243,18 @@ public struct APIService {
                 components.queryItems?.append(URLQueryItem(name: value.key, value: value.value))
             }
         }
-        var request = URLRequest(url: components.url!)
+        // `components.url` is non-nil for all the well-formed
+        // endpoint paths we construct above — but if it ever does
+        // come back nil (e.g. a future caller passes a path with
+        // characters that fail percent-encoding), surface that as a
+        // structured failure instead of crashing the request.
+        guard let composedURL = components.url else {
+            callbackQueue.async {
+                completionHandler(.failure(.noResponse))
+            }
+            return
+        }
+        var request = URLRequest(url: composedURL)
         request.httpMethod = "GET"
         let task = session.dataTask(with: request) { (data, response, error) in
             // Transport-level error first — distinguishes "device is

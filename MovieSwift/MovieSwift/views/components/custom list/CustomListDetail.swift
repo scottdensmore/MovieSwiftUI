@@ -123,6 +123,10 @@ struct CustomListDetail : ConnectedView {
                     Text(CustomListSelection.pendingAddButtonTitle(for: selectedMovies))
                 }
             } else {
+                // Toolbar icons keep their 25-pt visual size for a
+                // tight design but expand the tappable region to
+                // the HIG-recommended 44×44 minimum via a wrapping
+                // .frame + .contentShape on each button.
                 HStack(spacing: 16) {
                     Button(action: {
                         self.isEditingFormPresented = true
@@ -131,6 +135,8 @@ struct CustomListDetail : ConnectedView {
                             .resizable()
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                     .accessibilityLabel("Edit list")
                     #if os(macOS)
@@ -141,6 +147,8 @@ struct CustomListDetail : ConnectedView {
                             .resizable()
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                     .accessibilityLabel("Sort")
                     #else
@@ -151,6 +159,8 @@ struct CustomListDetail : ConnectedView {
                             .resizable()
                             .frame(width: 25, height: 25)
                             .foregroundColor(.steam_gold)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     })
                     .accessibilityLabel("Sort")
                     #endif

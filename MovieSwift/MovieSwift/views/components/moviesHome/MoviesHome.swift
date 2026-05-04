@@ -44,7 +44,11 @@ struct MoviesHome : ConnectedView {
         }
     }
 
-    @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: MoviesMenu.allCases.first!)
+    // `MoviesMenu.allCases.first` is non-nil at compile time
+    // because the enum has at least one case (`.popular`), but
+    // hard-coding the canonical default is clearer than
+    // force-unwrapping and removes the audit-flagged `!`.
+    @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: .popular)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
     @State private var navigationRoute: MoviesListNavigationRoute?
@@ -59,19 +63,26 @@ struct MoviesHome : ConnectedView {
         }) {
             HStack {
                 Image(systemName: "wrench").imageScale(.medium)
-            }.frame(width: 30, height: 30)
+            }
+            // 44×44 minimum touch target per Apple HIG. The icon
+            // glyph stays mid-sized (.medium) but the button's hit
+            // area is the full 44×44 frame.
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("Settings")
         .accessibilityIdentifier("moviesHome.settingsButton")
     }
-    
+
     private var swapHomeButton: some View {
         Button(action: {
             self.homeMode = MoviesHomeState.toggledMode(from: self.homeMode)
         }) {
             HStack {
                 Image(systemName: self.homeMode.icon()).imageScale(.medium)
-            }.frame(width: 30, height: 30)
+            }
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("Toggle layout")
         .accessibilityIdentifier("moviesHome.toggleLayoutButton")

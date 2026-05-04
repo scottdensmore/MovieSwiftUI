@@ -622,7 +622,21 @@ struct MovieDetail: ConnectedView {
             return
         }
 
-        if force || focusedDetailItem == nil || !availableTargets.contains(focusedDetailItem!) {
+        // Re-pick the preferred target when:
+        //   force == true (user nav action),
+        //   nothing is focused yet,
+        //   or the focused item is no longer in the available list.
+        // The earlier `availableTargets.contains(focusedDetailItem!)`
+        // forced an unwrap that was already guarded by the
+        // immediately-preceding `focusedDetailItem == nil` check —
+        // restructured to make the guard explicit.
+        if force {
+            focusedDetailItem = preferredFocusTarget(props: props)
+        } else if let focused = focusedDetailItem {
+            if !availableTargets.contains(focused) {
+                focusedDetailItem = preferredFocusTarget(props: props)
+            }
+        } else {
             focusedDetailItem = preferredFocusTarget(props: props)
         }
     }
@@ -720,12 +734,12 @@ struct MovieDetail: ConnectedView {
         MovieButtonsRow(movieId: movieId, showCustomListSheet: $isAddSheetPresented)
         #endif
         smokeTestTopPersonShortcut(props: props)
-        if props.reviewsCount ?? 0 > 0 {
+        if let reviewsCount = props.reviewsCount, reviewsCount > 0 {
             #if os(macOS)
             MacFocusableLink(id: .reviewLink, focusedId: $focusedDetailItem) {
                 selectedReviewMovieId = movieId
             } label: {
-                Text("\(props.reviewsCount!) reviews")
+                Text("\(reviewsCount) reviews")
                     .foregroundColor(.steam_blue)
                     .lineLimit(1)
                     .padding(.leading)
@@ -737,7 +751,7 @@ struct MovieDetail: ConnectedView {
             Button(action: {
                 selectedReviewMovieId = movieId
             }) {
-                Text("\(props.reviewsCount!) reviews")
+                Text("\(reviewsCount) reviews")
                     .foregroundColor(.steam_blue)
                     .lineLimit(1)
                     .padding(.leading)

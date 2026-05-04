@@ -42,29 +42,29 @@ struct PeopleDetailBiographyRow : View {
                     .lineLimit(isExpanded ? 1000 : 4)
                 readMoreButton
             }
-            if birthDate != nil {
+            if let birthDate {
                 Text("Birthday")
                     .titleStyle()
                     .lineLimit(1)
-                Text(birthDate!)
+                Text(birthDate)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
-            if placeOfBirth != nil {
+            if let placeOfBirth {
                 Text("Place of birth")
                     .titleStyle()
                     .lineLimit(1)
-                Text(placeOfBirth!)
+                Text(placeOfBirth)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
-            if deathDate != nil {
+            if let deathDate {
                 Text(PeopleDetailBiographyState.deathLabel)
                     .titleStyle()
                     .lineLimit(1)
-                Text(deathDate!)
+                Text(deathDate)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)

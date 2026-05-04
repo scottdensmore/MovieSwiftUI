@@ -40,14 +40,14 @@ struct ListImage: ConnectedView {
     
     func body(props: Props) -> some View {
         Group {
-            if icon(props: props) != nil {
-                Image(systemName: icon(props: props)!)
+            if let iconName = icon(props: props) {
+                Image(systemName: iconName)
                     .imageScale(.small)
                     .foregroundColor(.white)
                     .position(x: 13, y: 15)
                     .transition(AnyTransition.scale
                         .combined(with: .opacity))
-                    .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: icon(props: props))
+                    .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: iconName)
             }
         }
     }

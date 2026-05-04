@@ -382,9 +382,19 @@ struct DiscoverView: ConnectedView {
     }
     
     private func draggableMovies(props: Props) -> some View {
-        ForEach(props.movies, id: \.self) { id in
-            Group {
-                if props.movies.reversed().firstIndex(of: id) == 0 {
+        // Stack depth = position in the reversed queue. The first
+        // item is the front-of-stack draggable card; everything else
+        // gets a depth-based scale + offset so the deck reads as
+        // layered. Depth comes from a single firstIndex(of:) lookup
+        // — the earlier `firstIndex(of: id)!` force-unwraps were a
+        // crash hazard if `id` ever fell out of the array between
+        // the if-check and the trailing modifiers (e.g. mid-update
+        // after a Pop action).
+        let reversed = props.movies.reversed().map { $0 }
+        return ForEach(reversed, id: \.self) { id in
+            let depth = reversed.firstIndex(of: id) ?? 0
+            return Group {
+                if depth == 0 {
                     presentMovieDetails(
                         DraggableCover(posterPath: DiscoverPosterLookup.posterPath(for: id, posters: props.posters),
                                        gestureViewState: self.$draggedViewState,
@@ -401,8 +411,8 @@ struct DiscoverView: ConnectedView {
                 } else {
                     DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.posters[id],
                                                                                       size: .medium))
-                        .scaleEffect(1.0 - CGFloat(props.movies.reversed().firstIndex(of: id)!) * 0.03 + CGFloat(self.scaleResistance()))
-                        .padding(.bottom, CGFloat(props.movies.reversed().firstIndex(of: id)! * 16) - self.dragResistance())
+                        .scaleEffect(1.0 - CGFloat(depth) * 0.03 + CGFloat(self.scaleResistance()))
+                        .padding(.bottom, CGFloat(depth * 16) - self.dragResistance())
                         .animation(self.draggedViewState.isActive ?
                             .easeIn(duration: 0) :
                             .spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0),
