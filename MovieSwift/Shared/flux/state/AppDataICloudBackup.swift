@@ -27,13 +27,17 @@ enum AppDataICloudBackup {
         var errorDescription: String? {
             switch self {
             case .iCloudUnavailable:
-                return "iCloud Drive is not available. Sign in to iCloud in System Settings and enable iCloud Drive for MovieSwift."
+                return String(localized: "iCloud Drive is not available. Sign in to iCloud in System Settings and enable iCloud Drive for MovieSwift.",
+                              comment: "Error shown when the user taps Back up to iCloud or Restore from iCloud but iCloud Drive isn't set up.")
             case .noBackupExists:
-                return "No iCloud backup exists yet. Tap Back up to iCloud first."
+                return String(localized: "No iCloud backup exists yet. Tap Back up to iCloud first.",
+                              comment: "Error shown when the user taps Restore from iCloud before any backup has been made.")
             case .writeFailed(let error):
-                return "Couldn't write the backup: \(error.localizedDescription)"
+                return String(localized: "Couldn't write the backup: \(error.localizedDescription)",
+                              comment: "Error shown when the iCloud Drive write of a backup file fails. The interpolated value is the underlying system error.")
             case .readFailed(let error):
-                return "Couldn't read the backup: \(error.localizedDescription)"
+                return String(localized: "Couldn't read the backup: \(error.localizedDescription)",
+                              comment: "Error shown when the iCloud Drive read of a backup file fails. The interpolated value is the underlying system error.")
             }
         }
     }

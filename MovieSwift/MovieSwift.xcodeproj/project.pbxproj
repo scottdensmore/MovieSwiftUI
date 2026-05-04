@@ -294,6 +294,9 @@
 		A1B2C40500000000000000A1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		A1B2C40500000000000000A3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */; };
+		A1B2C40700000000000000A1 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40800000000000000A1 /* Localizable.xcstrings */; };
+		A1B2C40700000000000000A2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40800000000000000A1 /* Localizable.xcstrings */; };
+		A1B2C40700000000000000A3 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C40800000000000000A1 /* Localizable.xcstrings */; };
 		A1B2C40100000000000000A1 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A1 /* OnboardingFlow.swift */; };
 		A1B2C40100000000000000A2 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A1 /* OnboardingFlow.swift */; };
 		A1B2C40100000000000000A3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C40200000000000000A2 /* OnboardingView.swift */; };
@@ -556,6 +559,7 @@
 		A1B2C40200000000000000F2 /* CrashReportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportStore.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000F3 /* MetricKitCrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricKitCrashReporter.swift; sourceTree = "<group>"; };
 		A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A1B2C40800000000000000A1 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A1B2C40200000000000000A1 /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000A2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1B2C40200000000000000F1 /* UserDataDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataDocument.swift; sourceTree = "<group>"; };
@@ -769,6 +773,7 @@
 				691E905522BF5A3D00AA23FE /* fonts */,
 				69FFAF9522A9A0E300801F3C /* flux */,
 				A1B2C40600000000000000A1 /* PrivacyInfo.xcprivacy */,
+				A1B2C40800000000000000A1 /* Localizable.xcstrings */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -1519,6 +1524,7 @@
 				61C85ACD93C9E53EB684559D /* Preview Assets.xcassets in Resources */,
 				F517E2EE2EF3218B3455A4AD /* Assets.xcassets in Resources */,
 				A1B2C40500000000000000A1 /* PrivacyInfo.xcprivacy in Resources */,
+				A1B2C40700000000000000A1 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1533,6 +1539,7 @@
 				69414A1623C33FC10056FBDF /* Preview Assets.xcassets in Resources */,
 				69414A1323C33FC10056FBDF /* Assets.xcassets in Resources */,
 				A1B2C40500000000000000A2 /* PrivacyInfo.xcprivacy in Resources */,
+				A1B2C40700000000000000A2 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1547,6 +1554,7 @@
 				69FFAF8922A99F1200801F3C /* Preview Assets.xcassets in Resources */,
 				69FFAF8622A99F1200801F3C /* Assets.xcassets in Resources */,
 				A1B2C40500000000000000A3 /* PrivacyInfo.xcprivacy in Resources */,
+				A1B2C40700000000000000A3 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

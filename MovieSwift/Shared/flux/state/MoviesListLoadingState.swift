@@ -75,7 +75,10 @@ struct MoviesListLoadFailure: Equatable {
     let message: String
     let retryActionTitle: String
 
-    init(kind: Kind, message: String, retryActionTitle: String = "Try again") {
+    init(kind: Kind,
+         message: String,
+         retryActionTitle: String = String(localized: "Try again",
+                                           comment: "Default retry button label on inline error banners.")) {
         self.kind = kind
         self.message = message
         self.retryActionTitle = retryActionTitle
@@ -92,67 +95,93 @@ enum MoviesListLoadFailurePresenter {
         case .missingAPIKey:
             return MoviesListLoadFailure(
                 kind: .missingAPIKey,
-                message: "No TMDB API key is configured. Add one in Settings to load movies.",
-                retryActionTitle: "Open Settings"
+                message: String(localized: "No TMDB API key is configured. Add one in Settings to load movies.",
+                                comment: "Inline error banner shown when no TMDB API key is available."),
+                retryActionTitle: openSettingsTitle()
             )
         case .offline:
             return MoviesListLoadFailure(
                 kind: .offline,
-                message: "You're offline. Check your connection and try again.",
-                retryActionTitle: "Try again"
+                message: String(localized: "You're offline. Check your connection and try again.",
+                                comment: "Inline error banner shown when the device has no network connection."),
+                retryActionTitle: tryAgainTitle()
             )
         case .rateLimited(let retryAfter):
             let suffix: String
             if let retryAfter, retryAfter > 0 {
                 let seconds = Int(retryAfter.rounded(.up))
-                suffix = " Try again in \(seconds) second\(seconds == 1 ? "" : "s")."
+                if seconds == 1 {
+                    suffix = String(localized: " Try again in 1 second.",
+                                    comment: "Trailing fragment appended to the rate-limit message when TMDB tells us to retry in exactly one second.")
+                } else {
+                    suffix = String(localized: " Try again in \(seconds) seconds.",
+                                    comment: "Trailing fragment appended to the rate-limit message. \\(seconds) is the number of seconds to wait, always greater than 1.")
+                }
             } else {
-                suffix = " Try again in a moment."
+                suffix = String(localized: " Try again in a moment.",
+                                comment: "Trailing fragment appended to the rate-limit message when TMDB doesn't tell us how long to wait.")
             }
             return MoviesListLoadFailure(
                 kind: .rateLimited(retryAfterSeconds: retryAfter),
-                message: "Too many requests to TMDB right now." + suffix,
-                retryActionTitle: "Try again"
+                message: String(localized: "Too many requests to TMDB right now.",
+                                comment: "Leading sentence of the rate-limit error banner.") + suffix,
+                retryActionTitle: tryAgainTitle()
             )
         case .httpStatus(let code):
             switch code {
             case 401:
                 return MoviesListLoadFailure(
                     kind: .unauthorized,
-                    message: "TMDB rejected the request — your API key may be invalid. Check it in Settings.",
-                    retryActionTitle: "Open Settings"
+                    message: String(localized: "TMDB rejected the request — your API key may be invalid. Check it in Settings.",
+                                    comment: "Error banner when TMDB returns 401 Unauthorized."),
+                    retryActionTitle: openSettingsTitle()
                 )
             case 403:
                 return MoviesListLoadFailure(
                     kind: .forbidden,
-                    message: "TMDB declined the request. Your API key may not have access to this resource.",
-                    retryActionTitle: "Open Settings"
+                    message: String(localized: "TMDB declined the request. Your API key may not have access to this resource.",
+                                    comment: "Error banner when TMDB returns 403 Forbidden."),
+                    retryActionTitle: openSettingsTitle()
                 )
             case 500...599:
                 return MoviesListLoadFailure(
                     kind: .server,
-                    message: "TMDB is having a problem (\(code)). Try again in a minute.",
-                    retryActionTitle: "Try again"
+                    message: String(localized: "TMDB is having a problem (\(code)). Try again in a minute.",
+                                    comment: "Error banner for HTTP 5xx responses. \\(code) is the integer HTTP status."),
+                    retryActionTitle: tryAgainTitle()
                 )
             default:
                 return MoviesListLoadFailure(
                     kind: .other,
-                    message: "TMDB returned an unexpected response (\(code)).",
-                    retryActionTitle: "Try again"
+                    message: String(localized: "TMDB returned an unexpected response (\(code)).",
+                                    comment: "Error banner for unrecognised non-2xx HTTP responses. \\(code) is the integer HTTP status."),
+                    retryActionTitle: tryAgainTitle()
                 )
             }
         case .jsonDecodingError:
             return MoviesListLoadFailure(
                 kind: .decode,
-                message: "Got an unexpected response from TMDB. Try again.",
-                retryActionTitle: "Try again"
+                message: String(localized: "Got an unexpected response from TMDB. Try again.",
+                                comment: "Error banner when TMDB's JSON response can't be decoded into the expected shape."),
+                retryActionTitle: tryAgainTitle()
             )
         case .networkError, .noResponse:
             return MoviesListLoadFailure(
                 kind: .other,
-                message: "Couldn't reach TMDB. Check your connection and try again.",
-                retryActionTitle: "Try again"
+                message: String(localized: "Couldn't reach TMDB. Check your connection and try again.",
+                                comment: "Error banner for transport-level network failures other than offline."),
+                retryActionTitle: tryAgainTitle()
             )
         }
+    }
+
+    private static func tryAgainTitle() -> String {
+        String(localized: "Try again",
+               comment: "Default retry button label on inline error banners.")
+    }
+
+    private static func openSettingsTitle() -> String {
+        String(localized: "Open Settings",
+               comment: "Retry button label that takes the user to Settings rather than retrying the request — used when the failure is a missing/invalid API key.")
     }
 }

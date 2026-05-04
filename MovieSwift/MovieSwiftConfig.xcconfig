@@ -7,4 +7,16 @@ CODE_SIGN_STYLE = Automatic
 ORGANIZATION_IDENTIFIER = com.example
 TMDB_API_KEY =
 
+// Localization: turn on String Catalog auto-extraction so SwiftUI
+// `Text("...")` literals (and other LocalizedStringKey-accepting
+// APIs) populate Localizable.xcstrings on each build.
+//
+// SWIFT_EMIT_LOC_STRINGS = YES makes the Swift compiler emit a
+// per-module .stringsdata file alongside the build artifacts.
+// LOCALIZATION_PREFERS_STRING_CATALOGS = YES tells the build
+// system to merge that .stringsdata into the project's
+// Localizable.xcstrings instead of generating legacy .strings.
+SWIFT_EMIT_LOC_STRINGS = YES
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+
 #include? "../DeveloperSettings.xcconfig"

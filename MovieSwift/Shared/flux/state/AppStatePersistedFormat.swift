@@ -47,9 +47,11 @@ enum AppStatePersistedFormat {
         var errorDescription: String? {
             switch self {
             case .unsupportedFutureVersion(let found, let supported):
-                return "Saved data uses format version \(found), which this build of MovieSwift can't read (supported: \(supported.lowerBound)–\(supported.upperBound)). Update the app and try again."
+                return String(localized: "Saved data uses format version \(found), which this build of MovieSwift can't read (supported: \(supported.lowerBound)–\(supported.upperBound)). Update the app and try again.",
+                              comment: "Logged at app launch when the persisted userData file is from a newer build than the one running. The integers are format-version numbers.")
             case .decodeFailed(let underlying):
-                return "Couldn't read saved data: \(underlying.localizedDescription)"
+                return String(localized: "Couldn't read saved data: \(underlying.localizedDescription)",
+                              comment: "Logged at app launch when the persisted userData file can't be decoded. The interpolated value is the underlying system error.")
             }
         }
     }

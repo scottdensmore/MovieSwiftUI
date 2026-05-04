@@ -25,9 +25,11 @@ enum AppDataImport {
         var errorDescription: String? {
             switch self {
             case .decodeFailed(let error):
-                return "Couldn't read the export file: \(error.localizedDescription)"
+                return String(localized: "Couldn't read the export file: \(error.localizedDescription)",
+                              comment: "Error shown when an Import my data picked file fails to decode (corrupt JSON or wrong shape). The interpolated value is the underlying system error.")
             case .unsupportedFormatVersion(let found, let supported):
-                return "Export file format version \(found) isn't supported by this version of MovieSwift (supported: \(supported.lowerBound)–\(supported.upperBound))."
+                return String(localized: "Export file format version \(found) isn't supported by this version of MovieSwift (supported: \(supported.lowerBound)–\(supported.upperBound)).",
+                              comment: "Error shown when an Import my data picked file uses a format version produced by a newer build of MovieSwift than the one running. \\(found), \\(supported.lowerBound), \\(supported.upperBound) are integer format-version numbers.")
             }
         }
     }
