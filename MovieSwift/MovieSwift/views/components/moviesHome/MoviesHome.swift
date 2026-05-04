@@ -48,6 +48,14 @@ struct MoviesHome : ConnectedView {
     // because the enum has at least one case (`.popular`), but
     // hard-coding the canonical default is clearer than
     // force-unwrapping and removes the audit-flagged `!`.
+    // @ScaledMetric makes both the icon glyph size and the
+    // surrounding tap area grow proportionally with Dynamic Type,
+    // so users with larger accessibility text sizes get a
+    // proportionally larger settings / view-mode toggle.
+    // Hit-target floor stays at 44pt at the default Dynamic Type
+    // setting — `minWidth/minHeight` lets the frame grow above 44.
+    @ScaledMetric private var headerIconSize: CGFloat = 22
+    @ScaledMetric private var headerHitSize: CGFloat = 44
     @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: .popular)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
@@ -61,14 +69,12 @@ struct MoviesHome : ConnectedView {
         Button(action: {
             self.isSettingPresented = true
         }) {
-            HStack {
-                Image(systemName: "wrench").imageScale(.medium)
-            }
-            // 44×44 minimum touch target per Apple HIG. The icon
-            // glyph stays mid-sized (.medium) but the button's hit
-            // area is the full 44×44 frame.
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
+            Image(systemName: "wrench")
+                .resizable()
+                .scaledToFit()
+                .frame(width: headerIconSize, height: headerIconSize)
+                .frame(minWidth: headerHitSize, minHeight: headerHitSize)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Settings")
         .accessibilityIdentifier("moviesHome.settingsButton")
@@ -78,11 +84,12 @@ struct MoviesHome : ConnectedView {
         Button(action: {
             self.homeMode = MoviesHomeState.toggledMode(from: self.homeMode)
         }) {
-            HStack {
-                Image(systemName: self.homeMode.icon()).imageScale(.medium)
-            }
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
+            Image(systemName: self.homeMode.icon())
+                .resizable()
+                .scaledToFit()
+                .frame(width: headerIconSize, height: headerIconSize)
+                .frame(minWidth: headerHitSize, minHeight: headerHitSize)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Toggle layout")
         .accessibilityIdentifier("moviesHome.toggleLayoutButton")
