@@ -20,10 +20,13 @@ struct MovieSwiftTVApp: App {
         self.environment = environment
         self.store = environment.store
         environment.runtime.startArchiving(store: store)
-        // No-op on tvOS (MetricKit isn't available); call retained
-        // for symmetry with the iOS / macOS entry points.
+        // Both calls are no-ops on tvOS — MetricKit and CoreSpotlight
+        // aren't available there. Retained for symmetry with the
+        // iOS / macOS entry points so the bring-up code reads the
+        // same across platforms.
         if !environment.runtime.isRunningUISmokeTests {
             MetricKitCrashReporter.shared.startObserving()
+            SpotlightStoreObserver.shared.startObserving(store: store)
         }
     }
 

@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftUIFlux
 import AppIntents
+import CoreSpotlight
 
 @main
 struct HomeView: App {
@@ -30,6 +31,10 @@ struct HomeView: App {
         // capturing payloads while the suite is running.
         if !environment.runtime.isRunningUISmokeTests {
             MetricKitCrashReporter.shared.startObserving()
+            // Surface user-saved movies in iOS Spotlight search.
+            // Subscribes to the store so wishlist / seenlist /
+            // custom-list changes update the index live.
+            SpotlightStoreObserver.shared.startObserving(store: store)
         }
         _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
             isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
@@ -56,6 +61,14 @@ struct TabbarView: View {
     let isRunningUISmokeTests: Bool
     @State var selectedTab = Tab.movies
     @StateObject private var intentNavigation = IntentNavigationStore.shared
+    @State private var spotlightMovieId: SpotlightMovieID?
+
+    /// Identifiable wrapper around a movie id so the Spotlight
+    /// result sheet uses `.sheet(item:)` and the right value
+    /// drives presentation across tab switches.
+    private struct SpotlightMovieID: Identifiable, Equatable {
+        let id: Int
+    }
 
     enum Tab: Int {
         case movies, discover, fanClub, myLists
@@ -97,6 +110,23 @@ struct TabbarView: View {
             case .wishlist:      selectedTab = .myLists
             }
             intentNavigation.consume()
+        }
+        // Tapping a Spotlight result for a saved movie opens the
+        // app with this user activity. Parse the identifier the
+        // indexer wrote, then present MovieDetail in a sheet so
+        // the user lands on the movie they searched for regardless
+        // of which tab they were last on.
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            guard let identifier = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+                  let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
+                return
+            }
+            spotlightMovieId = SpotlightMovieID(id: movieId)
+        }
+        .sheet(item: $spotlightMovieId) { wrapper in
+            NavigationStack {
+                MovieDetail(movieId: wrapper.id)
+            }
         }
     }
 }

@@ -6,6 +6,7 @@
 import SwiftUI
 #if os(macOS)
 import AppKit
+import CoreSpotlight
 
 // MARK: - MacOS implementation
 struct SplitView: View {
@@ -29,6 +30,13 @@ struct SplitView: View {
     @State private var detailNavigationRoute: MoviesListNavigationRoute?
     @FocusState private var isSidebarFocused: Bool
     @StateObject private var intentNavigation = IntentNavigationStore.shared
+    @State private var spotlightMovieId: SpotlightMovieID?
+
+    /// Identifiable wrapper around a movie id so the Spotlight
+    /// result sheet uses `.sheet(item:)` for clean push/dismiss.
+    private struct SpotlightMovieID: Identifiable, Equatable {
+        let id: Int
+    }
 
     @ViewBuilder
     var body: some View {
@@ -148,6 +156,20 @@ struct SplitView: View {
                 selectedMenu = target
             }
             intentNavigation.consume()
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            guard let identifier = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+                  let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
+                return
+            }
+            spotlightMovieId = SpotlightMovieID(id: movieId)
+        }
+        .sheet(item: $spotlightMovieId) { wrapper in
+            NavigationStack {
+                MovieDetail(movieId: wrapper.id)
+            }
+            .frame(minWidth: 720, idealWidth: 820,
+                   minHeight: 720, idealHeight: 820)
         }
     }
 

@@ -23,6 +23,10 @@ struct MovieSwiftMacApp: App {
         // UI smoke tests.
         if !environment.runtime.isRunningUISmokeTests {
             MetricKitCrashReporter.shared.startObserving()
+            // Surface user-saved movies in macOS Spotlight search.
+            // Subscribes to the store so wishlist / seenlist /
+            // custom-list changes update the index live.
+            SpotlightStoreObserver.shared.startObserving(store: store)
         }
         _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
             isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
