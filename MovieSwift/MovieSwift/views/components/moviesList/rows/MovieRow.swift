@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 import UI
+import MovieSwiftFluxCore
 
 fileprivate let formatter: DateFormatter = {
     let formatter = DateFormatter()

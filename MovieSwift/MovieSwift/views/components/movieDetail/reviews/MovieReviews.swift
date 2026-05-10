@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum MovieReviewsFetchPolicy {
     static func shouldFetchReviews(existingReviews: [Review]) -> Bool {

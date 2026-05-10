@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum DiscoverFilterFormFetchPolicy {
     static func shouldFetchGenres(genres: [Genre]) -> Bool {

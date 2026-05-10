@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 struct ListImage: ConnectedView {
     struct Props {

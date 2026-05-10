@@ -1,4 +1,5 @@
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct MovieOverview : View {
     let movie: Movie

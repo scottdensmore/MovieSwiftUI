@@ -9,6 +9,7 @@
 //  state outright a caller would clear it first, then import.
 
 import Foundation
+import MovieSwiftFluxCore
 
 enum AppDataImport {
 

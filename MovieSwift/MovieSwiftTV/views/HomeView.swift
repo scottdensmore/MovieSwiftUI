@@ -1,4 +1,5 @@
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct HomeView: View {
     private enum Tab: Hashable {

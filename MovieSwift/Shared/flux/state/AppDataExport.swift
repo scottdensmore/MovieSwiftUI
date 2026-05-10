@@ -5,6 +5,7 @@
 //  detect format drift.
 
 import Foundation
+import MovieSwiftFluxCore
 
 /// Versioned envelope around an `AppState` snapshot, written out as JSON.
 ///

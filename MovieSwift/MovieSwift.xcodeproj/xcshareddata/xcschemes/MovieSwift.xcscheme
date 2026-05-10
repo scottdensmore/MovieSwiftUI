@@ -76,6 +76,16 @@
                ReferencedContainer = "container:MovieSwift.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "MovieSwiftFluxCoreTests"
+               BuildableName = "MovieSwiftFluxCoreTests"
+               BlueprintName = "MovieSwiftFluxCoreTests"
+               ReferencedContainer = "container:Packages/MovieSwiftFluxCore">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

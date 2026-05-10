@@ -1,4 +1,5 @@
 import Foundation
+import MovieSwiftFluxCore
 
 enum AppPersistence {
     private static var savePath: URL?

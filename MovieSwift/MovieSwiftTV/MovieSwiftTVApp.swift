@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import AppIntents
+import MovieSwiftFluxCore
 
 @main
 struct MovieSwiftTVApp: App {
@@ -32,6 +33,6 @@ struct MovieSwiftTVApp: App {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appStateReducer,
+let sampleStore = Store<AppState>(reducer: appReducerWithImports,
                                   state: makePreviewSampleState())
 #endif

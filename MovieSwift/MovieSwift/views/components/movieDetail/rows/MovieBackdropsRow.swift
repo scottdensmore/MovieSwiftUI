@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 struct MovieBackdropPresentation: Identifiable {
     let image: ImageData

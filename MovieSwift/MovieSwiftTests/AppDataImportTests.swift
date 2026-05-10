@@ -1,4 +1,5 @@
 import XCTest
+import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
 #elseif os(macOS)
@@ -252,7 +253,7 @@ final class AppDataImportTests: XCTestCase {
         imported.peoplesState.fanClub.insert(5)
 
         let action = AppActions.ImportAppData(envelope: envelope(wrapping: imported))
-        let result = appStateReducer(state: current, action: action)
+        let result = appReducerWithImports(state: current, action: action)
 
         XCTAssertEqual(result.moviesState.wishlist, [1, 2])
         XCTAssertTrue(result.peoplesState.fanClub.contains(5))

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum MovieGenrePageAction {
     static func fetch(genre: Genre, page: Int, sort: MoviesSort) -> Action {

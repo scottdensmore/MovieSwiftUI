@@ -1,4 +1,5 @@
 import XCTest
+import MovieSwiftFluxCore
 #if os(macOS)
 @testable import Film_O_Matic
 #else
@@ -193,7 +194,7 @@ final class MovieSwiftTests: XCTestCase {
         state.peoplesState.casts[7] = [11: "Lead"]
         state.peoplesState.crews[8] = [11: "Director"]
 
-        let cleared = appStateReducer(state: state, action: AppActions.ClearCachedData())
+        let cleared = appReducerWithImports(state: state, action: AppActions.ClearCachedData())
 
         XCTAssertEqual(cleared.moviesState.wishlist, [11])
         XCTAssertEqual(cleared.moviesState.seenlist, [12])

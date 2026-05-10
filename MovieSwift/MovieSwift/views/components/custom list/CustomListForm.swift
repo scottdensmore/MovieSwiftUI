@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import UI
+import MovieSwiftFluxCore
 
 final class CustomListFormSearchWrapper: SearchTextObservable {
     private var dispatchSearches: ((String, Int) -> Void)?

@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftUIFlux
 import Combine
 import UI
+import MovieSwiftFluxCore
 
 enum MovieDetailLoadSlice: Equatable {
     case detail

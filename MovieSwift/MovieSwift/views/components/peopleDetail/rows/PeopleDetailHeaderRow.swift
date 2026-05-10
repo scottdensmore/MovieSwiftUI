@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 enum PeopleDetailHeaderState {
     static let missingKnownForText = "Known work is not available."

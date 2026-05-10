@@ -1,4 +1,5 @@
 import XCTest
+import MovieSwiftFluxCore
 
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]

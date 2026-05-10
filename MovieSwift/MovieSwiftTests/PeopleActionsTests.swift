@@ -1,5 +1,6 @@
 import XCTest
 import Backend
+import MovieSwiftFluxCore
 #if os(macOS)
 @testable import Film_O_Matic
 #else

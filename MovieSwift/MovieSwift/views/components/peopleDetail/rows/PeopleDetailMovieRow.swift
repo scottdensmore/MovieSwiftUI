@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 enum PeopleDetailMovieRowState {
     static func subtitle(for role: String) -> String? {

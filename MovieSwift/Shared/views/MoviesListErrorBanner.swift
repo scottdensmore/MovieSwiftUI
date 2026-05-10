@@ -6,6 +6,7 @@
 //  GenresList can all render the same component.
 
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct MoviesListErrorBanner: View {
     let failure: MoviesListLoadFailure

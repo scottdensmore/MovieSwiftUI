@@ -1,6 +1,7 @@
 //  UI tests for the tvOS target. Uses focus-based navigation with Siri Remote.
 
 import XCTest
+import MovieSwiftFluxCore
 
 final class MovieSwiftTVUITests: XCTestCase {
     private let timeout = UITestConstants.uiWaitTimeout

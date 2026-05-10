@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 final class KeywordPageListener: MoviesPagesListener {
     var keyword: Int?

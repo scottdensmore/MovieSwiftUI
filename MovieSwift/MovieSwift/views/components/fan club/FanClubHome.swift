@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import UI
+import MovieSwiftFluxCore
 
 enum FanClubState {
     static func fanClubPeople(from state: AppState) -> [Int] {

@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import UI
+import MovieSwiftFluxCore
 
 enum CustomListPresentation {
     static func coverMovie(for list: CustomList, movies: [Int: Movie]) -> Movie? {

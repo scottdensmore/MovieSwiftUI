@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import UI
+import MovieSwiftFluxCore
 
 enum PeopleDetailFetchPolicy {
     static func shouldFetchDetail(isRunningUISmokeTests: Bool, hasLoadedDetail: Bool) -> Bool {

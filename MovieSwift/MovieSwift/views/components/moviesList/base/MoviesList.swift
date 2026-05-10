@@ -3,6 +3,7 @@ import SwiftUIFlux
 import Combine
 import UI
 import Backend
+import MovieSwiftFluxCore
 
 enum MoviesListNavigationRoute: Identifiable, Hashable {
     case movie(Int)

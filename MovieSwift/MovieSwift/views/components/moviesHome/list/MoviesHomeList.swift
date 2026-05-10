@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum MoviesHomeListState {
     static func movies(for menu: MoviesMenu, from state: AppState) -> [Int] {

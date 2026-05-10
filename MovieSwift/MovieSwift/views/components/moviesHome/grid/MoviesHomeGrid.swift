@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum MoviesHomeGridFetchPolicy {
     static func shouldFetchLiveData(isRunningUISmokeTests: Bool) -> Bool {

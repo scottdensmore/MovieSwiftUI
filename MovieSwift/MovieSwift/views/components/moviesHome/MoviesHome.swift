@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum MoviesHomeState {
     static func toggledMode(from mode: MoviesHome.HomeMode) -> MoviesHome.HomeMode {

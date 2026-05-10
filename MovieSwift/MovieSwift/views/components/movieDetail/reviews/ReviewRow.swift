@@ -1,4 +1,5 @@
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct ReviewRow : View {
     let review: Review

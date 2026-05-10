@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftUIFlux
 import AppIntents
 import CoreSpotlight
+import MovieSwiftFluxCore
 
 @main
 struct HomeView: App {
@@ -124,8 +125,8 @@ struct TabbarView: View {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appStateReducer,
+let sampleStore = Store<AppState>(reducer: appReducerWithImports,
                                   state: makePreviewSampleState())
-let uiSmokeTestStore = Store<AppState>(reducer: appStateReducer,
+let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
                                        state: makeUISmokeTestState())
 #endif

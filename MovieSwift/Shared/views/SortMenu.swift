@@ -1,4 +1,5 @@
 import SwiftUI
+import MovieSwiftFluxCore
 
 @ViewBuilder
 func sortMenuButtons(onSelect: @escaping (MoviesSort) -> Void) -> some View {

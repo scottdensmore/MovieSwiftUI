@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 enum PeopleRowState {
     static func people(for peopleId: Int, from state: AppState) -> People? {

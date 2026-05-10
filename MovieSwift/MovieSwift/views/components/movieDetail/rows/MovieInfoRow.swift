@@ -1,5 +1,6 @@
 import SwiftUI
 import UI
+import MovieSwiftFluxCore
 
 struct MovieInfoPresentation {
     let yearText: String?

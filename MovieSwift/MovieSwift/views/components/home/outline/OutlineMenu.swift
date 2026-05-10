@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum OutlineMoviesMenuListFetchPolicy {
     static func shouldLoadInitialPage(isRunningUISmokeTests: Bool) -> Bool {

@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 import UI
+import MovieSwiftFluxCore
 
 struct MovieGridRow: ConnectedView {
     struct Props {

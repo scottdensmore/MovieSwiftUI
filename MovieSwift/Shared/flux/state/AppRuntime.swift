@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 final class AppRuntime {
     static let xctestConfigurationFilePathKey = "XCTestConfigurationFilePath"

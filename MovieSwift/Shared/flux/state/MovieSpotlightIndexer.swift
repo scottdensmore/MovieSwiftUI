@@ -16,6 +16,7 @@ import CoreSpotlight
 #endif
 import SwiftUIFlux
 import Combine
+import MovieSwiftFluxCore
 
 /// Pure-logic helpers — exposed regardless of platform so unit tests
 /// can verify the indexable-set composition and identifier

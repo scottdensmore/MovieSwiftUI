@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import MovieSwiftFluxCore
 
 final class MoviesSelectedMenuStore: ObservableObject {
     let pageListener: MoviesMenuListPageListener

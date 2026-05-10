@@ -2,6 +2,7 @@ import SwiftUI
 import Foundation
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 enum SettingsFormRefreshPolicy {
     static func shouldRefreshMovieMenus(previousRegion: String, selectedRegion: String) -> Bool {

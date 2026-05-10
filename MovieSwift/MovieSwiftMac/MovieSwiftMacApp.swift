@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import AppIntents
+import MovieSwiftFluxCore
 
 @main
 struct MovieSwiftMacApp: App {
@@ -77,8 +78,8 @@ struct MovieSwiftMacApp: App {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appStateReducer,
+let sampleStore = Store<AppState>(reducer: appReducerWithImports,
                                   state: makePreviewSampleState())
-let uiSmokeTestStore = Store<AppState>(reducer: appStateReducer,
+let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
                                        state: makeUISmokeTestState())
 #endif

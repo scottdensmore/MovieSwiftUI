@@ -1,12 +1,13 @@
 import Foundation
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum AppStoreFactory {
     static func makeStore(launchMode: AppLaunchMode = AppLaunchMode.current(),
                           isLoggingEnabled: Bool = AppLoggingPolicy.shouldEnableLogging(
                             isRunningTests: ProcessInfo.processInfo.environment[AppRuntime.xctestConfigurationFilePathKey] != nil
                           )) -> Store<AppState> {
-        Store<AppState>(reducer: appStateReducer,
+        Store<AppState>(reducer: appReducerWithImports,
                         middleware: isLoggingEnabled ? [loggingMiddleware] : [],
                         state: makeInitialState(for: launchMode))
     }

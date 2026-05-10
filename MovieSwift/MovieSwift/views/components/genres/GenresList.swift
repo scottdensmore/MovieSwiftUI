@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum GenresListFetchPolicy {
     static func shouldFetchGenres(isRunningUISmokeTests: Bool) -> Bool {

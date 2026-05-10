@@ -16,6 +16,7 @@
 //  optimised for fast load.
 
 import Foundation
+import MovieSwiftFluxCore
 
 /// Wraps `AppState` with a format version so future schema changes
 /// can be detected (and rejected, if they're newer than this build

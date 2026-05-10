@@ -1,6 +1,7 @@
 //  UI tests for the native macOS target. Uses NavigationSplitView sidebar navigation.
 
 import XCTest
+import MovieSwiftFluxCore
 
 final class MovieSwiftMacUITests: XCTestCase {
     private let timeout = UITestConstants.uiWaitTimeout

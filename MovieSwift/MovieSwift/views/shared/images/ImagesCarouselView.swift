@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 #if os(macOS)
 import AppKit
 #endif

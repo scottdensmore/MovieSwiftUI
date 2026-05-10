@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 enum DiscoverPosterLookup {
     static func posterPath(for movieId: Int, posters: [Int: String]) -> String? {

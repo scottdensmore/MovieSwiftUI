@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum PeopleContextMenuFanClubAction: Equatable {
     case add(people: Int)

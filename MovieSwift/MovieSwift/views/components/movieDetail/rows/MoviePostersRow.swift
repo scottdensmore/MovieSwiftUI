@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 struct MoviePosterPresentation: Identifiable {
     let image: ImageData

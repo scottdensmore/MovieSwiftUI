@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 enum PeopleDetailImagesState {
     static func accessibilityIdentifier(for index: Int) -> String {

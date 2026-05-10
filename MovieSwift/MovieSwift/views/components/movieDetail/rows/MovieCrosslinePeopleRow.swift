@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 struct MovieCrosslinePersonPresentation {
     let name: String

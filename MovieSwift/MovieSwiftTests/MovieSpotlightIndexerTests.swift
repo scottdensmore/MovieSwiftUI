@@ -1,4 +1,5 @@
 import XCTest
+import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
 #elseif os(macOS)

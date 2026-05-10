@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 struct AppEnvironment {
     let launchMode: AppLaunchMode

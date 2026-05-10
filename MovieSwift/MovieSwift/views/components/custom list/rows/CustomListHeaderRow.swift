@@ -1,5 +1,6 @@
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 struct CustomListHeaderRow : View {
     @Binding var sorting: MoviesSort

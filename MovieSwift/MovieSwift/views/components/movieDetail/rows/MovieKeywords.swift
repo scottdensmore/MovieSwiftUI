@@ -1,5 +1,6 @@
 import SwiftUI
 import UI
+import MovieSwiftFluxCore
 
 struct MovieKeywords : View {
     let keywords: [Keyword]

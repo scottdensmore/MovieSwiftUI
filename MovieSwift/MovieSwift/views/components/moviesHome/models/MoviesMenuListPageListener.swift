@@ -1,4 +1,5 @@
 import Foundation
+import MovieSwiftFluxCore
 
 final class MoviesMenuListPageListener: MoviesPagesListener {
     var menu: MoviesMenu {

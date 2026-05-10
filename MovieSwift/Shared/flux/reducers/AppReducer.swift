@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum AppActions {
     struct ClearCachedData: Action { }
@@ -49,16 +50,19 @@ enum AppStateCacheReset {
     }
 }
 
-func appStateReducer(state: AppState, action: Action) -> AppState {
+/// App-shell wrapper around `MovieSwiftFluxCore.appStateReducer` that adds two
+/// app-only actions:
+///   - `AppActions.ClearCachedData`: drops every cached TMDB movie/person except
+///     ones the user has saved (wishlist, seenlist, custom lists, fan club).
+///   - `AppActions.ImportAppData`: merges a previously-exported state envelope.
+/// Both depend on app-target types (`AppDataImport`, `AppDataExportEnvelope`)
+/// that aren't available inside the package.
+func appReducerWithImports(state: AppState, action: Action) -> AppState {
     if action is AppActions.ClearCachedData {
         return AppStateCacheReset.persistentSnapshot(from: state)
     }
     if let importAction = action as? AppActions.ImportAppData {
         return AppDataImport.merge(envelope: importAction.envelope, into: state)
     }
-
-    var state = state
-    state.moviesState = moviesStateReducer(state: state.moviesState, action: action)
-    state.peoplesState = peoplesStateReducer(state: state.peoplesState, action: action)
-    return state
+    return appStateReducer(state: state, action: action)
 }

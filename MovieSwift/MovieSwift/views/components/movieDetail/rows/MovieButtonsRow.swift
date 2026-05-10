@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftUIFlux
 import Backend
 import UI
+import MovieSwiftFluxCore
 
 enum MovieButtonsToggleAction: Equatable {
     case addToWishlist(movie: Int)
