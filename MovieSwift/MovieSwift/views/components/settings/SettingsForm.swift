@@ -577,6 +577,17 @@ struct SettingsForm : ConnectedView {
 
     private func macOSContent(props: Props) -> some View {
         ScrollView {
+            // Two-frame wrap so the readable column stays at 720pt while the
+            // ScrollView's content fills the detail pane.
+            //   - inner frame caps the card at 720pt
+            //   - outer frame is `.infinity` so the wrapper spans the
+            //     available width, which makes the ScrollView's content
+            //     track full-width and pins the vertical scroller to the
+            //     right edge of the detail pane (instead of floating at
+            //     ~column 720 with empty space to its right).
+            // The card itself is centered horizontally inside the wrapper —
+            // matches the System Settings / Xcode preferences pattern on
+            // wide windows.
             VStack(alignment: .leading, spacing: 22) {
                 regionPreferencesSection
                 tmdbAPIKeySection
@@ -588,6 +599,7 @@ struct SettingsForm : ConnectedView {
             .padding(.top, 16)
             .padding(.bottom, 24)
             .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .background(Color.steam_background)
