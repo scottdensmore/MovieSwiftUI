@@ -1,7 +1,22 @@
 import XCTest
 import Backend
+import SwiftUIFlux
 @testable import MovieSwiftFluxCore
 
+/// Tests for the `MoviesActions` AsyncAction execute paths.
+///
+/// **Dispatch contract.** Every action that hits the network funnels through
+/// `MoviesActions.makeTrackedHandler(...)`, which dispatches:
+///   1. `SetLoadingState(key:, state: .loading)` — synchronously, before
+///      the GET fires.
+///   2a. on success — `SetLoadingState(key:, state: nil)` (clears the
+///       loading entry), then the data action (e.g. `SetMovieMenuList`).
+///   2b. on failure — `SetLoadingState(key:, state: .failed(translated))`.
+///       No data action is dispatched on failure.
+///
+/// So success-path tests have to look at three dispatches and pick out the
+/// data action; failure-path tests have to look at two dispatches and assert
+/// the second is a `.failed` SetLoadingState.
 final class MoviesActionsTests: XCTestCase {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
@@ -47,20 +62,6 @@ final class MoviesActionsTests: XCTestCase {
 
     private var originalAPIService: APIService!
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        // TODO: These tests were authored against an earlier MoviesActions
-        // contract where the dispatch closure fired once per request (success
-        // OR failure). The current `makeTrackedHandler`-driven contract emits
-        // a SetLoadingState(.loading) up-front and a SetLoadingState(.failed)
-        // on errors, so single-dispatch assertions and `isInverted`
-        // expectations no longer match. Skipping the suite until it's
-        // rewritten to track every dispatched action and pick the one of
-        // interest. Tracked: refactor MoviesActionsTests for tracked-handler
-        // semantics (separate commit).
-        throw XCTSkip("Stale: tests assume pre-makeTrackedHandler dispatch contract.")
-    }
-
     override func setUp() {
         super.setUp()
         originalAPIService = APIService.shared
@@ -71,70 +72,143 @@ final class MoviesActionsTests: XCTestCase {
         super.tearDown()
     }
 
+    // MARK: - Dispatch capture helper
+
+    /// Run an AsyncAction against a synchronous mock session and collect every
+    /// action it dispatches into an array. The expectation fulfills as soon as
+    /// `trigger` returns true for one of the dispatched actions; the wait then
+    /// returns and the caller asserts on the captured array.
+    ///
+    /// `assertForOverFulfill` is set to false so a slightly noisy success path
+    /// (e.g. SetLoadingState clear → data action where both qualify under
+    /// `trigger`) doesn't crash the test before it can make its real
+    /// assertions.
+    private func captureDispatches(
+        waitingFor description: String,
+        until trigger: @escaping (Action) -> Bool,
+        timeout: TimeInterval = 1.0,
+        when execute: (@escaping DispatchFunction) -> Void
+    ) -> [Action] {
+        var dispatched: [Action] = []
+        let exp = expectation(description: description)
+        exp.assertForOverFulfill = false
+        execute { action in
+            dispatched.append(action)
+            if trigger(action) { exp.fulfill() }
+        }
+        waitForExpectations(timeout: timeout)
+        return dispatched
+    }
+
+    /// Find the first dispatched action of the given type, or fail the test if
+    /// none was dispatched.
+    private func unwrapDispatched<T>(
+        _ type: T.Type,
+        in dispatched: [Action],
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws -> T {
+        let matches = dispatched.compactMap { $0 as? T }
+        return try XCTUnwrap(matches.first,
+                             "Expected one \(T.self) in dispatched actions, got: \(dispatched)",
+                             file: file, line: line)
+    }
+
+    /// Assert that the dispatch trace ends in a `SetLoadingState(.failed)`
+    /// for `key`, with no data action of `dataType` ever dispatched. Returns
+    /// the failure for further assertion.
+    private func assertFailureDispatch<T>(
+        in dispatched: [Action],
+        for key: LoadingKey,
+        notDispatching dataType: T.Type,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws -> MoviesListLoadFailure {
+        XCTAssertNil(dispatched.compactMap { $0 as? T }.first,
+                     "Failure path unexpectedly dispatched a \(T.self) data action.",
+                     file: file, line: line)
+        let loadingStates = dispatched.compactMap { $0 as? MoviesActions.SetLoadingState }
+        let lastForKey = loadingStates.last { $0.key == key }
+        let unwrapped = try XCTUnwrap(lastForKey,
+                                      "No SetLoadingState dispatched for key \(key); got: \(loadingStates)",
+                                      file: file, line: line)
+        guard case let .failed(failure) = unwrapped.state else {
+            XCTFail("Last SetLoadingState for \(key) was \(String(describing: unwrapped.state)), not .failed",
+                    file: file, line: line)
+            throw StubError.failed
+        }
+        return failure
+    }
+
+    // MARK: - FetchMoviesMenuList
+
     func testFetchMoviesMenuListDispatchesSetMovieMenuListOnSuccess() throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
             PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 20)])
         )
 
-        let callbackQueue = DispatchQueue(label: "MoviesActionsTests.fetchList")
         APIService.shared = APIService(
             apiKeyProvider: StubAPIKeyProvider("test-key"),
             session: session,
-            callbackQueue: callbackQueue
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchList")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieMenuList")
-        var dispatchedAction: MoviesActions.SetMovieMenuList?
-
-        MoviesActions.FetchMoviesMenuList(list: .popular, page: 2).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetMovieMenuList
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetMovieMenuList dispatched",
+            until: { $0 is MoviesActions.SetMovieMenuList }
+        ) { dispatch in
+            MoviesActions.FetchMoviesMenuList(list: .popular, page: 2)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.page, 2)
-        XCTAssertEqual(dispatchedAction?.list, .popular)
-        XCTAssertEqual(dispatchedAction?.response.results.map(\.id), [20])
+        let action = try unwrapDispatched(MoviesActions.SetMovieMenuList.self, in: dispatched)
+        XCTAssertEqual(action.page, 2)
+        XCTAssertEqual(action.list, .popular)
+        XCTAssertEqual(action.response.results.map(\.id), [20])
         XCTAssertEqual(session.task.resumeCalls, 1)
 
         let components = try XCTUnwrap(
             URLComponents(url: try XCTUnwrap(session.lastRequest?.url), resolvingAgainstBaseURL: false)
         )
         let queryItems = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
-
         XCTAssertTrue(components.path.contains("/movie/popular"))
         XCTAssertEqual(queryItems["api_key"], "test-key")
         XCTAssertEqual(queryItems["page"], "2")
         XCTAssertEqual(queryItems["region"], AppUserDefaults.region)
     }
 
-    func testFetchMoviesMenuListDoesNotDispatchWhenAPIKeyMissing() {
+    func testFetchMoviesMenuListDispatchesFailureWhenAPIKeyMissing() throws {
         let session = MockNetworkSession()
-        let callbackQueue = DispatchQueue(label: "MoviesActionsTests.missingAPIKey")
 
         APIService.shared = APIService(
             apiKeyProvider: StubAPIKeyProvider(nil),
             session: session,
-            callbackQueue: callbackQueue
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.missingAPIKey")
         )
 
-        let expectation = expectation(description: "No dispatch")
-        expectation.isInverted = true
-
-        MoviesActions.FetchMoviesMenuList(list: .popular, page: 1).execute(state: nil) { _ in
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for .homeMenu(.popular)",
+            until: { isFailedSetLoading($0, for: .homeMenu(.popular)) }
+        ) { dispatch in
+            MoviesActions.FetchMoviesMenuList(list: .popular, page: 1)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        let failure = try assertFailureDispatch(
+            in: dispatched,
+            for: .homeMenu(.popular),
+            notDispatching: MoviesActions.SetMovieMenuList.self
+        )
+        XCTAssertEqual(failure.kind, .missingAPIKey)
+        // Missing API key short-circuits in APIService.GET — no network call,
+        // no resume.
         XCTAssertNil(session.lastRequest)
         XCTAssertEqual(session.task.resumeCalls, 0)
     }
 
-    func testFetchMoviesMenuListDoesNotDispatchOnNetworkError() {
+    func testFetchMoviesMenuListDispatchesFailureOnNetworkError() throws {
         let session = MockNetworkSession()
-        session.nextData = Data()
         session.nextError = StubError.failed
 
         APIService.shared = APIService(
@@ -143,18 +217,23 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.networkFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on network error")
-        expectation.isInverted = true
-
-        MoviesActions.FetchMoviesMenuList(list: .upcoming, page: 1).execute(state: nil) { _ in
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for .homeMenu(.upcoming)",
+            until: { isFailedSetLoading($0, for: .homeMenu(.upcoming)) }
+        ) { dispatch in
+            MoviesActions.FetchMoviesMenuList(list: .upcoming, page: 1)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        _ = try assertFailureDispatch(
+            in: dispatched,
+            for: .homeMenu(.upcoming),
+            notDispatching: MoviesActions.SetMovieMenuList.self
+        )
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
 
-    func testFetchMoviesMenuListDoesNotDispatchOnDecodingError() {
+    func testFetchMoviesMenuListDispatchesFailureOnDecodingError() throws {
         let session = MockNetworkSession()
         session.nextData = Data("not-json".utf8)
 
@@ -164,16 +243,24 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.decodingFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on decode error")
-        expectation.isInverted = true
-
-        MoviesActions.FetchMoviesMenuList(list: .nowPlaying, page: 1).execute(state: nil) { _ in
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for .homeMenu(.nowPlaying)",
+            until: { isFailedSetLoading($0, for: .homeMenu(.nowPlaying)) }
+        ) { dispatch in
+            MoviesActions.FetchMoviesMenuList(list: .nowPlaying, page: 1)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        let failure = try assertFailureDispatch(
+            in: dispatched,
+            for: .homeMenu(.nowPlaying),
+            notDispatching: MoviesActions.SetMovieMenuList.self
+        )
+        XCTAssertEqual(failure.kind, .decode)
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
+
+    // MARK: - FetchGenres
 
     func testFetchGenresDispatchesSetGenresOnSuccess() throws {
         let session = MockNetworkSession()
@@ -186,27 +273,24 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchGenres")
         )
 
-        let expectation = expectation(description: "Dispatch SetGenres")
-        var dispatchedAction: MoviesActions.SetGenres?
-
-        MoviesActions.FetchGenres().execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetGenres
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetGenres dispatched",
+            until: { $0 is MoviesActions.SetGenres }
+        ) { dispatch in
+            MoviesActions.FetchGenres().execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.genres.map(\.id), [12, 18])
-        XCTAssertEqual(dispatchedAction?.genres.map(\.name), ["Adventure", "Drama"])
+        let action = try unwrapDispatched(MoviesActions.SetGenres.self, in: dispatched)
+        XCTAssertEqual(action.genres.map(\.id), [12, 18])
+        XCTAssertEqual(action.genres.map(\.name), ["Adventure", "Drama"])
         XCTAssertEqual(session.task.resumeCalls, 1)
 
         let requestURL = try XCTUnwrap(session.lastRequest?.url)
         XCTAssertTrue(requestURL.path.contains("/genre/movie/list"))
     }
 
-    func testFetchGenresDoesNotDispatchOnFailure() {
+    func testFetchGenresDispatchesFailureOnError() throws {
         let session = MockNetworkSession()
-        session.nextData = nil
         session.nextError = StubError.failed
 
         APIService.shared = APIService(
@@ -215,14 +299,18 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.genresFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on genres failure")
-        expectation.isInverted = true
-
-        MoviesActions.FetchGenres().execute(state: nil) { _ in
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for .genres",
+            until: { isFailedSetLoading($0, for: .genres) }
+        ) { dispatch in
+            MoviesActions.FetchGenres().execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        _ = try assertFailureDispatch(
+            in: dispatched,
+            for: .genres,
+            notDispatching: MoviesActions.SetGenres.self
+        )
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
 
@@ -238,18 +326,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchDetail")
         )
 
-        let expectation = expectation(description: "Dispatch SetDetail")
-        var dispatchedAction: MoviesActions.SetDetail?
-
-        MoviesActions.FetchDetail(movie: 42).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetDetail
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetDetail dispatched",
+            until: { $0 is MoviesActions.SetDetail }
+        ) { dispatch in
+            MoviesActions.FetchDetail(movie: 42).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.movie, 42)
-        XCTAssertEqual(dispatchedAction?.response.id, 42)
+        let action = try unwrapDispatched(MoviesActions.SetDetail.self, in: dispatched)
+        XCTAssertEqual(action.movie, 42)
+        XCTAssertEqual(action.response.id, 42)
 
         let components = try XCTUnwrap(
             URLComponents(url: try XCTUnwrap(session.lastRequest?.url), resolvingAgainstBaseURL: false)
@@ -259,7 +345,7 @@ final class MoviesActionsTests: XCTestCase {
         XCTAssertEqual(queryItems["append_to_response"], "keywords,images")
     }
 
-    func testFetchDetailDoesNotDispatchOnFailure() {
+    func testFetchDetailDispatchesFailureOnError() throws {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -269,14 +355,18 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchDetailFailure")
         )
 
-        let expectation = expectation(description: "No dispatch on detail failure")
-        expectation.isInverted = true
-
-        MoviesActions.FetchDetail(movie: 42).execute(state: nil) { _ in
-            expectation.fulfill()
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for .movieDetail(42)",
+            until: { isFailedSetLoading($0, for: .movieDetail(42)) }
+        ) { dispatch in
+            MoviesActions.FetchDetail(movie: 42).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        _ = try assertFailureDispatch(
+            in: dispatched,
+            for: .movieDetail(42),
+            notDispatching: MoviesActions.SetDetail.self
+        )
     }
 
     // MARK: - FetchRecommended
@@ -293,18 +383,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRecommended")
         )
 
-        let expectation = expectation(description: "Dispatch SetRecommended")
-        var dispatchedAction: MoviesActions.SetRecommended?
-
-        MoviesActions.FetchRecommended(movie: 5).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetRecommended
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetRecommended dispatched",
+            until: { $0 is MoviesActions.SetRecommended }
+        ) { dispatch in
+            MoviesActions.FetchRecommended(movie: 5).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.movie, 5)
-        XCTAssertEqual(dispatchedAction?.response.results.map(\.id), [10])
+        let action = try unwrapDispatched(MoviesActions.SetRecommended.self, in: dispatched)
+        XCTAssertEqual(action.movie, 5)
+        XCTAssertEqual(action.response.results.map(\.id), [10])
     }
 
     // MARK: - FetchSimilar
@@ -321,18 +409,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSimilar")
         )
 
-        let expectation = expectation(description: "Dispatch SetSimilar")
-        var dispatchedAction: MoviesActions.SetSimilar?
-
-        MoviesActions.FetchSimilar(movie: 6).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetSimilar
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetSimilar dispatched",
+            until: { $0 is MoviesActions.SetSimilar }
+        ) { dispatch in
+            MoviesActions.FetchSimilar(movie: 6).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.movie, 6)
-        XCTAssertEqual(dispatchedAction?.response.results.map(\.id), [11])
+        let action = try unwrapDispatched(MoviesActions.SetSimilar.self, in: dispatched)
+        XCTAssertEqual(action.movie, 6)
+        XCTAssertEqual(action.response.results.map(\.id), [11])
     }
 
     // MARK: - FetchVideos
@@ -350,18 +436,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchVideos")
         )
 
-        let expectation = expectation(description: "Dispatch SetVideos")
-        var dispatchedAction: MoviesActions.SetVideos?
-
-        MoviesActions.FetchVideos(movie: 7).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetVideos
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetVideos dispatched",
+            until: { $0 is MoviesActions.SetVideos }
+        ) { dispatch in
+            MoviesActions.FetchVideos(movie: 7).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.movie, 7)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.key, "abc")
+        let action = try unwrapDispatched(MoviesActions.SetVideos.self, in: dispatched)
+        XCTAssertEqual(action.movie, 7)
+        XCTAssertEqual(action.response.results.first?.key, "abc")
     }
 
     // MARK: - FetchSearch
@@ -378,19 +462,17 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSearch")
         )
 
-        let expectation = expectation(description: "Dispatch SetSearch")
-        var dispatchedAction: MoviesActions.SetSearch?
-
-        MoviesActions.FetchSearch(query: "test", page: 2).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetSearch
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetSearch dispatched",
+            until: { $0 is MoviesActions.SetSearch }
+        ) { dispatch in
+            MoviesActions.FetchSearch(query: "test", page: 2).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.query, "test")
-        XCTAssertEqual(dispatchedAction?.page, 2)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 30)
+        let action = try unwrapDispatched(MoviesActions.SetSearch.self, in: dispatched)
+        XCTAssertEqual(action.query, "test")
+        XCTAssertEqual(action.page, 2)
+        XCTAssertEqual(action.response.results.first?.id, 30)
     }
 
     // MARK: - FetchSearchKeyword
@@ -408,18 +490,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchSearchKeyword")
         )
 
-        let expectation = expectation(description: "Dispatch SetSearchKeyword")
-        var dispatchedAction: MoviesActions.SetSearchKeyword?
-
-        MoviesActions.FetchSearchKeyword(query: "noir").execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetSearchKeyword
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetSearchKeyword dispatched",
+            until: { $0 is MoviesActions.SetSearchKeyword }
+        ) { dispatch in
+            MoviesActions.FetchSearchKeyword(query: "noir").execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.query, "noir")
-        XCTAssertEqual(dispatchedAction?.response.results.first?.name, "neo-noir")
+        let action = try unwrapDispatched(MoviesActions.SetSearchKeyword.self, in: dispatched)
+        XCTAssertEqual(action.query, "noir")
+        XCTAssertEqual(action.response.results.first?.name, "neo-noir")
     }
 
     // MARK: - FetchMoviesGenre
@@ -436,20 +516,19 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMoviesGenre")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieForGenre")
-        var dispatchedAction: MoviesActions.SetMovieForGenre?
         let genre = Genre(id: 28, name: "Action")
-
-        MoviesActions.FetchMoviesGenre(genre: genre, page: 1, sortBy: .byPopularity).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetMovieForGenre
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetMovieForGenre dispatched",
+            until: { $0 is MoviesActions.SetMovieForGenre }
+        ) { dispatch in
+            MoviesActions.FetchMoviesGenre(genre: genre, page: 1, sortBy: .byPopularity)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.genre.id, 28)
-        XCTAssertEqual(dispatchedAction?.page, 1)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 40)
+        let action = try unwrapDispatched(MoviesActions.SetMovieForGenre.self, in: dispatched)
+        XCTAssertEqual(action.genre.id, 28)
+        XCTAssertEqual(action.page, 1)
+        XCTAssertEqual(action.response.results.first?.id, 40)
     }
 
     // MARK: - FetchMovieReviews
@@ -467,18 +546,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchReviews")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieReviews")
-        var dispatchedAction: MoviesActions.SetMovieReviews?
-
-        MoviesActions.FetchMovieReviews(movie: 8).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetMovieReviews
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetMovieReviews dispatched",
+            until: { $0 is MoviesActions.SetMovieReviews }
+        ) { dispatch in
+            MoviesActions.FetchMovieReviews(movie: 8).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.movie, 8)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.author, "Critic")
+        let action = try unwrapDispatched(MoviesActions.SetMovieReviews.self, in: dispatched)
+        XCTAssertEqual(action.movie, 8)
+        XCTAssertEqual(action.response.results.first?.author, "Critic")
     }
 
     // MARK: - FetchMovieWithCrew
@@ -495,18 +572,16 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMovieWithCrew")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieWithCrew")
-        var dispatchedAction: MoviesActions.SetMovieWithCrew?
-
-        MoviesActions.FetchMovieWithCrew(crew: 15).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetMovieWithCrew
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetMovieWithCrew dispatched",
+            until: { $0 is MoviesActions.SetMovieWithCrew }
+        ) { dispatch in
+            MoviesActions.FetchMovieWithCrew(crew: 15).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.crew, 15)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 50)
+        let action = try unwrapDispatched(MoviesActions.SetMovieWithCrew.self, in: dispatched)
+        XCTAssertEqual(action.crew, 15)
+        XCTAssertEqual(action.response.results.first?.id, 50)
     }
 
     // MARK: - FetchMovieWithKeywords
@@ -523,19 +598,18 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchMovieWithKeywords")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieWithKeyword")
-        var dispatchedAction: MoviesActions.SetMovieWithKeyword?
-
-        MoviesActions.FetchMovieWithKeywords(keyword: 99, page: 2).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetMovieWithKeyword
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetMovieWithKeyword dispatched",
+            until: { $0 is MoviesActions.SetMovieWithKeyword }
+        ) { dispatch in
+            MoviesActions.FetchMovieWithKeywords(keyword: 99, page: 2)
+                .execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.keyword, 99)
-        XCTAssertEqual(dispatchedAction?.page, 2)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 60)
+        let action = try unwrapDispatched(MoviesActions.SetMovieWithKeyword.self, in: dispatched)
+        XCTAssertEqual(action.keyword, 99)
+        XCTAssertEqual(action.page, 2)
+        XCTAssertEqual(action.response.results.first?.id, 60)
     }
 
     // MARK: - FetchRandomDiscover
@@ -552,19 +626,20 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscover")
         )
 
-        let expectation = expectation(description: "Dispatch SetRandomDiscover")
-        var dispatchedAction: MoviesActions.SetRandomDiscover?
-        let filter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
-
-        MoviesActions.FetchRandomDiscover(filter: filter).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetRandomDiscover
-            if dispatchedAction != nil { expectation.fulfill() }
+        let filter = DiscoverFilter(
+            year: 2000, startYear: nil, endYear: nil,
+            sort: "popularity.desc", genre: nil, region: nil
+        )
+        let dispatched = captureDispatches(
+            waitingFor: "SetRandomDiscover dispatched",
+            until: { $0 is MoviesActions.SetRandomDiscover }
+        ) { dispatch in
+            MoviesActions.FetchRandomDiscover(filter: filter).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.filter.year, 2000)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.id, 70)
+        let action = try unwrapDispatched(MoviesActions.SetRandomDiscover.self, in: dispatched)
+        XCTAssertEqual(action.filter.year, 2000)
+        XCTAssertEqual(action.response.results.first?.id, 70)
     }
 
     func testFetchRandomDiscoverUsesRandomFilterWhenNilProvided() throws {
@@ -579,18 +654,15 @@ final class MoviesActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscoverNilFilter")
         )
 
-        let expectation = expectation(description: "Dispatch SetRandomDiscover with random filter")
-        var dispatchedAction: MoviesActions.SetRandomDiscover?
-
-        MoviesActions.FetchRandomDiscover(filter: nil).execute(state: nil) { action in
-            dispatchedAction = action as? MoviesActions.SetRandomDiscover
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = captureDispatches(
+            waitingFor: "SetRandomDiscover with random filter dispatched",
+            until: { $0 is MoviesActions.SetRandomDiscover }
+        ) { dispatch in
+            MoviesActions.FetchRandomDiscover(filter: nil).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertNotNil(dispatchedAction?.filter)
-        XCTAssertGreaterThanOrEqual(dispatchedAction?.filter.year ?? 0, 1950)
+        let action = try unwrapDispatched(MoviesActions.SetRandomDiscover.self, in: dispatched)
+        XCTAssertGreaterThanOrEqual(action.filter.year, 1950)
     }
 
     // MARK: - Helpers
@@ -618,4 +690,13 @@ final class MoviesActionsTests: XCTestCase {
             department: nil
         )
     }
+}
+
+/// Free-function predicate so the trigger closures stay readable. Returns
+/// true iff `action` is a `SetLoadingState(.failed)` for the given key.
+private func isFailedSetLoading(_ action: Action, for key: LoadingKey) -> Bool {
+    guard let setLoading = action as? MoviesActions.SetLoadingState,
+          setLoading.key == key,
+          case .failed = setLoading.state else { return false }
+    return true
 }
