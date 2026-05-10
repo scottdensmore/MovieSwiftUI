@@ -545,6 +545,119 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Clear cached data?"].waitForExistence(timeout: uiWaitTimeout))
     }
 
+    // MARK: - Phase 2: TMDB API key tests
+
+    /// Pasting a key, saving, and then clearing should drive the status row
+    /// through "Using your key" → bundled-or-missing in turn. Self-cleaning:
+    /// if a previous run left a user-provided key behind, we tap Clear before
+    /// running the real assertion sequence so the test starts from a known
+    /// state without needing a launch hook.
+    ///
+    /// We assert against the Clear button's appearance/disappearance rather
+    /// than the status label's text, because:
+    ///   - the Clear button is only rendered when `hasUserAPIKey` is true,
+    ///     so it's a faithful proxy for "AppUserDefaults reflects a saved
+    ///     user key";
+    ///   - SwiftUI's accessibility for the status row sometimes folds the
+    ///     inner Text into the row's combined label, making queries by
+    ///     standalone static-text label brittle.
+    func testSettingsTMDBAPIKeyPasteSaveAndClearRoundTrip() throws {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let apiKeyField = identifiedElement("settings.tmdb.apiKeyField", in: app)
+        XCTAssertTrue(scrollUntilElementExists(apiKeyField, in: app),
+                      "Could not scroll the TMDB API key SecureField into view")
+
+        // Self-clean residual state from a previous run.
+        let preExistingClear = button("settings.tmdb.clearButton", in: app)
+        if preExistingClear.waitForExistence(timeout: 1) {
+            preExistingClear.tap()
+            XCTAssertFalse(preExistingClear.waitForExistence(timeout: 2),
+                           "Clear button should have hidden after tapping it")
+        }
+
+        // Type a key into the SecureField and Save.
+        apiKeyField.tap()
+        apiKeyField.typeText("UI-TEST-PASTED-KEY")
+
+        let saveButton = button("settings.tmdb.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(saveButton.isEnabled,
+                      "Save should be enabled once the draft differs from the persisted value")
+        saveButton.tap()
+
+        // After saving the Clear button should appear (proves
+        // AppUserDefaults.userTMDBAPIKey is now non-empty).
+        let clearButton = button("settings.tmdb.clearButton", in: app)
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout),
+                      "After saving a user-provided key, the Clear button should appear")
+
+        // And Save itself should disable again because the draft now matches
+        // the persisted value (canSaveUserAPIKey == false).
+        XCTAssertFalse(saveButton.isEnabled,
+                       "Save should disable once the draft matches the persisted value")
+
+        // Clear and assert the Clear button hides (proves the persisted value
+        // was wiped).
+        clearButton.tap()
+        XCTAssertFalse(clearButton.waitForExistence(timeout: uiWaitTimeout),
+                       "Clear button should hide once the user key is removed")
+    }
+
+    /// Saving a key persists across a settings-modal close → re-open. Catches
+    /// regressions where the SecureField's draft is saved into transient @State
+    /// only and not into AppUserDefaults: a re-opened modal would lose the key.
+    /// Like the round-trip test, we use the Clear button's visibility as the
+    /// "key is persisted" signal.
+    func testSettingsTMDBAPIKeySavePersistsAcrossModalReopen() throws {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let apiKeyField = identifiedElement("settings.tmdb.apiKeyField", in: app)
+        XCTAssertTrue(scrollUntilElementExists(apiKeyField, in: app))
+
+        let preExistingClear = button("settings.tmdb.clearButton", in: app)
+        if preExistingClear.waitForExistence(timeout: 1) {
+            preExistingClear.tap()
+            _ = preExistingClear.waitForExistence(timeout: 1)  // best-effort wait for hide
+        }
+
+        apiKeyField.tap()
+        apiKeyField.typeText("UI-TEST-PERSISTENCE-KEY")
+
+        let saveButton = button("settings.tmdb.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        saveButton.tap()
+        let clearButton = button("settings.tmdb.clearButton", in: app)
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout))
+
+        // Close the modal, then re-open from the Movies tab.
+        let cancelButton = button("settings.cancelButton", in: app)
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: uiWaitTimeout))
+        cancelButton.tap()
+
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let reopenedField = identifiedElement("settings.tmdb.apiKeyField", in: app)
+        XCTAssertTrue(scrollUntilElementExists(reopenedField, in: app))
+        let reopenedClear = button("settings.tmdb.clearButton", in: app)
+        XCTAssertTrue(reopenedClear.waitForExistence(timeout: uiWaitTimeout),
+                      "After re-opening Settings the Clear button should still be visible — proves the saved key persisted")
+
+        // Tidy up so we don't leak the test key into subsequent runs.
+        reopenedClear.tap()
+    }
+
     // MARK: - Phase 2: Custom list CRUD tests
 
     func testMyListsCreateCustomListShowsForm() {

@@ -84,6 +84,17 @@ struct SettingsForm : ConnectedView {
     @State private var crashReportFiles: [CrashReportStore.CrashReportFile] = []
     @State private var userAPIKeyDraft: String = AppUserDefaults.userTMDBAPIKey
     @FocusState private var isUserAPIKeyFocused: Bool
+    /// Mirrors `AppUserDefaults.userTMDBAPIKey` for SwiftUI's observation
+    /// system. The plain `@UserDefault` wrapper writes to `UserDefaults`
+    /// but does NOT publish changes through SwiftUI's dependency graph,
+    /// so without this `@AppStorage` mirror the status row, Save button,
+    /// and Clear button do not update after saving or clearing — fields
+    /// that read `AppUserDefaults.userTMDBAPIKey` directly stay stale
+    /// until the next unrelated state change forces a re-render. Both
+    /// wrappers point at the same `UserDefaults` key, so reads from
+    /// `AppUserDefaults` elsewhere (APIKeyProviding, exports, etc.) see
+    /// the new value too.
+    @AppStorage("user_tmdb_api_key") private var persistedUserTMDBAPIKey: String = ""
     @State private var isOnboardingResetConfirmationPresented = false
     var embedInNavigationStack = true
     var showNavigationTitle = true
@@ -334,7 +345,7 @@ struct SettingsForm : ConnectedView {
     }
 
     private var currentAPIKeySource: APIKeySource {
-        if !AppUserDefaults.userTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if !persistedUserTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return .userProvided
         }
         if BundleAPIKeyProvider().apiKey() != nil {
@@ -345,25 +356,27 @@ struct SettingsForm : ConnectedView {
 
     /// Persist the draft key to UserDefaults — the LayeredAPIKeyProvider
     /// inside APIService.shared re-reads on every call, so subsequent
-    /// requests immediately use the new key.
+    /// requests immediately use the new key. We write through the
+    /// `@AppStorage` mirror so SwiftUI invalidates the dependent rows
+    /// (status, Save/Clear buttons) on the same tick.
     private func saveUserAPIKey() {
-        AppUserDefaults.userTMDBAPIKey = userAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        persistedUserTMDBAPIKey = userAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         isUserAPIKeyFocused = false
     }
 
     private func clearUserAPIKey() {
         userAPIKeyDraft = ""
-        AppUserDefaults.userTMDBAPIKey = ""
+        persistedUserTMDBAPIKey = ""
         isUserAPIKeyFocused = false
     }
 
     private var canSaveUserAPIKey: Bool {
         let trimmed = userAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed != AppUserDefaults.userTMDBAPIKey
+        return trimmed != persistedUserTMDBAPIKey
     }
 
     private var hasUserAPIKey: Bool {
-        !AppUserDefaults.userTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !persistedUserTMDBAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var originalTitlePreferenceRow: some View {

@@ -308,4 +308,85 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Movies in state"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["Archived state size"].waitForExistence(timeout: timeout))
     }
+
+    // MARK: - Settings: TMDB API key
+
+    /// Pasting a key, saving, and clearing should drive the status row through
+    /// "Using your key" → "the bundled key"-or-"No API key" in turn.
+    /// Self-cleaning: if a previous run left a user-provided key behind, we
+    /// tap Clear before running the real assertion sequence.
+    func testSettingsTMDBAPIKeyPasteSaveAndClearRoundTrip() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let apiKeyField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        XCTAssertTrue(apiKeyField.waitForExistence(timeout: timeout),
+                      "Expected the TMDB API key SecureField in macOS Settings")
+
+        // Self-clean residual state.
+        let preExistingClear = app.buttons["settings.tmdb.clearButton"]
+        if preExistingClear.waitForExistence(timeout: 1) {
+            preExistingClear.tap()
+            _ = !preExistingClear.waitForExistence(timeout: 2)
+        }
+
+        apiKeyField.click()
+        apiKeyField.typeText("UI-TEST-PASTED-KEY-MAC")
+
+        let saveButton = app.buttons["settings.tmdb.saveButton"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: timeout))
+        XCTAssertTrue(saveButton.isEnabled,
+                      "Save should enable once the draft differs from the persisted value")
+        saveButton.tap()
+
+        XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout),
+                      "After saving, the status row should read 'Using your key'")
+        let clearButton = app.buttons["settings.tmdb.clearButton"]
+        XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
+
+        clearButton.tap()
+        let usingYourKey = app.staticTexts["Using your key"]
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: usingYourKey)
+        waitForExpectations(timeout: timeout)
+        XCTAssertFalse(clearButton.waitForExistence(timeout: 2),
+                       "Clear button should hide once the user key is removed")
+    }
+
+    /// Saving a key persists across a sidebar menu switch + back: navigate
+    /// away to Popular, then back to Settings, and the status row should
+    /// still read "Using your key" — catches regressions where the SecureField's
+    /// draft is stored in transient @State only and not in AppUserDefaults.
+    func testSettingsTMDBAPIKeySavePersistsAcrossSidebarSwitch() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let apiKeyField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        XCTAssertTrue(apiKeyField.waitForExistence(timeout: timeout))
+
+        let preExistingClear = app.buttons["settings.tmdb.clearButton"]
+        if preExistingClear.waitForExistence(timeout: 1) {
+            preExistingClear.tap()
+            _ = !preExistingClear.waitForExistence(timeout: 2)
+        }
+
+        apiKeyField.click()
+        apiKeyField.typeText("UI-TEST-PERSISTENCE-KEY-MAC")
+        app.buttons["settings.tmdb.saveButton"].tap()
+        XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout))
+
+        // Switch sidebar to Popular and back to Settings.
+        app.identifiedElement("sidebar.Popular").tap()
+        XCTAssertTrue(app.identifiedElement("moviesList.movie.0").waitForExistence(timeout: timeout))
+        app.identifiedElement("sidebar.Settings").tap()
+
+        let reopenedField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        XCTAssertTrue(reopenedField.waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout),
+                      "After switching sidebar away and back, status should still read 'Using your key'")
+
+        // Tidy up.
+        let cleanupClear = app.buttons["settings.tmdb.clearButton"]
+        if cleanupClear.waitForExistence(timeout: 2) {
+            cleanupClear.tap()
+        }
+    }
 }
