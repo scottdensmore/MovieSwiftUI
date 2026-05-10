@@ -177,6 +177,9 @@
 		A1B2C30100000000000000F1 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
 		A1B2C30100000000000000F2 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
 		A1B2C30100000000000000F3 /* AppDataExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000F1 /* AppDataExportTests.swift */; };
+		A1B2C30100000000000000C1 /* AppDataRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000C1 /* AppDataRoundTripTests.swift */; };
+		A1B2C30100000000000000C2 /* AppDataRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000C1 /* AppDataRoundTripTests.swift */; };
+		A1B2C30100000000000000C3 /* AppDataRoundTripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000C1 /* AppDataRoundTripTests.swift */; };
 		A1B2C30100000000000000D1 /* AppDataImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000D1 /* AppDataImportTests.swift */; };
 		A1B2C30100000000000000D2 /* AppDataImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000D1 /* AppDataImportTests.swift */; };
 		A1B2C30100000000000000D3 /* AppDataImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C30200000000000000D1 /* AppDataImportTests.swift */; };
@@ -465,6 +468,7 @@
 		A1B2C3020000000000000006 /* MovieDetailStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetailStateTests.swift; sourceTree = "<group>"; };
 		A1B2C3020000000000000007 /* PeopleActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeopleActionsTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000F1 /* AppDataExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataExportTests.swift; sourceTree = "<group>"; };
+		A1B2C30200000000000000C1 /* AppDataRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataRoundTripTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000D1 /* AppDataImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataImportTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDataICloudBackupTests.swift; sourceTree = "<group>"; };
 		A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowTests.swift; sourceTree = "<group>"; };
@@ -1162,6 +1166,7 @@
 				A1B2C3020000000000000001 /* MovieSwiftTests.swift */,
 				A1B2C3020000000000000004 /* AppPersistenceTests.swift */,
 				A1B2C30200000000000000F1 /* AppDataExportTests.swift */,
+				A1B2C30200000000000000C1 /* AppDataRoundTripTests.swift */,
 				A1B2C30200000000000000D1 /* AppDataImportTests.swift */,
 				A1B2C30200000000000000B1 /* AppDataICloudBackupTests.swift */,
 				A1B2C30200000000000000A1 /* OnboardingFlowTests.swift */,
@@ -1768,6 +1773,7 @@
 				A1B2C3010000000000000001 /* MovieSwiftTests.swift in Sources */,
 				A1B2C3010000000000000003 /* AppPersistenceTests.swift in Sources */,
 				A1B2C30100000000000000F1 /* AppDataExportTests.swift in Sources */,
+				A1B2C30100000000000000C1 /* AppDataRoundTripTests.swift in Sources */,
 				A1B2C30100000000000000D1 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B1 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000A1 /* OnboardingFlowTests.swift in Sources */,
@@ -1797,6 +1803,7 @@
 				1AB9112C4AA846F45F555BA4 /* MovieSwiftTests.swift in Sources */,
 				DD27206B900D6B1D07E21184 /* AppPersistenceTests.swift in Sources */,
 				A1B2C30100000000000000F2 /* AppDataExportTests.swift in Sources */,
+				A1B2C30100000000000000C2 /* AppDataRoundTripTests.swift in Sources */,
 				A1B2C30100000000000000D2 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B2 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000A2 /* OnboardingFlowTests.swift in Sources */,
@@ -1825,6 +1832,7 @@
 			files = (
 				7B732640A59B3E7C10811E51 /* AppPersistenceTests.swift in Sources */,
 				A1B2C30100000000000000F3 /* AppDataExportTests.swift in Sources */,
+				A1B2C30100000000000000C3 /* AppDataRoundTripTests.swift in Sources */,
 				A1B2C30100000000000000D3 /* AppDataImportTests.swift in Sources */,
 				A1B2C30100000000000000B3 /* AppDataICloudBackupTests.swift in Sources */,
 				A1B2C30100000000000000B7 /* AppStatePersistedFormatTests.swift in Sources */,

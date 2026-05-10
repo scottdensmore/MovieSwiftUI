@@ -545,6 +545,117 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Clear cached data?"].waitForExistence(timeout: uiWaitTimeout))
     }
 
+    /// Full clear-cache journey: open settings, tap Clear, **confirm** in
+    /// the destructive dialog, and verify we return to a working
+    /// settings modal afterwards. The existing
+    /// `testSettingsClearCachedDataShowsConfirmation` only asserts the
+    /// confirmation appears — this one drives the destructive button to
+    /// catch regressions in the dispatch/archive path triggered by
+    /// `SettingsFormCacheResetPolicy.clearCachedData`.
+    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let clearButton = button("settings.clearCachedDataButton", in: app)
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout))
+        clearButton.tap()
+
+        let confirmTitle = app.staticTexts["Clear cached data?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: uiWaitTimeout))
+
+        // Confirm — the destructive button is labeled "Clear Cached Data".
+        let confirmButton = app.buttons["Clear Cached Data"]
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Destructive 'Clear Cached Data' button should appear in the confirmation dialog")
+        confirmButton.tap()
+
+        // Dialog dismisses.
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        // The Settings modal is still open and re-tappable — proves the
+        // dispatch + archive completed without crashing the modal.
+        XCTAssertTrue(clearButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(clearButton.isHittable,
+                      "After clearing, the Clear button should still be hittable in the open Settings modal")
+    }
+
+    /// Settings → Show onboarding again: verifies the destructive
+    /// confirmation dialog appears with both Cancel and Show onboarding
+    /// buttons, and that tapping Cancel dismisses without side effect.
+    func testSettingsResetOnboardingCancelDismissesWithoutEffect() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        // The reset row lives in the Debug info section near the bottom
+        // of the form. Use label-matching (which XCUITest will scroll to
+        // automatically) rather than the accessibility identifier whose
+        // off-screen Form rows aren't in the tree until visible.
+        let resetButton = app.buttons["Show onboarding again"]
+        XCTAssertTrue(scrollUntilElementExists(resetButton, in: app, maxSwipes: 12),
+                      "Could not scroll the Show onboarding again button into view")
+        resetButton.tap()
+
+        let confirmTitle = app.staticTexts["Show onboarding again?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: uiWaitTimeout))
+
+        // Both choices present.
+        XCTAssertTrue(app.buttons["Show onboarding"].waitForExistence(timeout: uiWaitTimeout),
+                      "Show onboarding (confirm) button should appear in the confirmation dialog")
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: uiWaitTimeout))
+        cancel.tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(resetButton.isHittable,
+                      "After cancelling, the reset row should still be hittable")
+    }
+
+    /// Confirming Show onboarding again should set
+    /// `AppUserDefaults.hasCompletedOnboarding = false`. We can't
+    /// re-launch from inside an XCUITest, but the dialog dismissing
+    /// without crashing + the row staying hittable proves the
+    /// confirmation handler ran. `OnboardingFlowTests` covers what
+    /// happens at the next launch given that flag.
+    func testSettingsResetOnboardingConfirmDismissesDialog() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let resetButton = app.buttons["Show onboarding again"]
+        XCTAssertTrue(scrollUntilElementExists(resetButton, in: app, maxSwipes: 12))
+        resetButton.tap()
+
+        let confirmTitle = app.staticTexts["Show onboarding again?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: uiWaitTimeout))
+
+        let confirmButton = app.buttons["Show onboarding"]
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: uiWaitTimeout))
+        confirmButton.tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
+    }
+
     // MARK: - Phase 2: TMDB API key tests
 
     /// Pasting a key, saving, and then clearing should drive the status row

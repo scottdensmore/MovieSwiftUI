@@ -389,4 +389,88 @@ final class MovieSwiftMacUITests: XCTestCase {
             cleanupClear.tap()
         }
     }
+
+    // MARK: - Settings: destructive flows
+
+    /// Tap Clear cached data → confirm in the destructive dialog →
+    /// verify Settings is still functional. Catches regressions in the
+    /// dispatch/archive path triggered by
+    /// `SettingsFormCacheResetPolicy.clearCachedData`.
+    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let clearButton = app.buttons["settings.clearCachedDataButton"]
+        XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
+        clearButton.tap()
+
+        let confirmTitle = app.staticTexts["Clear cached data?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: timeout))
+
+        // Scope the confirm-button query to the dialog so we don't match
+        // the underlying row whose label also contains "Clear cached data".
+        let confirmButton = app.sheets.firstMatch.buttons["Clear Cached Data"]
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout),
+                      "Destructive 'Clear Cached Data' button should appear in the confirmation dialog")
+        confirmButton.tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: timeout)
+
+        XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
+        XCTAssertTrue(clearButton.isHittable,
+                      "After clearing, the Clear button should still be hittable in the open Settings pane")
+    }
+
+    /// Show onboarding again → Cancel: confirms the destructive dialog
+    /// shows both options and Cancel dismisses without side effect.
+    func testSettingsResetOnboardingCancelDismissesWithoutEffect() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let resetButton = app.buttons["settings.resetOnboardingButton"]
+        XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
+        resetButton.tap()
+
+        let confirmTitle = app.staticTexts["Show onboarding again?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: timeout))
+
+        // Scope queries to the dialog so we don't match the underlying
+        // row whose label is "Show onboarding again".
+        let dialog = app.sheets.firstMatch
+        XCTAssertTrue(dialog.buttons["Show onboarding"].waitForExistence(timeout: timeout))
+        let cancel = dialog.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: timeout))
+        cancel.tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: timeout)
+
+        XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
+    }
+
+    /// Show onboarding again → Confirm: dialog dismisses without
+    /// crashing. The actual `hasCompletedOnboarding=false` mutation +
+    /// what happens on next launch are covered by `OnboardingFlowTests`
+    /// at the unit level.
+    func testSettingsResetOnboardingConfirmDismissesDialog() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let resetButton = app.buttons["settings.resetOnboardingButton"]
+        XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
+        resetButton.tap()
+
+        let confirmTitle = app.staticTexts["Show onboarding again?"]
+        XCTAssertTrue(confirmTitle.waitForExistence(timeout: timeout))
+
+        let confirmButton = app.sheets.firstMatch.buttons["Show onboarding"]
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout))
+        confirmButton.tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: confirmTitle)
+        waitForExpectations(timeout: timeout)
+
+        XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
+    }
 }
