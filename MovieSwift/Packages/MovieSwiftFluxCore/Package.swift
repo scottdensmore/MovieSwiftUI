@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MovieSwiftFluxCore",
+    defaultLocalization: "en",
     platforms: [
         .iOS("26.0"),
         .macOS("26.0"),
@@ -21,7 +22,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Backend", package: "Backend"),
                 .product(name: "SwiftUIFlux", package: "SwiftUIFlux"),
-            ]
+            ],
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "MovieSwiftFluxCoreTests",

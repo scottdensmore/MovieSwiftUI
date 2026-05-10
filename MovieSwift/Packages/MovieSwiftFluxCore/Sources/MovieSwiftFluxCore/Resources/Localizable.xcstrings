@@ -1,0 +1,48 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    " Try again in %lld seconds." : {
+      "comment" : "Trailing fragment appended to the rate-limit message. \\(seconds) is the number of seconds to wait, always greater than 1."
+    },
+    " Try again in 1 second." : {
+      "comment" : "Trailing fragment appended to the rate-limit message when TMDB tells us to retry in exactly one second."
+    },
+    " Try again in a moment." : {
+      "comment" : "Trailing fragment appended to the rate-limit message when TMDB doesn't tell us how long to wait."
+    },
+    "Couldn't reach TMDB. Check your connection and try again." : {
+      "comment" : "Error banner for transport-level network failures other than offline."
+    },
+    "Got an unexpected response from TMDB. Try again." : {
+      "comment" : "Error banner when TMDB's JSON response can't be decoded into the expected shape."
+    },
+    "No TMDB API key is configured. Add one in Settings to load movies." : {
+      "comment" : "Inline error banner shown when no TMDB API key is available."
+    },
+    "Open Settings" : {
+      "comment" : "Retry button label that takes the user to Settings rather than retrying the request — used when the failure is a missing/invalid API key."
+    },
+    "TMDB declined the request. Your API key may not have access to this resource." : {
+      "comment" : "Error banner when TMDB returns 403 Forbidden."
+    },
+    "TMDB is having a problem (%lld). Try again in a minute." : {
+      "comment" : "Error banner for HTTP 5xx responses. \\(code) is the integer HTTP status."
+    },
+    "TMDB rejected the request — your API key may be invalid. Check it in Settings." : {
+      "comment" : "Error banner when TMDB returns 401 Unauthorized."
+    },
+    "TMDB returned an unexpected response (%lld)." : {
+      "comment" : "Error banner for unrecognised non-2xx HTTP responses. \\(code) is the integer HTTP status."
+    },
+    "Too many requests to TMDB right now." : {
+      "comment" : "Leading sentence of the rate-limit error banner."
+    },
+    "Try again" : {
+      "comment" : "Default retry button label on inline error banners."
+    },
+    "You're offline. Check your connection and try again." : {
+      "comment" : "Inline error banner shown when the device has no network connection."
+    }
+  },
+  "version" : "1.0"
+}

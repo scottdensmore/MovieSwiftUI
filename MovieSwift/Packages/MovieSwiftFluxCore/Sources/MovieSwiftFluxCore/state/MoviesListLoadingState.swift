@@ -72,8 +72,7 @@ public struct MoviesListLoadFailure: Equatable {
 
     public init(kind: Kind,
          message: String,
-         retryActionTitle: String = String(localized: "Try again",
-                                           comment: "Default retry button label on inline error banners.")) {
+         retryActionTitle: String = MoviesListLoadFailurePresenter.defaultRetryActionTitle) {
         self.kind = kind
         self.message = message
         self.retryActionTitle = retryActionTitle
@@ -91,6 +90,7 @@ public enum MoviesListLoadFailurePresenter {
             return MoviesListLoadFailure(
                 kind: .missingAPIKey,
                 message: String(localized: "No TMDB API key is configured. Add one in Settings to load movies.",
+                                bundle: .module,
                                 comment: "Inline error banner shown when no TMDB API key is available."),
                 retryActionTitle: openSettingsTitle()
             )
@@ -98,6 +98,7 @@ public enum MoviesListLoadFailurePresenter {
             return MoviesListLoadFailure(
                 kind: .offline,
                 message: String(localized: "You're offline. Check your connection and try again.",
+                                bundle: .module,
                                 comment: "Inline error banner shown when the device has no network connection."),
                 retryActionTitle: tryAgainTitle()
             )
@@ -107,18 +108,22 @@ public enum MoviesListLoadFailurePresenter {
                 let seconds = Int(retryAfter.rounded(.up))
                 if seconds == 1 {
                     suffix = String(localized: " Try again in 1 second.",
+                                    bundle: .module,
                                     comment: "Trailing fragment appended to the rate-limit message when TMDB tells us to retry in exactly one second.")
                 } else {
                     suffix = String(localized: " Try again in \(seconds) seconds.",
+                                    bundle: .module,
                                     comment: "Trailing fragment appended to the rate-limit message. \\(seconds) is the number of seconds to wait, always greater than 1.")
                 }
             } else {
                 suffix = String(localized: " Try again in a moment.",
+                                bundle: .module,
                                 comment: "Trailing fragment appended to the rate-limit message when TMDB doesn't tell us how long to wait.")
             }
             return MoviesListLoadFailure(
                 kind: .rateLimited(retryAfterSeconds: retryAfter),
                 message: String(localized: "Too many requests to TMDB right now.",
+                                bundle: .module,
                                 comment: "Leading sentence of the rate-limit error banner.") + suffix,
                 retryActionTitle: tryAgainTitle()
             )
@@ -128,6 +133,7 @@ public enum MoviesListLoadFailurePresenter {
                 return MoviesListLoadFailure(
                     kind: .unauthorized,
                     message: String(localized: "TMDB rejected the request — your API key may be invalid. Check it in Settings.",
+                                    bundle: .module,
                                     comment: "Error banner when TMDB returns 401 Unauthorized."),
                     retryActionTitle: openSettingsTitle()
                 )
@@ -135,6 +141,7 @@ public enum MoviesListLoadFailurePresenter {
                 return MoviesListLoadFailure(
                     kind: .forbidden,
                     message: String(localized: "TMDB declined the request. Your API key may not have access to this resource.",
+                                    bundle: .module,
                                     comment: "Error banner when TMDB returns 403 Forbidden."),
                     retryActionTitle: openSettingsTitle()
                 )
@@ -142,6 +149,7 @@ public enum MoviesListLoadFailurePresenter {
                 return MoviesListLoadFailure(
                     kind: .server,
                     message: String(localized: "TMDB is having a problem (\(code)). Try again in a minute.",
+                                    bundle: .module,
                                     comment: "Error banner for HTTP 5xx responses. \\(code) is the integer HTTP status."),
                     retryActionTitle: tryAgainTitle()
                 )
@@ -149,6 +157,7 @@ public enum MoviesListLoadFailurePresenter {
                 return MoviesListLoadFailure(
                     kind: .other,
                     message: String(localized: "TMDB returned an unexpected response (\(code)).",
+                                    bundle: .module,
                                     comment: "Error banner for unrecognised non-2xx HTTP responses. \\(code) is the integer HTTP status."),
                     retryActionTitle: tryAgainTitle()
                 )
@@ -157,6 +166,7 @@ public enum MoviesListLoadFailurePresenter {
             return MoviesListLoadFailure(
                 kind: .decode,
                 message: String(localized: "Got an unexpected response from TMDB. Try again.",
+                                bundle: .module,
                                 comment: "Error banner when TMDB's JSON response can't be decoded into the expected shape."),
                 retryActionTitle: tryAgainTitle()
             )
@@ -164,19 +174,30 @@ public enum MoviesListLoadFailurePresenter {
             return MoviesListLoadFailure(
                 kind: .other,
                 message: String(localized: "Couldn't reach TMDB. Check your connection and try again.",
+                                bundle: .module,
                                 comment: "Error banner for transport-level network failures other than offline."),
                 retryActionTitle: tryAgainTitle()
             )
         }
     }
 
+    /// Public so it can be referenced from the default argument of
+    /// `MoviesListLoadFailure.init`. `Bundle.module` is internal to
+    /// the package, which would otherwise leak through the default
+    /// expression at public call sites.
+    public static var defaultRetryActionTitle: String {
+        tryAgainTitle()
+    }
+
     private static func tryAgainTitle() -> String {
         String(localized: "Try again",
+               bundle: .module,
                comment: "Default retry button label on inline error banners.")
     }
 
     private static func openSettingsTitle() -> String {
         String(localized: "Open Settings",
+               bundle: .module,
                comment: "Retry button label that takes the user to Settings rather than retrying the request — used when the failure is a missing/invalid API key.")
     }
 }
