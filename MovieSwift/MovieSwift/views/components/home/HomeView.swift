@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftUIFlux
 import AppIntents
+import Backend
 import CoreSpotlight
 import MovieSwiftFluxCore
 
@@ -28,6 +29,16 @@ struct HomeView: App {
             // Subscribes to the store so wishlist / seenlist /
             // custom-list changes update the index live.
             SpotlightStoreObserver.shared.startObserving(store: store)
+        } else {
+            // Under UI smoke-test mode, swap APIService.shared for one
+            // with no API key so async actions (FetchSearch, FetchDetail,
+            // etc.) short-circuit with `.missingAPIKey` instead of hitting
+            // real TMDB. This keeps the smoke-test fixture state
+            // deterministic — e.g. the pre-seeded
+            // `state.moviesState.search[...]` survives across the
+            // typed-search journey instead of being overwritten by the
+            // network response.
+            APIService.shared = APIService(apiKeyProvider: DisabledAPIKeyProvider())
         }
         _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
             isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests

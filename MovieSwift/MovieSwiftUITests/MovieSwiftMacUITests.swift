@@ -536,4 +536,32 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertFalse(addToListButton.waitForExistence(timeout: 2),
                        "Unknown identifier should not open MovieDetail")
     }
+
+    // MARK: - Search journey
+
+    /// Full search journey on macOS: navigate to a movies menu (Popular
+    /// by default), type a query the smoke-test fixture pre-seeds
+    /// results for (`uitestsearch` → movie id 0), tap the matching
+    /// row, and verify MovieDetail appears in the detail pane.
+    ///
+    /// The dispatched FetchSearch fails network-wise; the UI shows
+    /// results because the fixture pre-populated
+    /// `state.moviesState.search["uitestsearch"] = [0]`.
+    func testMoviesSearchShowsResultsAndOpensMovieDetail() {
+        let app = launchApp(selectMenu: "Popular")
+
+        let searchField = app.textFields["Search any movies or person"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: timeout))
+        searchField.click()
+        searchField.typeText("uitestsearch")
+
+        let movieRow = app.identifiedElement("moviesList.movie.0")
+        XCTAssertTrue(movieRow.waitForExistence(timeout: timeout),
+                      "After typing the seeded query, a matching movie row should appear in the search results")
+        movieRow.doubleClick()
+
+        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout),
+                      "Selecting a search result should open MovieDetail in the detail pane")
+    }
 }

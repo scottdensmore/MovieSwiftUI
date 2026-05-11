@@ -73,6 +73,17 @@ extension APIKeyProviding where Self == LayeredAPIKeyProvider {
     }
 }
 
+/// Always returns nil. Used to install a "no network" `APIService` in
+/// UI smoke-test mode so dispatched async actions short-circuit with
+/// `.missingAPIKey` before hitting the network. That preserves the
+/// pre-seeded fixture state — without this, e.g. a typed search query
+/// would fire a real TMDB request whose empty results would overwrite
+/// the seeded `state.moviesState.search[query]` dictionary.
+public struct DisabledAPIKeyProvider: APIKeyProviding {
+    public init() {}
+    public func apiKey() -> String? { nil }
+}
+
 public protocol NetworkDataTask {
     func resume()
 }

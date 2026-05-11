@@ -75,11 +75,20 @@ public func makeUISmokeTestState() -> AppState {
         peoplesState.popularInitialLoadCompleted = true
     }
 
+    // Pre-seed search results so the UI test for the search journey can
+    // type a known query into the SearchField and find a movie row in
+    // the results section. The FetchSearch action that the typed query
+    // dispatches fails in smoke-test mode (no network), but the UI
+    // reads from `moviesState.search[query]` which is already populated
+    // here, so the journey doesn't depend on the network.
+    let smokeTestSearchSeed: [String: [Int]] = ["uitestsearch": [0]]
+
     return AppState(moviesState:
                         MoviesState(movies: [0: sampleMovie],
                                     moviesList: smokeTestMoviesMenuState,
                                     recommended: [0: [0]],
                                     similar: [0: [0]],
+                                    search: smokeTestSearchSeed,
                                     discover: [0],
                                     discoverFilter: sampleDiscoverFilter,
                                     wishlist: Set([0]),

@@ -1086,4 +1086,79 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertFalse(addToListButton.waitForExistence(timeout: 2),
                        "Unknown identifier should not open MovieDetail")
     }
+
+    // MARK: - Phase 2: Search journey tests
+
+    /// Full search journey: tap the search field, type a query that the
+    /// smoke-test fixture pre-seeds results for (`uitestsearch` → movie
+    /// id 0), wait for the matching row to render in the results
+    /// section, tap it, and verify MovieDetail opens.
+    ///
+    /// The FetchSearch action dispatched by typing fires a network
+    /// request that fails in smoke-test mode (no network). The UI
+    /// shows results because `MoviesListSearchState.searchedMovies`
+    /// reads from `state.moviesState.search[query]` which the fixture
+    /// pre-populated. So this exercises the full Redux + view binding
+    /// for the search result path without needing a network mock.
+    func testMoviesSearchShowsResultsAndOpensMovieDetail() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let searchField = app.textFields["Search any movies or person"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: uiWaitTimeout))
+        searchField.tap()
+        searchField.typeText("uitestsearch")
+
+        // Wait for the search-mode UI to transition in. The SearchField's
+        // `.onChange(of:searchText)` flips `isSearching=true` which
+        // re-renders MoviesList to show the search filter picker +
+        // "Results for X" section.
+        let resultsHeader = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "Results for uitestsearch")
+        ).firstMatch
+        XCTAssertTrue(resultsHeader.waitForExistence(timeout: uiWaitTimeout),
+                      "Search results section header should appear after typing")
+
+        // Scroll the results section into view if needed, then tap the
+        // seeded row. List lazy-renders rows so we use the auto-scroll
+        // behavior of XCUITest's tap on an existing-but-offscreen element.
+        let movieRow = identifiedElement("moviesList.movie.0", in: app)
+        if !scrollUntilElementExists(movieRow, in: app, maxSwipes: 4) {
+            // Fall back to direct tap (XCUITest auto-scrolls).
+            XCTAssertTrue(movieRow.waitForExistence(timeout: uiWaitTimeout),
+                          "Seeded movie row should appear in the search results")
+        }
+        movieRow.tap()
+
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Tapping a search result should open MovieDetail")
+    }
+
+    /// Cancel returns to the non-searching state: typing a query
+    /// produces the Cancel button (existing tests cover that); tapping
+    /// it should clear the field and hide the results.
+    func testMoviesSearchCancelClearsSearchAndHidesResults() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let searchField = app.textFields["Search any movies or person"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: uiWaitTimeout))
+        searchField.tap()
+        searchField.typeText("uitestsearch")
+
+        let movieRow = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(movieRow.waitForExistence(timeout: uiWaitTimeout))
+
+        let cancelButton = app.buttons["Cancel"]
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: uiWaitTimeout))
+        cancelButton.tap()
+
+        // Cancel hides the search results section (isSearching goes
+        // false). The Cancel button itself disappears (only visible
+        // when the field has text).
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: cancelButton)
+        waitForExpectations(timeout: uiWaitTimeout)
+    }
 }
