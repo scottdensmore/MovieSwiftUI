@@ -1,8 +1,12 @@
+// MoviesMenuListPageListener lives in the iOS and macOS app targets'
+// view code (`MovieSwift/views/components/moviesHome/models/`) and is
+// not part of the tvOS app target's source list, so this test file
+// is gated to skip the tvOS build entirely.
+#if !os(tvOS)
+
 import XCTest
 import MovieSwiftFluxCore
-#if os(tvOS)
-@testable import MovieSwiftTV
-#elseif os(macOS)
+#if os(macOS)
 @testable import Film_O_Matic
 #else
 @testable import MovieSwift
@@ -142,3 +146,5 @@ final class MoviesMenuListPageListenerTests: XCTestCase {
         XCTAssertEqual(captured.first?.page, 1)
     }
 }
+
+#endif // !os(tvOS)
