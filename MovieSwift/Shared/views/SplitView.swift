@@ -166,6 +166,25 @@ struct SplitView: View {
             .frame(minWidth: 720, idealWidth: 820,
                    minHeight: 720, idealHeight: 820)
         }
+        // UI-test seams. Both fire AFTER the `.onChange` /
+        // `.onContinueUserActivity` subscriptions above are wired up.
+        // No-ops outside UI tests.
+        .task {
+            IntentNavigationStore.handleUITestEnvironment()
+            handleUITestSpotlightEnvironment()
+        }
+    }
+
+    /// UI-test seam mirroring `.onContinueUserActivity(CSSearchableItemActionType)`:
+    /// if `UI_TEST_SPOTLIGHT_IDENTIFIER` is set in the process env, parse
+    /// it via `MovieSpotlightIndexer.movieId(fromIdentifier:)` and present
+    /// the MovieDetail sheet exactly as a real Spotlight result tap would.
+    private func handleUITestSpotlightEnvironment() {
+        guard let identifier = ProcessInfo.processInfo.environment["UI_TEST_SPOTLIGHT_IDENTIFIER"],
+              let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
+            return
+        }
+        spotlightMovieId = SpotlightMovieID(id: movieId)
     }
 
     /// macOS-style "active vs. inactive selection" background:

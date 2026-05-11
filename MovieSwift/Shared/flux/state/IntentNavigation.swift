@@ -58,4 +58,30 @@ final class IntentNavigationStore: ObservableObject {
         pendingDestination = nil
         return destination
     }
+
+    /// UI-test seam: when `UI_TEST_INTENT_DESTINATION` is set in the
+    /// process environment, post the matching destination to the
+    /// navigation bus. Called from a `.task` modifier on the iOS
+    /// TabbarView and macOS SplitView so the value lands AFTER the
+    /// `.onChange` subscription is in place — otherwise the change
+    /// would happen before observation starts and the view wouldn't
+    /// react.
+    ///
+    /// This is how `MovieSwiftUITests` simulates an App Intent firing
+    /// at launch (`OpenWishlistIntent`, `OpenDiscoverIntent`, etc.)
+    /// without invoking the AppIntent runtime, which can't be driven
+    /// from XCUITest.
+    static func handleUITestEnvironment(_ environment: [String: String] = ProcessInfo.processInfo.environment) {
+        guard let raw = environment["UI_TEST_INTENT_DESTINATION"] else { return }
+        let destination: Destination?
+        switch raw {
+        case "popularMovies": destination = .popularMovies
+        case "discover":      destination = .discover
+        case "fanClub":       destination = .fanClub
+        case "wishlist":      destination = .wishlist
+        default:              destination = nil
+        }
+        guard let destination else { return }
+        shared.request(destination)
+    }
 }

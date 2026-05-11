@@ -473,4 +473,67 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
     }
+
+    // MARK: - App Intent routing
+
+    /// `UI_TEST_INTENT_DESTINATION=wishlist` simulates an
+    /// `OpenWishlistIntent` firing at launch. On macOS, the navigation
+    /// bus routes that to the My Lists sidebar menu — assert against
+    /// the `myLists.section.Wishlist` segment tab button, which is
+    /// unique to that screen.
+    func testAppIntentRoutesToMyLists() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "wishlist"])
+
+        let wishlistSegment = app.identifiedElement("myLists.section.Wishlist")
+        XCTAssertTrue(wishlistSegment.waitForExistence(timeout: timeout),
+                      "OpenWishlistIntent should land on the My Lists sidebar menu (its Wishlist segment tab should appear)")
+    }
+
+    /// `OpenDiscoverIntent` analogue — Discover sidebar menu.
+    func testAppIntentRoutesToDiscover() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "discover"])
+
+        let filterButton = app.buttons["discover.filterButton"]
+        XCTAssertTrue(filterButton.waitForExistence(timeout: timeout),
+                      "OpenDiscoverIntent should land on the Discover sidebar menu")
+    }
+
+    /// `OpenFanClubIntent` analogue — Fan Club sidebar menu, recognized
+    /// by any `fanClub.person.*` row from the smoke-test fixture's
+    /// popular-people list.
+    func testAppIntentRoutesToFanClub() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "fanClub"])
+
+        let anyFanClubPerson = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
+            .firstMatch
+        XCTAssertTrue(anyFanClubPerson.waitForExistence(timeout: timeout),
+                      "OpenFanClubIntent should land on the Fan Club sidebar menu (at least one person row should appear)")
+    }
+
+    // MARK: - Spotlight deep-link
+
+    /// `UI_TEST_SPOTLIGHT_IDENTIFIER=com.movieswift.movie.0` simulates a
+    /// macOS Spotlight result tap. The launch hook runs the same
+    /// `MovieSpotlightIndexer.movieId(fromIdentifier:)` parser the
+    /// `.onContinueUserActivity` modifier uses in production and
+    /// presents the MovieDetail sheet via `spotlightMovieId`.
+    func testSpotlightDeepLinkOpensMovieDetailSheet() {
+        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.movieswift.movie.0"])
+
+        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout),
+                      "Spotlight deep-link should open MovieDetail for the linked movie")
+    }
+
+    /// Identifiers with the wrong prefix MUST be ignored.
+    func testSpotlightDeepLinkIgnoresUnknownIdentifier() {
+        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.other.app.42"])
+
+        // The default sidebar (Popular) loads normally.
+        XCTAssertTrue(app.identifiedElement("sidebar.Popular").waitForExistence(timeout: timeout))
+        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        XCTAssertFalse(addToListButton.waitForExistence(timeout: 2),
+                       "Unknown identifier should not open MovieDetail")
+    }
 }

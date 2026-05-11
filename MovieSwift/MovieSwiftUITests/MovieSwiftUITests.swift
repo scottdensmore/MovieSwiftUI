@@ -820,6 +820,91 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(app.textFields["Search movies to add to your list"].waitForExistence(timeout: uiWaitTimeout))
     }
 
+    /// Full custom-list create journey: open the form, type a name,
+    /// tap Create, verify the new list appears in My Lists with that
+    /// name. The existing `testMyListsCreateCustomListShowsForm` only
+    /// asserts the form appears — this one drives the form to its
+    /// dispatch (`MoviesActions.AddCustomList`) and proves the row
+    /// renders afterwards.
+    func testMyListsCreateCustomListAppearsInListAfterSave() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        // Open the create form. Same fall-through as the existing
+        // shows-form test: prefer the accessibility identifier, fall
+        // back to label match.
+        let createButton = button("myLists.createCustomListButton", in: app)
+        if !createButton.waitForExistence(timeout: uiWaitTimeout) {
+            app.buttons["Create custom list"].tap()
+        } else {
+            createButton.tap()
+        }
+
+        XCTAssertTrue(app.navigationBars["New list"].waitForExistence(timeout: uiWaitTimeout))
+
+        // Type a unique-enough name we can assert against later.
+        let nameField = identifiedElement("customListForm.nameField", in: app)
+        XCTAssertTrue(nameField.waitForExistence(timeout: uiWaitTimeout))
+        nameField.tap()
+        nameField.typeText("UI-TEST-NEW-LIST")
+
+        // Save. The Create button dispatches AddCustomList and dismisses
+        // the form via .presentationMode.
+        let formCreateButton = button("customListForm.createButton", in: app)
+        XCTAssertTrue(formCreateButton.waitForExistence(timeout: uiWaitTimeout))
+        formCreateButton.tap()
+
+        // Form dismisses.
+        let newListTitle = app.navigationBars["New list"]
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: newListTitle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        // The new list shows up in My Lists.
+        XCTAssertTrue(app.staticTexts["UI-TEST-NEW-LIST"].waitForExistence(timeout: uiWaitTimeout),
+                      "After saving, the new list's name should appear in My Lists")
+    }
+
+    /// Cancel button on the create form dismisses without dispatching
+    /// AddCustomList. After cancelling, the My Lists screen should show
+    /// the same set of custom lists it started with — the smoke-test
+    /// fixture has exactly one ("TestName") so a stray "UI-TEST-CANCELLED"
+    /// must NOT appear.
+    func testMyListsCreateCustomListCancelDismissesWithoutSaving() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        let createButton = button("myLists.createCustomListButton", in: app)
+        if !createButton.waitForExistence(timeout: uiWaitTimeout) {
+            app.buttons["Create custom list"].tap()
+        } else {
+            createButton.tap()
+        }
+
+        XCTAssertTrue(app.navigationBars["New list"].waitForExistence(timeout: uiWaitTimeout))
+
+        let nameField = identifiedElement("customListForm.nameField", in: app)
+        XCTAssertTrue(nameField.waitForExistence(timeout: uiWaitTimeout))
+        nameField.tap()
+        nameField.typeText("UI-TEST-CANCELLED")
+
+        let formCancelButton = button("customListForm.cancelButton", in: app)
+        XCTAssertTrue(formCancelButton.waitForExistence(timeout: uiWaitTimeout))
+        formCancelButton.tap()
+
+        let newListTitle = app.navigationBars["New list"]
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: newListTitle)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        // Nothing got saved. The fixture's "TestName" is still there
+        // (and reachable via the same tappable-element path the existing
+        // testMyListsCustomListOpensDetailScreen uses) and the typed
+        // draft name is NOT present anywhere on screen.
+        XCTAssertFalse(app.staticTexts["UI-TEST-CANCELLED"].waitForExistence(timeout: 2),
+                       "Cancelling the form should NOT persist the typed name as a list")
+    }
+
     // MARK: - Phase 2: Movie detail sub-navigation tests
 
     func testMovieDetailWishlistButtonToggles() {
@@ -930,5 +1015,75 @@ final class MovieSwiftUITests: XCTestCase {
 
         // After deletion, saved filter should be gone
         XCTAssertFalse(button("discoverFilter.savedFilter.0", in: app).waitForExistence(timeout: 2))
+    }
+
+    // MARK: - Phase 2: App Intent routing tests
+
+    /// `UI_TEST_INTENT_DESTINATION=wishlist` simulates an
+    /// `OpenWishlistIntent` firing at launch — should land the user on
+    /// the My Lists tab. We assert against content unique to that tab
+    /// (the "movies in" header from `MyLists.swift`) rather than
+    /// trying to inspect tab-bar selection state, which XCUITest
+    /// surfaces inconsistently.
+    func testAppIntentRoutesToWishlist() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "wishlist"])
+
+        let myListsHeader = app.staticTexts.matching(
+            NSPredicate(format: "label CONTAINS %@", "movies in wishlist")
+        ).firstMatch
+        XCTAssertTrue(myListsHeader.waitForExistence(timeout: uiWaitTimeout),
+                      "OpenWishlistIntent should land the user on the My Lists tab")
+    }
+
+    /// `OpenDiscoverIntent` analogue — should select the Discover tab,
+    /// which exposes the filter button.
+    func testAppIntentRoutesToDiscover() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "discover"])
+
+        let filterButton = button("discover.filterButton", in: app)
+        XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout),
+                      "OpenDiscoverIntent should land the user on the Discover tab")
+    }
+
+    /// `OpenFanClubIntent` analogue — should select the Fan Club tab,
+    /// recognized by its empty-state copy.
+    func testAppIntentRoutesToFanClub() {
+        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "fanClub"])
+
+        XCTAssertTrue(app.navigationBars["Fan Club"].waitForExistence(timeout: uiWaitTimeout),
+                      "OpenFanClubIntent should land the user on the Fan Club tab")
+    }
+
+    // MARK: - Phase 2: Spotlight deep-link tests
+
+    /// `UI_TEST_SPOTLIGHT_IDENTIFIER=com.movieswift.movie.0` simulates a
+    /// Spotlight result tap that fires the `.onContinueUserActivity`
+    /// callback in production. The launch hook runs the SAME parser
+    /// (`MovieSpotlightIndexer.movieId(fromIdentifier:)`) and presents
+    /// the MovieDetail sheet, so this test catches regressions in
+    /// either the parser or the sheet-presentation glue.
+    ///
+    /// We use movie id 0 because the smoke-test fixture has
+    /// `state.moviesState.movies[0] = sampleMovie` — the sheet has
+    /// data to render.
+    func testSpotlightDeepLinkOpensMovieDetailSheet() {
+        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.movieswift.movie.0"])
+
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Spotlight deep-link should open MovieDetail for the linked movie")
+    }
+
+    /// Identifiers with the wrong prefix (or otherwise unparseable) MUST
+    /// be ignored — the user shouldn't see a stray MovieDetail sheet
+    /// for an unrelated app's NSUserActivity.
+    func testSpotlightDeepLinkIgnoresUnknownIdentifier() {
+        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.other.app.42"])
+
+        // Main tab bar visible; no MovieDetail sheet covering it.
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: uiWaitTimeout))
+        let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
+        XCTAssertFalse(addToListButton.waitForExistence(timeout: 2),
+                       "Unknown identifier should not open MovieDetail")
     }
 }

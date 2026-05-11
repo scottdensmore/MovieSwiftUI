@@ -121,6 +121,28 @@ struct TabbarView: View {
                 MovieDetail(movieId: wrapper.id)
             }
         }
+        // UI-test seams. Both fire AFTER the `.onChange` /
+        // `.onContinueUserActivity` subscriptions above are wired up,
+        // so the simulated launch event is observable. No-ops outside
+        // UI tests.
+        .task {
+            IntentNavigationStore.handleUITestEnvironment()
+            handleUITestSpotlightEnvironment()
+        }
+    }
+
+    /// UI-test seam mirroring `.onContinueUserActivity(CSSearchableItemActionType)`:
+    /// if `UI_TEST_SPOTLIGHT_IDENTIFIER` is set in the process env, parse
+    /// it via `MovieSpotlightIndexer.movieId(fromIdentifier:)` and present
+    /// the MovieDetail sheet exactly as a real Spotlight result tap would.
+    /// Reuses the production identifier parser so the test catches
+    /// regressions in either the parser or the sheet-presentation glue.
+    private func handleUITestSpotlightEnvironment() {
+        guard let identifier = ProcessInfo.processInfo.environment["UI_TEST_SPOTLIGHT_IDENTIFIER"],
+              let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
+            return
+        }
+        spotlightMovieId = SpotlightMovieID(id: movieId)
     }
 }
 
