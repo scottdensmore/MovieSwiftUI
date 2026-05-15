@@ -185,6 +185,77 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
     }
 
+    // MARK: - Keyboard navigation
+
+    /// Cmd+4 → Discover. The window-level menu shortcuts defined in
+    /// `MovieSwiftMacApp.body` via `CommandGroup(after: .sidebar)`
+    /// dispatch directly to the key window so they don't depend on
+    /// which SwiftUI view currently holds @FocusState (unlike the
+    /// sidebar's arrow-key handler, which is finicky under headless
+    /// XCUITest because Cocoa never gets the chance to put the
+    /// ScrollView into the first-responder chain).
+    func testCommandFourKeyboardShortcutSelectsDiscover() {
+        let app = launchApp(selectMenu: "Popular")
+
+        let popularTitle = app.staticTexts.matching(
+            NSPredicate(format: "value == %@", "Popular")
+        ).firstMatch
+        XCTAssertTrue(popularTitle.waitForExistence(timeout: timeout))
+
+        app.activate()
+        app.typeKey("4", modifierFlags: [.command])
+
+        let discoverTitle = app.staticTexts.matching(
+            NSPredicate(format: "value == %@", "Discover")
+        ).firstMatch
+        XCTAssertTrue(discoverTitle.waitForExistence(timeout: timeout),
+                      "Cmd+4 should select the Discover sidebar menu")
+    }
+
+    /// Cmd+5 → My Lists. Same command-group shortcut wiring.
+    func testCommandFiveKeyboardShortcutSelectsMyLists() {
+        let app = launchApp(selectMenu: "Popular")
+
+        let popularTitle = app.staticTexts.matching(
+            NSPredicate(format: "value == %@", "Popular")
+        ).firstMatch
+        XCTAssertTrue(popularTitle.waitForExistence(timeout: timeout))
+
+        app.activate()
+        app.typeKey("5", modifierFlags: [.command])
+
+        let myListsTitle = app.staticTexts.matching(
+            NSPredicate(format: "value == %@", "My Lists")
+        ).firstMatch
+        XCTAssertTrue(myListsTitle.waitForExistence(timeout: timeout),
+                      "Cmd+5 should select the My Lists sidebar menu")
+    }
+
+    /// Pressing Escape on a pushed MovieDetail dismisses it back to the
+    /// list. `MacBackKeyboardShortcut.onExitCommand { dismiss() }` is
+    /// attached via the `.macBackKeyboardShortcut()` modifier on every
+    /// MovieDetail navigation destination. The same machinery also
+    /// handles Cmd+[ (Safari/Finder-style back).
+    func testEscapePopsPushedMovieDetail() {
+        let app = launchApp()
+
+        // Push MovieDetail from the default Popular menu.
+        let addToListButton = openFirstMovieDetail(in: app)
+        XCTAssertTrue(addToListButton.exists)
+
+        // Press Escape. Production wiring is `.onExitCommand { dismiss() }`.
+        app.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
+
+        // The detail is gone and the movie list is back at the root.
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: addToListButton)
+        waitForExpectations(timeout: timeout)
+
+        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
+                      "After Escape, the movies list should be visible at the root")
+    }
+
     // MARK: - Fan Club
 
     func testFanClubShowsExpectedElements() {
