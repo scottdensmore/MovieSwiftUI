@@ -1172,6 +1172,72 @@ final class MovieSwiftUITests: XCTestCase {
                       "Tapping a search result should open MovieDetail")
     }
 
+    // MARK: - Phase 3.4: Sort menu
+
+    /// My Lists has a toolbar "Sort" button that triggers a
+    /// confirmationDialog with 4 sort options (defined by
+    /// `sortMenuButtons` in `Shared/views/SortMenu.swift`). The
+    /// existing `testMyListsTabShowsCreateAndSortControls` only
+    /// confirms the toolbar entry-points exist — this one drives
+    /// the sort menu's full journey:
+    ///   1. Tap toolbar Sort → action sheet appears with the
+    ///      "Sort movies by" title.
+    ///   2. All 4 sort buttons render (added date / release date /
+    ///      ratings / popularity).
+    ///   3. Tapping one dismisses the sheet cleanly, proving the
+    ///      `selectedMoviesSort` state update path runs without
+    ///      crashing or leaving the sheet stuck.
+    func testMyListsSortMenuShowsAllSortOptionsAndDismisses() {
+        let app = launchApp()
+        openTab("My Lists", in: app)
+
+        // The toolbar Sort button is identified by `myLists.sortButton`.
+        // `.accessibilityLabel("Sort")` alone doesn't surface reliably as
+        // `app.buttons["Sort"]` because SwiftUI ToolbarItems sometimes
+        // wrap the underlying control in a non-button element type — so
+        // we use the broader `identifiedElement` descendant match.
+        let sortButton = identifiedElement("myLists.sortButton", in: app)
+        XCTAssertTrue(sortButton.waitForExistence(timeout: uiWaitTimeout),
+                      "My Lists toolbar should expose a Sort button")
+        sortButton.tap()
+
+        // The confirmationDialog's title ("Sort movies by") doesn't
+        // reliably surface as a queryable `staticText` on iOS 26 — the
+        // sheet's header folds the title text into a different element.
+        // Asserting on the FIRST sort option being present is a more
+        // robust proof that the action sheet opened. The full set of
+        // four buttons is asserted below.
+        let sortByAddedDate = app.buttons["Sort by added date"]
+        XCTAssertTrue(sortByAddedDate.waitForExistence(timeout: uiWaitTimeout),
+                      "Sort confirmation dialog should appear with sort options")
+
+        // All four sort options must be present (matches sortMenuButtons).
+        XCTAssertTrue(sortByAddedDate.exists,
+                      "Sort menu should offer 'Sort by added date'")
+        XCTAssertTrue(app.buttons["Sort by release date"].exists,
+                      "Sort menu should offer 'Sort by release date'")
+        XCTAssertTrue(app.buttons["Sort by ratings"].exists,
+                      "Sort menu should offer 'Sort by ratings'")
+        XCTAssertTrue(app.buttons["Sort by popularity"].exists,
+                      "Sort menu should offer 'Sort by popularity'")
+
+        // Selecting an option dismisses the action sheet. We pick
+        // "Sort by ratings" because the smoke-fixture wishlist has
+        // exactly one movie, so re-sorting can't visibly reorder a
+        // 1-element list — the assertion that survives is "the sheet
+        // dismissed without crashing the screen".
+        app.buttons["Sort by ratings"].tap()
+
+        let absent = NSPredicate(format: "exists == NO")
+        expectation(for: absent, evaluatedWith: sortByAddedDate, handler: nil)
+        waitForExpectations(timeout: uiWaitTimeout)
+
+        // The toolbar Sort button is still there and re-tappable —
+        // proves the screen didn't pop or get stuck behind a stray sheet.
+        XCTAssertTrue(sortButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(sortButton.isHittable)
+    }
+
     // MARK: - Phase 3.3: Rich movie-detail interactions
 
     /// Tier 3.3: tapping a movie inside the Similar / Recommended

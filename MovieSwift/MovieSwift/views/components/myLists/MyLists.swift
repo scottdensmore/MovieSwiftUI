@@ -177,6 +177,7 @@ struct MyLists : ConnectedView {
                         .frame(width: 25, height: 25)
                 })
                 .accessibilityLabel("Sort")
+                .accessibilityIdentifier("myLists.sortButton")
             }
         }
         #endif
@@ -331,6 +332,7 @@ struct MyLists : ConnectedView {
                         .frame(width: 22, height: 22)
                 }
                 .accessibilityLabel("Sort")
+                .accessibilityIdentifier("myLists.sortButton")
             }
         }
     }
