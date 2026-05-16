@@ -473,6 +473,78 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Archived state size"].waitForExistence(timeout: timeout))
     }
 
+    // MARK: - Settings: region picker (Tier 3.5)
+
+    /// Tier 3.5: selecting a different region in macOS Settings auto-
+    /// saves via `.onChange(of: selectedRegionCode)` (no Save button —
+    /// macOS Settings is in the sidebar's detail pane, not modal, so
+    /// `isModalPresentation == false`). The save triggers
+    /// `SettingsFormRefreshPolicy.menusToRefresh` which returns
+    /// `MoviesMenu.allCases` when the region changes — dispatching
+    /// `FetchMoviesMenuList(list:, page: 1)` for every menu.
+    ///
+    /// We can't observe the network refresh in smoke-test mode (no
+    /// network), but the journey ending in:
+    ///   1. The popUpButton's value matching the newly-selected region.
+    ///   2. The Popular menu in the sidebar still navigable to a
+    ///      working movies list (with `moviesList.movie.0` queryable).
+    /// proves the dispatch loop ran without crashing the app.
+    ///
+    /// macOS `Picker(.menu)` lifts into an NSPopUpButton whose menu
+    /// items render as native `MenuItem` elements queryable by label,
+    /// making this surface much more driveable than the iOS Form
+    /// Picker (which is XCTSkip'd in the iOS suite — see
+    /// `testSettingsRegionPickerSaveDispatchesAndDismisses`).
+    ///
+    /// The selection target "Albania" is chosen because the regions
+    /// list is sorted alphabetically by display name, so Albania
+    /// appears near the top of the popUp without scrolling, and it's
+    /// almost never the default `Locale.current.region` of a macOS
+    /// host. If the host's region somehow is AL, the test still
+    /// passes — `SettingsFormRefreshPolicy.menusToRefresh` returns
+    /// `[]` for an unchanged region and the rest of the journey
+    /// (popUp value matches, Movies tab still works) remains valid.
+    func testSettingsRegionPickerSelectionTriggersAutoSave() {
+        let app = launchApp(selectMenu: "Settings")
+
+        let regionPicker = app.identifiedElement("settings.regionPicker")
+        XCTAssertTrue(regionPicker.waitForExistence(timeout: timeout),
+                      "Region picker should be visible in macOS Settings")
+
+        // Open the popUp.
+        regionPicker.tap()
+
+        // Pick "Albania". `.menu` style + `.labelsHidden()` makes the
+        // popUp menu items render as native MenuItem elements with
+        // the region's display name as label.
+        let albaniaMenuItem = app.menuItems["Albania"]
+        XCTAssertTrue(albaniaMenuItem.waitForExistence(timeout: timeout),
+                      "Region popUp should expose 'Albania' as a menu item")
+        albaniaMenuItem.tap()
+
+        // Auto-save kicks in via `.onChange(of: selectedRegionCode)` —
+        // no explicit Save button on macOS.
+        //
+        // Wait for the popUp's value to reflect the new selection. The
+        // popUp's accessibility value carries the chosen item's title
+        // on macOS (NSPopUpButton convention).
+        let valueIsAlbania = NSPredicate(format: "value == %@", "Albania")
+        expectation(for: valueIsAlbania, evaluatedWith: regionPicker, handler: nil)
+        waitForExpectations(timeout: timeout)
+
+        // Navigate back to Popular in the sidebar — exercises that the
+        // dispatch loop didn't tear down the Movies surface. If
+        // `FetchMoviesMenuList(.popular, page: 1)` crashed the moviesList
+        // state, the Popular list would render empty.
+        let popularSidebar = app.identifiedElement("sidebar.Popular")
+        XCTAssertTrue(popularSidebar.waitForExistence(timeout: timeout))
+        popularSidebar.tap()
+
+        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
+                      "Popular list should still render after a region-change auto-save")
+    }
+
     // MARK: - Settings: TMDB API key
 
     /// Pasting a key, saving, and clearing should drive the status row through
