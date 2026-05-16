@@ -1172,6 +1172,89 @@ final class MovieSwiftUITests: XCTestCase {
                       "Tapping a search result should open MovieDetail")
     }
 
+    // MARK: - Phase 3.3: Rich movie-detail interactions
+
+    /// Tier 3.3: tapping a movie inside the Similar / Recommended
+    /// horizontal carousel pushes another MovieDetail onto the
+    /// navigation stack. This is the iOS analog of the tvOS
+    /// `testRecommendedMovieSelectionPushesNewDetail` deep-link
+    /// — the natural "browse related films from inside detail" path.
+    ///
+    /// The smoke-test fixture seeds
+    ///   `state.moviesState.similar = [0: [0]]`
+    ///   `state.moviesState.recommended = [0: [0]]`
+    /// so each carousel renders exactly one cell pointing back at
+    /// movie 0. The push is therefore depth-2 with the SAME movie,
+    /// which still proves:
+    ///   1. The carousel cell is wired through to selectedCrosslineRoute.
+    ///   2. The .navigationDestination(item:) push fires a fresh
+    ///      MovieDetail instance (not a re-render in place).
+    /// We confirm (2) by tapping the back button after the push and
+    /// verifying the originating MovieDetail's addToListButton is
+    /// hittable again — which it wouldn't be if the push had
+    /// replaced the root.
+    func testMovieDetailSimilarRowOpensNewDetail() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        // The cell uses the new `movieDetail.crossline.movie.<id>`
+        // identifier added in MovieCrosslineRow. With the fixture
+        // seeding both similar and recommended to [0], the first
+        // match is the similar-row entry (similar renders before
+        // recommended in MovieDetail.bottomContent).
+        let crosslineCell = identifiedElement("movieDetail.crossline.movie.0", in: app)
+        XCTAssertTrue(scrollUntilElementExists(crosslineCell, in: app, maxSwipes: 8),
+                      "Similar/Recommended carousel cell should scroll into view")
+        crosslineCell.tap()
+
+        // A new MovieDetail pushed: there should be a back button
+        // ("BackButton" is the navigationBar's auto-generated id when
+        // a NavigationLink pushed a screen) AND the addToListButton on
+        // the new detail.
+        let backButton = app.buttons["BackButton"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Pushing into the carousel cell should produce a back button")
+        XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app)
+                        .waitForExistence(timeout: uiWaitTimeout),
+                      "The pushed screen should be MovieDetail")
+
+        // Back-button taps once → returns to the originating detail
+        // (not all the way to the list). The originating detail's
+        // addToListButton must still be queryable on screen.
+        backButton.tap()
+        XCTAssertTrue(identifiedElement("movieDetail.addToListButton", in: app)
+                        .waitForExistence(timeout: uiWaitTimeout),
+                      "Back from depth-2 should land us on the originating MovieDetail")
+    }
+
+    /// Tier 3.3 (continued): the cast row in MovieDetail uses
+    /// `movieDetail.person.<id>` accessibility identifiers (defined in
+    /// MovieCrosslinePeopleRow). Tapping a cast person opens
+    /// PeopleDetail. This is a *different* journey from
+    /// `testMovieDetailCanNavigateToPersonAndBackToMovie`, which uses
+    /// the `movieDetail.topPersonShortcut` (a Director badge that
+    /// lives outside the cast carousel). The cast-row tap is how a
+    /// user actually browses through the People row by horizontal
+    /// scroll, and it has never been exercised by an iOS smoke test.
+    func testMovieDetailCastRowPersonTapOpensPeopleDetail() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        // The smoke-test fixture seeds exactly one cast person
+        // (`smokeTestPrimaryCast`). Match the cast-row identifier
+        // pattern from MovieCrosslinePeopleRow.
+        let castPerson = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "movieDetail.person."))
+            .firstMatch
+        XCTAssertTrue(scrollUntilElementExists(castPerson, in: app, maxSwipes: 8),
+                      "Cast-row person cell should scroll into view")
+        castPerson.tap()
+
+        XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app)
+                        .waitForExistence(timeout: uiWaitTimeout),
+                      "Tapping a cast-row person should push into PeopleDetail")
+    }
+
     /// Cancel returns to the non-searching state: typing a query
     /// produces the Cancel button (existing tests cover that); tapping
     /// it should clear the field and hide the results.

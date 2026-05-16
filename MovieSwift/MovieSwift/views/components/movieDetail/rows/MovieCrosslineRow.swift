@@ -119,12 +119,14 @@ struct MovieDetailRowItem: View {
             movieContent
         }
         .contextMenu { MovieContextMenu(movieId: movie.id) }
+        .accessibilityIdentifier("movieDetail.crossline.movie.\(movie.id)")
         #else
         Button(action: onSelect) {
             movieContent
         }
         .buttonStyle(.plain)
         .contextMenu { MovieContextMenu(movieId: movie.id) }
+        .accessibilityIdentifier("movieDetail.crossline.movie.\(movie.id)")
         #endif
     }
 
