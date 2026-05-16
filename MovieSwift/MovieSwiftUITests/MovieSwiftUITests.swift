@@ -1179,34 +1179,90 @@ final class MovieSwiftUITests: XCTestCase {
     /// `MoviesMenu` (via `SettingsFormRefreshPolicy.menusToRefresh`),
     /// then dismisses the Settings modal.
     ///
-    /// Skipped on iOS because the SwiftUI `Picker` inside a
-    /// modally-presented Form on iOS 26 doesn't surface its options
-    /// in a way that's reliably driveable by XCUITest: tapping the
-    /// `settings.regionPicker` Button registers, but neither
-    /// `app.staticTexts["Albania"]`, `app.buttons["Albania"]`, nor
-    /// `app.descendants(matching: .any).matching(label == "Albania")`
-    /// finds the option afterwards. The picker likely renders with
-    /// `.menu` style (a popover) on iOS 26, whose menu-item labels
-    /// fold the country name into a composite NSMenu accessibility
-    /// element that bare-string queries can't match.
+    /// The iOS Form Picker renders its options inside a `.menu`-style
+    /// popover whose labels don't surface as bare-string-queryable
+    /// `app.buttons["Albania"]` / `app.staticTexts["Albania"]`. To
+    /// drive the menu, each region row carries an explicit
+    /// `settings.regionPicker.option.<ISO>` identifier (added to the
+    /// `ForEach` body in SettingsForm.swift) so this test can locate
+    /// "Albania" by `descendants(matching: .any)` regardless of the
+    /// concrete XCUIElement type SwiftUI chose for the menu item.
     ///
     /// The macOS analog
     /// (`MovieSwiftMacUITests.testSettingsRegionPickerSelectionTriggersAutoSave`)
-    /// covers the journey end-to-end on the desktop, where the
+    /// covers the same journey on the desktop, where the
     /// `.menu`-styled `Picker` lifts cleanly into an NSPopUpButton
-    /// whose `MenuItem` children are queryable by label.
+    /// whose `MenuItem` children are queryable by label — so the
+    /// macOS test still selects by `app.menuItems["Albania"]`.
     ///
     /// The `SettingsFormRefreshPolicy` logic — "if region changed,
     /// refresh every MoviesMenu" — is fully covered by
     /// `MovieSwiftTests.testSettingsFormRefreshPolicyRefreshesWhenRegionChanges`
-    /// and friends. So the only thing missing from iOS coverage is
-    /// the production binding from `Picker → Save button → policy →
-    /// dispatch loop`, and that path is identical (same SettingsForm
-    /// view, same dispatch closure) to the one the macOS test
-    /// exercises. The two together cover Tier 3.5; the iOS-specific
-    /// driver is tracked as a follow-up.
-    func testSettingsRegionPickerSaveDispatchesAndDismisses() throws {
-        throw XCTSkip("iOS 26 SwiftUI Form Picker doesn't surface its options for XCUITest by bare-string match; macOS counterpart (testSettingsRegionPickerSelectionTriggersAutoSave) covers the journey end-to-end. Tracked as a follow-up to add an accessibility identifier per region option so the iOS path becomes driveable.")
+    /// and friends. What this UI test adds is the production binding
+    /// from `Picker → Save button → policy → dispatch loop`, end to
+    /// end, on a real iOS simulator.
+    func testSettingsRegionPickerSaveDispatchesAndDismisses() {
+        let app = launchApp()
+        openTab("Movies", in: app)
+
+        let settingsButton = button("moviesHome.settingsButton", in: app)
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        settingsButton.tap()
+
+        let regionPicker = identifiedElement("settings.regionPicker", in: app)
+        XCTAssertTrue(regionPicker.waitForExistence(timeout: uiWaitTimeout),
+                      "Region picker should appear in Settings modal")
+        regionPicker.tap()
+
+        // Each ForEach row carries a `settings.regionPicker.option.<ISO>`
+        // identifier (see SettingsForm.swift). We match by `.any`
+        // descendant because iOS surfaces menu items as buttons inside
+        // a popover-mounted CollectionView. That CollectionView
+        // lazy-renders only the rows around the currently selected
+        // region (typically the simulator's "United States"), so
+        // Albania — alphabetically near the top — isn't in the
+        // accessibility tree until we scroll the popover up.
+        //
+        // Coordinate-based drags inside the popover band (roughly
+        // y ∈ [288, 808] on iPhone 17 Pro) scroll the menu without
+        // dismissing it. Each drag advances multiple rows; ~30 drags
+        // is enough to reach the 'A' bucket from the 'U' bucket.
+        let albaniaOption = identifiedElement("settings.regionPicker.option.AL", in: app)
+        var scrolls = 0
+        while !albaniaOption.exists && scrolls < 40 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9))
+            start.press(forDuration: 0.05, thenDragTo: end)
+            scrolls += 1
+        }
+        XCTAssertTrue(albaniaOption.waitForExistence(timeout: uiWaitTimeout),
+                      "Region picker menu should expose 'Albania' after scrolling toward the top of the alphabet")
+        albaniaOption.tap()
+
+        // Some iOS Picker styles auto-pop the menu on selection; others
+        // require an explicit Done dismissal. Tap Save directly — if the
+        // menu is still in the way, XCUITest's hit-testing will surface
+        // a tap-failure. Wait for the save button to be hittable first.
+        let saveButton = button("settings.saveButton", in: app)
+        XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
+        let hittable = NSPredicate(format: "isHittable == YES")
+        expectation(for: hittable, evaluatedWith: saveButton, handler: nil)
+        waitForExpectations(timeout: uiWaitTimeout)
+        saveButton.tap()
+
+        // Modal dismisses → the moviesHome Settings button becomes
+        // hittable again.
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: uiWaitTimeout))
+        XCTAssertTrue(settingsButton.isHittable,
+                      "Settings modal should dismiss after Save")
+
+        // The Movies list should still render after the region-change
+        // dispatch loop fired `FetchMoviesMenuList(list:, page: 1)` for
+        // every MoviesMenu — proves the policy didn't tear down the
+        // moviesList surface.
+        let firstMovie = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout),
+                      "Movies list should still render after region-change Save")
     }
 
     // MARK: - Phase 3.4: Sort menu

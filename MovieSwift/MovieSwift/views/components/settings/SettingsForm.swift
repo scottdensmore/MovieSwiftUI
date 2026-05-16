@@ -415,7 +415,9 @@ struct SettingsForm : ConnectedView {
                     originalTitlePreferenceRow
                     Picker("Region", selection: $selectedRegionCode) {
                             ForEach(regions) { region in
-                                Text(region.name).tag(region.code)
+                                Text(region.name)
+                                    .tag(region.code)
+                                    .accessibilityIdentifier("settings.regionPicker.option.\(region.code)")
                             }
                     }
                     .accessibilityIdentifier("settings.regionPicker")
