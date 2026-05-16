@@ -178,6 +178,71 @@ final class MovieSwiftTVUITests: XCTestCase {
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
+    /// The Recommended row is a horizontal carousel of NavigationLink cards.
+    /// Focusing one with the remote and pressing Select should push another
+    /// TVMovieDetail onto the stack — this is the "browse related films
+    /// without ever leaving the detail flow" journey, and it's the only
+    /// deep-link target inside TVMovieDetail (cast cards have empty actions).
+    ///
+    /// Verifies:
+    ///   1. The recommended card is reachable via remote `down` presses.
+    ///   2. Pressing `select` on a focused recommended card replaces the
+    ///      visible title with a different movie's title (confirming the
+    ///      navigation stack pushed, not that focus merely moved).
+    ///   3. Pressing `menu` pops back to the first detail (one level up,
+    ///      not all the way to the tab's list), proving the nav-stack depth
+    ///      is exactly 2.
+    func testRecommendedMovieSelectionPushesNewDetail() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        // Capture the originating movie's title so we can detect that the
+        // visible detail actually changed when we tap into Recommended.
+        let originalTitle = app.identifiedElement("movieDetail.title")
+        XCTAssertTrue(originalTitle.waitForExistence(timeout: timeout))
+        let originalLabel = originalTitle.label
+        XCTAssertFalse(originalLabel.isEmpty,
+                       "Expected the first movie's title to be loaded before navigating")
+
+        // Scroll the Recommended section into view. The detail page has 3
+        // focus sections (header → cast → recommended) so 8 down-presses is
+        // a safe upper bound; the helper short-circuits as soon as the
+        // header is visible.
+        let recommendedHeader = app.identifiedElement("movieDetail.recommendedHeader")
+        for _ in 0..<8 {
+            if recommendedHeader.waitForExistence(timeout: 1) { break }
+            XCUIRemote.shared.press(.down)
+        }
+        XCTAssertTrue(recommendedHeader.exists,
+                      "Expected Recommended section to scroll into view")
+
+        // Press down one more time to move focus from the header label
+        // onto the first focusable card in the carousel, then select it.
+        XCUIRemote.shared.press(.down)
+        XCUIRemote.shared.press(.select)
+
+        // A new TVMovieDetail should push with a different title. We can't
+        // know the recommended movie's title up-front (the fixture order
+        // depends on TMDb's recommended list), so we just assert that the
+        // title element transitions to a non-empty *different* label.
+        let titleChanged = NSPredicate(
+            format: "label != %@ AND label.length > 0",
+            originalLabel
+        )
+        let titleAfterPush = app.identifiedElement("movieDetail.title")
+        expectation(for: titleChanged, evaluatedWith: titleAfterPush, handler: nil)
+        waitForExpectations(timeout: timeout)
+
+        // Menu should pop us back to the originating movie's detail (depth-2 → depth-1),
+        // not all the way to the list. This proves the deep-link actually pushed
+        // onto the existing NavigationStack instead of replacing the root.
+        XCUIRemote.shared.press(.menu)
+        let titleRestored = NSPredicate(format: "label == %@", originalLabel)
+        let titleAfterMenu = app.identifiedElement("movieDetail.title")
+        expectation(for: titleRestored, evaluatedWith: titleAfterMenu, handler: nil)
+        waitForExpectations(timeout: timeout)
+    }
+
     // MARK: - Search
 
     func testSearchTabShowsEmptyState() {
