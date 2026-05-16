@@ -400,30 +400,46 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// menu is wired and its `MovieContextMenu` props connect to the
     /// fixture's state correctly.
     func testMovieDetailCrosslineRowContextMenuShowsListToggles() throws {
-        // The MovieContextMenu's buttons use `HStack { Text(...); Image(...) }`
-        // as their label (see MovieContextMenu.swift). SwiftUI's macOS
-        // `.contextMenu` modifier folds that HStack into a *combined*
-        // accessibility label on the resulting NSMenuItem, so the bare
-        // string "Remove from wishlist" doesn't match
-        // `app.menuItems[<label>]` — the lifted item ends up with a
-        // composite label that also includes the SF Symbol's accessibility
-        // name (and possibly more chrome). Right-clicking
-        // `movieDetail.crossline.movie.0` and waiting 15s for the bare
-        // label fails because the menu items render with a different label
-        // form than the source `Text(...)` content.
+        // MovieContextMenu's Buttons now carry explicit
+        // `.accessibilityIdentifier(...)` and `.accessibilityLabel(...)`
+        // so the NSMenuItems lifted from `.contextMenu` are queryable
+        // by both the stable identifier (e.g.
+        // "movieContextMenu.wishlistToggle") and by the bare label
+        // string (e.g. "Remove from wishlist") — the HStack(Text, Image)
+        // composite-label problem only surfaces when neither is set.
         //
-        // The cleanest fix is a production change: refactor MovieContextMenu's
-        // Button label from `HStack { Text; Image }` to a Label-only or
-        // Text-only form, or add explicit `.accessibilityLabel("Remove from
-        // wishlist")` / `.accessibilityIdentifier(...)` to each Button. That's
-        // tracked as a follow-up so MovieContextMenu becomes test-friendly
-        // across both iOS (long-press) and macOS (right-click). The
-        // functional coverage for the contextMenu's *actions* — wishlist
-        // toggle, seenlist toggle, custom-list add — is provided by
-        // `MovieDetailStateTests` and the discover/myLists UI tests, so
-        // the only surface we're skipping here is the discoverability of
-        // those items via XCUITest's menu-item query.
-        throw XCTSkip("macOS .contextMenu items from MovieContextMenu use HStack(Text, Image) labels that don't surface as queryable bare menu-item labels in XCUITest. Tracked as a follow-up to add accessibility identifiers to MovieContextMenu's Button labels.")
+        // We don't drive an Add/Remove action here — that would mutate
+        // wishlist/seenlist state for subsequent tests in the suite.
+        // Existence of the menu items is enough to prove the menu is
+        // wired and reads the correct toggle strings from the fixture
+        // state (movie 0 ∈ wishlist ∧ movie 0 ∈ seenlist).
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let crosslineCell = app.identifiedElement("movieDetail.crossline.movie.0")
+        XCTAssertTrue(crosslineCell.waitForExistence(timeout: timeout),
+                      "Similar/Recommended carousel should expose movie 0 cell")
+        crosslineCell.rightClick()
+
+        let wishlistToggle = app.menuItems["movieContextMenu.wishlistToggle"]
+        XCTAssertTrue(wishlistToggle.waitForExistence(timeout: timeout),
+                      "Context menu should expose the wishlist toggle by identifier")
+
+        let seenlistToggle = app.menuItems["movieContextMenu.seenlistToggle"]
+        XCTAssertTrue(seenlistToggle.exists,
+                      "Context menu should expose the seenlist toggle by identifier")
+
+        // Bare-label queries — exercise the `.accessibilityLabel` side
+        // of the fix and prove the fixture state is reflected. Movie 0
+        // is seeded into both wishlist and seenlist, so the toggles
+        // must read "Remove from …" rather than "Add to …".
+        XCTAssertTrue(app.menuItems["Remove from wishlist"].exists,
+                      "Bare-label query should find the wishlist toggle in its 'remove' form (movie 0 ∈ wishlist fixture)")
+        XCTAssertTrue(app.menuItems["Remove from seenlist"].exists,
+                      "Bare-label query should find the seenlist toggle in its 'remove' form (movie 0 ∈ seenlist fixture)")
+
+        // Dismiss the menu so we don't mutate state on teardown.
+        app.typeKey(XCUIKeyboardKey.escape, modifierFlags: [])
     }
 
     // MARK: - Discover
