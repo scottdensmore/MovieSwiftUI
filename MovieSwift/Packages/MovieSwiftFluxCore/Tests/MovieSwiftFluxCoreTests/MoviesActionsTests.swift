@@ -142,15 +142,25 @@ final class MoviesActionsTests: XCTestCase {
     /// Assert that the dispatch trace ends in a `SetLoadingState(.failed)`
     /// for `key`, with no data action of `dataType` ever dispatched. Returns
     /// the failure for further assertion.
-    private func assertFailureDispatch<T>(
+    ///
+    /// Takes a `noDataActionMatching` closure rather than a generic `T.Type`.
+    /// The generic-T form (`$0 as? T`) was triggering a Swift 6 compiler
+    /// quirk on the macos-26 GitHub runner where the cast returned a value
+    /// whose dynamic type rendered as `(Function)` — even though no Action
+    /// passed to dispatch was a closure. Inlining the type check at the
+    /// call site (via the closure) bypasses the generic-existential cast
+    /// path and produces consistent results locally and on CI.
+    private func assertFailureDispatch(
         in dispatched: [Action],
         for key: LoadingKey,
-        notDispatching dataType: T.Type,
+        noDataActionMatching matches: (Action) -> Bool,
+        dataActionDescription: String,
         file: StaticString = #file,
         line: UInt = #line
     ) throws -> MoviesListLoadFailure {
-        XCTAssertNil(dispatched.compactMap { $0 as? T }.first,
-                     "Failure path unexpectedly dispatched a \(T.self) data action.",
+        let unwantedDataAction = dispatched.first(where: matches)
+        XCTAssertNil(unwantedDataAction,
+                     "Failure path unexpectedly dispatched a \(dataActionDescription) data action.",
                      file: file, line: line)
         let loadingStates = dispatched.compactMap { $0 as? MoviesActions.SetLoadingState }
         let lastForKey = loadingStates.last { $0.key == key }
@@ -223,7 +233,8 @@ final class MoviesActionsTests: XCTestCase {
         let failure = try assertFailureDispatch(
             in: dispatched,
             for: .homeMenu(.popular),
-            notDispatching: MoviesActions.SetMovieMenuList.self
+            noDataActionMatching: { $0 is MoviesActions.SetMovieMenuList },
+            dataActionDescription: "SetMovieMenuList"
         )
         XCTAssertEqual(failure.kind, .missingAPIKey)
         // Missing API key short-circuits in APIService.GET — no network call,
@@ -253,7 +264,8 @@ final class MoviesActionsTests: XCTestCase {
         _ = try assertFailureDispatch(
             in: dispatched,
             for: .homeMenu(.upcoming),
-            notDispatching: MoviesActions.SetMovieMenuList.self
+            noDataActionMatching: { $0 is MoviesActions.SetMovieMenuList },
+            dataActionDescription: "SetMovieMenuList"
         )
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
@@ -279,7 +291,8 @@ final class MoviesActionsTests: XCTestCase {
         let failure = try assertFailureDispatch(
             in: dispatched,
             for: .homeMenu(.nowPlaying),
-            notDispatching: MoviesActions.SetMovieMenuList.self
+            noDataActionMatching: { $0 is MoviesActions.SetMovieMenuList },
+            dataActionDescription: "SetMovieMenuList"
         )
         XCTAssertEqual(failure.kind, .decode)
         XCTAssertEqual(session.task.resumeCalls, 1)
@@ -334,7 +347,8 @@ final class MoviesActionsTests: XCTestCase {
         _ = try assertFailureDispatch(
             in: dispatched,
             for: .genres,
-            notDispatching: MoviesActions.SetGenres.self
+            noDataActionMatching: { $0 is MoviesActions.SetGenres },
+            dataActionDescription: "SetGenres"
         )
         XCTAssertEqual(session.task.resumeCalls, 1)
     }
@@ -390,7 +404,8 @@ final class MoviesActionsTests: XCTestCase {
         _ = try assertFailureDispatch(
             in: dispatched,
             for: .movieDetail(42),
-            notDispatching: MoviesActions.SetDetail.self
+            noDataActionMatching: { $0 is MoviesActions.SetDetail },
+            dataActionDescription: "SetDetail"
         )
     }
 
