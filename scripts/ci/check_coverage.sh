@@ -91,7 +91,7 @@ run_package_coverage \
 
 run_package_coverage \
   "MovieSwiftFluxCore" \
-  "MovieSwift" \
+  "MovieSwift/Packages/MovieSwiftFluxCore" \
   "MovieSwiftFluxCorePackageTests" \
   "(Tests|\\.build|Shared/flux/testing|Packages/Backend)" \
   "$FLUX_MIN"
