@@ -89,14 +89,39 @@ final class MoviesActionsTests: XCTestCase {
         timeout: TimeInterval = 1.0,
         when execute: (@escaping DispatchFunction) -> Void
     ) -> [Action] {
+        // `dispatched` is mutated from two threads:
+        //   - the test thread, which receives the synchronous
+        //     SetLoadingState(.loading) dispatch fired immediately by
+        //     `makeTrackedHandler` before APIService.GET returns
+        //   - the APIService's `callbackQueue` thread, which fires
+        //     the subsequent .failed / .success+data dispatches
+        //
+        // `Array<any Action>` stores existential containers (5
+        // machine-words per element). Concurrent writes corrupt the
+        // storage and cause downcasts (`$0 as? SetMovieMenuList`) to
+        // succeed on garbage that wasn't actually a SetMovieMenuList,
+        // which surfaces as "Failure path unexpectedly dispatched a
+        // SetMovieMenuList data action" with the value's description
+        // rendered as "(Function)". The race is data-loss-prone on
+        // any ARM machine; macos-26 CI runners hit it deterministically
+        // while local M-series Macs tend to slip past it.
+        //
+        // Serialize all reads/writes through an NSLock so the array
+        // stays consistent regardless of which thread dispatches.
+        let lock = NSLock()
         var dispatched: [Action] = []
         let exp = expectation(description: description)
         exp.assertForOverFulfill = false
         execute { action in
+            lock.lock()
             dispatched.append(action)
-            if trigger(action) { exp.fulfill() }
+            let shouldFulfill = trigger(action)
+            lock.unlock()
+            if shouldFulfill { exp.fulfill() }
         }
         waitForExpectations(timeout: timeout)
+        lock.lock()
+        defer { lock.unlock() }
         return dispatched
     }
 
