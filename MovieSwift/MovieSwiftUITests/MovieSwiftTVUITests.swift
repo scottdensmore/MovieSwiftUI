@@ -184,25 +184,35 @@ final class MovieSwiftTVUITests: XCTestCase {
     /// without ever leaving the detail flow" journey, and it's the only
     /// deep-link target inside TVMovieDetail (cast cards have empty actions).
     ///
+    /// The assertion uses **navigation-depth signals** rather than
+    /// "title changes after Select." The smoke fixture
+    /// (`makeUISmokeTestState` in MovieSwiftFluxCore) seeds
+    /// `recommended: [0: [0]]` — movie 0 recommends itself — so the
+    /// pushed detail's title is the SAME as the originating detail's.
+    /// We can't tell a push apart from a no-op by reading the title alone.
+    ///
     /// Verifies:
-    ///   1. The recommended card is reachable via remote `down` presses.
-    ///   2. Pressing `select` on a focused recommended card replaces the
-    ///      visible title with a different movie's title (confirming the
-    ///      navigation stack pushed, not that focus merely moved).
-    ///   3. Pressing `menu` pops back to the first detail (one level up,
-    ///      not all the way to the tab's list), proving the nav-stack depth
-    ///      is exactly 2.
+    ///   1. Initially on the Popular list (`moviesList.movie.0` visible).
+    ///   2. Tap movie 0 → list disappears, `movieDetail.title` shows.
+    ///   3. Scroll to Recommended, press Select → still showing
+    ///      `movieDetail.title` (depth-2).
+    ///   4. Press Menu ONCE → still showing `movieDetail.title` (popped
+    ///      depth-2 → depth-1). This is the actual proof Select pushed
+    ///      a second detail; if Select had been absorbed, this Menu
+    ///      would have popped straight to depth-0 and `moviesList` would
+    ///      be visible.
+    ///   5. Press Menu AGAIN → back on the Popular list.
     func testRecommendedMovieSelectionPushesNewDetail() {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        // Capture the originating movie's title so we can detect that the
-        // visible detail actually changed when we tap into Recommended.
-        let originalTitle = app.identifiedElement("movieDetail.title")
-        XCTAssertTrue(originalTitle.waitForExistence(timeout: timeout))
-        let originalLabel = originalTitle.label
-        XCTAssertFalse(originalLabel.isEmpty,
-                       "Expected the first movie's title to be loaded before navigating")
+        // Detail title is visible, list is hidden.
+        let detailTitle = app.identifiedElement("movieDetail.title")
+        XCTAssertTrue(detailTitle.waitForExistence(timeout: timeout),
+                      "MovieDetail should show its title after tapping the first movie")
+        let originatingListCell = app.identifiedElement("moviesList.movie.0")
+        XCTAssertFalse(originatingListCell.exists,
+                       "Movies list should be hidden under the pushed MovieDetail")
 
         // Scroll the Recommended section into view. The detail page has 3
         // focus sections (header → cast → recommended) so 8 down-presses is
@@ -216,31 +226,34 @@ final class MovieSwiftTVUITests: XCTestCase {
         XCTAssertTrue(recommendedHeader.exists,
                       "Expected Recommended section to scroll into view")
 
-        // Press down one more time to move focus from the header label
+        // Press down once more to move focus from the header label
         // onto the first focusable card in the carousel, then select it.
         XCUIRemote.shared.press(.down)
         XCUIRemote.shared.press(.select)
 
-        // A new TVMovieDetail should push with a different title. We can't
-        // know the recommended movie's title up-front (the fixture order
-        // depends on TMDb's recommended list), so we just assert that the
-        // title element transitions to a non-empty *different* label.
-        let titleChanged = NSPredicate(
-            format: "label != %@ AND label.length > 0",
-            originalLabel
-        )
-        let titleAfterPush = app.identifiedElement("movieDetail.title")
-        expectation(for: titleChanged, evaluatedWith: titleAfterPush, handler: nil)
-        waitForExpectations(timeout: timeout)
+        // After the push, the detail title element is still visible
+        // (depth-2 is the same view kind as depth-1).
+        XCTAssertTrue(detailTitle.waitForExistence(timeout: timeout),
+                      "A pushed detail screen should keep movieDetail.title visible")
+        XCTAssertFalse(originatingListCell.exists,
+                       "The pushed detail should keep the underlying Popular list hidden")
 
-        // Menu should pop us back to the originating movie's detail (depth-2 → depth-1),
-        // not all the way to the list. This proves the deep-link actually pushed
-        // onto the existing NavigationStack instead of replacing the root.
+        // Pop ONCE — if Select pushed, this lands on depth-1 detail (still
+        // showing movieDetail.title, with the list still hidden). If
+        // Select had been absorbed without pushing, this Menu press would
+        // have popped straight to depth-0 and `moviesList.movie.0` would
+        // be visible. The asymmetry between the two cases is the actual
+        // proof of the push.
         XCUIRemote.shared.press(.menu)
-        let titleRestored = NSPredicate(format: "label == %@", originalLabel)
-        let titleAfterMenu = app.identifiedElement("movieDetail.title")
-        expectation(for: titleRestored, evaluatedWith: titleAfterMenu, handler: nil)
-        waitForExpectations(timeout: timeout)
+        XCTAssertTrue(detailTitle.waitForExistence(timeout: timeout),
+                      "After ONE Menu press from depth-2, we should still be on a movie detail (proves the Recommended-cell push happened)")
+        XCTAssertFalse(originatingListCell.exists,
+                       "After one Menu press, the Popular list should still be hidden — we should be at depth-1, not depth-0")
+
+        // Pop AGAIN — now we should be back on the Popular list.
+        XCUIRemote.shared.press(.menu)
+        XCTAssertTrue(originatingListCell.waitForExistence(timeout: timeout),
+                      "After the second Menu press, the Popular list's first movie should be visible again")
     }
 
     // MARK: - Search

@@ -43,7 +43,7 @@ jobs:
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
       COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage-app
       IOS_SIMULATOR_FAMILY: iPhone
-      IOS_SIMULATOR_NAME: "iPhone 16e"
+      IOS_SIMULATOR_NAME: "iPhone 17 Pro"
       IOS_TEST_ITERATIONS: "1"
       XCODE_ONLY_TESTING: MovieSwiftTests
 
