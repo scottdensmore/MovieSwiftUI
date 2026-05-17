@@ -155,6 +155,10 @@ struct MoviesList: ConnectedView {
                     .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
+            // Attach contextMenu at the Button level so iOS's gesture
+            // coordinator routes long-press to UIContextMenuInteraction
+            // instead of the Button's own action handler.
+            .contextMenu { MovieContextMenu(movieId: id) }
             .accessibilityIdentifier("moviesList.movie.\(id)")
             #if os(macOS)
             .id(offset)

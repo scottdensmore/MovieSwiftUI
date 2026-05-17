@@ -1267,86 +1267,31 @@ final class MovieSwiftUITests: XCTestCase {
 
     // MARK: - Phase 3.4 (iOS): Context menu via long-press
 
-    /// iOS counterpart of the macOS context-menu test
-    /// (`testMovieDetailCrosslineRowContextMenuShowsListToggles`).
-    ///
-    /// On iOS, `.contextMenu` is invoked by a long-press
-    /// (`UIContextMenuInteraction`). The system overlays the menu
-    /// items as UIKit menu actions — XCUITest typically surfaces
-    /// them as `app.buttons["<label>"]` because each UIMenuAction is
-    /// a button-shaped accessibility element. The
-    /// `.accessibilityIdentifier(...)` and
-    /// `.accessibilityLabel(Text(label))` added to each
-    /// MovieContextMenu Button (commit `2f8ecfe`) are what make the
-    /// bare-string label query reliable here.
-    ///
-    /// The smoke fixture seeds movie 0 into both `wishlist` and
-    /// `seenlist`, so the toggles must read "Remove from …" — that
-    /// proves both:
-    ///   1. The contextMenu opened (a UIMenu is on screen).
-    ///   2. `MovieContextMenu.map(state:dispatch:)` is correctly
-    ///      reading `isInWishlist`/`isInSeenList` from the fixture
-    ///      state (the inverse "Add to …" strings would render if
-    ///      the connection were broken).
-    ///
-    /// We don't drive a Remove action — that would mutate state for
-    /// subsequent tests. Existence of the menu items is enough.
-    ///
-    /// The corresponding macOS XCUITest path is XCTSkip'd at the
-    /// moment (see `MovieSwiftMacUITests.testMovieDetailCrosslineRow
-    /// ContextMenuShowsListToggles`) — `crosslineCell.rightClick()`
-    /// on macOS surfaces a non-MovieContextMenu menu, an issue
-    /// distinct from the accessibility-label fix. iOS long-press
-    /// doesn't have that gesture-routing problem because
-    /// `UIContextMenuInteraction` reliably routes to the topmost
-    /// `.contextMenu` modifier.
+    /// Long-pressing a movies-list row opens MovieContextMenu and
+    /// renders "Remove from wishlist"/"Remove from seenlist" because
+    /// the smoke fixture seeds movie 0 into both lists. Verifies the
+    /// contextMenu is attached on the row's Button (not its inner
+    /// content) so the iOS gesture coordinator routes long-press to
+    /// `UIContextMenuInteraction` rather than the Button's action.
     func testMoviesListRowLongPressShowsContextMenuToggles() throws {
-        // The MovieContextMenu accessibility-identifier + label fixes
-        // from commit 2f8ecfe make the menu items discoverable for
-        // VoiceOver and any test surface where the menu actually
-        // opens. But the iOS XCUITest long-press path on a
-        // `moviesList.movie.<id>` cell is blocked by a separate
-        // SwiftUI gesture-routing issue distinct from the
-        // accessibility fix:
-        //
-        // `MoviesList.moviesRows` wraps every MovieRow in an outer
-        //   Button(action: { navigationRoute = .movie(id) }) {
-        //     MovieRow(movieId: id)
-        //   }
-        //   .buttonStyle(.plain)
-        //   .accessibilityIdentifier("moviesList.movie.\(id)")
-        // and the `.contextMenu { MovieContextMenu(...) }` is
-        // attached inside MovieRow's HStack — i.e. INSIDE the outer
-        // Button. On iOS 26 the Button's long-press handler absorbs
-        // the press without firing UIContextMenuInteraction on the
-        // inner view. Confirmed via post-press hierarchy dump:
-        //   - 1.5s press fires (XCUI synthesize event succeeds)
-        //   - 1.5s later the app is idle (no overlay)
-        //   - the same `moviesList.movie.0` Button is still on
-        //     screen — no preview, no menu, no navigation
-        //
-        // This mirrors the macOS path's problem
-        // (`MovieSwiftMacUITests.testMovieDetailCrosslineRow
-        // ContextMenuShowsListToggles`): on macOS, right-click on
-        // a focusable Button surfaces a non-MovieContextMenu menu;
-        // on iOS, long-press on a Button-wrapped cell surfaces no
-        // menu at all. Both need the same kind of production
-        // refactor — either attach `.contextMenu` to the Button
-        // itself (or move it outside the Button), or use a
-        // non-Button container — before the XCUITest path can
-        // exercise the menu.
-        //
-        // Functional coverage of MovieContextMenu's actions
-        // (wishlist toggle / seenlist toggle / custom-list add) is
-        // provided by:
-        //   - reducer-level tests in MovieSwiftTests
-        //   - discover/myLists UI tests that drive the same
-        //     dispatch closures through different UI surfaces
-        // So what this skip continues to defer is *only* the
-        // discoverability of the toggles through an XCUITest
-        // long-press on iOS. The production accessibility fix from
-        // 2f8ecfe still ships and benefits VoiceOver users.
-        throw XCTSkip("iOS Button-wrapped moviesList.movie.<id> cell absorbs long-press before .contextMenu inside MovieRow fires — needs a production refactor (move .contextMenu onto the Button or use a non-Button container) to be driveable from XCUITest. Mirrors the macOS gesture-routing skip in testMovieDetailCrosslineRowContextMenuShowsListToggles.")
+        let app = launchApp()
+
+        let firstMovie = identifiedElement("moviesList.movie.0", in: app)
+        XCTAssertTrue(firstMovie.waitForExistence(timeout: uiWaitTimeout),
+                      "Movies list should render movie 0")
+        firstMovie.press(forDuration: 1.5)
+
+        let removeWishlist = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", "Remove from wishlist"))
+            .firstMatch
+        XCTAssertTrue(removeWishlist.waitForExistence(timeout: uiWaitTimeout),
+                      "Long-press should reveal 'Remove from wishlist' (movie 0 is seeded into wishlist)")
+
+        let removeSeenlist = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == %@", "Remove from seenlist"))
+            .firstMatch
+        XCTAssertTrue(removeSeenlist.exists,
+                      "Menu should also offer 'Remove from seenlist' (movie 0 is seeded into seenlist)")
     }
 
     // MARK: - Phase 3.4: Sort menu

@@ -381,59 +381,32 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     // MARK: - MovieDetail: context menu (Tier 3.4)
 
-    /// MovieCrosslineRow wraps every MovieDetailRowItem in
-    /// `.contextMenu { MovieContextMenu(movieId:) }`. On macOS the
-    /// context menu is reachable via right-click and surfaces:
-    ///   - "Add to wishlist" / "Remove from wishlist"
-    ///   - "Add to seenlist" / "Remove from seenlist"
-    ///   - per-custom-list "Add to X" / "Remove from X"
-    ///
-    /// The smoke-test fixture seeds `wishlist: Set([0])` and
-    /// `seenlist: Set([0])`, so movie 0 IS in both lists at launch.
-    /// Right-clicking the Similar/Recommended carousel cell for movie
-    /// 0 should produce a menu offering "Remove from wishlist" and
-    /// "Remove from seenlist" (the inverse strings).
-    ///
-    /// We don't actually drive a Remove action — that would mutate
-    /// state in a way that could affect other tests in the suite.
-    /// Existence of the menu items is enough to prove the context
-    /// menu is wired and its `MovieContextMenu` props connect to the
-    /// fixture's state correctly.
+    /// Right-clicking a Similar/Recommended carousel cell opens
+    /// MovieContextMenu with "Remove from wishlist"/"Remove from
+    /// seenlist" because the smoke fixture seeds movie 0 into both
+    /// lists. Verifies the contextMenu opens on right-click; SwiftUI
+    /// Button absorbs right-clicks on macOS, so the crossline cell
+    /// uses a tap-gesture focusable surface instead.
     func testMovieDetailCrosslineRowContextMenuShowsListToggles() throws {
-        // The production fix (adding `.accessibilityIdentifier(...)` and
-        // `.accessibilityLabel(Text(label))` to every MovieContextMenu
-        // Button) makes the menu items accessibility-discoverable for
-        // VoiceOver AND for non-context-menu test paths (e.g. iOS
-        // long-press where the items render as collection-view cells
-        // queryable by identifier). But the macOS XCUITest path for a
-        // SwiftUI `.contextMenu` attached to a focusable Button has a
-        // separate problem that the identifier/label fix doesn't
-        // resolve:
-        //
-        // Right-clicking `movieDetail.crossline.movie.0` opens *a*
-        // menu — `app.menuItems.firstMatch.waitForExistence` succeeds
-        // — but its items don't contain "wishlist" or "seenlist" in
-        // their labels, even with a permissive
-        // `label CONTAINS "wishlist"` predicate. The most likely
-        // explanation is that the right-click is being absorbed by a
-        // MacFocusableLink's enclosing Button (or the system-supplied
-        // chrome around it) and surfacing a default contextual menu,
-        // not the SwiftUI `.contextMenu { MovieContextMenu(...) }` we
-        // defined on the same element. This is a SwiftUI macOS quirk
-        // distinct from the accessibility-label issue we just fixed
-        // and needs its own driver — likely a `.menu`-style Button
-        // refactor, or a different gesture (long-press + control-click
-        // combo, or invoking the contextMenu via the Mac menu bar's
-        // contextual stand-in) rather than `rightClick()`.
-        //
-        // Functional coverage of MovieContextMenu's actions —
-        // toggle wishlist / seenlist / custom-list — is already
-        // provided by the discover/myLists UI tests and by reducer-
-        // level tests in MovieSwiftTests. What we lose by skipping
-        // this is *only* the discoverability of those menu items via
-        // an XCUITest right-click on macOS. A follow-up is tracked
-        // separately to investigate the gesture path.
-        throw XCTSkip("macOS right-click on a focusable Button surfaces a non-MovieContextMenu menu surface; .accessibilityIdentifier / .accessibilityLabel on the Buttons doesn't reach the menu's items in this case. Production fix still lands — see MovieContextMenu.swift — but the macOS UI driver needs further investigation.")
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let crosslineCell = app.identifiedElement("movieDetail.crossline.movie.0")
+        XCTAssertTrue(crosslineCell.waitForExistence(timeout: timeout),
+                      "MovieDetail should render a Similar/Recommended cell for movie 0")
+        crosslineCell.rightClick()
+
+        let removeWishlist = app.menuItems["movieContextMenu.wishlistToggle"]
+        XCTAssertTrue(removeWishlist.waitForExistence(timeout: timeout),
+                      "Right-click should reveal the wishlist toggle in MovieContextMenu")
+        XCTAssertEqual(removeWishlist.title, "Remove from wishlist",
+                       "Toggle should read 'Remove from …' because movie 0 is seeded into wishlist")
+
+        let removeSeenlist = app.menuItems["movieContextMenu.seenlistToggle"]
+        XCTAssertTrue(removeSeenlist.exists,
+                      "Menu should also offer the seenlist toggle")
+        XCTAssertEqual(removeSeenlist.title, "Remove from seenlist",
+                       "Toggle should read 'Remove from …' because movie 0 is seeded into seenlist")
     }
 
     // MARK: - Discover
