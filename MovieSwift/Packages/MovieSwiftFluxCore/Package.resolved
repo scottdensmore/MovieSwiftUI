@@ -1,13 +1,12 @@
 {
-  "originHash" : "de3073a10d35aeb57022015234a77b16a2b04a3dbc2d53c2be255743d3bb48b8",
+  "originHash" : "19ad275de852ac93bce0da497affc45ff3af0b2c79fde4c772f8589bebf6e5e4",
   "pins" : [
     {
       "identity" : "swiftuiflux",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Dimillian/SwiftUIFlux.git",
       "state" : {
-        "revision" : "a48dd509702797028fa103844008239dded85063",
-        "version" : "0.5.1"
+        "revision" : "05e3e07a752a513bc160bcc589004ebf1bc6c1dc"
       }
     }
   ],
