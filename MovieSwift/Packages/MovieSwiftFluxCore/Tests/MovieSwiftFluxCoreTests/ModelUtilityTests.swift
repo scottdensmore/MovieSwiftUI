@@ -47,7 +47,11 @@ final class ModelUtilityTests: XCTestCase {
         XCTAssertEqual(params["region"], "US")
         XCTAssertEqual(params["with_origin_country"], "US")
         XCTAssertEqual(params["sort_by"], "popularity.desc")
-        XCTAssertEqual(params["language"], "en-US")
+        // `language` is intentionally absent — APIService.GET adds it
+        // unconditionally, and including it here would duplicate the
+        // query key in the final URL.
+        XCTAssertNil(params["language"],
+                     "DiscoverFilter.toParams should not duplicate the language query item that APIService.GET already adds")
         XCTAssertNotNil(params["page"])
     }
 

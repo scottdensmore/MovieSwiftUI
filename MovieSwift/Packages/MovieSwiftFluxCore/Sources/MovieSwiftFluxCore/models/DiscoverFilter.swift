@@ -87,7 +87,13 @@ public struct DiscoverFilter: Codable {
         }
         params["page"] = "\(page)"
         params["sort_by"] = sort
-        params["language"] = "en-US"
+        // NOTE: `language` is intentionally NOT set here. `APIService.GET`
+        // already adds `language=<Locale.preferredLanguages[0]>` to every
+        // request — duplicating the key produces a URL like
+        // `?language=en-US&...&language=en-US` which has worked
+        // historically but is a known suspect for TMDB returning HTTP 400
+        // on `/discover/movie` under newer API behaviour. Removing the
+        // dupe is the safer baseline.
         return params
     }
 

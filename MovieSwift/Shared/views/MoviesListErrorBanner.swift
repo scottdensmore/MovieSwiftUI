@@ -18,7 +18,7 @@ struct MoviesListErrorBanner: View {
             // kind reads at a glance even before the user scans the copy.
             Image(systemName: iconName)
                 .font(.title.weight(.semibold))
-                .foregroundColor(iconColor)
+                .foregroundStyle(iconColor)
                 .frame(width: 36, height: 36)
                 .background(
                     Circle()
@@ -29,26 +29,33 @@ struct MoviesListErrorBanner: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    // `.foregroundStyle(.primary)` (vs `.foregroundColor(.primary)`)
+                    // explicitly draws from SwiftUI's foreground-style stack —
+                    // necessary here because DiscoverView renders a
+                    // `FullscreenMoviePosterImage` fallback (black @ 0.8) as its
+                    // background, and `Color.primary` was being resolved against
+                    // the system color scheme (light) instead of the actually-dark
+                    // background, leaving title text dark-on-dark.
+                    .foregroundStyle(.primary)
                     .accessibilityIdentifier("errorBanner.title")
                 Text(failure.message)
                     .font(.callout)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Button(action: retry) {
                     Text(failure.retryActionTitle)
                         .font(.callout.weight(.semibold))
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .background(
                             Capsule(style: .continuous)
-                                .fill(Color.steam_blue.opacity(0.12))
+                                .fill(Color.steam_blue.opacity(0.18))
                         )
                         .overlay(
                             Capsule(style: .continuous)
-                                .stroke(Color.steam_blue.opacity(0.35), lineWidth: 1)
+                                .stroke(Color.steam_blue.opacity(0.5), lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -59,13 +66,23 @@ struct MoviesListErrorBanner: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
+        // `.regularMaterial` is a SwiftUI system material that adapts
+        // to whatever's under it AND sets the appropriate foreground
+        // vibrancy context — so `.primary` / `.secondary` text resolve
+        // against the material's actual luminance instead of the
+        // ambient color scheme. This is the fix for the "card sits on
+        // a dark backdrop but title renders as black" bug visible on
+        // DiscoverView's full-screen poster background.
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.steam_rust.opacity(0.10))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.steam_rust.opacity(0.30), lineWidth: 1)
-                )
+                .fill(.regularMaterial)
+        )
+        // Steam-themed accent on top of the material — preserves the
+        // app's visual language while keeping the material's contrast
+        // benefits underneath.
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.steam_rust.opacity(0.45), lineWidth: 1)
         )
         .padding(.horizontal, 12)
         .padding(.top, 8)

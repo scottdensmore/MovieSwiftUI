@@ -326,6 +326,25 @@ public struct APIService {
             // key gets mis-reported as `jsonDecodingError` because the
             // error body shape doesn't match the success type.
             if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                #if DEBUG
+                // Diagnostic for Discover-style 400s and other non-2xx
+                // responses: print the request URL (with api_key stripped)
+                // and the response body. Without this, a user reporting
+                // "TMDB returned an unexpected response (400)" has no
+                // way to tell which query parameter combination TMDB
+                // rejected. Logged at `print` (not os_log) so it shows
+                // up in `xcrun simctl spawn booted log stream` and
+                // Console.app's process filter without extra setup.
+                let sanitizedURL = APIService.sanitizeURLForLogging(request.url)
+                let bodyPreview: String
+                if let data = data,
+                   let body = String(data: data, encoding: .utf8) {
+                    bodyPreview = body.count > 500 ? String(body.prefix(500)) + "…" : body
+                } else {
+                    bodyPreview = "<no body>"
+                }
+                print("APIService HTTP \(http.statusCode) for \(sanitizedURL ?? "<no url>")\n  body: \(bodyPreview)")
+                #endif
                 if http.statusCode == 429 {
                     let retryAfter = APIService.retryAfterSeconds(from: http)
                     callbackQueue.async {
@@ -383,5 +402,19 @@ public struct APIService {
             return nil
         }
         return seconds
+    }
+
+    /// Strips `api_key` from a request URL so the URL can safely be
+    /// printed to the device log without leaking the credential. Used
+    /// by the DEBUG-only HTTP-error diagnostic in `GET`.
+    static func sanitizeURLForLogging(_ url: URL?) -> String? {
+        guard let url,
+              var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return url?.absoluteString
+        }
+        components.queryItems = (components.queryItems ?? []).filter { item in
+            item.name != "api_key"
+        }
+        return components.url?.absoluteString
     }
 }
