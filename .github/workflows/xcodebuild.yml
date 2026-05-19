@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [ main ]
 
+# Minimum GITHUB_TOKEN scope. All jobs here just check out the repo,
+# run xcodebuild, and upload artifacts via `actions/upload-artifact`
+# (which writes to action storage, not the repo) — so `contents: read`
+# (for `actions/checkout`) is enough. Narrowing the token's blast
+# radius is a CodeQL workflow-security recommendation.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
