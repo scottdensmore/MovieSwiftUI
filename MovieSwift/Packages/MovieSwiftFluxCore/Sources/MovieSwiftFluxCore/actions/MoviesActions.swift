@@ -282,25 +282,97 @@ public struct MoviesActions {
     public struct FetchRandomDiscover: AsyncAction {
         public var filter: DiscoverFilter?
 
+        /// Picks the random page from a `ClosedRange<Int>` after probing
+        /// `total_pages`. Optional override so unit tests can pin the
+        /// pick to a known value; `nil` (default) uses
+        /// `Int.random(in: range)`.
+        public var randomSource: ((ClosedRange<Int>) -> Int)?
+
         public init(
-            filter: DiscoverFilter? = nil
+            filter: DiscoverFilter? = nil,
+            randomSource: ((ClosedRange<Int>) -> Int)? = nil
         ) {
             self.filter = filter
+            self.randomSource = randomSource
+        }
+
+        /// Pure: given a TMDB `total_pages`, pick a random page in
+        /// `[1, min(total_pages, DiscoverFilter.randomPageCeiling)]`.
+        ///
+        /// TMDB's `/discover/movie` returns **HTTP 400** when `page >
+        /// total_pages` — the old `randomPage()` could pick page 15 for a
+        /// query that only has 3 pages, which is exactly the failure mode
+        /// `feature/native-macos-target` was hitting. The fix is to call
+        /// this AFTER probing page 1 so we know the real ceiling.
+        ///
+        /// `randomSource` defaults to `Int.random(in:)`; the parameter
+        /// exists so unit tests can pin the random pick to a known value.
+        public static func resolveTargetPage(
+            totalPages: Int,
+            randomSource: (ClosedRange<Int>) -> Int = { Int.random(in: $0) }
+        ) -> Int {
+            // total_pages is sometimes 0 for completely-empty queries
+            // (no films matching). In that case page=1 is still the
+            // valid request — TMDB returns an empty list for page=1
+            // but 400 for any other page.
+            let ceiling = min(max(totalPages, 1), DiscoverFilter.randomPageCeiling)
+            return randomSource(1...ceiling)
         }
 
         public func execute(state: FluxState?, dispatch: @escaping DispatchFunction) {
-            var filter = self.filter
-            if filter == nil {
-                filter = DiscoverFilter.randomFilter()
-            }
-            let resolvedFilter = filter!
-            let handler: (Result<PaginatedResponse<Movie>, APIService.APIError>) -> Void
-                = MoviesActions.makeTrackedHandler(key: .randomDiscover, dispatch: dispatch) { response in
-                    dispatch(SetRandomDiscover(filter: resolvedFilter, response: response))
-                }
+            let resolvedFilter = self.filter ?? DiscoverFilter.randomFilter()
+            let key = LoadingKey.randomDiscover
+
+            // Phase 1 — probe with `page=1` to learn total_pages.
+            //
+            // We DON'T use `makeTrackedHandler` here because that helper
+            // dispatches `SetLoadingState(nil)` on success — but on the
+            // success branch of phase 1 we may still need to fire phase 2.
+            // Clearing the loading state between phases would briefly
+            // unblock the UI and look like a flicker. Instead we set
+            // `.loading` once up-front and clear it only at the end of
+            // whichever phase produces the final data action.
+            dispatch(MoviesActions.SetLoadingState(key: key, state: .loading))
+
             APIService.shared.GET(endpoint: .discover,
-                                  params: resolvedFilter.toParams(),
-                                  completionHandler: handler)
+                                  params: resolvedFilter.toParams(page: 1)) { (probeResult: Result<PaginatedResponse<Movie>, APIService.APIError>) in
+                switch probeResult {
+                case .failure(let error):
+                    let failure = MoviesListLoadFailurePresenter.failure(from: error)
+                    dispatch(MoviesActions.SetLoadingState(key: key, state: .failed(failure)))
+
+                case .success(let probe):
+                    let probeTotalPages = probe.total_pages ?? 1
+                    let targetPage: Int
+                    if let randomSource = self.randomSource {
+                        targetPage = FetchRandomDiscover.resolveTargetPage(
+                            totalPages: probeTotalPages,
+                            randomSource: randomSource
+                        )
+                    } else {
+                        targetPage = FetchRandomDiscover.resolveTargetPage(totalPages: probeTotalPages)
+                    }
+                    if targetPage == 1 {
+                        // We already have page-1's data; don't waste a request.
+                        dispatch(MoviesActions.SetLoadingState(key: key, state: nil))
+                        dispatch(SetRandomDiscover(filter: resolvedFilter, response: probe))
+                        return
+                    }
+
+                    // Phase 2 — actually fetch the random page now that we know it's in range.
+                    APIService.shared.GET(endpoint: .discover,
+                                          params: resolvedFilter.toParams(page: targetPage)) { (result: Result<PaginatedResponse<Movie>, APIService.APIError>) in
+                        switch result {
+                        case .failure(let error):
+                            let failure = MoviesListLoadFailurePresenter.failure(from: error)
+                            dispatch(MoviesActions.SetLoadingState(key: key, state: .failed(failure)))
+                        case .success(let response):
+                            dispatch(MoviesActions.SetLoadingState(key: key, state: nil))
+                            dispatch(SetRandomDiscover(filter: resolvedFilter, response: response))
+                        }
+                    }
+                }
+            }
         }
     }
 

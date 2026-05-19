@@ -56,6 +56,20 @@ public struct DiscoverFilter: Codable {
     }
     
     public func toParams() -> [String: String] {
+        toParams(page: DiscoverFilter.randomPage())
+    }
+
+    /// Build the TMDB `/discover/movie` query parameters with an explicit
+    /// `page` value. `FetchRandomDiscover` uses this for its two-phase
+    /// flow — phase 1 probes `page=1` to learn `total_pages`, then phase 2
+    /// requests a random page in `[1, min(total_pages, randomPageCeiling)]`.
+    ///
+    /// Asking TMDB for a `page` greater than `total_pages` returns HTTP 400
+    /// (not an empty result), so picking a random page WITHOUT knowing the
+    /// real ceiling — which is what the old `toParams()` did — caused
+    /// flaky Discover failures for obscure filters (e.g. `year=1952` +
+    /// `sort_by=vote_average.asc` often has fewer than 19 pages).
+    public func toParams(page: Int) -> [String: String] {
         var params: [String: String] = [:]
         if let startYear = startYear, let endYear = endYear {
             params["primary_release_date.gte"] = "\(startYear)-01-01"
@@ -71,11 +85,18 @@ public struct DiscoverFilter: Codable {
             // Restrict to movies originating from the selected country.
             params["with_origin_country"] = region
         }
-        params["page"] = "\(DiscoverFilter.randomPage())"
+        params["page"] = "\(page)"
         params["sort_by"] = sort
         params["language"] = "en-US"
         return params
     }
+
+    /// Upper bound used by `FetchRandomDiscover` when picking a random page
+    /// after probing `total_pages`. TMDB allows up to 500 pages but the
+    /// "random surprise" effect is already saturated well before that —
+    /// and capping at a small number means we never wander into the tail
+    /// where TMDB's index is sparse.
+    public static let randomPageCeiling: Int = 19
     
     public func toText(genres: [Genre]) -> String {
         var parts: [String] = []

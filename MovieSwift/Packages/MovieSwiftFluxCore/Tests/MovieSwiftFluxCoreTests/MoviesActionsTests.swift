@@ -40,9 +40,21 @@ final class MoviesActionsTests: XCTestCase {
 
     private final class MockNetworkSession: NetworkSession {
         var lastRequest: URLRequest?
+
+        /// All requests issued, in order. Used by multi-phase tests (e.g.
+        /// `FetchRandomDiscover` probe → fetch) to inspect both URLs.
+        var allRequests: [URLRequest] = []
+
         var nextData: Data?
         var nextResponse: URLResponse?
         var nextError: Error?
+
+        /// FIFO queue of `(Data?, URLResponse?, Error?)` triples — when
+        /// non-empty, each `dataTask(with:)` call pops the front element
+        /// and returns it as the completion. Falls back to
+        /// `(nextData, nextResponse, nextError)` once the queue drains,
+        /// so existing tests that only set `nextData` keep working.
+        var responseQueue: [(Data?, URLResponse?, Error?)] = []
 
         let task = MockDataTask()
 
@@ -51,7 +63,13 @@ final class MoviesActionsTests: XCTestCase {
             completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
         ) -> NetworkDataTask {
             lastRequest = request
-            completionHandler(nextData, nextResponse, nextError)
+            allRequests.append(request)
+            if !responseQueue.isEmpty {
+                let (data, response, error) = responseQueue.removeFirst()
+                completionHandler(data, response, error)
+            } else {
+                completionHandler(nextData, nextResponse, nextError)
+            }
             return task
         }
     }
@@ -703,6 +721,182 @@ final class MoviesActionsTests: XCTestCase {
 
         let action = try unwrapDispatched(MoviesActions.SetRandomDiscover.self, in: dispatched)
         XCTAssertGreaterThanOrEqual(action.filter.year, 1950)
+    }
+
+    // MARK: - FetchRandomDiscover: two-phase logic
+    //
+    // Background: TMDB's `/discover/movie` returns **HTTP 400** when the
+    // requested `page` exceeds the query's `total_pages`. The old
+    // implementation picked a random page in [1, 19] without knowing the
+    // real ceiling and hit 400s on obscure filters. The new flow probes
+    // page 1, reads `total_pages` from the response, then picks a random
+    // page in [1, min(total_pages, randomPageCeiling)].
+
+    /// Pure-helper tests for `resolveTargetPage`.
+
+    func testResolveTargetPageClampsToTotalPages() {
+        let page = MoviesActions.FetchRandomDiscover.resolveTargetPage(
+            totalPages: 3,
+            randomSource: { range in range.upperBound }
+        )
+        XCTAssertEqual(page, 3,
+                       "When total_pages is below randomPageCeiling, the random pick must not exceed total_pages")
+    }
+
+    func testResolveTargetPageClampsToRandomPageCeiling() {
+        // total_pages > ceiling — random pick should saturate at the ceiling.
+        let page = MoviesActions.FetchRandomDiscover.resolveTargetPage(
+            totalPages: 500,
+            randomSource: { range in range.upperBound }
+        )
+        XCTAssertEqual(page, DiscoverFilter.randomPageCeiling,
+                       "When total_pages exceeds the ceiling, the random pick must not exceed the ceiling")
+    }
+
+    func testResolveTargetPageHandlesZeroTotalPages() {
+        // TMDB returns total_pages=0 for completely empty queries.
+        // The action should still request page=1 (which returns an empty
+        // result), not page=0 (which is invalid and would 400).
+        let page = MoviesActions.FetchRandomDiscover.resolveTargetPage(
+            totalPages: 0,
+            randomSource: { range in range.lowerBound }
+        )
+        XCTAssertEqual(page, 1,
+                       "total_pages=0 must still produce a page>=1 request")
+    }
+
+    func testResolveTargetPageRespectsInjectedRandomSource() {
+        let page = MoviesActions.FetchRandomDiscover.resolveTargetPage(
+            totalPages: 10,
+            randomSource: { _ in 7 }
+        )
+        XCTAssertEqual(page, 7)
+    }
+
+    /// Integration test: when the probe returns `total_pages == 1`, the
+    /// action must NOT fire a second network request — it should dispatch
+    /// `SetRandomDiscover` with the probe's response directly. This saves
+    /// a request and matches the old single-fetch behavior for queries
+    /// with only one page of results.
+    func testFetchRandomDiscoverSinglePageProbeDispatchesWithoutSecondFetch() throws {
+        let session = MockNetworkSession()
+        session.nextData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 90)])
+        )
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscoverSinglePage")
+        )
+
+        let filter = DiscoverFilter(
+            year: 2000, startYear: nil, endYear: nil,
+            sort: "popularity.desc", genre: nil, region: nil
+        )
+        let dispatched = captureDispatches(
+            waitingFor: "SetRandomDiscover dispatched",
+            until: { $0 is MoviesActions.SetRandomDiscover }
+        ) { dispatch in
+            MoviesActions.FetchRandomDiscover(
+                filter: filter,
+                randomSource: { _ in 1 }  // doesn't matter — total_pages=1 short-circuits
+            ).execute(state: nil, dispatch: dispatch)
+        }
+
+        let action = try unwrapDispatched(MoviesActions.SetRandomDiscover.self, in: dispatched)
+        XCTAssertEqual(action.response.results.first?.id, 90)
+        XCTAssertEqual(session.allRequests.count, 1,
+                       "Single-page probe must not trigger a second fetch")
+    }
+
+    /// Integration test: when the probe returns `total_pages > 1` AND the
+    /// injected `randomSource` picks page != 1, the action must fire a
+    /// SECOND network request with the new page, and dispatch
+    /// `SetRandomDiscover` carrying the second response (not the probe).
+    /// This is the core two-phase behavior that fixes the 400 bug.
+    func testFetchRandomDiscoverMultiPageProbeFiresSecondFetch() throws {
+        let session = MockNetworkSession()
+        let probeData = try JSONEncoder().encode(
+            PaginatedResponse(page: 1, total_results: 50, total_pages: 5, results: [makeMovie(id: 100)])
+        )
+        let phase2Data = try JSONEncoder().encode(
+            PaginatedResponse(page: 3, total_results: 50, total_pages: 5, results: [makeMovie(id: 200)])
+        )
+        session.responseQueue = [
+            (probeData, nil, nil),
+            (phase2Data, nil, nil)
+        ]
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscoverMultiPage")
+        )
+
+        let filter = DiscoverFilter(
+            year: 2000, startYear: nil, endYear: nil,
+            sort: "popularity.desc", genre: nil, region: nil
+        )
+        let dispatched = captureDispatches(
+            waitingFor: "SetRandomDiscover dispatched",
+            until: { $0 is MoviesActions.SetRandomDiscover }
+        ) { dispatch in
+            MoviesActions.FetchRandomDiscover(
+                filter: filter,
+                randomSource: { _ in 3 }  // force page 3 → triggers phase-2 fetch
+            ).execute(state: nil, dispatch: dispatch)
+        }
+
+        let action = try unwrapDispatched(MoviesActions.SetRandomDiscover.self, in: dispatched)
+        XCTAssertEqual(action.response.results.first?.id, 200,
+                       "SetRandomDiscover should carry the SECOND fetch's response, not the probe")
+        XCTAssertEqual(session.allRequests.count, 2,
+                       "Multi-page probe must trigger a second fetch")
+
+        // Verify the two requests asked for different pages.
+        let pages = session.allRequests.compactMap { request -> String? in
+            URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "page" })?.value
+        }
+        XCTAssertEqual(pages, ["1", "3"],
+                       "Probe should request page=1, then phase 2 should request the random page (3)")
+    }
+
+    /// If the probe itself fails (network error, 401, etc.), the action
+    /// must dispatch `SetLoadingState(.failed)` and NOT fire a phase-2
+    /// request. This is the existing failure contract — the two-phase
+    /// rewrite must not regress it.
+    func testFetchRandomDiscoverProbeFailureDispatchesFailureAndSkipsSecondFetch() throws {
+        let session = MockNetworkSession()
+        session.nextError = StubError.failed
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "MoviesActionsTests.fetchRandomDiscoverProbeFailure")
+        )
+
+        let filter = DiscoverFilter(
+            year: 2000, startYear: nil, endYear: nil,
+            sort: "popularity.desc", genre: nil, region: nil
+        )
+        let dispatched = captureDispatches(
+            waitingFor: "SetLoadingState(.failed) for randomDiscover",
+            until: { isFailedSetLoading($0, for: .randomDiscover) }
+        ) { dispatch in
+            MoviesActions.FetchRandomDiscover(filter: filter)
+                .execute(state: nil, dispatch: dispatch)
+        }
+
+        let _ = try assertFailureDispatch(
+            in: dispatched,
+            for: .randomDiscover,
+            noDataActionMatching: { $0 is MoviesActions.SetRandomDiscover },
+            dataActionDescription: "SetRandomDiscover"
+        )
+        XCTAssertEqual(session.allRequests.count, 1,
+                       "Probe failure must not trigger a second fetch")
     }
 
     // MARK: - Helpers
