@@ -12,6 +12,12 @@ struct MoviesListErrorBanner: View {
     let failure: MoviesListLoadFailure
     let retry: () -> Void
 
+    /// Brief feedback state flipping the "Copy diagnostic" button's label
+    /// to "Copied!" for ~1.5s after a successful clipboard write. Lives
+    /// on the banner because it's purely view-local and doesn't belong
+    /// in the Redux store.
+    @State private var didCopyDiagnostic: Bool = false
+
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             // Icon column — slightly larger and circled so the failure
@@ -43,24 +49,25 @@ struct MoviesListErrorBanner: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Button(action: retry) {
-                    Text(failure.retryActionTitle)
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(Color.steam_blue)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(Color.steam_blue.opacity(0.18))
-                        )
-                        .overlay(
-                            Capsule(style: .continuous)
-                                .stroke(Color.steam_blue.opacity(0.5), lineWidth: 1)
-                        )
+                HStack(spacing: 10) {
+                    Button(action: retry) {
+                        capsuleLabel(failure.retryActionTitle)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("errorBanner.retryButton")
+
+                    Button(action: copyDiagnostic) {
+                        capsuleLabel(didCopyDiagnostic
+                                     ? String(localized: "Copied!",
+                                              comment: "Transient confirmation that the diagnostic info was copied to the clipboard.")
+                                     : String(localized: "Copy diagnostic info",
+                                              comment: "Button that copies a sanitized failure-diagnostic blob to the clipboard for pasting into a bug report."))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("errorBanner.copyDiagnosticButton")
+                    .accessibilityHint(Text("Copies a sanitized summary of the failure (app version, OS, device, locale, error kind) for pasting into a bug report. Does not include your TMDB key or any saved data."))
                 }
-                .buttonStyle(.plain)
                 .padding(.top, 2)
-                .accessibilityIdentifier("errorBanner.retryButton")
             }
             Spacer(minLength: 0)
         }
@@ -132,6 +139,41 @@ struct MoviesListErrorBanner: View {
             return .steam_rust
         case .missingAPIKey, .unauthorized, .forbidden:
             return .steam_gold
+        }
+    }
+
+    /// Shared capsule chrome used by both the retry button and the
+    /// copy-diagnostic button. Pulled out into a helper so the two
+    /// buttons render identically without copy-pasting the modifier
+    /// stack.
+    private func capsuleLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(Color.steam_blue)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.steam_blue.opacity(0.18))
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(Color.steam_blue.opacity(0.5), lineWidth: 1)
+            )
+    }
+
+    /// Build the diagnostic blob, copy it to the system clipboard,
+    /// and flip the button's label to "Copied!" for ~1.5s as feedback.
+    /// The diagnostic content is built by `ErrorDiagnostic.text(for:)`
+    /// — see that helper for what is (and isn't) included.
+    private func copyDiagnostic() {
+        let diagnostic = ErrorDiagnostic.text(for: failure)
+        let succeeded = Clipboard.copy(diagnostic)
+        guard succeeded else { return }
+        didCopyDiagnostic = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.5))
+            didCopyDiagnostic = false
         }
     }
 }

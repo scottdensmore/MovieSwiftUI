@@ -11,9 +11,13 @@ final class MovieSwiftUITests: XCTestCase {
     }
 
     @discardableResult
-    private func launchApp(environment: [String: String] = [:]) -> XCUIApplication {
+    private func launchApp(
+        environment: [String: String] = [:],
+        additionalLaunchArguments: [String] = []
+    ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
+            + additionalLaunchArguments
         app.launchEnvironment["UI_SMOKE_TESTS"] = "1"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
@@ -1202,7 +1206,19 @@ final class MovieSwiftUITests: XCTestCase {
     /// from `Picker → Save button → policy → dispatch loop`, end to
     /// end, on a real iOS simulator.
     func testSettingsRegionPickerSaveDispatchesAndDismisses() {
-        let app = launchApp()
+        // Pin the persisted region to "US" via NSUserDefaults launch-arg
+        // override (`-key value`). Without this, a previous run of this
+        // test would have left `user_region = AL` in the simulator's
+        // persistent defaults, so the next run would start with Albania
+        // already selected — and the "scroll the popover up to find
+        // Albania" loop below would be wrong (we'd already be on it).
+        //
+        // The launch-arg override shadows persisted defaults for this
+        // launch only; the savePreferences write inside the test still
+        // mutates the persistent defaults to AL, but the next run's
+        // launch arg overrides that again. Test is now idempotent
+        // regardless of what state previous runs left behind.
+        let app = launchApp(additionalLaunchArguments: ["-user_region", "US"])
         openTab("Movies", in: app)
 
         let settingsButton = button("moviesHome.settingsButton", in: app)

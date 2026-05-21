@@ -190,11 +190,34 @@ The failure kind narrows the search space:
 | Unexpected response | HTTP 400 or JSON the app couldn't decode. Often points at a real bug; please file it (see below). |
 | Something went wrong | Catch-all. Worth filing too. |
 
-> **Coming soon:** the banner will grow a *Copy diagnostic info* button that
-> dumps the failure kind, HTTP status, endpoint, app version, OS, and device
-> model (no API keys, no PII) into the clipboard for one-click pasting into
-> a bug report. Until that ships, the manual paths below cover the same
-> ground.
+### Copy diagnostic info from the banner
+
+Tap **Copy diagnostic info** on any error banner and the clipboard gets a
+small plain-text block ready to paste into a GitHub issue:
+
+```
+MovieSwift diagnostic
+─────────────────────
+app:      MovieSwift 1.2.3 (42)
+os:       iOS 26.5
+device:   iPhone (iOS)
+locale:   en_US
+failure:  other
+message:  TMDB returned an unexpected response (400).
+copied:   2026-05-20T18:00:00Z
+```
+
+What's included: app version + build, OS family + version, device model,
+locale identifier, failure kind, the user-facing message, and a
+copied-at timestamp.
+
+What's deliberately **not** included: your TMDB API key, request URLs,
+saved movies/wishlist contents, hostnames, advertising IDs, push tokens.
+The blob is safe to paste publicly.
+
+The manual paths below still cover anything the banner can't see (full
+device logs, system snapshots) — pick the level of detail that matches
+the issue you're filing.
 
 ### Capture device logs
 
