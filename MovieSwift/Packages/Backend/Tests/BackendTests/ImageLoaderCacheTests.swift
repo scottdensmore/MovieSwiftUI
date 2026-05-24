@@ -28,4 +28,14 @@ final class ImageLoaderCacheTests: XCTestCase {
         
         XCTAssertTrue(first === second)
     }
+
+    func testClearRemovesCachedLoaders() {
+        let cache = ImageLoaderCache()
+
+        let first = cache.loaderFor(path: "/poster.jpg", size: .small)
+        cache.clear()
+        let second = cache.loaderFor(path: "/poster.jpg", size: .small)
+
+        XCTAssertFalse(first === second)
+    }
 }

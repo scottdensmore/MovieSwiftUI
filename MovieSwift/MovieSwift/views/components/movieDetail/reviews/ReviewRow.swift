@@ -1,13 +1,5 @@
-
-//
-//  ReviewROw.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 16/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct ReviewRow : View {
     let review: Review
@@ -25,10 +17,6 @@ struct ReviewRow : View {
     }
 }
 
-#if DEBUG
-struct ReviewRow_Previews : PreviewProvider {
-    static var previews: some View {
-        ReviewRow(review: Review(id: "0", author: "Test", content: "Test body"))
-    }
+#Preview {
+    ReviewRow(review: Review(id: "0", author: "Test", content: "Test body"))
 }
-#endif

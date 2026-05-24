@@ -1,17 +1,32 @@
-//
-//  MoviesHome.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 22/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import Combine
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
-struct MoviesHome : View {
-    private enum HomeMode {
+enum MoviesHomeState {
+    static func toggledMode(from mode: MoviesHome.HomeMode) -> MoviesHome.HomeMode {
+        mode == .grid ? .list : .grid
+    }
+
+    #if !os(macOS)
+    static func navigationBarTitleDisplayMode(for mode: MoviesHome.HomeMode) -> NavigationBarItem.TitleDisplayMode {
+        mode == .list ? .inline : .automatic
+    }
+    #endif
+
+    static func shouldLoadPage(isRunningUISmokeTests: Bool) -> Bool {
+        !isRunningUISmokeTests
+    }
+}
+
+struct MoviesHome : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+    }
+
+    let isRunningUISmokeTests: Bool
+
+    enum HomeMode {
         case list, grid
         
         func icon() -> String {
@@ -22,28 +37,55 @@ struct MoviesHome : View {
         }
     }
 
-    @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: MoviesMenu.allCases.first!)
+    // `MoviesMenu.allCases.first` is non-nil at compile time
+    // because the enum has at least one case (`.popular`), but
+    // hard-coding the canonical default is clearer than
+    // force-unwrapping and removes the audit-flagged `!`.
+    // @ScaledMetric makes both the icon glyph size and the
+    // surrounding tap area grow proportionally with Dynamic Type,
+    // so users with larger accessibility text sizes get a
+    // proportionally larger settings / view-mode toggle.
+    // Hit-target floor stays at 44pt at the default Dynamic Type
+    // setting — `minWidth/minHeight` lets the frame grow above 44.
+    @ScaledMetric private var headerIconSize: CGFloat = 22
+    @ScaledMetric private var headerHitSize: CGFloat = 44
+    @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: .popular)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
+    @State private var navigationRoute: MoviesListNavigationRoute?
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch)
+    }
         
     private var settingButton: some View {
         Button(action: {
             self.isSettingPresented = true
         }) {
-            HStack {
-                Image(systemName: "wrench").imageScale(.medium)
-            }.frame(width: 30, height: 30)
+            Image(systemName: "wrench")
+                .resizable()
+                .scaledToFit()
+                .frame(width: headerIconSize, height: headerIconSize)
+                .frame(minWidth: headerHitSize, minHeight: headerHitSize)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel("Settings")
+        .accessibilityIdentifier("moviesHome.settingsButton")
     }
-    
+
     private var swapHomeButton: some View {
         Button(action: {
-            self.homeMode = self.homeMode == .grid ? .list : .grid
+            self.homeMode = MoviesHomeState.toggledMode(from: self.homeMode)
         }) {
-            HStack {
-                Image(systemName: self.homeMode.icon()).imageScale(.medium)
-            }.frame(width: 30, height: 30)
+            Image(systemName: self.homeMode.icon())
+                .resizable()
+                .scaledToFit()
+                .frame(width: headerIconSize, height: headerIconSize)
+                .frame(minWidth: headerHitSize, minHeight: headerHitSize)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel("Toggle layout")
+        .accessibilityIdentifier("moviesHome.toggleLayoutButton")
     }
     
     @ViewBuilder
@@ -55,20 +97,33 @@ struct MoviesHome : View {
                         .tag(menu)
                 } else {
                     MoviesHomeList(menu: .constant(menu),
+                                   navigationRoute: $navigationRoute,
                                    pageListener: selectedMenu.pageListener)
                         .tag(menu)
                 }
             }
         }
+        #if !os(macOS)
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        #endif
     }
     
     private var homeAsGrid: some View {
-        MoviesHomeGrid()
+        MoviesHomeGrid(navigationRoute: $navigationRoute,
+                       isRunningUISmokeTests: isRunningUISmokeTests)
+    }
+
+    private func configurePageListener(props: Props) {
+        selectedMenu.pageListener.shouldLoadPage = {
+            MoviesHomeState.shouldLoadPage(isRunningUISmokeTests: isRunningUISmokeTests)
+        }
+        selectedMenu.pageListener.dispatchPage = { menu, page in
+            props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: page))
+        }
     }
         
-    var body: some View {
+    func body(props: Props) -> some View {
         NavigationStack {
             Group {
                 switch homeMode {
@@ -79,27 +134,45 @@ struct MoviesHome : View {
                 }
             }
             .navigationTitle(selectedMenu.menu.title())
-            .navigationBarTitleDisplayMode(homeMode == .list ? .inline : .automatic)
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(MoviesHomeState.navigationBarTitleDisplayMode(for: homeMode))
+            #endif
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .automatic) {
                     swapHomeButton
                     settingButton
                 }
             }
+            .navigationDestination(item: $navigationRoute) { route in
+                moviesListDestinationView(for: route)
+            }
+            #if os(macOS)
+            .sheet(isPresented: $isSettingPresented,
+                   content: {
+                       SettingsForm(onClose: {
+                           isSettingPresented = false
+                       })
+                   })
+            #else
             .fullScreenCover(isPresented: $isSettingPresented,
                              content: {
                                  SettingsForm(onClose: {
                                      isSettingPresented = false
                                  })
                              })
+            #endif
+            .onAppear {
+                configurePageListener(props: props)
+                selectedMenu.pageListener.loadPage()
+            }
+            .onChange(of: selectedMenu.menu) {
+                configurePageListener(props: props)
+                selectedMenu.pageListener.loadPage()
+            }
         }
     }
 }
 
-#if DEBUG
-struct MoviesHome_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesHome().environmentObject(sampleStore)
-    }
+#Preview {
+    MoviesHome(isRunningUISmokeTests: false).environmentObject(sampleStore)
 }
-#endif

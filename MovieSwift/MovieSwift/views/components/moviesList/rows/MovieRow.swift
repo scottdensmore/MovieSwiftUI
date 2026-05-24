@@ -1,15 +1,8 @@
-//
-//  MovieRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 06/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
 import UI
+import MovieSwiftFluxCore
 
 fileprivate let formatter: DateFormatter = {
     let formatter = DateFormatter()
@@ -27,7 +20,7 @@ struct MovieRow: ConnectedView {
     var displayListImage = true
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movie: state.moviesState.movies[movieId]!)
+        Props(movie: state.moviesState.movies[movieId] ?? Movie.placeholder(id: movieId))
     }
     
     func body(props: Props) -> some View {
@@ -66,12 +59,8 @@ struct MovieRow: ConnectedView {
     }
 }
 
-#if DEBUG
-struct MovieRow_Previews : PreviewProvider {
-    static var previews: some View {
-        List {
-            MovieRow(movieId: sampleMovie.id).environmentObject(sampleStore)
-        }
+#Preview {
+    List {
+        MovieRow(movieId: sampleMovie.id).environmentObject(sampleStore)
     }
 }
-#endif

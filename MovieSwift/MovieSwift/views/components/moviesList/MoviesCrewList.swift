@@ -1,31 +1,44 @@
-//
-//  MovieCrewList.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 16/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
-struct MoviesCrewList : View {
-    @EnvironmentObject var store: Store<AppState>
+enum MoviesCrewListState {
+    static func movies(for crew: People, from state: AppState) -> [Int] {
+        state.moviesState.withCrew[crew.id] ?? []
+    }
+}
+
+struct MoviesCrewList : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let movies: [Int]
+    }
+
+    @State private var navigationRoute: MoviesListNavigationRoute?
     let crew: People
 
-    var body: some View {
-        MoviesList(movies: store.state.moviesState.withCrew[crew.id] ?? [], displaySearch: false)
-            .navigationBarTitle(Text(crew.name))
-            .onAppear {
-                self.store.dispatch(action: MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              movies: MoviesCrewListState.movies(for: crew, from: state))
+    }
+
+    func body(props: Props) -> some View {
+        VStack(spacing: 0) {
+            MoviesList(movies: props.movies,
+                       displaySearch: false,
+                       navigationRoute: $navigationRoute)
+        }
+        .navigationTitle(crew.name)
+        .navigationDestination(item: $navigationRoute) { route in
+            moviesListDestinationView(for: route)
+        }
+        .onAppear {
+            props.dispatch(MoviesActions.FetchMovieWithCrew(crew: self.crew.id))
         }
     }
 }
 
-#if DEBUG
-struct MovieCrewList_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesCrewList(crew: sampleCasts.first!)
-    }
+#Preview {
+    MoviesCrewList(crew: sampleCasts.first!)
+        .environmentObject(sampleStore)
 }
-#endif

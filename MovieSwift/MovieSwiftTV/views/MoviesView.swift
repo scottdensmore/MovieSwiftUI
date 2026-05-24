@@ -1,48 +1,73 @@
-//
-//  MoviesView.swift
-//  MovieSwiftTV
-//
-//  Created by Thomas Ricouard on 06/01/2020.
-//  Copyright © 2020 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 struct MoviesView: ConnectedView {
     struct Props {
-        let movies: [Int]
+        let movieIds: [Int]
+        let movies: [Int: Movie]
+        let dispatch: DispatchFunction
     }
-    
-    @Binding var menu: MoviesMenu
-    
+
+    let menu: MoviesMenu
+    @State private var currentPage = 1
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        return Props(movies: state.moviesState.moviesList[menu] ?? [])
+        Props(movieIds: state.moviesState.moviesList[menu] ?? [],
+              movies: state.moviesState.movies,
+              dispatch: dispatch)
     }
-    
+
+    private static let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 40), count: 5)
+
     func body(props: Props) -> some View {
-        NavigationView {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(props.movies, id: \.self) { id in
-                        NavigationLink(destination: Text("Test")) {
-                            MoviePosterImage(imageLoader: ImageLoader(path: store.state.moviesState.movies[id]?.poster_path,
-                                                                      size: .medium),
-                                posterSize: PosterStyle.Size.tv)
+        ScrollView {
+            LazyVGrid(columns: Self.gridColumns, spacing: 40) {
+                ForEach(props.movieIds, id: \.self) { id in
+                    if let movie = props.movies[id] {
+                        NavigationLink(value: id) {
+                            TVMovieCard(movie: movie)
+                        }
+                        .buttonStyle(.card)
+                        .accessibilityIdentifier("moviesList.movie.\(id)")
+                        .onAppear {
+                            if id == props.movieIds.last {
+                                currentPage += 1
+                                props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: currentPage))
+                            }
                         }
                     }
-                }.frame(height: PosterStyle.Size.tv.height() + 50)
+                }
             }
-            .onAppear{
-                store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: self.menu, page: 1))
+            .padding(.horizontal, 60)
+            .padding(.vertical, 40)
+        }
+        .navigationDestination(for: Int.self) { id in
+            TVMovieDetail(movieId: id)
+        }
+        .onAppear {
+            if props.movieIds.isEmpty {
+                props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
             }
         }
     }
 }
 
-struct MoviesView_Previews: PreviewProvider {
-    static var previews: some View {
-        MoviesView(menu: .constant(.popular))
+// MARK: - Movie Card
+private struct TVMovieCard: View {
+    let movie: Movie
+
+    var body: some View {
+        VStack(spacing: 12) {
+            MoviePosterImage(imageLoader: ImageLoader(path: movie.poster_path,
+                                                      size: .medium),
+                            posterSize: PosterStyle.Size.tv)
+            Text(movie.userTitle)
+                .font(.caption)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .frame(width: PosterStyle.Size.tv.width())
+        }
     }
 }

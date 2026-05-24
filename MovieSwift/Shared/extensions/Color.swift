@@ -1,11 +1,3 @@
-//
-//  ColorScheme.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 13/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 
@@ -77,31 +69,45 @@ struct SoftSelectionButtonStyle: ButtonStyle {
     }
 }
 
-#if targetEnvironment(macCatalyst)
+#if os(macOS)
 /// Replaces SwiftUI's default blue focus ring with a sidebar-style
-/// rounded-rectangle highlight on Mac Catalyst.
-struct CatalystFocusHighlight: ViewModifier {
+/// rounded-rectangle highlight on macOS.
+struct MacFocusHighlight: ViewModifier {
     var isFocused: Bool
 
     func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isFocused ? Color.accentColor.opacity(0.25) : .clear)
+                    .fill(isFocused ? Color.steam_white.opacity(0.10) : .clear)
+            )
+            .shadow(color: isFocused ? Color.steam_white.opacity(0.16) : .clear,
+                    radius: 14,
+                    x: 0,
+                    y: 0)
+            .shadow(color: isFocused ? Color.black.opacity(0.18) : .clear,
+                    radius: 6,
+                    x: 0,
+                    y: 4)
+            .scaleEffect(isFocused ? 1.01 : 1.0)
+            .animation(.easeOut(duration: 0.14), value: isFocused)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isFocused ? Color.black.opacity(0.12) : .clear)
             )
             .focusEffectDisabled()
     }
 }
 
 extension View {
-    func catalystFocusHighlight(isFocused: Bool) -> some View {
-        self.modifier(CatalystFocusHighlight(isFocused: isFocused))
+    func macFocusHighlight(isFocused: Bool) -> some View {
+        self.modifier(MacFocusHighlight(isFocused: isFocused))
     }
 }
 
-/// A reusable wrapper that replaces NavigationLink with a focusable,
-/// keyboard-navigable Button on Mac Catalyst.
-struct CatalystFocusableLink<Label: View, ID: Hashable>: View {
+/// A reusable wrapper that provides a focusable, keyboard-navigable
+/// Button for macOS list rows.
+struct MacFocusableLink<Label: View, ID: Hashable>: View {
     let id: ID
     var focusedId: FocusState<ID?>.Binding
     let action: () -> Void
@@ -116,7 +122,7 @@ struct CatalystFocusableLink<Label: View, ID: Hashable>: View {
         .focused(focusedId, equals: id)
         .onKeyPress(.return) { action(); return .handled }
         .onKeyPress(characters: .init(charactersIn: " ")) { _ in action(); return .handled }
-        .catalystFocusHighlight(isFocused: focusedId.wrappedValue == id)
+        .macFocusHighlight(isFocused: focusedId.wrappedValue == id)
     }
 }
 #endif

@@ -1,43 +1,60 @@
-//
-//  MoviesHomeList.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 07/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
-import Combine
 import SwiftUIFlux
+import MovieSwiftFluxCore
+
+enum MoviesHomeListState {
+    static func movies(for menu: MoviesMenu, from state: AppState) -> [Int] {
+        state.moviesState.moviesList[menu] ?? [0, 0, 0, 0]
+    }
+
+    static func loadingState(for menu: MoviesMenu, from state: AppState) -> MoviesListLoadingState? {
+        state.moviesState.loadingStates[.homeMenu(menu)]
+    }
+}
 
 struct MoviesHomeList: ConnectedView {
     struct Props {
         let movies: [Int]
+        let loadingState: MoviesListLoadingState?
+        let dispatch: DispatchFunction
     }
-    
+
     @Binding var menu: MoviesMenu
-    
+    let navigationRoute: Binding<MoviesListNavigationRoute?>
+
     let pageListener: MoviesMenuListPageListener
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movies: state.moviesState.moviesList[menu] ?? [0, 0, 0, 0])
+        Props(movies: MoviesHomeListState.movies(for: menu, from: state),
+              loadingState: MoviesHomeListState.loadingState(for: menu, from: state),
+              dispatch: dispatch)
     }
-    
-    func body(props: Props) -> some View {
-        MoviesList(movies: props.movies,
-                   displaySearch: true,
-                   pageListener: pageListener)
-    }
-}
 
-#if DEBUG
-struct MoviesHomeList_Previews : PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            MoviesHomeList(menu: .constant(.popular),
-                           pageListener: MoviesMenuListPageListener(menu: .popular))
-                .environmentObject(sampleStore)
+    func body(props: Props) -> some View {
+        VStack(spacing: 0) {
+            // When the most recent fetch failed, show an inline
+            // banner above the list so the user sees that something
+            // is wrong (instead of staring at skeleton placeholders
+            // forever) and gets a one-tap retry.
+            if case .failed(let failure) = props.loadingState {
+                MoviesListErrorBanner(failure: failure) {
+                    props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: 1))
+                }
+            }
+            MoviesList(movies: props.movies,
+                       displaySearch: true,
+                       pageListener: pageListener,
+                       navigationRoute: navigationRoute)
         }
     }
 }
-#endif
+
+
+#Preview {
+    NavigationStack {
+        MoviesHomeList(menu: .constant(.popular),
+                       navigationRoute: .constant(nil),
+                       pageListener: MoviesMenuListPageListener(menu: .popular, loadOnInit: false))
+            .environmentObject(sampleStore)
+    }
+}

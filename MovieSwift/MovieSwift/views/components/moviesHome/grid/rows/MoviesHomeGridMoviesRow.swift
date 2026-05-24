@@ -1,14 +1,7 @@
-//
-//  MoviesHomeGridMoviesRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 10/10/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 struct MoviesHomeGridMoviesRow: ConnectedView {
     struct Props {
@@ -49,8 +42,6 @@ struct MoviesHomeGridMoviesRow: ConnectedView {
     }
 }
 
-struct MoviesHomeGridMoviesRow_Previews: PreviewProvider {
-    static var previews: some View {
-        MoviesHomeGridMoviesRow(movies: [])
-    }
+#Preview {
+    MoviesHomeGridMoviesRow(movies: [])
 }

@@ -1,13 +1,18 @@
-//
-//  MoviesGenreList.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 15/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
+
+enum MovieGenrePageAction {
+    static func fetch(genre: Genre, page: Int, sort: MoviesSort) -> Action {
+        MoviesActions.FetchMoviesGenre(genre: genre, page: page, sortBy: sort)
+    }
+}
+
+enum MoviesGenreListState {
+    static func movies(for genre: Genre, from state: AppState) -> [Int] {
+        state.moviesState.withGenre[genre.id] ?? []
+    }
+}
 
 // MARK: - Page listener
 final class MovieGenrePageListener: MoviesPagesListener {
@@ -22,7 +27,7 @@ final class MovieGenrePageListener: MoviesPagesListener {
     }
     
     override func loadPage() {
-        dispatch?(MoviesActions.FetchMoviesGenre(genre: genre, page: currentPage, sortBy: sort))
+        dispatch?(MovieGenrePageAction.fetch(genre: genre, page: currentPage, sort: sort))
     }
     
     init(genre: Genre) {
@@ -43,6 +48,7 @@ struct MoviesGenreList: ConnectedView {
     
     @State var isSortSheetPresented = false
     @State var selectedSort: MoviesSort = .byPopularity
+    @State private var navigationRoute: MoviesListNavigationRoute?
     
     init(genre: Genre) {
         self.genre = genre
@@ -50,13 +56,32 @@ struct MoviesGenreList: ConnectedView {
     }
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movies: state.moviesState.withGenre[genre.id] ?? [],
+        Props(movies: MoviesGenreListState.movies(for: genre, from: state),
               dispatch: dispatch)
     }
     
     func body(props: Props) -> some View {
-        MoviesList(movies: props.movies, displaySearch: false, pageListener: pageListener)
-            .navigationBarItems(trailing: (
+        VStack(spacing: 0) {
+            MoviesList(movies: props.movies,
+                       displaySearch: false,
+                       pageListener: pageListener,
+                       navigationRoute: $navigationRoute)
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                #if os(macOS)
+                Menu {
+                    sortMenuButtons { sort in
+                        self.selectedSort = sort
+                        self.pageListener.sort = sort
+                    }
+                } label: {
+                    Image(systemName: "line.horizontal.3.decrease.circle")
+                        .imageScale(.large)
+                        .foregroundColor(.steam_gold)
+                }
+                .accessibilityLabel("Sort")
+                #else
                 Button(action: {
                     self.isSortSheetPresented.toggle()
                 }, label: {
@@ -64,27 +89,29 @@ struct MoviesGenreList: ConnectedView {
                         .imageScale(.large)
                         .foregroundColor(.steam_gold)
                 })
-            ))
-            .navigationBarTitle(Text(genre.name))
-            .actionSheet(isPresented: $isSortSheetPresented,
-                         content: { ActionSheet.sortActionSheet(onAction: { sort in
-                            if let sort = sort {
-                                self.selectedSort = sort
-                                self.pageListener.sort = sort
-                            }
-                         })
-            })
-            .onAppear {
-                self.pageListener.dispatch = props.dispatch
-                self.pageListener.loadPage()
+                .accessibilityLabel("Sort")
+                #endif
+            }
+        }
+        .navigationTitle(genre.name)
+        .navigationDestination(item: $navigationRoute) { route in
+            moviesListDestinationView(for: route)
+        }
+        #if !os(macOS)
+        .confirmationDialog("Sort movies by", isPresented: $isSortSheetPresented) {
+            sortMenuButtons { sort in
+                self.selectedSort = sort
+                self.pageListener.sort = sort
+            }
+        }
+        #endif
+        .onAppear {
+            self.pageListener.dispatch = props.dispatch
+            self.pageListener.loadPage()
         }
     }
 }
 
-#if DEBUG
-struct MoviesGenreList_Previews : PreviewProvider {
-    static var previews: some View {
-        MoviesGenreList(genre: Genre(id: 0, name: "test")).environmentObject(store)
-    }
+#Preview {
+    MoviesGenreList(genre: Genre(id: 0, name: "test")).environmentObject(sampleStore)
 }
-#endif

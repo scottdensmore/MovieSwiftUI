@@ -1,51 +1,49 @@
-//
-//  PeopleDetailMovieRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 07/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
-import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
+
+enum PeopleDetailMovieRowState {
+    static func subtitle(for role: String) -> String? {
+        let trimmed = role.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
 
 struct PeopleDetailMovieRow : View {
-    @EnvironmentObject var store: Store<AppState>
-    
-    let movieId: Int
-    private var movie: Movie! {
-        return store.state.moviesState.movies[movieId]
-    }
+    let movie: Movie
     let role: String
     
     let onMovieContextMenu: () -> Void
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             ZStack {
                 MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
                                                                                 size: .small),
                                  posterSize: .small)
-                ListImage(movieId: movieId)
+                ListImage(movieId: movie.id)
             }.fixedSize()
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title)
                     .font(.headline)
-                Text(role)
-                    .foregroundColor(.secondary)
-                    .font(.subheadline)
+                if let subtitle = PeopleDetailMovieRowState.subtitle(for: role) {
+                    Text(subtitle)
+                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                }
             }
-        }.contextMenu{ MovieContextMenu(movieId: movieId, onAction: onMovieContextMenu) }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
+        .accessibilityElement(children: .combine)
+        .contextMenu{ MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }
     }
 }
 
-#if DEBUG
-struct PeopleDetailMovieRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailMovieRow(movieId: sampleMovie.id, role: "Test", onMovieContextMenu: {
-            
-        }).environmentObject(sampleStore)
-    }
+#Preview {
+    PeopleDetailMovieRow(movie: sampleMovie, role: "Test", onMovieContextMenu: {
+
+    })
 }
-#endif

@@ -1,11 +1,3 @@
-//
-//  OutlineRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 27/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 
 struct OutlineRow : View {
@@ -32,10 +24,6 @@ struct OutlineRow : View {
     }
 }
 
-#if DEBUG
-struct OutlineRow_Previews : PreviewProvider {
-    static var previews: some View {
-        OutlineRow(item: .popular, isSelected: true)
-    }
+#Preview {
+    OutlineRow(item: .popular, isSelected: true)
 }
-#endif

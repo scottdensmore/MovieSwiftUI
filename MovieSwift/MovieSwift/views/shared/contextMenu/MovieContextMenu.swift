@@ -1,13 +1,6 @@
-//
-//  MovieContextMenu.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 18/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 // MARK: View
 struct MovieContextMenu: ConnectedView {
@@ -26,44 +19,54 @@ struct MovieContextMenu: ConnectedView {
     
     private func customListsView(props: Props) -> some View {
         ForEach(props.customLists.compactMap{ $0.value }, id: \.id) { list in
+            let isIn = list.movies.contains(self.movieId)
+            let label = isIn ? "Remove from \(list.name)" : "Add to \(list.name)"
             Button(action: {
                 props.onAddToCustomList(list.id)
                 self.onAction?()
             }) {
                 HStack {
-                    Text(list.movies.contains(self.movieId) ? "Remove from \(list.name)" : "Add to \(list.name)")
-                    Image(systemName: list.movies.contains(self.movieId) ? "text.badge.xmark" : "text.badge.plus")
+                    Text(label)
+                    Image(systemName: isIn ? "text.badge.xmark" : "text.badge.plus")
                         .imageScale(.small)
                         .foregroundColor(.primary)
                 }
             }
+            .accessibilityLabel(Text(label))
+            .accessibilityIdentifier("movieContextMenu.customList.\(list.id)")
         }
     }
-    
+
     func body(props: Props) -> some View {
-        VStack {
+        let wishlistLabel = props.isInWishlist ? "Remove from wishlist" : "Add to wishlist"
+        let seenlistLabel = props.isInSeenList ? "Remove from seenlist" : "Add to seenlist"
+        return VStack {
             Button(action: {
                 props.onAddToWishlist()
                 self.onAction?()
             }) {
                 HStack {
-                    Text(props.isInWishlist ? "Remove from wishlist" : "Add to wishlist")
+                    Text(wishlistLabel)
                     Image(systemName: props.isInWishlist ? "heart.fill" : "heart")
                         .imageScale(.small)
                         .foregroundColor(.primary)
                 }
             }
+            .accessibilityLabel(Text(wishlistLabel))
+            .accessibilityIdentifier("movieContextMenu.wishlistToggle")
             Button(action: {
                 props.onAddToSeenList()
                 self.onAction?()
             }) {
                 HStack {
-                    Text(props.isInSeenList ? "Remove from seenlist" : "Add to seenlist")
+                    Text(seenlistLabel)
                     Image(systemName: props.isInSeenList ? "eye.fill" : "eye")
                         .imageScale(.small)
                         .foregroundColor(.primary)
                 }
             }
+            .accessibilityLabel(Text(seenlistLabel))
+            .accessibilityIdentifier("movieContextMenu.seenlistToggle")
             customListsView(props: props)
         }
     }
@@ -119,10 +122,6 @@ extension MovieContextMenu {
     
 }
 
-#if DEBUG
-struct MovieContextMenu_Previews: PreviewProvider {
-    static var previews: some View {
-        MovieContextMenu(movieId: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    MovieContextMenu(movieId: 0).environmentObject(sampleStore)
 }
-#endif

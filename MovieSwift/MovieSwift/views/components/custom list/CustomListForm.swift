@@ -1,25 +1,63 @@
-//
-//  CustomListForm.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 18/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import UI
+import MovieSwiftFluxCore
 
 final class CustomListFormSearchWrapper: SearchTextObservable {
+    private var dispatchSearches: ((String, Int) -> Void)?
+
+    init(dispatchSearches: ((String, Int) -> Void)? = nil) {
+        self.dispatchSearches = dispatchSearches
+        super.init()
+    }
+
+    func bindDispatchSearches(_ dispatchSearches: @escaping (String, Int) -> Void) {
+        self.dispatchSearches = dispatchSearches
+    }
+
     override func onUpdateTextDebounced(text: String) {
         if !text.isEmpty {
-            store.dispatch(action: MoviesActions.FetchSearch(query: text, page: 1))
+            dispatchSearches?(text, 1)
         }
     }
 }
 
-struct CustomListForm : View {
-    @EnvironmentObject var store: Store<AppState>
+enum CustomListFormState {
+    static func editingValues(editingListId: Int?, customLists: [Int: CustomList]) -> (name: String, cover: Int?)? {
+        guard let id = editingListId, let list = customLists[id] else {
+            return nil
+        }
+        return (name: list.name, cover: list.cover)
+    }
+}
+
+enum CustomListFormPresentation {
+    static func coverMovie(coverId: Int?, movies: [Int: Movie]) -> Movie? {
+        guard let coverId else {
+            return nil
+        }
+        return movies[coverId]
+    }
+
+    static func searchedMovies(searchText: String,
+                               searchResults: [String: [Int]],
+                               movies: [Int: Movie]) -> [Movie] {
+        guard !searchText.isEmpty else {
+            return []
+        }
+        return (searchResults[searchText] ?? []).compactMap { movies[$0] }
+    }
+}
+
+struct CustomListForm : ConnectedView {
+    struct Props {
+        let dispatch: DispatchFunction
+        let customLists: [Int: CustomList]
+        let customListsCount: Int
+        let searchedMovies: [Movie]
+        let coverMovie: Movie?
+    }
+
     @Environment(\.presentationMode) var presentationMode
     
     @State private var searchTextWrapper = CustomListFormSearchWrapper()
@@ -28,9 +66,16 @@ struct CustomListForm : View {
     @State var listMovieCover: Int?
     
     let editingListId: Int?
-    
-    private var searchedMovies: [Int] {
-        return store.state.moviesState.search[searchTextWrapper.searchText]?.map{ $0 } ?? []
+
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
+        Props(dispatch: dispatch,
+              customLists: state.moviesState.customLists,
+              customListsCount: state.moviesState.customLists.count,
+              searchedMovies: CustomListFormPresentation.searchedMovies(searchText: searchTextWrapper.searchText,
+                                                                       searchResults: state.moviesState.search,
+                                                                       movies: state.moviesState.movies),
+              coverMovie: CustomListFormPresentation.coverMovie(coverId: listMovieCover,
+                                                                movies: state.moviesState.movies))
     }
     
     private var topSection: some View {
@@ -39,22 +84,23 @@ struct CustomListForm : View {
                     HStack {
                         Text("Name:")
                         TextField("Name your list", text: $listName)
+                            .accessibilityIdentifier("customListForm.nameField")
                     }
         })
     }
     
-    private var coverSection: some View {
+    private func coverSection(props: Props) -> some View {
         Section(header: Text("List cover")) {
             if listMovieCover == nil {
                 SearchField(searchTextWrapper: searchTextWrapper,
                             placeholder: "Search and add a movie as your cover",
                             isSearching: $isSearching)
-                .onPreferenceChange(OffsetTopPreferenceKey.self) { _ in
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
+                .scrollDismissesKeyboard(.interactively)
             }
             if listMovieCover != nil {
-                CustomListCoverRow(movieId: listMovieCover!)
+                if let movie = props.coverMovie {
+                    CustomListCoverRow(movie: movie)
+                }
                 Button(action: {
                     self.listMovieCover = nil
                 }, label: {
@@ -63,18 +109,18 @@ struct CustomListForm : View {
             }
             
             if !searchTextWrapper.searchText.isEmpty {
-                movieSearchSection
+                movieSearchSection(props: props)
             }
         }
     }
     
-    private var movieSearchSection: some View {
+    private func movieSearchSection(props: Props) -> some View {
         Section() {
             ScrollView(.horizontal) {
                 HStack(spacing: 16) {
-                    ForEach(searchedMovies, id: \.self) { movieId in
-                        CustomListCoverRow(movieId: movieId).onTapGesture {
-                            self.listMovieCover = movieId
+                    ForEach(props.searchedMovies) { movie in
+                        CustomListCoverRow(movie: movie).onTapGesture {
+                            self.listMovieCover = movie.id
                             self.searchTextWrapper.searchText = ""
                         }
                     }
@@ -87,57 +133,57 @@ struct CustomListForm : View {
         }
     }
     
-    private var buttonsSection: some View {
+    private func buttonsSection(props: Props) -> some View {
         Section {
             Button(action: {
-                let newList = CustomList(id: Int.random(in: self.store.state.moviesState.customLists.count ..< 1000^3),
+                let newList = CustomList(id: Int.random(in: props.customListsCount ..< 1000^3),
                                          name: self.listName,
                                          cover: self.listMovieCover,
                                          movies: [])
                 if let id = self.editingListId {
-                    self.store.dispatch(action: MoviesActions.EditCustomList(list: id,
-                                                                             title: self.listName,
-                                                                             cover: self.listMovieCover))
+                    props.dispatch(MoviesActions.EditCustomList(list: id,
+                                                                title: self.listName,
+                                                                cover: self.listMovieCover))
                 } else {
-                    self.store.dispatch(action: MoviesActions.AddCustomList(list: newList))
+                    props.dispatch(MoviesActions.AddCustomList(list: newList))
                 }
                 self.presentationMode.wrappedValue.dismiss()
-                
+
             }, label: {
                 Text(self.editingListId != nil ? "Save changes" : "Create").foregroundColor(.blue)
             })
+            .accessibilityIdentifier("customListForm.createButton")
             Button(action: {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
                 Text("Cancel").foregroundColor(.red)
             })
+            .accessibilityIdentifier("customListForm.cancelButton")
         }
     }
     
-    var body: some View {
-        NavigationView {
+    func body(props: Props) -> some View {
+        NavigationStack {
             Form {
                 topSection
-                coverSection
-                buttonsSection
+                coverSection(props: props)
+                buttonsSection(props: props)
             }
-            .navigationBarTitle(Text("New list"))
+            .navigationTitle("New list")
         }
-        .navigationViewStyle(StackNavigationViewStyle())
         .onAppear() {
-            if let id = self.editingListId,
-                let list = self.store.state.moviesState.customLists[id] {
-                self.listMovieCover = list.cover
-                self.listName = list.name
+            searchTextWrapper.bindDispatchSearches { text, page in
+                props.dispatch(MoviesActions.FetchSearch(query: text, page: page))
+            }
+            if let editingValues = CustomListFormState.editingValues(editingListId: self.editingListId,
+                                                                     customLists: props.customLists) {
+                self.listMovieCover = editingValues.cover
+                self.listName = editingValues.name
             }
         }
     }
 }
 
-#if DEBUG
-struct CustomListForm_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListForm(editingListId: nil).environmentObject(sampleStore)
-    }
+#Preview {
+    CustomListForm(editingListId: nil).environmentObject(sampleStore)
 }
-#endif

@@ -1,36 +1,26 @@
-//
-//  CustomListRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 18/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
-import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 struct CustomListRow : View {
-    @EnvironmentObject var store: Store<AppState>
-    
     let list: CustomList
-    var coverMovie: Movie? {
-        guard let id = list.movies.first else {
-            return nil
-        }
-        return store.state.moviesState.movies[id]
-    }
+    let coverMovie: Movie?
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             SmallMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverMovie?.poster_path,
                                                                                  size: .medium))
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(list.name).font(.headline).fontWeight(.bold)
                 Text("\(list.movies.count) movies").font(.subheadline).foregroundColor(.secondary)
             }
-            }.listRowInsets(EdgeInsets())
-            .frame(height: 50)
+            Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .listRowInsets(EdgeInsets())
+            .frame(minHeight: 66)
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
@@ -40,10 +30,8 @@ struct SmallMoviePosterImage : View {
     
     var body: some View {
         ZStack {
-            if self.imageLoader.image != nil {
-                Image(uiImage: self.imageLoader.image!)
-                    .resizable()
-                    .renderingMode(.original)
+            if let imageData = self.imageLoader.image {
+                DataImage(data: imageData, renderingMode: .original)
                     .frame(width: 33, height: 50)
                     .cornerRadius(3)
                     .opacity(isImageLoaded ? 1 : 0.1)
@@ -63,11 +51,7 @@ struct SmallMoviePosterImage : View {
     }
 }
 
-#if DEBUG
-struct CustomListRow_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListRow(list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]))
-            .environmentObject(sampleStore)
-    }
+#Preview {
+    CustomListRow(list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]),
+                  coverMovie: sampleMovie)
 }
-#endif

@@ -1,11 +1,3 @@
-//
-//  BorderedButton.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 18/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 
 public struct BorderedButton : View {
@@ -14,6 +6,10 @@ public struct BorderedButton : View {
     public let color: Color
     public let isOn: Bool
     public let action: () -> Void
+
+    #if os(macOS)
+    @FocusState private var isFocused: Bool
+    #endif
     
     public init(text: String, systemImageName: String, color: Color, isOn: Bool, action: @escaping () -> Void) {
         self.text = text
@@ -32,34 +28,49 @@ public struct BorderedButton : View {
                 Text(text).foregroundColor(isOn ? .white : color)
             }
             })
-            .buttonStyle(BorderlessButtonStyle())
+            .buttonStyle(.borderless)
             .padding(6)
             .background(RoundedRectangle(cornerRadius: 8)
                 .stroke(color, lineWidth: isOn ? 0 : 2)
                 .background(isOn ? color : .clear)
                 .cornerRadius(8))
+            #if os(macOS)
+            .focusable()
+            .focused($isFocused)
+            .focusEffectDisabled()
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isFocused ? color.opacity(isOn ? 0.16 : 0.10) : .clear)
+            )
+            .shadow(color: isFocused ? color.opacity(0.20) : .clear,
+                    radius: 10,
+                    x: 0,
+                    y: 0)
+            .shadow(color: isFocused ? Color.black.opacity(0.12) : .clear,
+                    radius: 4,
+                    x: 0,
+                    y: 3)
+            .scaleEffect(isFocused ? 1.01 : 1.0)
+            .animation(.easeOut(duration: 0.14), value: isFocused)
+            #endif
     }
 }
 
-#if DEBUG
-struct BorderedButton_Previews : PreviewProvider {
-    static var previews: some View {
-        VStack {
-            BorderedButton(text: "Add to wishlist",
-                           systemImageName: "film",
-                           color: .green,
-                           isOn: false,
-                           action: {
-                            
-            })
-            BorderedButton(text: "Add to wishlist",
-                           systemImageName: "film",
-                           color: .blue,
-                           isOn: true,
-                           action: {
-                            
-            })
-        }
+#Preview {
+    VStack {
+        BorderedButton(text: "Add to wishlist",
+                       systemImageName: "film",
+                       color: .green,
+                       isOn: false,
+                       action: {
+
+        })
+        BorderedButton(text: "Add to wishlist",
+                       systemImageName: "film",
+                       color: .blue,
+                       isOn: true,
+                       action: {
+
+        })
     }
 }
-#endif

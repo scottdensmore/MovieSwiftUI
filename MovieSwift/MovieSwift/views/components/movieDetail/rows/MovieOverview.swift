@@ -1,17 +1,14 @@
-//
-//  MovieOverview.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 09/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct MovieOverview : View {
     let movie: Movie
     @State var isOverviewExpanded: Bool = false
-    
+
+    #if os(macOS)
+    let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Overview:")
@@ -26,6 +23,17 @@ struct MovieOverview : View {
                         self.isOverviewExpanded.toggle()
                     }
             }
+            #if os(macOS)
+            MacFocusableLink(id: .readMoreButton, focusedId: focusedItem) {
+                withAnimation {
+                    self.isOverviewExpanded.toggle()
+                }
+            } label: {
+                Text(self.isOverviewExpanded ? "Less" : "Read more")
+                    .lineLimit(1)
+                    .foregroundColor(.steam_blue)
+            }
+            #else
             Button(action: {
                 withAnimation {
                     self.isOverviewExpanded.toggle()
@@ -35,14 +43,20 @@ struct MovieOverview : View {
                     .lineLimit(1)
                     .foregroundColor(.steam_blue)
             })
+            #endif
         }
+        .padding(.leading)
+        .padding(.trailing)
     }
 }
 
-#if DEBUG
-struct MovieOverview_Previews : PreviewProvider {
-    static var previews: some View {
-        MovieOverview(movie: sampleMovie)
-    }
+#if os(macOS)
+#Preview {
+    @FocusState var item: MovieDetailFocusTarget?
+    return MovieOverview(movie: sampleMovie, focusedItem: $item)
+}
+#else
+#Preview {
+    MovieOverview(movie: sampleMovie)
 }
 #endif

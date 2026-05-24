@@ -1,13 +1,6 @@
-//
-//  ListImage.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 21/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
 
 struct ListImage: ConnectedView {
     struct Props {
@@ -40,23 +33,19 @@ struct ListImage: ConnectedView {
     
     func body(props: Props) -> some View {
         Group {
-            if icon(props: props) != nil {
-                Image(systemName: icon(props: props)!)
+            if let iconName = icon(props: props) {
+                Image(systemName: iconName)
                     .imageScale(.small)
                     .foregroundColor(.white)
                     .position(x: 13, y: 15)
                     .transition(AnyTransition.scale
                         .combined(with: .opacity))
-                    .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: icon(props: props))
+                    .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: iconName)
             }
         }
     }
 }
 
-#if DEBUG
-struct ListImage_Previews: PreviewProvider {
-    static var previews: some View {
-        ListImage(movieId: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    ListImage(movieId: 0).environmentObject(sampleStore)
 }
-#endif

@@ -1,11 +1,3 @@
-//
-//  SearchField.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 20/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import Combine
 
@@ -20,8 +12,6 @@ public struct SearchField : View {
     var dismissButtonCallback: (() -> Void)?
     var focused: FocusState<Bool>.Binding?
     
-    private var searchCancellable: Cancellable? = nil
-    
     public init(searchTextWrapper: SearchTextObservable,
          placeholder: String,
          isSearching: Binding<Bool>,
@@ -34,10 +24,6 @@ public struct SearchField : View {
         self.dismissButtonTitle = dismissButtonTitle
         self.dismissButtonCallback = dismissButtonCallback
         self.focused = focused
-        
-        self.searchCancellable = searchTextWrapper.searchSubject.sink(receiveValue: { value in
-            isSearching.wrappedValue = !value.isEmpty
-        })
     }
     
     public var body: some View {
@@ -48,12 +34,12 @@ public struct SearchField : View {
                     TextField(self.placeholder,
                               text: self.$searchTextWrapper.searchText)
                         .focused(focused)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .padding(.horizontal)
                 } else {
                     TextField(self.placeholder,
                               text: self.$searchTextWrapper.searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textFieldStyle(.roundedBorder)
                         .padding(.horizontal)
                 }
                 if !self.searchTextWrapper.searchText.isEmpty {
@@ -64,9 +50,12 @@ public struct SearchField : View {
                     }, label: {
                         Text(self.dismissButtonTitle).foregroundColor(.pink)
                     })
-                    .buttonStyle(BorderlessButtonStyle())
+                    .buttonStyle(.borderless)
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
+            }
+            .onChange(of: self.searchTextWrapper.searchText) { _, newValue in
+                self.isSearching = !newValue.isEmpty
             }
             .preference(key: OffsetTopPreferenceKey.self,
                         value: reader.frame(in: .global).minY)
@@ -75,51 +64,50 @@ public struct SearchField : View {
     }
 }
 
-#if DEBUG
-@available(iOS 13.0, OSX 10.15, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-struct SearchField_Previews : PreviewProvider {
-    static var previews: some View {
-        let withText = SearchTextObservable()
-        withText.searchText = "Test"
-        
-        return VStack {
-            SearchField(searchTextWrapper: SearchTextObservable(),
-                        placeholder: "Search anything",
-                        isSearching: .constant(false))
+#Preview {
+    let withText = SearchTextObservable()
+    withText.searchText = "Test"
+
+    return VStack {
+        SearchField(searchTextWrapper: SearchTextObservable(),
+                    placeholder: "Search anything",
+                    isSearching: .constant(false))
+        SearchField(searchTextWrapper: withText,
+                    placeholder: "Search anything",
+                    isSearching: .constant(false))
+
+        List {
             SearchField(searchTextWrapper: withText,
                         placeholder: "Search anything",
                         isSearching: .constant(false))
-            
-            List {
+            Section(header: SearchField(searchTextWrapper: withText,
+                                        placeholder: "Search anything",
+                                        isSearching: .constant(false)))
+            {
                 SearchField(searchTextWrapper: withText,
                             placeholder: "Search anything",
                             isSearching: .constant(false))
-                Section(header: SearchField(searchTextWrapper: withText,
-                                            placeholder: "Search anything",
-                                            isSearching: .constant(false)))
-                {
-                    SearchField(searchTextWrapper: withText,
-                                placeholder: "Search anything",
-                                isSearching: .constant(false))
-                }
             }
-            
-            List {
+        }
+
+        List {
+            SearchField(searchTextWrapper: withText,
+                        placeholder: "Search anything",
+                        isSearching: .constant(false))
+            Section(header: SearchField(searchTextWrapper: withText,
+                                        placeholder: "Search anything",
+                                        isSearching: .constant(false)))
+            {
                 SearchField(searchTextWrapper: withText,
                             placeholder: "Search anything",
                             isSearching: .constant(false))
-                Section(header: SearchField(searchTextWrapper: withText,
-                                            placeholder: "Search anything",
-                                            isSearching: .constant(false)))
-                {
-                    SearchField(searchTextWrapper: withText,
-                                placeholder: "Search anything",
-                                isSearching: .constant(false))
-                }
-            }.listStyle(GroupedListStyle())
+            }
         }
+        #if os(iOS) || os(tvOS)
+        .listStyle(.grouped)
+        #endif
     }
 }
-#endif
+

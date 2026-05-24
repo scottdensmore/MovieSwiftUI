@@ -8,6 +8,34 @@
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F205D6478A187924D497302D"
+               BuildableName = "MovieSwiftTVTests.xctest"
+               BlueprintName = "MovieSwiftTVTests"
+               ReferencedContainer = "container:MovieSwift.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A292223EE04170B9495C0B1B"
+               BuildableName = "MovieSwiftTVUITests.xctest"
+               BlueprintName = "MovieSwiftTVUITests"
+               ReferencedContainer = "container:MovieSwift.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
@@ -28,6 +56,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F205D6478A187924D497302D"
+               BuildableName = "MovieSwiftTVTests.xctest"
+               BlueprintName = "MovieSwiftTVTests"
+               ReferencedContainer = "container:MovieSwift.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A292223EE04170B9495C0B1B"
+               BuildableName = "MovieSwiftTVUITests.xctest"
+               BlueprintName = "MovieSwiftTVUITests"
+               ReferencedContainer = "container:MovieSwift.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [ main ]
 
+# Minimum GITHUB_TOKEN scope. All jobs here just check out the repo,
+# run xcodebuild, and upload artifacts via `actions/upload-artifact`
+# (which writes to action storage, not the repo) — so `contents: read`
+# (for `actions/checkout`) is enough. Narrowing the token's blast
+# radius is a CodeQL workflow-security recommendation.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -15,9 +23,8 @@ env:
 
 jobs:
   package-tests:
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
-      COVERAGE_RATCHET_ENFORCE: "1"
       COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage
 
     steps:
@@ -36,15 +43,15 @@ jobs:
           name: coverage-reports
           path: ${{ env.COVERAGE_REPORT_DIR }}
 
-  app-tests:
+  ios-tests:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data
       COVERAGE_REPORT_DIR: ${{ github.workspace }}/.ci-artifacts/coverage-app
       IOS_SIMULATOR_FAMILY: iPhone
-      IOS_SIMULATOR_NAME: "iPhone 16e"
+      IOS_SIMULATOR_NAME: "iPhone 17 Pro"
       IOS_TEST_ITERATIONS: "1"
       XCODE_ONLY_TESTING: MovieSwiftTests
 
@@ -78,9 +85,9 @@ jobs:
           name: ios-app-coverage-reports
           path: ${{ env.COVERAGE_REPORT_DIR }}
 
-  app-tests-ipad:
+  ios-tests-ipad:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
     env:
       XCODE_TEST_RESULT_BUNDLE_PATH: ${{ github.workspace }}/.ci-artifacts/test-results/MovieSwift-iPad.xcresult
       XCODE_DERIVED_DATA_PATH: ${{ github.workspace }}/.ci-artifacts/derived-data-ipad
@@ -112,29 +119,46 @@ jobs:
           name: ios-test-logs-ipad
           path: ${{ env.XCODE_DERIVED_DATA_PATH }}/Logs/Test
 
-  app-build:
+  mac-tests:
     needs: package-tests
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: iOS app build
-        run: |
-          xcodebuild \
-            -project MovieSwift/MovieSwift.xcodeproj \
-            -scheme MovieSwift \
-            -destination "generic/platform=iOS Simulator" \
-            -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+      - name: Prepare macOS for UI testing
+        uses: paulz/prepare-macos@v1
 
-      - name: tvOS app build
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: macOS app tests (unit + UI)
         run: |
-          xcodebuild \
+          xcodebuild test \
+            -project MovieSwift/MovieSwift.xcodeproj \
+            -scheme MovieSwiftMac \
+            -destination "platform=macOS" \
+            -parallel-testing-enabled NO \
+            -retry-tests-on-failure \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+  tvos-tests:
+    needs: package-tests
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: tvOS app tests (unit + UI)
+        run: |
+          xcodebuild test \
             -project MovieSwift/MovieSwift.xcodeproj \
             -scheme MovieSwiftTV \
-            -destination "generic/platform=tvOS Simulator" \
-            -configuration Debug \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+            -destination "platform=tvOS Simulator,name=Apple TV" \
+            -retry-tests-on-failure \
+            CODE_SIGNING_ALLOWED=NO

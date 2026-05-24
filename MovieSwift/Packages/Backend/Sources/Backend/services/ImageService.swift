@@ -1,11 +1,3 @@
-//
-//  ImageService.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 07/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 import Combine
@@ -19,7 +11,7 @@ public class ImageService {
         case cast = "https://image.tmdb.org/t/p/w185/"
         case original = "https://image.tmdb.org/t/p/original/"
         
-        func path(poster: String) -> URL {
+        public func path(poster: String) -> URL {
             return URL(string: rawValue)!.appendingPathComponent(poster)
         }
     }
@@ -28,10 +20,10 @@ public class ImageService {
         case decodingError
     }
     
-    public func fetchImage(poster: String, size: Size) -> AnyPublisher<PlatformImage?, Never> {
+    public func fetchImage(poster: String, size: Size) -> AnyPublisher<Data?, Never> {
         return URLSession.shared.dataTaskPublisher(for: size.path(poster: poster))
-            .tryMap { (data, response) -> PlatformImage? in
-                return PlatformImage(data: data)
+            .map { (data, response) -> Data? in
+                return data
         }.catch { error in
             return Just(nil)
         }

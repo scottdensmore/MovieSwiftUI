@@ -1,48 +1,47 @@
-//
-//  PeopleDetailHeaderRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 06/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
-import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
+
+enum PeopleDetailHeaderState {
+    static let missingKnownForText = "Known work is not available."
+
+    static func knownForText(for people: People) -> String {
+        let text = people.knownForText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text?.isEmpty == false ? text! : missingKnownForText
+    }
+}
 
 struct PeopleDetailHeaderRow : View {
-    @EnvironmentObject private var store: Store<AppState>
-    let peopleId: Int
-    
-    var people: People {
-        store.state.peoplesState.peoples[peopleId]!
-    }
-    
+    let people: People
+
     var body: some View {
-        HStack(alignment: .top) {
-            BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
-                                                    size: .original))
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Spacer()
+                BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
+                                                                              size: .original))
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Known for")
                     .titleStyle()
-                if people.known_for_department != nil{
-                    Text(people.known_for_department!)
+                    .accessibilityIdentifier("peopleDetail.knownFor")
+                if let department = people.known_for_department {
+                    Text(department)
                 }
-                Text(people.knownForText ?? "For now nothing much... or missing data")
+                Text(PeopleDetailHeaderState.knownForText(for: people))
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(nil)
             }
-            .padding(.leading, 8)
-                .padding(.top, 8)
         }
+        .padding(.horizontal)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
 }
 
-#if DEBUG
-struct PeopleDetailHeaderRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailHeaderRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
-    }
+#Preview {
+    PeopleDetailHeaderRow(people: sampleCasts.first!)
 }
-#endif

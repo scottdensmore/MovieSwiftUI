@@ -1,11 +1,3 @@
-//
-//  MovieBackdropImage.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 16/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import Backend
 
@@ -17,9 +9,8 @@ struct MovieTopBackdropImage : View {
     var height: CGFloat = 250
           
     var body: some View {
-        if let image = imageLoader.image {
-            Image(uiImage: image)
-                .resizable()
+        if let imageData = imageLoader.image {
+            DataImage(data: imageData)
                 .blur(radius: 50, opaque: true)
                 .overlay(Color.black.opacity(0.3))
                 .frame(height: fill ? 50 : height)

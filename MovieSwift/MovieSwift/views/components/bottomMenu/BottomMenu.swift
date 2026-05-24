@@ -1,11 +1,3 @@
-//
-//  BottomMenu.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 05/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 
 private struct BottomMenuAnimationState: Equatable {
@@ -84,39 +76,35 @@ struct BottomMenu<Content>: View where Content: View {
 
 }
 
-#if DEBUG
-struct BottomMenu_Previews : PreviewProvider {
-    static var previews: some View {
-        Group {
-            NavigationView {
-                ZStack(alignment: .center) {
-                    Text("My view wow")
-                    BottomMenu(isPresented: .constant(true), onDismiss: {
-                        
-                    }) {
-                        VStack {
-                            Text("Item 1")
-                            Text("Item 2")
-                        }
-                    }
+#Preview("BottomMenu Presented") {
+    NavigationStack {
+        ZStack(alignment: .center) {
+            Text("My view wow")
+            BottomMenu(isPresented: .constant(true), onDismiss: {
+
+            }) {
+                VStack {
+                    Text("Item 1")
+                    Text("Item 2")
                 }
-            }.previewDevice("iPhone 8")
-              .environment(\.colorScheme, .dark)
-            
-            NavigationView {
-                ZStack(alignment: .center) {
-                    Text("My view wow")
-                    BottomMenu(isPresented: .constant(false), onDismiss: {
-                        
-                    }) {
-                        VStack {
-                            Text("Item 1")
-                            Text("Item 2")
-                        }
-                    }
+            }
+        }
+    }
+    .environment(\.colorScheme, .dark)
+}
+
+#Preview("BottomMenu Dismissed") {
+    NavigationStack {
+        ZStack(alignment: .center) {
+            Text("My view wow")
+            BottomMenu(isPresented: .constant(false), onDismiss: {
+
+            }) {
+                VStack {
+                    Text("Item 1")
+                    Text("Item 2")
                 }
-            }.previewDevice("iPhone 8")
+            }
         }
     }
 }
-#endif

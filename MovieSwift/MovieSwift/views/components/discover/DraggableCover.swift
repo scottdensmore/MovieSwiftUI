@@ -1,14 +1,13 @@
-//
-//  DraggableCover.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 19/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
+
+enum DiscoverPosterLookup {
+    static func posterPath(for movieId: Int, posters: [Int: String]) -> String? {
+        posters[movieId]
+    }
+}
 
 struct DraggableCover : View {
     
@@ -64,9 +63,10 @@ struct DraggableCover : View {
     @State private var hasMoved = false
     @State private var delayedIsActive = false
     @State private var viewWidth: CGFloat = 0
-    @EnvironmentObject private var store: Store<AppState>
     @GestureState private var dragState = DragState.inactive
+    #if os(iOS)
     private let hapticFeedback = UISelectionFeedbackGenerator()
+    #endif
     
     // MARK: - Internal consts
     private let minimumLongPressDuration = 0.01
@@ -74,16 +74,11 @@ struct DraggableCover : View {
     private let shadowRadius: CGFloat = 16
     
     // MARK: - Constructor vars
-    let movieId: Int
+    let posterPath: String?
     @Binding var gestureViewState: DragState
     let onTapGesture: () -> Void
     let willEndGesture: (CGSize) -> Void
     let endGestureHandler: (EndState) -> Void
-    
-    // MARK: - Computed vars
-    private var movie: Movie! {
-        store.state.moviesState.movies[movieId]
-    }
     
     // MARK: - Viewd functions
     
@@ -120,7 +115,9 @@ struct DraggableCover : View {
                 switch value {
                 case .first(true):
                     state = .pressing
+                    #if os(iOS)
                     self.hapticFeedback.selectionChanged()
+                    #endif
                 case .second(true, let drag):
                     state = .dragging(translation: drag?.translation ?? .zero, predictedLocation: drag?.predictedEndLocation ?? .zero)
                 default:
@@ -157,7 +154,7 @@ struct DraggableCover : View {
             }
         
         // MARK: - View return
-        return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
+        return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: posterPath,
                                                                                  size: .medium))
             .offset(computedOffset())
             .animation(delayedIsActive ? coverSpringAnimation : nil, value: computedOffset())
@@ -187,26 +184,24 @@ struct DraggableCover : View {
                 }
             )
             .onAppear{
+                #if os(iOS)
                 self.hapticFeedback.prepare()
+                #endif
         }
     }
 }
 
 // MARK: - Preview
-#if DEBUG
-struct DraggableCover_Previews : PreviewProvider {
-    static var previews: some View {
-        DraggableCover(movieId: 0,
-                       gestureViewState: .constant(.inactive),
-                       onTapGesture: {
-                        
-        },
-                       willEndGesture: { _ in
-                        
-        },
-                       endGestureHandler: {handler in
-            
-        }).environmentObject(sampleStore)
-    }
+#Preview {
+    DraggableCover(posterPath: sampleMovie.poster_path,
+                   gestureViewState: .constant(.inactive),
+                   onTapGesture: {
+
+    },
+                   willEndGesture: { _ in
+
+    },
+                   endGestureHandler: {handler in
+
+    })
 }
-#endif

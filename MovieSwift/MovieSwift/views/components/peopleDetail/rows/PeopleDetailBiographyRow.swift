@@ -1,75 +1,105 @@
-//
-//  PeopleDetailBiography.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 06/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
+
+enum PeopleDetailBiographyState {
+    static let deathLabel = "Day of death"
+
+    static func shouldShowBiographyToggle(_ biography: String?) -> Bool {
+        guard let biography else {
+            return false
+        }
+        return !biography.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
 
 struct PeopleDetailBiographyRow : View {
     let biography: String?
     let birthDate: String?
     let deathDate: String?
     let placeOfBirth: String?
+    #if os(macOS)
+    var focusedItem: FocusState<PeopleDetailFocusTarget?>.Binding?
+    #endif
     @State private var isExpanded = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if biography != nil {
+            if let biography, PeopleDetailBiographyState.shouldShowBiographyToggle(biography) {
                 Text("Biography")
                     .titleStyle()
                     .lineLimit(1)
-                Text(biography!)
+                Text(biography)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(isExpanded ? 1000 : 4)
+                readMoreButton
             }
-            Button(action: {
-                self.isExpanded.toggle()
-            }) {
-                Text(isExpanded ? "Less": "Read more").foregroundColor(.steam_blue)
-            }
-            if birthDate != nil {
+            if let birthDate {
                 Text("Birthday")
                     .titleStyle()
                     .lineLimit(1)
-                Text(birthDate!)
+                Text(birthDate)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
-            if placeOfBirth != nil {
+            if let placeOfBirth {
                 Text("Place of birth")
                     .titleStyle()
                     .lineLimit(1)
-                Text(placeOfBirth!)
+                Text(placeOfBirth)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
-            if deathDate != nil {
-                Text("Day of deah")
+            if let deathDate {
+                Text(PeopleDetailBiographyState.deathLabel)
                     .titleStyle()
                     .lineLimit(1)
-                Text(deathDate!)
+                Text(deathDate)
                     .foregroundColor(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
         }
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private var readMoreButton: some View {
+        #if os(macOS)
+        if let focusedItem {
+            MacFocusableLink(id: PeopleDetailFocusTarget.readMoreButton,
+                             focusedId: focusedItem) {
+                withAnimation { isExpanded.toggle() }
+            } label: {
+                Text(isExpanded ? "Less" : "Read more")
+                    .foregroundColor(.steam_blue)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .padding(.top, 2)
+        } else {
+            plainReadMoreButton
+        }
+        #else
+        plainReadMoreButton
+        #endif
+    }
+
+    private var plainReadMoreButton: some View {
+        Button(action: {
+            isExpanded.toggle()
+        }) {
+            Text(isExpanded ? "Less" : "Read more").foregroundColor(.steam_blue)
+        }
     }
 }
 
-#if DEBUG
-struct PeopleDetailBiography_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleDetailBiographyRow(biography: "Super bio",
-                                 birthDate: "1985-02-03",
-                                 deathDate: "2005-02-05",
-                                 placeOfBirth: "USA")
-    }
+#Preview {
+    PeopleDetailBiographyRow(biography: "Super bio",
+                             birthDate: "1985-02-03",
+                             deathDate: "2005-02-05",
+                             placeOfBirth: "USA")
 }
-#endif

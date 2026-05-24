@@ -1,29 +1,12 @@
-//
-//  CustomListHeaderRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 08/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
-import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
 
 struct CustomListHeaderRow : View {
-    @EnvironmentObject var store: Store<AppState>
     @Binding var sorting: MoviesSort
     
-    let listId: Int
-    var list: CustomList {
-        return store.state.moviesState.customLists[listId]!
-    }
-    var coverBackdropMovie: Movie? {
-        guard let id = list.cover else {
-            return nil
-        }
-        return store.state.moviesState.movies[id]
-    }
+    let list: CustomList
+    let coverBackdropMovie: Movie?
     
     private var headerText: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -58,10 +41,8 @@ struct CustomListHeaderRow : View {
     }
 }
 
-#if DEBUG
-struct CustomListHeaderRow_Previews : PreviewProvider {
-    static var previews: some View {
-        CustomListHeaderRow(sorting: .constant(.byAddedDate), listId: 0).environmentObject(sampleStore)
-    }
+#Preview {
+    CustomListHeaderRow(sorting: .constant(.byAddedDate),
+                        list: CustomList(id: 0, name: "Wow", cover: 0, movies: [0]),
+                        coverBackdropMovie: sampleMovie)
 }
-#endif

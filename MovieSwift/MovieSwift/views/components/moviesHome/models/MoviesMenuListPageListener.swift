@@ -1,12 +1,5 @@
-//
-//  MoviesHomeListPageListener.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 22/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import Foundation
+import MovieSwiftFluxCore
 
 final class MoviesMenuListPageListener: MoviesPagesListener {
     var menu: MoviesMenu {
@@ -14,13 +7,23 @@ final class MoviesMenuListPageListener: MoviesPagesListener {
             currentPage = 1
         }
     }
+    var shouldLoadPage: (() -> Bool)?
+    var dispatchPage: ((MoviesMenu, Int) -> Void)?
     
     override func loadPage() {
-        store.dispatch(action: MoviesActions.FetchMoviesMenuList(list: menu, page: currentPage))
+        guard shouldLoadPage?() == true else {
+            return
+        }
+        dispatchPage?(menu, currentPage)
     }
     
-    init(menu: MoviesMenu, loadOnInit: Bool? = true) {
+    init(menu: MoviesMenu,
+         loadOnInit: Bool? = true,
+         shouldLoadPage: (() -> Bool)? = nil,
+         dispatchPage: ((MoviesMenu, Int) -> Void)? = nil) {
         self.menu = menu
+        self.shouldLoadPage = shouldLoadPage
+        self.dispatchPage = dispatchPage
         
         super.init()
         

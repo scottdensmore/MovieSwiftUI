@@ -1,74 +1,108 @@
-//
-//  ActionSheet.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 09/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 import SwiftUIFlux
+import MovieSwiftFluxCore
+
+#if !os(macOS)
+enum ActionSheetMovieListAction: Equatable {
+    case addToWishlist(movie: Int)
+    case removeFromWishlist(movie: Int)
+    case addToSeenlist(movie: Int)
+    case removeFromSeenlist(movie: Int)
+    case addToCustomList(list: Int, movie: Int)
+    case removeFromCustomList(list: Int, movie: Int)
+
+    static func wishlist(movie: Int, isInWishlist: Bool) -> ActionSheetMovieListAction {
+        isInWishlist ? .removeFromWishlist(movie: movie) : .addToWishlist(movie: movie)
+    }
+
+    static func seenlist(movie: Int, isInSeenlist: Bool) -> ActionSheetMovieListAction {
+        isInSeenlist ? .removeFromSeenlist(movie: movie) : .addToSeenlist(movie: movie)
+    }
+
+    static func customList(list: CustomList, movie: Int) -> ActionSheetMovieListAction {
+        list.movies.contains(movie) ? .removeFromCustomList(list: list.id, movie: movie) : .addToCustomList(list: list.id, movie: movie)
+    }
+}
 
 extension ActionSheet {
-    static func wishlistButton(store: Store<AppState>, movie: Int, onTrigger: (() -> Void)?) -> Alert.Button {
-        if store.state.moviesState.wishlist.contains(movie) {
-            let wishlistButton: Alert.Button = .destructive(Text("Remove from wishlist")) {
-                store.dispatch(action: MoviesActions.RemoveFromWishlist(movie: movie))
-                onTrigger?()
+    private static func dispatch(_ action: ActionSheetMovieListAction,
+                                 with dispatch: @escaping DispatchFunction,
+                                 onTrigger: (() -> Void)?) {
+        switch action {
+        case let .addToWishlist(movie):
+            dispatch(MoviesActions.AddToWishlist(movie: movie))
+            #if !os(tvOS)
+            UISelectionFeedbackGenerator().selectionChanged()
+            #endif
+        case let .removeFromWishlist(movie):
+            dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
+        case let .addToSeenlist(movie):
+            dispatch(MoviesActions.AddToSeenList(movie: movie))
+            #if !os(tvOS)
+            UISelectionFeedbackGenerator().selectionChanged()
+            #endif
+        case let .removeFromSeenlist(movie):
+            dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
+        case let .addToCustomList(list, movie):
+            dispatch(MoviesActions.AddMovieToCustomList(list: list, movie: movie))
+            #if !os(tvOS)
+            UISelectionFeedbackGenerator().selectionChanged()
+            #endif
+        case let .removeFromCustomList(list, movie):
+            dispatch(MoviesActions.RemoveMovieFromCustomList(list: list, movie: movie))
+        }
+
+        onTrigger?()
+    }
+
+    static func wishlistButton(isInWishlist: Bool, movie: Int, dispatch: @escaping DispatchFunction, onTrigger: (() -> Void)?) -> Alert.Button {
+        let action = ActionSheetMovieListAction.wishlist(movie: movie, isInWishlist: isInWishlist)
+        switch action {
+        case .removeFromWishlist:
+            return .destructive(Text("Remove from wishlist")) {
+                self.dispatch(action, with: dispatch, onTrigger: onTrigger)
             }
-            return wishlistButton
-        } else {
-            let wishlistButton: Alert.Button = .default(Text("Add to wishlist")) {
-                store.dispatch(action: MoviesActions.AddToWishlist(movie: movie))
-                #if !os(tvOS)
-                UISelectionFeedbackGenerator().selectionChanged()
-                #endif
-                onTrigger?()
+        case .addToWishlist:
+            return .default(Text("Add to wishlist")) {
+                self.dispatch(action, with: dispatch, onTrigger: onTrigger)
             }
-            return wishlistButton
+        default:
+            return .cancel()
         }
     }
     
-    static func seenListButton(store: Store<AppState>, movie: Int, onTrigger: (() -> Void)?) -> Alert.Button {
-        if store.state.moviesState.seenlist.contains(movie) {
-            let wishlistButton: Alert.Button = .destructive(Text("Remove from seenlist")) {
-                store.dispatch(action: MoviesActions.RemoveFromSeenList(movie: movie))
-                onTrigger?()
+    static func seenListButton(isInSeenlist: Bool, movie: Int, dispatch: @escaping DispatchFunction, onTrigger: (() -> Void)?) -> Alert.Button {
+        let action = ActionSheetMovieListAction.seenlist(movie: movie, isInSeenlist: isInSeenlist)
+        switch action {
+        case .removeFromSeenlist:
+            return .destructive(Text("Remove from seenlist")) {
+                self.dispatch(action, with: dispatch, onTrigger: onTrigger)
             }
-            return wishlistButton
-        } else {
-            let wishlistButton: Alert.Button = .default(Text("Add to seenlist")) {
-                store.dispatch(action: MoviesActions.AddToSeenList(movie: movie))
-                #if !os(tvOS)
-                UISelectionFeedbackGenerator().selectionChanged()
-                #endif
-                onTrigger?()
+        case .addToSeenlist:
+            return .default(Text("Add to seenlist")) {
+                self.dispatch(action, with: dispatch, onTrigger: onTrigger)
             }
-            return wishlistButton
+        default:
+            return .cancel()
         }
     }
     
-    static func customListsButttons(store: Store<AppState>, movie: Int, onTrigger: (() -> Void)?) -> [Alert.Button] {
+    static func customListsButttons(customLists: [CustomList], movie: Int, dispatch: @escaping DispatchFunction, onTrigger: (() -> Void)?) -> [Alert.Button] {
         var buttons: [Alert.Button] = []
-        for list in store.state.moviesState.customLists.compactMap({ $0.value }) {
-            if list.movies.contains(movie) {
-                let button: Alert.Button = .destructive(Text("Remove from \(list.name)")) {
-                    store.dispatch(action: MoviesActions.RemoveMovieFromCustomList(list: list.id,
-                                                                              movie: movie))
-                    onTrigger?()
-                }
-                buttons.append(button)
-            } else {
-                let button: Alert.Button = .default(Text("Add to \(list.name)")) {
-                    store.dispatch(action: MoviesActions.AddMovieToCustomList(list: list.id,
-                                                                              movie: movie))
-                    #if !os(tvOS)
-                    UISelectionFeedbackGenerator().selectionChanged()
-                    #endif
-                    onTrigger?()
-                }
-                buttons.append(button)
+        for list in customLists {
+            let action = ActionSheetMovieListAction.customList(list: list, movie: movie)
+            switch action {
+            case .removeFromCustomList:
+                buttons.append(.destructive(Text("Remove from \(list.name)")) {
+                    self.dispatch(action, with: dispatch, onTrigger: onTrigger)
+                })
+            case .addToCustomList:
+                buttons.append(.default(Text("Add to \(list.name)")) {
+                    self.dispatch(action, with: dispatch, onTrigger: onTrigger)
+                })
+            default:
+                break
             }
         }
         return buttons
@@ -95,3 +129,4 @@ extension ActionSheet {
                            })])
     }
 }
+#endif

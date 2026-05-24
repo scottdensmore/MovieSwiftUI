@@ -1,15 +1,8 @@
-//
-//  MovieGridRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 24/06/2020.
-//  Copyright © 2020 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
 import UI
+import MovieSwiftFluxCore
 
 struct MovieGridRow: ConnectedView {
     struct Props {
@@ -19,7 +12,7 @@ struct MovieGridRow: ConnectedView {
     let movieId: Int
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(movie: state.moviesState.movies[movieId]!)
+        Props(movie: state.moviesState.movies[movieId] ?? Movie.placeholder(id: movieId))
     }
     
     

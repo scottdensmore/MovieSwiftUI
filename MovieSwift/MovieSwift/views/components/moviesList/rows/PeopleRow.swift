@@ -1,18 +1,21 @@
-//
-//  PeopleRow.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 06/07/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import SwiftUIFlux
 import Backend
+import MovieSwiftFluxCore
+
+enum PeopleRowState {
+    static func people(for peopleId: Int, from state: AppState) -> People? {
+        state.peoplesState.peoples[peopleId]
+    }
+
+    static func shouldShowPlaceholder(for people: People?) -> Bool {
+        people == nil
+    }
+}
 
 struct PeopleRow : ConnectedView {
     struct Props {
-        let people: People
+        let people: People?
         let isInFanClub: Bool
     }
     
@@ -20,7 +23,7 @@ struct PeopleRow : ConnectedView {
     var isSelected = false
     
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
-        Props(people: state.peoplesState.peoples[peopleId]!,
+        Props(people: PeopleRowState.people(for: peopleId, from: state),
               isInFanClub: state.peoplesState.fanClub.contains(peopleId))
     }
     
@@ -34,19 +37,19 @@ struct PeopleRow : ConnectedView {
     
     func body(props: Props) -> some View {
         HStack {
-            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.people.profile_path, size: .cast))
+            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.people?.profile_path, size: .cast))
             VStack(alignment: .leading) {
                 HStack {
                     if props.isInFanClub {
                         fanClubIcon
                     }
-                    Text(props.people.name)
+                    Text(props.people?.name ?? "Unknown person")
                         .titleStyle()
                         .foregroundColor(.primary)
                         .lineLimit(1)
                 }
                 .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
-                Text(props.people.knownForText ?? "")
+                Text(props.people?.knownForText ?? "")
                     .foregroundColor(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)
@@ -59,14 +62,10 @@ struct PeopleRow : ConnectedView {
         .padding(.bottom)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
-        .redacted(reason: peopleId == 0 ? .placeholder : [])
+        .redacted(reason: PeopleRowState.shouldShowPlaceholder(for: props.people) ? .placeholder : [])
     }
 }
 
-#if DEBUG
-struct PeopleRow_Previews : PreviewProvider {
-    static var previews: some View {
-        PeopleRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
-    }
+#Preview {
+    PeopleRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
 }
-#endif

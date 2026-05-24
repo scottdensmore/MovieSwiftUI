@@ -1,11 +1,3 @@
-//
-//  ImageData.swift
-//  MovieSwift
-//
-//  Created by Thomas Ricouard on 09/06/2019.
-//  Copyright © 2019 Thomas Ricouard. All rights reserved.
-//
-
 import SwiftUI
 import Combine
 
@@ -24,13 +16,17 @@ public class ImageLoaderCache {
             return loader
         }
     }
+
+    public func clear() {
+        loaders.removeAllObjects()
+    }
 }
 
 public final class ImageLoader: ObservableObject {
     public let path: String?
     public let size: ImageService.Size
 
-    @Published public var image: PlatformImage? = nil
+    @Published public var image: Data? = nil
     
     public var cancellable: AnyCancellable?
         
