@@ -106,9 +106,18 @@ enum ErrorDiagnostic {
 
 enum Clipboard {
     /// Cross-platform copy. Returns true if the write appeared to succeed.
+    ///
+    /// tvOS is checked FIRST and separately: `canImport(UIKit)` is true
+    /// on tvOS, but `UIPasteboard` is unavailable there (tvOS has no
+    /// general pasteboard concept), so the UIKit branch below would fail
+    /// to compile. tvOS never shows MoviesListErrorBanner anyway — the
+    /// file is only in the tvOS target because it lives in Shared/ — so
+    /// returning false is the correct no-op.
     @discardableResult
     static func copy(_ string: String) -> Bool {
-        #if canImport(UIKit)
+        #if os(tvOS)
+        return false
+        #elseif canImport(UIKit)
         UIPasteboard.general.string = string
         return UIPasteboard.general.string == string
         #elseif canImport(AppKit)

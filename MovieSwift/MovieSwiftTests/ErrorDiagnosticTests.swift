@@ -141,9 +141,13 @@ final class ErrorDiagnosticTests: XCTestCase {
     func testClipboardCopyRoundTripsTheStringOnHostPlatform() throws {
         let payload = "MovieSwift diagnostic test \(UUID().uuidString)"
         let succeeded = Clipboard.copy(payload)
-        try XCTSkipUnless(succeeded, "Clipboard.copy returned false — likely a sandboxed test host without clipboard access")
+        // tvOS has no pasteboard, so Clipboard.copy returns false there —
+        // skip rather than fail.
+        try XCTSkipUnless(succeeded, "Clipboard.copy returned false — tvOS (no pasteboard) or a sandboxed test host without clipboard access")
 
-        #if canImport(UIKit)
+        #if os(tvOS)
+        // unreachable — the XCTSkipUnless above always skips on tvOS
+        #elseif canImport(UIKit)
         XCTAssertEqual(UIPasteboard.general.string, payload)
         #elseif canImport(AppKit)
         XCTAssertEqual(NSPasteboard.general.string(forType: .string), payload)
