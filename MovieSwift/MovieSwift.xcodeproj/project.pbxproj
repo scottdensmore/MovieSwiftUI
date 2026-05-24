@@ -2551,8 +2551,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Dimillian/SwiftUIFlux.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.5.1;
+				kind = revision;
+				revision = 05e3e07a752a513bc160bcc589004ebf1bc6c1dc;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
