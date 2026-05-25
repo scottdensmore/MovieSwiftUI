@@ -77,7 +77,6 @@ final class APIServiceTests: XCTestCase {
         }
         
         waitForExpectations(timeout: 1)
-        XCTAssertNil(session.lastRequest)
         // Missing key short-circuits before any network call.
         XCTAssertNil(session.lastRequest)
     }

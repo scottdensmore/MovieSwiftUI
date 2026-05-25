@@ -51,14 +51,12 @@ final class MoviesActionsTests: XCTestCase {
         func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
             allRequests.append(request)
-            let data: Data?
-            let response: URLResponse?
-            let error: Error?
-            if !responseQueue.isEmpty {
-                (data, response, error) = responseQueue.removeFirst()
-            } else {
-                (data, response, error) = (nextData, nextResponse, nextError)
-            }
+            // Pop the queued triple if present, else fall back to the
+            // single `next*` values. Choosing the tuple first, then
+            // destructuring, keeps this a single clear expression.
+            let (data, response, error) = responseQueue.isEmpty
+                ? (nextData, nextResponse, nextError)
+                : responseQueue.removeFirst()
             if let error { throw error }
             // Default to 200 when a test only sets data (matches the prior
             // "nil response → skip status check → decode" behaviour).
