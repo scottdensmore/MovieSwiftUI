@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "f2350f4e80f6",
+  "strategy": "manual-commit",
+  "branch": "feat/swift6-language-mode",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/f2/350f4e80f6/0/metadata.json",
+      "transcript": "/f2/350f4e80f6/0/full.jsonl",
+      "content_hash": "/f2/350f4e80f6/0/content_hash.txt",
+      "prompt": "/f2/350f4e80f6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7210,
+    "cache_creation_tokens": 26542828,
+    "cache_read_tokens": 2197285173,
+    "output_tokens": 3022457,
+    "api_call_count": 5180
+  }
+}
