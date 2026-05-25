@@ -35,7 +35,7 @@ struct MoviesListErrorBanner: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.headline)
-                    // `.foregroundStyle(.primary)` (vs `.foregroundStyle(.primary)`)
+                    // `.foregroundStyle(.primary)` (vs `.foregroundColor(.primary)`)
                     // explicitly draws from SwiftUI's foreground-style stack —
                     // necessary here because DiscoverView renders a
                     // `FullscreenMoviePosterImage` fallback (black @ 0.8) as its
