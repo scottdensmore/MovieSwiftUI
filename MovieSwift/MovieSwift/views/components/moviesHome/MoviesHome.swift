@@ -49,7 +49,7 @@ struct MoviesHome : ConnectedView {
     // setting — `minWidth/minHeight` lets the frame grow above 44.
     @ScaledMetric private var headerIconSize: CGFloat = 22
     @ScaledMetric private var headerHitSize: CGFloat = 44
-    @StateObject private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: .popular)
+    @State private var selectedMenu = MoviesSelectedMenuStore(selectedMenu: .popular)
     @State private var isSettingPresented = false
     @State private var homeMode = HomeMode.list
     @State private var navigationRoute: MoviesListNavigationRoute?

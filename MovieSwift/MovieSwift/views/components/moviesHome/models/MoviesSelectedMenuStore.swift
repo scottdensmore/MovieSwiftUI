@@ -1,12 +1,14 @@
 import Foundation
-import Combine
-import SwiftUI
+import Observation
 import MovieSwiftFluxCore
 
-final class MoviesSelectedMenuStore: ObservableObject {
-    let pageListener: MoviesMenuListPageListener
-    
-    @Published var menu: MoviesMenu {
+@Observable
+final class MoviesSelectedMenuStore {
+    // The page listener is a plain reference, not observed UI state, so
+    // exclude it from Observation tracking.
+    @ObservationIgnored let pageListener: MoviesMenuListPageListener
+
+    var menu: MoviesMenu {
         didSet {
             synchronizePageListener()
         }

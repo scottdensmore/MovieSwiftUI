@@ -17,9 +17,10 @@
 //  AppIntent and the view both reach for `.shared`.
 
 import Foundation
-import Combine
+import Observation
 
-final class IntentNavigationStore: ObservableObject {
+@Observable
+final class IntentNavigationStore {
     static let shared = IntentNavigationStore()
 
     /// Where an App Intent is asking the app to navigate. Each
@@ -31,7 +32,7 @@ final class IntentNavigationStore: ObservableObject {
         case wishlist
     }
 
-    @Published var pendingDestination: Destination?
+    var pendingDestination: Destination?
 
     private init() {}
 
