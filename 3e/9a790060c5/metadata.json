@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "3e9a790060c5",
+  "strategy": "manual-commit",
+  "branch": "feat/observable-stores",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/3e/9a790060c5/0/metadata.json",
+      "transcript": "/3e/9a790060c5/0/full.jsonl",
+      "content_hash": "/3e/9a790060c5/0/content_hash.txt",
+      "prompt": "/3e/9a790060c5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6726,
+    "cache_creation_tokens": 25223325,
+    "cache_read_tokens": 2113251614,
+    "output_tokens": 2854494,
+    "api_call_count": 4938
+  }
+}
