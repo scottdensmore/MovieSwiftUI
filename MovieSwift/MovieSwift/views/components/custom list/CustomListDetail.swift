@@ -127,7 +127,7 @@ struct CustomListDetail : ConnectedView {
                         Image(systemName: "pencil.circle")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(.steam_gold)
+                            .foregroundStyle(Color.steam_gold)
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
@@ -139,7 +139,7 @@ struct CustomListDetail : ConnectedView {
                         Image(systemName: "line.horizontal.3.decrease.circle")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(.steam_gold)
+                            .foregroundStyle(Color.steam_gold)
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
@@ -151,7 +151,7 @@ struct CustomListDetail : ConnectedView {
                         Image(systemName: "line.horizontal.3.decrease.circle")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(.steam_gold)
+                            .foregroundStyle(Color.steam_gold)
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     })
@@ -193,7 +193,7 @@ struct CustomListDetail : ConnectedView {
                                     Spacer(minLength: 0)
                                     if self.selectedMovies.contains(movie) {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.steam_white)
+                                            .foregroundStyle(Color.steam_white)
                                             .opacity(0.9)
                                     }
                                 }

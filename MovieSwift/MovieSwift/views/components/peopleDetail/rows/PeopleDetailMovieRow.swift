@@ -28,7 +28,7 @@ struct PeopleDetailMovieRow : View {
                     .font(.headline)
                 if let subtitle = PeopleDetailMovieRowState.subtitle(for: role) {
                     Text(subtitle)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                         .font(.subheadline)
                 }
             }

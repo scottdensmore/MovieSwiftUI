@@ -198,7 +198,7 @@ struct DiscoverFilterForm : ConnectedView {
                     }
                 }, label: {
                     Text("Save and filter movies")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
@@ -208,7 +208,7 @@ struct DiscoverFilterForm : ConnectedView {
                     self.presentationMode.wrappedValue.dismiss()
                 }, label: {
                     Text("Cancel")
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
@@ -227,7 +227,7 @@ struct DiscoverFilterForm : ConnectedView {
                     }
                 }, label: {
                     Text("Reset random")
-                        .foregroundColor(.blue)
+                        .foregroundStyle(.blue)
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
@@ -249,15 +249,15 @@ struct DiscoverFilterForm : ConnectedView {
                         }, label: {
                             HStack(spacing: 10) {
                                 Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                                    .foregroundColor(.steam_blue)
+                                    .foregroundStyle(Color.steam_blue)
                                 Text(props.savedFilters[index].toText(genres: props.genres))
-                                    .foregroundColor(.primary)
+                                    .foregroundStyle(.primary)
                                     .font(.body)
                                     .lineLimit(1)
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(.secondary)
                             }
                             .padding(.horizontal, 4)
                             .padding(.vertical, 6)
@@ -275,7 +275,7 @@ struct DiscoverFilterForm : ConnectedView {
                         }
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                     })
                     .accessibilityIdentifier("discoverFilter.deleteSavedFiltersButton")
                 })

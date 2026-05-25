@@ -85,12 +85,12 @@ private struct GenreCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 Image(systemName: GenrePresentation.iconName(for: genre))
                     .font(.system(size: 32, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                 Spacer(minLength: 0)
                 Text(genre.name)
                     .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }

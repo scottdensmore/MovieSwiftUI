@@ -14,7 +14,7 @@ struct PeopleImage : View {
                 Rectangle()
                     .cornerRadius(10)
                     .frame(width: 60, height: 90)
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
                     .opacity(0.1)
             }
         }
@@ -35,7 +35,7 @@ struct BigPeopleImage : View {
                 Rectangle()
                     .cornerRadius(10)
                     .frame(width: 100, height: 150)
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
                     .opacity(0.1)
             }
         }

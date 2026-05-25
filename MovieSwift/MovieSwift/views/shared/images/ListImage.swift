@@ -36,7 +36,7 @@ struct ListImage: ConnectedView {
             if let iconName = icon(props: props) {
                 Image(systemName: iconName)
                     .imageScale(.small)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .position(x: 13, y: 15)
                     .transition(AnyTransition.scale
                         .combined(with: .opacity))

@@ -13,7 +13,7 @@ struct MoviePosterImage: View {
                 .transition(.opacity)
         } else {
             Rectangle()
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
                 .posterStyle(loaded: false, size: posterSize)
         }
     }

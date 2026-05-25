@@ -25,11 +25,11 @@ struct DiscoverCoverImage : View {
                 .discoverPosterStyle()
         } else if imageLoader.path == nil {
             Rectangle()
-                .foregroundColor(.gray)
+                .foregroundStyle(.gray)
                 .discoverPosterStyle()
         } else {
             Rectangle()
-                .foregroundColor(.clear)
+                .foregroundStyle(.clear)
                 .frame(width: 50, height: 50)
         }
     }

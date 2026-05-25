@@ -215,7 +215,7 @@ struct FanClubHome: ConnectedView {
                             }
                             if let lastPopularId = props.popular.last {
                                 Rectangle()
-                                    .foregroundColor(.clear)
+                                    .foregroundStyle(.clear)
                                     .frame(height: 1)
                                     .onAppear {
                                         fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
@@ -328,7 +328,7 @@ struct FanClubHome: ConnectedView {
 
                 if let lastPopularId = props.popular.last {
                     Rectangle()
-                        .foregroundColor(.clear)
+                        .foregroundStyle(.clear)
                         .onAppear {
                             fetchNextPopularPageIfNeeded(props: props, lastPopularId: lastPopularId)
                         }

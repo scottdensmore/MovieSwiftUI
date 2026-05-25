@@ -123,7 +123,7 @@ struct SplitView: View {
                         .padding(.leading, selectedMenu == .settings ? 0 : 12)
                 } else {
                     Text("Select a section")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
             }
             .id(detailRebuildKey)

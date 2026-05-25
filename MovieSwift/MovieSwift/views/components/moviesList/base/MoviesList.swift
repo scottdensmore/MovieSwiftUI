@@ -273,7 +273,7 @@ struct MoviesList: ConnectedView {
         /// Could be possible to do with GeometryReader.
         if !movies.isEmpty || props.searchedMovies?.isEmpty == false {
             Rectangle()
-                .foregroundColor(.clear)
+                .foregroundStyle(.clear)
                 .onAppear {
                     if MoviesListPaginationPolicy.shouldAdvanceSearchPage(isSearching: self.isSearching,
                                                                          searchedMovies: props.searchedMovies) {

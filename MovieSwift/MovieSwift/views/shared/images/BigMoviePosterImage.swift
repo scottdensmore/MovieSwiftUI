@@ -17,7 +17,7 @@ struct BigMoviePosterImage : View {
                 }
             } else {
                 Rectangle()
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
                     .posterStyle(loaded: false, size: .big)
             }
             }

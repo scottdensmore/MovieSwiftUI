@@ -212,7 +212,7 @@ struct DiscoverView: ConnectedView {
                 Circle()
                     .strokeBorder(color, lineWidth: 1)
                 Image(systemName: systemImage)
-                    .foregroundColor(color)
+                    .foregroundStyle(color)
             }
             .frame(width: 50, height: 50)
             .padding(12)
@@ -246,7 +246,7 @@ struct DiscoverView: ConnectedView {
         ZStack(alignment: .center) {
             if props.currentMovie != nil {
                 Text(props.currentMovie!.userTitle)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .font(.FjallaOne(size: 18))
                     .lineLimit(2)
@@ -286,7 +286,7 @@ struct DiscoverView: ConnectedView {
                         Circle()
                             .strokeBorder(Color.red, lineWidth: 1)
                         Image(systemName: "xmark")
-                            .foregroundColor(.red)
+                            .foregroundStyle(.red)
                     }
                     .frame(width: 50, height: 50)
                     .padding(12)
@@ -304,7 +304,7 @@ struct DiscoverView: ConnectedView {
                     self.fetchRandomMovies(props: props, force: true, filter: nil)
                 }, label: {
                     Image(systemName: "arrow.swap")
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                 })
                     .frame(width: 50, height: 50)
                     .accessibilityIdentifier("discover.resetButton")
@@ -317,13 +317,13 @@ struct DiscoverView: ConnectedView {
                                                                          isRunningUISmokeTests: isRunningUISmokeTests)
                 VStack(spacing: 12) {
                     Text(presentation.title)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .font(.FjallaOne(size: 18))
                         .accessibilityIdentifier("discover.emptyState")
 
                     Text(presentation.message)
-                        .foregroundColor(.white.opacity(0.85))
+                        .foregroundStyle(.white.opacity(0.85))
                         .multilineTextAlignment(.center)
                         .font(.system(size: 14, weight: .medium))
                         .padding(.horizontal, 24)
@@ -349,7 +349,7 @@ struct DiscoverView: ConnectedView {
                 props.dispatch(MoviesActions.PushRandomDiscover(movie: previousMovie))
                 self.previousMovie = nil
             }, label: {
-                Image(systemName: "gobackward").foregroundColor(.steam_blue)
+                Image(systemName: "gobackward").foregroundStyle(Color.steam_blue)
             }) .frame(width: 50, height: 50)
                 .accessibilityIdentifier("discover.undoButton")
                 .offset(x: -60, y: 30)
@@ -366,7 +366,7 @@ struct DiscoverView: ConnectedView {
             if props.currentMovie != nil {
                 Text("Swipe left to add to wishlist. Swipe right to add to seenlist.")
                     .font(.footnote)
-                    .foregroundColor(.white.opacity(0.9))
+                    .foregroundStyle(.white.opacity(0.9))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(Color.black.opacity(0.45))
@@ -527,14 +527,14 @@ struct DiscoverView: ConnectedView {
                     VStack(spacing: 6) {
                         Text(movie.userTitle)
                             .font(.FjallaOne(size: 28))
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .accessibilityIdentifier("discover.currentMovieTitle")
                         if !movie.overview.isEmpty {
                             Text(movie.overview)
                                 .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.85))
+                                .foregroundStyle(.white.opacity(0.85))
                                 .multilineTextAlignment(.center)
                                 .lineLimit(3)
                                 .padding(.horizontal, 40)
@@ -568,7 +568,7 @@ struct DiscoverView: ConnectedView {
                     } else {
                         ProgressView()
                         Text("Loading random movies…")
-                            .foregroundColor(.white.opacity(0.9))
+                            .foregroundStyle(.white.opacity(0.9))
                     }
                 }
             }
@@ -655,7 +655,7 @@ struct DiscoverView: ConnectedView {
             fetchRandomMovies(props: props, force: true, filter: nil)
         } label: {
             Label("Reset", systemImage: "arrow.swap")
-                .foregroundColor(.steam_blue)
+                .foregroundStyle(Color.steam_blue)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("discover.resetButton")
@@ -678,15 +678,15 @@ struct DiscoverView: ConnectedView {
                         .frame(width: 58, height: 58)
                     Image(systemName: systemImage)
                         .font(.title2)
-                        .foregroundColor(tint)
+                        .foregroundStyle(tint)
                 }
                 Text(title)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.95))
+                    .foregroundStyle(.white.opacity(0.95))
                 Text(hint)
                     .font(.caption2)
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundStyle(.white.opacity(0.55))
             }
         }
         .buttonStyle(.plain)

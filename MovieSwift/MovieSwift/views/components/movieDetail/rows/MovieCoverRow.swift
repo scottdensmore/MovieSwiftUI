@@ -74,7 +74,7 @@ struct MovieCoverRow : ConnectedView {
                             PopularityBadge(score: presentation.popularityScore, textColor: .white)
                             Text(presentation.ratingsText)
                                 .lineLimit(1)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                         }
                     }
                 }
@@ -142,10 +142,10 @@ struct MovieCoverRow : ConnectedView {
             Text(text.capitalized)
                 .font(.footnote)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
             Image(systemName: "chevron.right")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundStyle(.white.opacity(0.9))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

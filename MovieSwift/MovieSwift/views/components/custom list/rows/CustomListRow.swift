@@ -12,7 +12,7 @@ struct CustomListRow : View {
                                                                                  size: .medium))
             VStack(alignment: .leading, spacing: 4) {
                 Text(list.name).font(.headline).fontWeight(.bold)
-                Text("\(list.movies.count) movies").font(.subheadline).foregroundColor(.secondary)
+                Text("\(list.movies.count) movies").font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
             }
@@ -42,7 +42,7 @@ struct SmallMoviePosterImage : View {
                 }
             } else {
                 Rectangle()
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
                     .frame(width: 33, height: 50)
                     .cornerRadius(3)
                     .opacity(0.3)
