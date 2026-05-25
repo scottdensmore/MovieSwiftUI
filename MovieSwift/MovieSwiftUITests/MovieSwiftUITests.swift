@@ -1485,4 +1485,51 @@ final class MovieSwiftUITests: XCTestCase {
         expectation(for: absent, evaluatedWith: cancelButton)
         waitForExpectations(timeout: uiWaitTimeout)
     }
+
+    // MARK: - Onboarding layout
+
+    /// Regression test for the onboarding flow overflowing the iPhone
+    /// screen. OnboardingView carried an unconditional
+    /// `.frame(minWidth: 520, minHeight: 520)` — a macOS window-sizing
+    /// constraint — which, when presented in iOS's `.fullScreenCover`,
+    /// forced the content to 520pt wide on a ~402pt-wide device, pushing
+    /// ~59pt of content off each horizontal edge (and the Continue button
+    /// partly off-screen). The fix gates that frame to `#if os(macOS)`.
+    ///
+    /// Onboarding is normally suppressed under `--ui-smoke-tests`, so this
+    /// test passes `--ui-test-force-onboarding` (a HomeView launch-arg
+    /// hook) to force the wizard on, then asserts:
+    ///   1. The Continue button (present on every step) renders — also
+    ///      proves the per-control accessibility identifiers survive (they
+    ///      were previously clobbered by a container-level identifier).
+    ///   2. The Continue button sits fully within the window's horizontal
+    ///      bounds (it would spill past the right edge with the 520
+    ///      min-width applied).
+    ///   3. The Continue button is hittable (off-screen content isn't).
+    func testOnboardingContentFitsWithinScreenBounds() throws {
+        try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .phone,
+                          "Onboarding screen-bounds regression is specific to the compact iPhone width")
+
+        let app = launchApp(additionalLaunchArguments: ["--ui-test-force-onboarding"])
+
+        let continueButton = identifiedElement("onboarding.continueButton", in: app)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Onboarding Continue button should render when the wizard is forced on")
+
+        let window = app.windows.firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: uiWaitTimeout))
+
+        // The Continue button must not spill past either horizontal edge
+        // of the window. With the macOS minWidth:520 mistakenly applied on
+        // iOS, the centered 520pt content pushes the trailing button edge
+        // past the ~402pt screen's right edge. Allow 1pt of rounding slack.
+        XCTAssertLessThanOrEqual(continueButton.frame.maxX, window.frame.maxX + 1,
+                                 "Continue button extends past the right screen edge — onboarding content is overflowing")
+        XCTAssertGreaterThanOrEqual(continueButton.frame.minX, window.frame.minX - 1,
+                                    "Continue button extends past the left screen edge — onboarding content is overflowing")
+
+        // Off-screen content isn't hittable; an on-screen button is.
+        XCTAssertTrue(continueButton.isHittable,
+                      "Continue button should be fully on-screen and hittable")
+    }
 }
