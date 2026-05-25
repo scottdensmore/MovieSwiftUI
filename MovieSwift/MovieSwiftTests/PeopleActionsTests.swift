@@ -20,29 +20,19 @@ final class PeopleActionsTests: XCTestCase {
         }
     }
 
-    private final class MockDataTask: NetworkDataTask {
-        private(set) var resumeCalls = 0
-
-        func resume() {
-            resumeCalls += 1
-        }
-    }
-
-    private final class MockNetworkSession: NetworkSession {
+    private final class MockNetworkSession: NetworkSession, @unchecked Sendable {
         var lastRequest: URLRequest?
         var nextData: Data?
         var nextResponse: URLResponse?
         var nextError: Error?
 
-        let task = MockDataTask()
-
-        func dataTask(
-            with request: URLRequest,
-            completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-        ) -> NetworkDataTask {
+        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
-            completionHandler(nextData, nextResponse, nextError)
-            return task
+            if let nextError { throw nextError }
+            let response = nextResponse
+                ?? HTTPURLResponse(url: request.url!, statusCode: 200,
+                                   httpVersion: "HTTP/1.1", headerFields: nil)!
+            return (nextData ?? Data(), response)
         }
     }
 
@@ -86,7 +76,7 @@ final class PeopleActionsTests: XCTestCase {
 
         XCTAssertEqual(dispatchedAction?.person.id, 5)
         XCTAssertEqual(dispatchedAction?.person.name, "Alice")
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
 
         let requestURL = try XCTUnwrap(session.lastRequest?.url)
         XCTAssertTrue(requestURL.path.contains("/person/5"))
@@ -117,7 +107,7 @@ final class PeopleActionsTests: XCTestCase {
         }
 
         waitForExpectations(timeout: 0.2)
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
     }
 
     // MARK: - FetchImages

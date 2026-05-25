@@ -30,15 +30,7 @@ final class MoviesActionsTests: XCTestCase {
         }
     }
 
-    private final class MockDataTask: NetworkDataTask {
-        private(set) var resumeCalls = 0
-
-        func resume() {
-            resumeCalls += 1
-        }
-    }
-
-    private final class MockNetworkSession: NetworkSession {
+    private final class MockNetworkSession: NetworkSession, @unchecked Sendable {
         var lastRequest: URLRequest?
 
         /// All requests issued, in order. Used by multi-phase tests (e.g.
@@ -50,27 +42,28 @@ final class MoviesActionsTests: XCTestCase {
         var nextError: Error?
 
         /// FIFO queue of `(Data?, URLResponse?, Error?)` triples — when
-        /// non-empty, each `dataTask(with:)` call pops the front element
-        /// and returns it as the completion. Falls back to
-        /// `(nextData, nextResponse, nextError)` once the queue drains,
-        /// so existing tests that only set `nextData` keep working.
+        /// non-empty, each `data(for:)` call pops the front element and
+        /// returns/throws it. Falls back to `(nextData, nextResponse,
+        /// nextError)` once the queue drains, so existing tests that only
+        /// set `nextData` keep working.
         var responseQueue: [(Data?, URLResponse?, Error?)] = []
 
-        let task = MockDataTask()
-
-        func dataTask(
-            with request: URLRequest,
-            completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-        ) -> NetworkDataTask {
+        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
             allRequests.append(request)
-            if !responseQueue.isEmpty {
-                let (data, response, error) = responseQueue.removeFirst()
-                completionHandler(data, response, error)
-            } else {
-                completionHandler(nextData, nextResponse, nextError)
-            }
-            return task
+            // Pop the queued triple if present, else fall back to the
+            // single `next*` values. Choosing the tuple first, then
+            // destructuring, keeps this a single clear expression.
+            let (data, response, error) = responseQueue.isEmpty
+                ? (nextData, nextResponse, nextError)
+                : responseQueue.removeFirst()
+            if let error { throw error }
+            // Default to 200 when a test only sets data (matches the prior
+            // "nil response → skip status check → decode" behaviour).
+            let resolvedResponse = response
+                ?? HTTPURLResponse(url: request.url!, statusCode: 200,
+                                   httpVersion: "HTTP/1.1", headerFields: nil)!
+            return (data ?? Data(), resolvedResponse)
         }
     }
 
@@ -219,7 +212,7 @@ final class MoviesActionsTests: XCTestCase {
         XCTAssertEqual(action.page, 2)
         XCTAssertEqual(action.list, .popular)
         XCTAssertEqual(action.response.results.map(\.id), [20])
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
 
         let components = try XCTUnwrap(
             URLComponents(url: try XCTUnwrap(session.lastRequest?.url), resolvingAgainstBaseURL: false)
@@ -255,10 +248,8 @@ final class MoviesActionsTests: XCTestCase {
             dataActionDescription: "SetMovieMenuList"
         )
         XCTAssertEqual(failure.kind, .missingAPIKey)
-        // Missing API key short-circuits in APIService.GET — no network call,
-        // no resume.
+        // Missing API key short-circuits in APIService.GET — no network call.
         XCTAssertNil(session.lastRequest)
-        XCTAssertEqual(session.task.resumeCalls, 0)
     }
 
     func testFetchMoviesMenuListDispatchesFailureOnNetworkError() throws {
@@ -285,7 +276,7 @@ final class MoviesActionsTests: XCTestCase {
             noDataActionMatching: { $0 is MoviesActions.SetMovieMenuList },
             dataActionDescription: "SetMovieMenuList"
         )
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
     }
 
     func testFetchMoviesMenuListDispatchesFailureOnDecodingError() throws {
@@ -313,7 +304,7 @@ final class MoviesActionsTests: XCTestCase {
             dataActionDescription: "SetMovieMenuList"
         )
         XCTAssertEqual(failure.kind, .decode)
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
     }
 
     // MARK: - FetchGenres
@@ -339,7 +330,7 @@ final class MoviesActionsTests: XCTestCase {
         let action = try unwrapDispatched(MoviesActions.SetGenres.self, in: dispatched)
         XCTAssertEqual(action.genres.map(\.id), [12, 18])
         XCTAssertEqual(action.genres.map(\.name), ["Adventure", "Drama"])
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
 
         let requestURL = try XCTUnwrap(session.lastRequest?.url)
         XCTAssertTrue(requestURL.path.contains("/genre/movie/list"))
@@ -368,7 +359,7 @@ final class MoviesActionsTests: XCTestCase {
             noDataActionMatching: { $0 is MoviesActions.SetGenres },
             dataActionDescription: "SetGenres"
         )
-        XCTAssertEqual(session.task.resumeCalls, 1)
+        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
     }
 
     // MARK: - FetchDetail

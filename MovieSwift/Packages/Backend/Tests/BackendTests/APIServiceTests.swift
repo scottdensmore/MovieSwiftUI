@@ -14,29 +14,22 @@ final class APIServiceTests: XCTestCase {
         }
     }
     
-    private final class MockDataTask: NetworkDataTask {
-        private(set) var resumeCalls = 0
-        
-        func resume() {
-            resumeCalls += 1
-        }
-    }
-    
-    private final class MockNetworkSession: NetworkSession {
+    private final class MockNetworkSession: NetworkSession, @unchecked Sendable {
         var lastRequest: URLRequest?
-        var nextData: Data?
+        var nextData: Data = Data()
         var nextResponse: URLResponse?
         var nextError: Error?
-        
-        let task = MockDataTask()
-        
-        func dataTask(
-            with request: URLRequest,
-            completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-        ) -> NetworkDataTask {
+
+        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
-            completionHandler(nextData, nextResponse, nextError)
-            return task
+            if let nextError { throw nextError }
+            // Default to a 200 so tests that only set `nextData` exercise
+            // the success/decode path (mirrors the old "nil response →
+            // skip status check" behaviour).
+            let response = nextResponse
+                ?? HTTPURLResponse(url: request.url!, statusCode: 200,
+                                   httpVersion: "HTTP/1.1", headerFields: nil)!
+            return (nextData, response)
         }
     }
     
@@ -84,10 +77,10 @@ final class APIServiceTests: XCTestCase {
         }
         
         waitForExpectations(timeout: 1)
+        // Missing key short-circuits before any network call.
         XCTAssertNil(session.lastRequest)
-        XCTAssertEqual(session.task.resumeCalls, 0)
     }
-    
+
     func testGETBuildsRequestAndDecodesOnSuccess() {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
@@ -105,8 +98,7 @@ final class APIServiceTests: XCTestCase {
         }
         
         waitForExpectations(timeout: 1)
-        
-        XCTAssertEqual(session.task.resumeCalls, 1)
+
         XCTAssertEqual(session.lastRequest?.httpMethod, "GET")
         
         guard let requestURL = session.lastRequest?.url,
@@ -126,26 +118,12 @@ final class APIServiceTests: XCTestCase {
         XCTAssertEqual(queryItems["query"], "batman")
     }
     
-    func testGETReturnsNoResponseWhenDataIsMissing() {
-        let session = MockNetworkSession()
-        session.nextData = nil
-        session.nextError = nil
-        let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "No response failure")
-        
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.noResponse) = result else {
-                XCTFail("Expected noResponse error")
-                expectation.fulfill()
-                return
-            }
-            expectation.fulfill()
-        }
-        
-        waitForExpectations(timeout: 1)
-        XCTAssertEqual(session.task.resumeCalls, 1)
-    }
-    
+    // (The former testGETReturnsNoResponseWhenDataIsMissing was removed:
+    // URLSession.data(for:) always yields a non-nil Data, so the
+    // "successful response with missing data" path is structurally
+    // impossible under async/await. The `.noResponse` error remains for
+    // the URL-construction-failure guard in GET.)
+
     func testGETReturnsNetworkErrorWhenErrorExists() {
         let session = MockNetworkSession()
         session.nextData = Data()
