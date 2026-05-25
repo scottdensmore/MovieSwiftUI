@@ -220,7 +220,12 @@ struct DiscoverView: ConnectedView {
         })
         .buttonStyle(PlainButtonStyle())
         .accessibilityIdentifier(accessibilityIdentifier)
-        .accessibilityLabel(decision == .wishlist ? "Add to wishlist" : "Add to seenlist")
+        // The ternary makes this a `String`, which binds to the
+        // non-localizing `accessibilityLabel(_: StringProtocol)` overload —
+        // so each branch must be `String(localized:)` to reach the catalog.
+        .accessibilityLabel(decision == .wishlist
+                            ? String(localized: "Add to wishlist", comment: "Accessibility label for the swipe-to-wishlist action on a Discover card")
+                            : String(localized: "Add to seenlist", comment: "Accessibility label for the swipe-to-seenlist action on a Discover card"))
         .offset(x: xOffset, y: yOffset)
         .opacity(opacity)
         .animation(.spring(), value: self.draggedViewState.translation)
