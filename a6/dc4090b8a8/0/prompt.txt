@@ -1,0 +1,9 @@
+PR #4 (onboarding iPhone overflow fix): (1) check + address any review comments — Copilot will have reviewed; (2) check CI run for the branch fix/onboarding-iphone-bounds is all green; (3) if both clear, merge with merge commit, delete branch local+remote, switch to main and pull. Per the project workflow: always check comments before merging.
+
+---
+
+I edited these files myself so we can add them to this pr
+
+---
+
+we should add the .claude directory
