@@ -19,6 +19,6 @@ let package = Package(
         .testTarget(name: "BackendTests", dependencies: ["Backend"])
     ],
     swiftLanguageModes: [
-        .v5
+        .v6
     ]
 )

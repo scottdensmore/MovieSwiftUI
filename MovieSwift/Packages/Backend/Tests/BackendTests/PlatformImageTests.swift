@@ -2,7 +2,10 @@ import Testing
 import SwiftUI
 @testable import Backend
 
+// `@MainActor`: `DataImage` is a SwiftUI `View`, whose initializer is
+// main-actor-isolated under the Swift 6 language mode.
 @Suite("DataImage")
+@MainActor
 struct PlatformImageTests {
     @Test("DataImage initializes with data")
     func initWithData() {

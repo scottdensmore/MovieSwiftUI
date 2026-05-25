@@ -87,7 +87,7 @@ public struct DisabledAPIKeyProvider: APIKeyProviding {
 /// Injection seam for networking. `URLSession` conforms directly via
 /// its async `data(for:)`; tests provide a mock that returns canned
 /// `(Data, URLResponse)` or throws.
-public protocol NetworkSession {
+public protocol NetworkSession: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
@@ -125,7 +125,15 @@ public struct APIService {
         return url
     }
 
-    public static var shared = APIService()
+    // `nonisolated(unsafe)`: this is a configure-once-at-startup
+    // singleton. It's reassigned only from the main actor during app
+    // launch (HomeView / MovieSwiftMacApp install a no-network instance
+    // in UI-test mode) and serially in test `setUp`. `APIService` is an
+    // immutable value type, so concurrent reads each see a complete,
+    // valid copy; there is no read-during-write race in practice. The
+    // unsafe annotation documents that we own that invariant rather than
+    // forcing main-actor isolation onto every dispatch-time read.
+    nonisolated(unsafe) public static var shared = APIService()
     let baseURL: URL
     let decoder: JSONDecoder
     private let apiKeyProvider: APIKeyProviding
@@ -237,9 +245,13 @@ public struct APIService {
         }
     }
     
-    public func GET<T: Codable>(endpoint: Endpoint,
+    // `T: Sendable` and the `@Sendable` completion handler are required
+    // because the decoded value and the callback both cross from the
+    // networking `Task` back to `callbackQueue` — strict concurrency
+    // makes that hand-off explicit rather than racy.
+    public func GET<T: Codable & Sendable>(endpoint: Endpoint,
                          params: [String: String]?,
-                         completionHandler: @escaping (Result<T, APIError>) -> Void) {
+                         completionHandler: @escaping @Sendable (Result<T, APIError>) -> Void) {
         guard let apiKey = apiKey else {
             #if DEBUG
             print("Missing TMDB_API_KEY. Set it in DeveloperSettings.xcconfig.")
