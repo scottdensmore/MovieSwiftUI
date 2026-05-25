@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct DiscoverFilter: Codable {
+public struct DiscoverFilter: Codable, Sendable {
     public let year: Int
     public let startYear: Int?
     public let endYear: Int?

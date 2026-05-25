@@ -1,7 +1,7 @@
 import Foundation
 import Backend
 
-public enum MoviesMenu: Int, CaseIterable {
+public enum MoviesMenu: Int, CaseIterable, Sendable {
     case nowPlaying, upcoming, trending, popular, topRated, genres
     
     public func title() -> String {

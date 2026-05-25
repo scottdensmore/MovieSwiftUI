@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct ImageData: Codable, Identifiable {
+public struct ImageData: Codable, Identifiable, Sendable {
 
     public init(
         aspect_ratio: Float,

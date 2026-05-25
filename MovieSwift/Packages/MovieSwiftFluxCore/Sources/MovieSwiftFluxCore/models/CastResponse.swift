@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CastResponse: Codable {
+public struct CastResponse: Codable, Sendable {
     public let id: Int
     public let cast: [People]
     public let crew: [People]

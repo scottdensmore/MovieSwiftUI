@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct Review: Codable, Identifiable {
+public struct Review: Codable, Identifiable, Sendable {
     public let id: String
     public let author: String
     public let content: String

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Backend
 
-public struct Movie: Codable, Identifiable {
+public struct Movie: Codable, Identifiable, Sendable {
     public let id: Int
     
     public let original_title: String
@@ -84,7 +84,7 @@ public struct Movie: Codable, Identifiable {
     public var character: String?
     public var department: String?
     
-    public struct Keywords: Codable {
+    public struct Keywords: Codable, Sendable {
         public let keywords: [Keyword]?
 
         public init(
@@ -94,7 +94,7 @@ public struct Movie: Codable, Identifiable {
         }
     }
     
-    public struct MovieImages: Codable {
+    public struct MovieImages: Codable, Sendable {
         public let posters: [ImageData]?
         public let backdrops: [ImageData]?
 
@@ -107,7 +107,7 @@ public struct Movie: Codable, Identifiable {
         }
     }
     
-    public struct productionCountry: Codable, Identifiable {
+    public struct productionCountry: Codable, Identifiable, Sendable {
 
         public init(
             name: String

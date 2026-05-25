@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Video: Codable, Identifiable {
+public struct Video: Codable, Identifiable, Sendable {
     public let id: String
     public let name: String
     public let site: String
