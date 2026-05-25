@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "3e869b1a4d83",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-25T18:15:16.420266Z",
+  "branch": "feat/apiservice-async-await",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/APIService.swift",
+    "MovieSwift/Packages/Backend/Tests/BackendTests/APIServiceTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "790719b2dc87",
+  "token_usage": {
+    "input_tokens": 6816,
+    "cache_creation_tokens": 26214695,
+    "cache_read_tokens": 2153974043,
+    "output_tokens": 2884758,
+    "api_call_count": 4983
+  },
+  "session_metrics": {
+    "turn_count": 31
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-25T18:15:15.872904Z",
+    "agent_lines": 119,
+    "agent_removed": 182,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 119,
+    "total_lines_changed": 301,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 119,
+      "agent_lines_removed": 182
+    }
+  ]
+}

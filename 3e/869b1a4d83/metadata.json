@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "3e869b1a4d83",
+  "strategy": "manual-commit",
+  "branch": "feat/apiservice-async-await",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/APIService.swift",
+    "MovieSwift/Packages/Backend/Tests/BackendTests/APIServiceTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/3e/869b1a4d83/0/metadata.json",
+      "transcript": "/3e/869b1a4d83/0/full.jsonl",
+      "content_hash": "/3e/869b1a4d83/0/content_hash.txt",
+      "prompt": "/3e/869b1a4d83/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6816,
+    "cache_creation_tokens": 26214695,
+    "cache_read_tokens": 2153974043,
+    "output_tokens": 2884758,
+    "api_call_count": 4983
+  }
+}
