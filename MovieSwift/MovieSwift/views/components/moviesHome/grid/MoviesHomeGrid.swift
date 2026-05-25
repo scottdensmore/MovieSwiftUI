@@ -64,7 +64,7 @@ struct MoviesHomeGrid: ConnectedView {
             HStack {
                 Text(menu.title())
                     .titleFont(size: 23)
-                    .foregroundColor(.steam_gold)
+                    .foregroundStyle(Color.steam_gold)
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 Spacer()
@@ -72,7 +72,7 @@ struct MoviesHomeGrid: ConnectedView {
                     selectedMenu = MenuDestination(menu: menu)
                 }) {
                     Text("See all")
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, 16)

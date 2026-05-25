@@ -48,7 +48,7 @@ public struct SearchField : View {
                         self.isSearching = false
                         self.dismissButtonCallback?()
                     }, label: {
-                        Text(self.dismissButtonTitle).foregroundColor(.pink)
+                        Text(self.dismissButtonTitle).foregroundStyle(.pink)
                     })
                     .buttonStyle(.borderless)
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)

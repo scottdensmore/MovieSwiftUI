@@ -30,7 +30,7 @@ struct PeopleRow : ConnectedView {
     private var fanClubIcon: some View {
         Image(systemName: "star.circle")
             .imageScale(.large)
-            .foregroundColor(.steam_gold)
+            .foregroundStyle(Color.steam_gold)
             .transition(AnyTransition.scale
                 .combined(with: .opacity))
     }
@@ -45,12 +45,12 @@ struct PeopleRow : ConnectedView {
                     }
                     Text(props.people?.name ?? "Unknown person")
                         .titleStyle()
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                 }
                 .animation(.interpolatingSpring(stiffness: 80, damping: 10), value: props.isInFanClub)
                 Text(props.people?.knownForText ?? "")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.subheadline)
                     .lineLimit(3)
                     .truncationMode(.tail)

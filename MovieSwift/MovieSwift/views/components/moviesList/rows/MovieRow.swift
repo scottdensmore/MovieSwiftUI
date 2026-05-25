@@ -37,17 +37,17 @@ struct MovieRow: ConnectedView {
             VStack(alignment: .leading, spacing: 8) {
                 Text(props.movie.userTitle)
                     .titleStyle()
-                    .foregroundColor(.steam_gold)
+                    .foregroundStyle(Color.steam_gold)
                     .lineLimit(2)
                 HStack {
                     PopularityBadge(score: Int(props.movie.vote_average * 10))
                     Text(formatter.string(from: props.movie.releaseDate ?? Date()))
                         .font(.subheadline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                 }
                 Text(props.movie.overview)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(3)
                     .truncationMode(.tail)
             }.padding(.leading, 8)

@@ -24,8 +24,8 @@ public struct BorderedButton : View {
             self.action()
         }, label: {
             HStack(alignment: .center, spacing: 4) {
-                Image(systemName: systemImageName).foregroundColor(isOn ? .white : color)
-                Text(text).foregroundColor(isOn ? .white : color)
+                Image(systemName: systemImageName).foregroundStyle(isOn ? .white : color)
+                Text(text).foregroundStyle(isOn ? .white : color)
             }
             })
             .buttonStyle(.borderless)

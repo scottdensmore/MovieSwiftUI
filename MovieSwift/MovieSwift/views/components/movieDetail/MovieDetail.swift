@@ -655,7 +655,7 @@ struct MovieDetail: ConnectedView {
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
-                        Text(people!.name).font(.body).foregroundColor(.secondary)
+                        Text(people!.name).font(.body).foregroundStyle(.secondary)
                     }
                     .padding(.leading)
                     .padding(.trailing, 10)
@@ -671,7 +671,7 @@ struct MovieDetail: ConnectedView {
                 }) {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
-                        Text(people!.name).font(.body).foregroundColor(.secondary)
+                        Text(people!.name).font(.body).foregroundStyle(.secondary)
                     }
                     .padding(.leading)
                     .padding(.trailing, 10)
@@ -733,7 +733,7 @@ struct MovieDetail: ConnectedView {
                 selectedReviewMovieId = movieId
             } label: {
                 Text("\(reviewsCount) reviews")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .lineLimit(1)
                     .padding(.leading)
                     .padding(.trailing, 10)
@@ -745,7 +745,7 @@ struct MovieDetail: ConnectedView {
                 selectedReviewMovieId = movieId
             }) {
                 Text("\(reviewsCount) reviews")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .lineLimit(1)
                     .padding(.leading)
                     .padding(.trailing, 10)
@@ -1013,7 +1013,7 @@ struct MovieDetail: ConnectedView {
                     .font(.headline)
                 Text("This movie could not be loaded.")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

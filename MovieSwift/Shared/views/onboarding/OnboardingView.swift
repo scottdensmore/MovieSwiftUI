@@ -121,7 +121,7 @@ struct OnboardingView: View {
         VStack(spacing: 18) {
             Image(systemName: "film.stack")
                 .font(.system(size: 64, weight: .semibold))
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
                 .padding(.top, 20)
             Text("Welcome to MovieSwift")
                 .font(.FjallaOne(size: 32))
@@ -138,7 +138,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Image(systemName: "key.fill")
                 .font(.system(size: 38, weight: .semibold))
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
             Text("Set up your TMDB key")
                 .font(.FjallaOne(size: 24))
             Text("MovieSwift uses themoviedb.org for everything you see. The bundled key is shared by every install — paste your own to get full personal quota and faster responses.")
@@ -159,7 +159,7 @@ struct OnboardingView: View {
             Link(destination: URL(string: "https://www.themoviedb.org/settings/api")!) {
                 Label("Get a TMDB API key", systemImage: "arrow.up.right.square")
                     .font(.callout)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
             }
             .accessibilityIdentifier("onboarding.getKeyLink")
 
@@ -176,12 +176,12 @@ struct OnboardingView: View {
         if hasUsableAPIKey {
             Label("Ready to go", systemImage: "checkmark.seal.fill")
                 .font(.caption)
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
         } else {
             Label("A TMDB key is required — paste yours above or get one with the link.",
                   systemImage: "exclamationmark.triangle.fill")
                 .font(.caption)
-                .foregroundColor(.steam_rust)
+                .foregroundStyle(Color.steam_rust)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -190,7 +190,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Image(systemName: "globe")
                 .font(.system(size: 38, weight: .semibold))
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
             Text("Pick your region")
                 .font(.FjallaOne(size: 24))
             Text("Region affects the upcoming-releases and now-playing lists, plus what counts as \"available\" for streaming.")
@@ -217,7 +217,7 @@ struct OnboardingView: View {
         VStack(spacing: 18) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 64, weight: .semibold))
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
                 .padding(.top, 20)
             Text("You're all set")
                 .font(.FjallaOne(size: 32))
@@ -239,7 +239,7 @@ struct OnboardingView: View {
                     currentStep = previous
                 }
                 .buttonStyle(.plain)
-                .foregroundColor(.steam_blue)
+                .foregroundStyle(Color.steam_blue)
                 .accessibilityIdentifier("onboarding.backButton")
             }
             Spacer()
@@ -251,7 +251,7 @@ struct OnboardingView: View {
                     .background(
                         Capsule().fill(canAdvance ? Color.steam_gold : Color.secondary.opacity(0.25))
                     )
-                    .foregroundColor(canAdvance ? .black : .secondary)
+                    .foregroundStyle(canAdvance ? .black : .secondary)
             }
             .buttonStyle(.plain)
             .disabled(!canAdvance)

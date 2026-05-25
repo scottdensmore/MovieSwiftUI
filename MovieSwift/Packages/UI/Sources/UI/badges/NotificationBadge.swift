@@ -19,7 +19,7 @@ public struct NotificationBadge : View {
     
     public var body: some View {
         Text(text)
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
             .padding()
             .background(color)
             .cornerRadius(8)

@@ -128,9 +128,9 @@ struct MovieButtonsRow: ConnectedView {
         Button(action: action) {
             HStack(alignment: .center, spacing: 4) {
                 Image(systemName: systemImageName)
-                    .foregroundColor(isOn ? .white : color)
+                    .foregroundStyle(isOn ? .white : color)
                 Text(text)
-                    .foregroundColor(isOn ? .white : color)
+                    .foregroundStyle(isOn ? .white : color)
             }
             .padding(6)
             .background(

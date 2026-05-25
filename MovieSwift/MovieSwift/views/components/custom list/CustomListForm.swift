@@ -104,7 +104,7 @@ struct CustomListForm : ConnectedView {
                 Button(action: {
                     self.listMovieCover = nil
                 }, label: {
-                    Text("Remove cover").foregroundColor(.red)
+                    Text("Remove cover").foregroundStyle(.red)
                 })
             }
             
@@ -150,13 +150,13 @@ struct CustomListForm : ConnectedView {
                 self.presentationMode.wrappedValue.dismiss()
 
             }, label: {
-                Text(self.editingListId != nil ? "Save changes" : "Create").foregroundColor(.blue)
+                Text(self.editingListId != nil ? "Save changes" : "Create").foregroundStyle(.blue)
             })
             .accessibilityIdentifier("customListForm.createButton")
             Button(action: {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
-                Text("Cancel").foregroundColor(.red)
+                Text("Cancel").foregroundStyle(.red)
             })
             .accessibilityIdentifier("customListForm.cancelButton")
         }

@@ -49,14 +49,14 @@ struct MovieCrosslinePeopleRow : View {
                 MacFocusableLink(id: seeAllFocusTarget, focusedId: focusedItem) {
                     onSelectSeeAll()
                 } label: {
-                    Text("See all").foregroundColor(.steam_blue)
+                    Text("See all").foregroundStyle(Color.steam_blue)
                 }
                 .padding(.trailing)
                 #else
                 Button(action: {
                     onSelectSeeAll()
                 }) {
-                    Text("See all").foregroundColor(.steam_blue)
+                    Text("See all").foregroundStyle(Color.steam_blue)
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing)
@@ -119,12 +119,12 @@ struct PeopleListItem: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(presentation.name)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                         .lineLimit(1)
                     if let subtitle = presentation.subtitle {
                         Text(subtitle)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }
@@ -184,12 +184,12 @@ struct PeopleRowItem: View {
                                                                        size: .cast))
             Text(presentation.name)
                 .font(.footnote)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
                 .lineLimit(1)
             if let subtitle = presentation.subtitle {
                 Text(subtitle)
                     .font(.footnote)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
         }

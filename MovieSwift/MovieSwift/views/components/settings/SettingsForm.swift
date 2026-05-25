@@ -130,7 +130,7 @@ struct SettingsForm : ConnectedView {
         HStack {
             Text(title)
             Spacer()
-            Text(info).font(.body).foregroundColor(.secondary)
+            Text(info).font(.body).foregroundStyle(.secondary)
         }
     }
 
@@ -429,9 +429,9 @@ struct SettingsForm : ConnectedView {
                     Text("Status")
                     Spacer()
                     switch currentAPIKeySource {
-                    case .userProvided: Text("Using your key").foregroundColor(.secondary)
-                    case .bundled:      Text("Using bundled").foregroundColor(.secondary)
-                    case .missing:      Text("No key configured").foregroundColor(.red)
+                    case .userProvided: Text("Using your key").foregroundStyle(.secondary)
+                    case .bundled:      Text("Using bundled").foregroundStyle(.secondary)
+                    case .missing:      Text("No key configured").foregroundStyle(.red)
                     }
                 }
                 .accessibilityIdentifier("settings.tmdb.statusLabel")
@@ -548,7 +548,7 @@ struct SettingsForm : ConnectedView {
                 Link(destination: URL(string: "https://www.themoviedb.org")!) {
                     VStack(alignment: .leading, spacing: 3) {
                         Label("Powered by TMDB", systemImage: "film.stack")
-                            .foregroundColor(.steam_blue)
+                            .foregroundStyle(Color.steam_blue)
                         Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -559,7 +559,7 @@ struct SettingsForm : ConnectedView {
                 if let privacyURL = privacyPolicyURL {
                     Link(destination: privacyURL) {
                         Label("Privacy policy", systemImage: "lock.shield")
-                            .foregroundColor(.steam_blue)
+                            .foregroundStyle(Color.steam_blue)
                     }
                     .accessibilityIdentifier("settings.about.privacyPolicyLink")
                 }
@@ -644,7 +644,7 @@ struct SettingsForm : ConnectedView {
             Text(title.uppercased())
                 .font(.FjallaOne(size: 14))
                 .tracking(1.4)
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 0) {
@@ -741,10 +741,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "doc.text.magnifyingglass")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("View crash reports…")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -802,10 +802,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "lock.shield")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Privacy policy")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 Image(systemName: "arrow.up.right.square")
                     .font(.caption.weight(.semibold))
@@ -823,7 +823,7 @@ struct SettingsForm : ConnectedView {
         HStack(spacing: 12) {
             Image(systemName: "app.badge.fill")
                 .font(.body)
-                .foregroundColor(.steam_gold)
+                .foregroundStyle(Color.steam_gold)
                 .frame(width: 22)
             Text("MovieSwift")
             Spacer(minLength: 12)
@@ -841,11 +841,11 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "film.stack")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Powered by TMDB")
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                     Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -871,10 +871,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Show onboarding again")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
             }
             .padding(.horizontal, 14)
@@ -891,7 +891,7 @@ struct SettingsForm : ConnectedView {
         HStack(spacing: 12) {
             Image(systemName: "globe")
                 .font(.body)
-                .foregroundColor(.steam_blue)
+                .foregroundStyle(Color.steam_blue)
                 .frame(width: 22)
             Text("Region")
             Spacer(minLength: 12)
@@ -916,7 +916,7 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "character.book.closed")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Always show original title")
                 Spacer(minLength: 12)
@@ -941,10 +941,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "trash")
                     .font(.body)
-                    .foregroundColor(.steam_rust)
+                    .foregroundStyle(Color.steam_rust)
                     .frame(width: 22)
                 Text("Clear cached data")
-                    .foregroundColor(.steam_rust)
+                    .foregroundStyle(Color.steam_rust)
                 Spacer()
             }
             .padding(.horizontal, 14)
@@ -962,10 +962,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "square.and.arrow.up")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Export my data")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -986,10 +986,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "square.and.arrow.down")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Import my data")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -1010,10 +1010,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "icloud.and.arrow.up")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Back up to iCloud")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 if let date = lastICloudBackupDate {
                     Text(formattedBackupDate(date))
@@ -1037,10 +1037,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "icloud.and.arrow.down")
                     .font(.body)
-                    .foregroundColor(hasBackup ? .steam_blue : .secondary)
+                    .foregroundStyle(hasBackup ? Color.steam_blue : .secondary)
                     .frame(width: 22)
                 Text("Restore from iCloud")
-                    .foregroundColor(hasBackup ? .steam_blue : .secondary)
+                    .foregroundStyle(hasBackup ? Color.steam_blue : .secondary)
                 Spacer()
                 if hasBackup {
                     Image(systemName: "chevron.right")
@@ -1068,10 +1068,10 @@ struct SettingsForm : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.body)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .frame(width: 22)
                 Text("Show previous backups…")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -1103,10 +1103,10 @@ struct SettingsForm : ConnectedView {
         return HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.body)
-                .foregroundColor(iconColor)
+                .foregroundStyle(iconColor)
                 .frame(width: 22)
             Text(label)
-                .foregroundColor(labelColor)
+                .foregroundStyle(labelColor)
             Spacer()
         }
         .padding(.horizontal, 14)
@@ -1118,7 +1118,7 @@ struct SettingsForm : ConnectedView {
         HStack(spacing: 12) {
             Image(systemName: "key.fill")
                 .font(.body)
-                .foregroundColor(.steam_blue)
+                .foregroundStyle(Color.steam_blue)
                 .frame(width: 22)
             SecureField("Paste your TMDB API key", text: $userAPIKeyDraft)
                 .textFieldStyle(.plain)
@@ -1136,7 +1136,7 @@ struct SettingsForm : ConnectedView {
             Link(destination: URL(string: "https://www.themoviedb.org/settings/api")!) {
                 Label("Get a TMDB API key", systemImage: "arrow.up.right.square")
                     .font(.callout)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
             }
             .accessibilityIdentifier("settings.tmdb.getKeyLink")
 
@@ -1147,7 +1147,7 @@ struct SettingsForm : ConnectedView {
                     clearUserAPIKey()
                 }
                 .buttonStyle(.borderless)
-                .foregroundColor(.steam_rust)
+                .foregroundStyle(Color.steam_rust)
                 .accessibilityIdentifier("settings.tmdb.clearButton")
             }
 
@@ -1161,7 +1161,7 @@ struct SettingsForm : ConnectedView {
                     .background(
                         Capsule().fill(canSaveUserAPIKey ? Color.steam_gold : Color.secondary.opacity(0.25))
                     )
-                    .foregroundColor(canSaveUserAPIKey ? .black : .secondary)
+                    .foregroundStyle(canSaveUserAPIKey ? .black : .secondary)
             }
             .buttonStyle(.plain)
             .disabled(!canSaveUserAPIKey)
@@ -1375,7 +1375,7 @@ private struct PreviousICloudBackupsSheet: View {
                 Spacer()
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .accessibilityIdentifier("previousBackupsSheet.closeButton")
             }
             .padding(.horizontal, 18)
@@ -1414,7 +1414,7 @@ private struct PreviousICloudBackupsSheet: View {
         HStack(spacing: 12) {
             Image(systemName: info.isUnresolvedConflict ? "exclamationmark.icloud" : "icloud")
                 .font(.title3)
-                .foregroundColor(info.isUnresolvedConflict ? .steam_rust : .steam_blue)
+                .foregroundStyle(info.isUnresolvedConflict ? Color.steam_rust : Color.steam_blue)
                 .frame(width: 26)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 8) {
@@ -1426,7 +1426,7 @@ private struct PreviousICloudBackupsSheet: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.steam_gold.opacity(0.25)))
-                            .foregroundColor(.primary)
+                            .foregroundStyle(.primary)
                     }
                     if info.isUnresolvedConflict {
                         Text("Conflict")
@@ -1434,7 +1434,7 @@ private struct PreviousICloudBackupsSheet: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Color.steam_rust.opacity(0.25)))
-                            .foregroundColor(.steam_rust)
+                            .foregroundStyle(Color.steam_rust)
                     }
                 }
                 if let device = info.computerName {

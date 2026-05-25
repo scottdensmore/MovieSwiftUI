@@ -16,7 +16,7 @@ struct MovieOverview : View {
                 .lineLimit(1)
             Text(movie.overview)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .lineLimit(self.isOverviewExpanded ? nil : 4)
                 .onTapGesture {
                     withAnimation {
@@ -31,7 +31,7 @@ struct MovieOverview : View {
             } label: {
                 Text(self.isOverviewExpanded ? "Less" : "Read more")
                     .lineLimit(1)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
             }
             #else
             Button(action: {
@@ -41,7 +41,7 @@ struct MovieOverview : View {
             }, label: {
                 Text(self.isOverviewExpanded ? "Less" : "Read more")
                     .lineLimit(1)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
             })
             #endif
         }

@@ -44,7 +44,7 @@ struct MovieCrosslineRow : View {
                 MacFocusableLink(id: seeAllFocusTarget, focusedId: focusedItem) {
                     onSelectSeeAll()
                 } label: {
-                    Text("See all").foregroundColor(.steam_blue)
+                    Text("See all").foregroundStyle(Color.steam_blue)
                 }
                 .padding(.trailing)
                 #else
@@ -52,7 +52,7 @@ struct MovieCrosslineRow : View {
                     onSelectSeeAll()
                 }) {
                     Text("See all")
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing)
@@ -149,7 +149,7 @@ struct MovieDetailRowItem: View {
             }.fixedSize()
             Text(presentation.title)
                 .font(.footnote)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
                 .lineLimit(1)
             PopularityBadge(score: presentation.popularityScore)
         }.frame(width: 120, height: 240)

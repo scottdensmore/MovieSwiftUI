@@ -27,7 +27,7 @@ struct CarouselImageView: View {
                 DataImage(data: data, renderingMode: .original)
                     .aspectRatio(contentMode: .fill)
             } else {
-                Rectangle().foregroundColor(.gray)
+                Rectangle().foregroundStyle(.gray)
             }
         }
         .frame(width: size.width, height: size.height)
@@ -240,7 +240,7 @@ struct ImagesCarouselView : View {
         }) {
             Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundColor(.white.opacity(0.95))
+                .foregroundStyle(.white.opacity(0.95))
         }
         .buttonStyle(.plain)
         .padding()

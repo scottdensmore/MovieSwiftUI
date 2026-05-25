@@ -78,7 +78,7 @@ struct MoviesGenreList: ConnectedView {
                 } label: {
                     Image(systemName: "line.horizontal.3.decrease.circle")
                         .imageScale(.large)
-                        .foregroundColor(.steam_gold)
+                        .foregroundStyle(Color.steam_gold)
                 }
                 .accessibilityLabel("Sort")
                 #else
@@ -87,7 +87,7 @@ struct MoviesGenreList: ConnectedView {
                 }, label: {
                     Image(systemName: "line.horizontal.3.decrease.circle")
                         .imageScale(.large)
-                        .foregroundColor(.steam_gold)
+                        .foregroundStyle(Color.steam_gold)
                 })
                 .accessibilityLabel("Sort")
                 #endif

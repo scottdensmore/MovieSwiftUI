@@ -23,7 +23,7 @@ struct CrashReportsSheet: View {
                 Spacer()
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .accessibilityIdentifier("crashReportsSheet.closeButton")
             }
             .padding(.horizontal, 18)
@@ -80,7 +80,7 @@ private struct CrashReportRow: View {
             HStack(spacing: 12) {
                 Image(systemName: iconName)
                     .font(.title3)
-                    .foregroundColor(iconColor)
+                    .foregroundStyle(iconColor)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(formattedDate(report.date))
@@ -98,7 +98,7 @@ private struct CrashReportRow: View {
                 ShareLink(item: report.url) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.callout.weight(.semibold))
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                         .padding(8)
                         .contentShape(Rectangle())
                 }
@@ -171,14 +171,14 @@ private struct CrashReportDetailView: View {
                 ShareLink(item: report.url) {
                     Label("Share", systemImage: "square.and.arrow.up")
                         .font(.callout.weight(.semibold))
-                        .foregroundColor(.steam_blue)
+                        .foregroundStyle(Color.steam_blue)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("crashReportDetail.shareButton")
                 #endif
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .accessibilityIdentifier("crashReportDetail.closeButton")
             }
             .padding(.horizontal, 18)
@@ -188,7 +188,7 @@ private struct CrashReportDetailView: View {
             ScrollView([.vertical, .horizontal]) {
                 if let loadError {
                     Text(loadError)
-                        .foregroundColor(.steam_rust)
+                        .foregroundStyle(Color.steam_rust)
                         .padding()
                 } else {
                     let textBody = Text(prettyJSON)

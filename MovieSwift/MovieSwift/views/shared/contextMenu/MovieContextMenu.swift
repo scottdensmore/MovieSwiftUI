@@ -29,7 +29,7 @@ struct MovieContextMenu: ConnectedView {
                     Text(label)
                     Image(systemName: isIn ? "text.badge.xmark" : "text.badge.plus")
                         .imageScale(.small)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                 }
             }
             .accessibilityLabel(Text(label))
@@ -49,7 +49,7 @@ struct MovieContextMenu: ConnectedView {
                     Text(wishlistLabel)
                     Image(systemName: props.isInWishlist ? "heart.fill" : "heart")
                         .imageScale(.small)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                 }
             }
             .accessibilityLabel(Text(wishlistLabel))
@@ -62,7 +62,7 @@ struct MovieContextMenu: ConnectedView {
                     Text(seenlistLabel)
                     Image(systemName: props.isInSeenList ? "eye.fill" : "eye")
                         .imageScale(.small)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                 }
             }
             .accessibilityLabel(Text(seenlistLabel))

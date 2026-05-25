@@ -75,11 +75,11 @@ struct TVMovieDetail: ConnectedView {
                     }
                     if movie.vote_average > 0 {
                         Label(String(format: "%.1f", movie.vote_average), systemImage: "star.fill")
-                            .foregroundColor(.yellow)
+                            .foregroundStyle(.yellow)
                     }
                 }
                 .font(.callout)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
                 if !movie.overview.isEmpty {
                     Text(movie.overview)

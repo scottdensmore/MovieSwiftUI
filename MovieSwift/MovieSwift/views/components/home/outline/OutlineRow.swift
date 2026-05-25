@@ -9,12 +9,12 @@ struct OutlineRow : View {
             Group {
                 Image(systemName: item.image)
                     .imageScale(.large)
-                    .foregroundColor(isSelected ? .steam_gold : .primary)
+                    .foregroundStyle(isSelected ? Color.steam_gold : .primary)
             }
             .frame(width: 40)
             Text(item.title)
                 .font(.FjallaOne(size: 24))
-                .foregroundColor(isSelected ? .steam_gold : .primary)
+                .foregroundStyle(isSelected ? Color.steam_gold : .primary)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -30,7 +30,7 @@ public struct PopularityBadge : View {
                 .trim(from: 0,
                       to: isDisplayed ? CGFloat(score) / 100 : 0)
                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [1]))
-                .foregroundColor(scoreColor)
+                .foregroundStyle(scoreColor)
                 .animation(Animation.interpolatingSpring(stiffness: 60, damping: 10).delay(0.1), value: isDisplayed)
         }
         .rotationEffect(.degrees(-90))
@@ -42,14 +42,14 @@ public struct PopularityBadge : View {
     public var body: some View {
         ZStack {
             Circle()
-                .foregroundColor(.clear)
+                .foregroundStyle(.clear)
                 .frame(width: 40)
                 .overlay(overlay)
                 .shadow(color: scoreColor, radius: 4)
             Text("\(score)%")
                 .font(Font.system(size: 10))
                 .fontWeight(.bold)
-                .foregroundColor(textColor)
+                .foregroundStyle(textColor)
             }
             .frame(width: 40, height: 40)
     }

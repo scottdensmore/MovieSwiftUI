@@ -56,7 +56,7 @@ struct MovieInfoRow : View {
                     .transition(asyncTextTransition)
             }
         }
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
     }
     
     private var productionCountry: some View {
@@ -64,7 +64,7 @@ struct MovieInfoRow : View {
             if let productionCountryText = presentation.productionCountryText {
                 Text(productionCountryText)
                     .font(.subheadline)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
             }
         }
     }

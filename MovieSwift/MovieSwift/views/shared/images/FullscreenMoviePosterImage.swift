@@ -20,7 +20,7 @@ struct FullscreenMoviePosterImage: View {
                 ZStack {
                     GeometryReader { geometry in
                         Rectangle()
-                            .foregroundColor(Color.black.opacity(0.8))
+                            .foregroundStyle(Color.black.opacity(0.8))
                             .frame(width: geometry.frame(in: .global).width,
                                    height: geometry.frame(in: .global).height)
                     }

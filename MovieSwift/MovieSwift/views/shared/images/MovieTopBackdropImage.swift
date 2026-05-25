@@ -21,7 +21,7 @@ struct MovieTopBackdropImage : View {
                 .transition(.opacity)
         } else {
             Rectangle()
-                .foregroundColor(.black)
+                .foregroundStyle(.black)
                 .opacity(0.3)
                 .frame(height: fill ? 50 : height)
         }

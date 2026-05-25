@@ -23,7 +23,7 @@ struct MovieBackdropImage : View {
                 }
             } else {
                 Rectangle()
-                    .foregroundColor(.gray)
+                    .foregroundStyle(.gray)
                     .opacity(0.1)
                     .frame(width: 280, height: displayMode == .normal ? 168 : 50)
             }

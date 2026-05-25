@@ -31,7 +31,7 @@ struct PeopleDetailHeaderRow : View {
                     Text(department)
                 }
                 Text(PeopleDetailHeaderState.knownForText(for: people))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.body)
                     .lineLimit(nil)
             }

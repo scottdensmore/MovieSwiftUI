@@ -29,7 +29,7 @@ struct PeopleDetailBiographyRow : View {
                     .titleStyle()
                     .lineLimit(1)
                 Text(biography)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.body)
                     .lineLimit(isExpanded ? 1000 : 4)
                 readMoreButton
@@ -39,7 +39,7 @@ struct PeopleDetailBiographyRow : View {
                     .titleStyle()
                     .lineLimit(1)
                 Text(birthDate)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
@@ -48,7 +48,7 @@ struct PeopleDetailBiographyRow : View {
                     .titleStyle()
                     .lineLimit(1)
                 Text(placeOfBirth)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
@@ -57,7 +57,7 @@ struct PeopleDetailBiographyRow : View {
                     .titleStyle()
                     .lineLimit(1)
                 Text(deathDate)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .font(.body)
                     .lineLimit(1)
             }
@@ -74,7 +74,7 @@ struct PeopleDetailBiographyRow : View {
                 withAnimation { isExpanded.toggle() }
             } label: {
                 Text(isExpanded ? "Less" : "Read more")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -92,7 +92,7 @@ struct PeopleDetailBiographyRow : View {
         Button(action: {
             isExpanded.toggle()
         }) {
-            Text(isExpanded ? "Less" : "Read more").foregroundColor(.steam_blue)
+            Text(isExpanded ? "Less" : "Read more").foregroundStyle(Color.steam_blue)
         }
     }
 }

@@ -253,7 +253,7 @@ struct PeopleDetail: ConnectedView {
         }, label: {
             Image(systemName: props.isInFanClub.wrappedValue ? "star.circle.fill" : "star.circle")
                 .resizable()
-                .foregroundColor(props.isInFanClub.wrappedValue ? .steam_gold : .primary)
+                .foregroundStyle(props.isInFanClub.wrappedValue ? Color.steam_gold : .primary)
                 .scaleEffect(props.isInFanClub.wrappedValue ? 1.2 : 1.0)
                 .frame(width: 25, height: 25)
                 .animation(.spring(), value: props.isInFanClub.wrappedValue)
@@ -273,7 +273,7 @@ struct PeopleDetail: ConnectedView {
                 VStack(spacing: 30) {
                     Text("Fan level updated!")
                         .font(.FjallaOne(size: 30))
-                        .foregroundColor(.steam_gold)
+                        .foregroundStyle(Color.steam_gold)
                     PopularityBadge(score: props.movieScore ?? 0)
                         .scaleEffect(2.0)
                 }

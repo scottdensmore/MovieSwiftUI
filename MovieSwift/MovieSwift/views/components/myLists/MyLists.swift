@@ -57,7 +57,7 @@ struct MyLists : ConnectedView {
             Button(action: {
                 self.isEditingFormPresented = true
             }) {
-                Text("Create custom list").foregroundColor(.steam_blue)
+                Text("Create custom list").foregroundStyle(Color.steam_blue)
             }
             .accessibilityIdentifier("myLists.createCustomListButton")
             ForEach(props.customLists) { list in
@@ -208,7 +208,7 @@ struct MyLists : ConnectedView {
             Label(section.title, systemImage: section.systemImage)
                 .font(.subheadline)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundStyle(isSelected ? .white : .primary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
                 .padding(.horizontal, 12)
@@ -400,9 +400,9 @@ struct MyLists : ConnectedView {
             HStack(spacing: 12) {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                 Text("Create custom list")
-                    .foregroundColor(.steam_blue)
+                    .foregroundStyle(Color.steam_blue)
                     .font(.body)
                 Spacer()
             }
