@@ -72,7 +72,7 @@ struct HomeView: App {
 struct TabbarView: View {
     let isRunningUISmokeTests: Bool
     @State var selectedTab = Tab.movies
-    @StateObject private var intentNavigation = IntentNavigationStore.shared
+    @State private var intentNavigation = IntentNavigationStore.shared
     @State private var spotlightMovieId: SpotlightMovieID?
 
     /// Identifiable wrapper around a movie id so the Spotlight

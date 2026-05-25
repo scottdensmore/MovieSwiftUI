@@ -24,7 +24,7 @@ struct SplitView: View {
     /// pushed view alive even after a full subtree rebuild).
     @State private var detailNavigationRoute: MoviesListNavigationRoute?
     @FocusState private var isSidebarFocused: Bool
-    @StateObject private var intentNavigation = IntentNavigationStore.shared
+    @State private var intentNavigation = IntentNavigationStore.shared
     @State private var spotlightMovieId: SpotlightMovieID?
 
     /// Identifiable wrapper around a movie id so the Spotlight
