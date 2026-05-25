@@ -84,33 +84,14 @@ public struct DisabledAPIKeyProvider: APIKeyProviding {
     public func apiKey() -> String? { nil }
 }
 
-public protocol NetworkDataTask {
-    func resume()
-}
-
-extension URLSessionDataTask: NetworkDataTask {}
-
+/// Injection seam for networking. `URLSession` conforms directly via
+/// its async `data(for:)`; tests provide a mock that returns canned
+/// `(Data, URLResponse)` or throws.
 public protocol NetworkSession {
-    func dataTask(
-        with request: URLRequest,
-        completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-    ) -> NetworkDataTask
+    func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
-public struct URLSessionNetworkSession: NetworkSession {
-    private let session: URLSession
-    
-    public init(session: URLSession = .shared) {
-        self.session = session
-    }
-    
-    public func dataTask(
-        with request: URLRequest,
-        completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-    ) -> NetworkDataTask {
-        session.dataTask(with: request, completionHandler: completionHandler)
-    }
-}
+extension URLSession: NetworkSession {}
 
 public struct APIService {
 
@@ -156,7 +137,7 @@ public struct APIService {
         baseURL: URL = APIService.defaultBaseURL,
         decoder: JSONDecoder = JSONDecoder(),
         apiKeyProvider: APIKeyProviding = LayeredAPIKeyProvider.userKeyOverridingBundle,
-        session: NetworkSession = URLSessionNetworkSession(),
+        session: NetworkSession = URLSession.shared,
         callbackQueue: DispatchQueue = .main,
         authMode: AuthMode = .queryParameter(name: "api_key")
     ) {
@@ -303,11 +284,64 @@ public struct APIService {
         if case .bearer = authMode {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
-        let task = session.dataTask(with: request) { (data, response, error) in
-            // Transport-level error first — distinguishes "device is
-            // offline" from other failures so the UI can surface a
-            // tailored message.
-            if let error {
+        // Fire the request on an unstructured Task so GET keeps its
+        // synchronous, completion-handler signature (the AsyncAction /
+        // dispatch facade and all callers are unchanged) while the
+        // networking itself uses structured async/await internally.
+        let session = self.session
+        let decoder = self.decoder
+        let callbackQueue = self.callbackQueue
+        Task {
+            do {
+                let (data, response) = try await session.data(for: request)
+
+                // HTTP status first — without this, a 401 from a bad API
+                // key gets mis-reported as `jsonDecodingError` because the
+                // error body shape doesn't match the success type.
+                if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                    #if DEBUG
+                    // Diagnostic for Discover-style 400s and other non-2xx
+                    // responses: print the request URL (api_key stripped)
+                    // and the response body so a user reporting "TMDB
+                    // returned an unexpected response (400)" can tell which
+                    // query parameter combination TMDB rejected. Visible in
+                    // `xcrun simctl spawn booted log stream` / Console.app.
+                    let sanitizedURL = APIService.sanitizeURLForLogging(request.url)
+                    let body = String(data: data, encoding: .utf8) ?? ""
+                    let bodyPreview = body.isEmpty
+                        ? "<no body>"
+                        : (body.count > 500 ? String(body.prefix(500)) + "…" : body)
+                    print("APIService HTTP \(http.statusCode) for \(sanitizedURL ?? "<no url>")\n  body: \(bodyPreview)")
+                    #endif
+                    if http.statusCode == 429 {
+                        let retryAfter = APIService.retryAfterSeconds(from: http)
+                        callbackQueue.async {
+                            completionHandler(.failure(.rateLimited(retryAfterSeconds: retryAfter)))
+                        }
+                    } else {
+                        callbackQueue.async {
+                            completionHandler(.failure(.httpStatus(code: http.statusCode)))
+                        }
+                    }
+                    return
+                }
+
+                do {
+                    let object = try decoder.decode(T.self, from: data)
+                    callbackQueue.async {
+                        completionHandler(.success(object))
+                    }
+                } catch let error {
+                    callbackQueue.async {
+                        #if DEBUG
+                        print("JSON Decoding Error: \(error)")
+                        #endif
+                        completionHandler(.failure(.jsonDecodingError(error: error)))
+                    }
+                }
+            } catch {
+                // Transport-level error — distinguish "device is offline"
+                // from other failures so the UI can tailor the message.
                 let nsError = error as NSError
                 if nsError.domain == NSURLErrorDomain
                     && APIService.offlineURLErrorCodes.contains(nsError.code) {
@@ -319,67 +353,8 @@ public struct APIService {
                         completionHandler(.failure(.networkError(error: error)))
                     }
                 }
-                return
-            }
-
-            // HTTP status next — without this, a 401 from a bad API
-            // key gets mis-reported as `jsonDecodingError` because the
-            // error body shape doesn't match the success type.
-            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-                #if DEBUG
-                // Diagnostic for Discover-style 400s and other non-2xx
-                // responses: print the request URL (with api_key stripped)
-                // and the response body. Without this, a user reporting
-                // "TMDB returned an unexpected response (400)" has no
-                // way to tell which query parameter combination TMDB
-                // rejected. Logged at `print` (not os_log) so it shows
-                // up in `xcrun simctl spawn booted log stream` and
-                // Console.app's process filter without extra setup.
-                let sanitizedURL = APIService.sanitizeURLForLogging(request.url)
-                let bodyPreview: String
-                if let data = data,
-                   let body = String(data: data, encoding: .utf8) {
-                    bodyPreview = body.count > 500 ? String(body.prefix(500)) + "…" : body
-                } else {
-                    bodyPreview = "<no body>"
-                }
-                print("APIService HTTP \(http.statusCode) for \(sanitizedURL ?? "<no url>")\n  body: \(bodyPreview)")
-                #endif
-                if http.statusCode == 429 {
-                    let retryAfter = APIService.retryAfterSeconds(from: http)
-                    callbackQueue.async {
-                        completionHandler(.failure(.rateLimited(retryAfterSeconds: retryAfter)))
-                    }
-                } else {
-                    callbackQueue.async {
-                        completionHandler(.failure(.httpStatus(code: http.statusCode)))
-                    }
-                }
-                return
-            }
-
-            guard let data = data else {
-                callbackQueue.async {
-                    completionHandler(.failure(.noResponse))
-                }
-                return
-            }
-
-            do {
-                let object = try self.decoder.decode(T.self, from: data)
-                callbackQueue.async {
-                    completionHandler(.success(object))
-                }
-            } catch let error {
-                callbackQueue.async {
-                    #if DEBUG
-                    print("JSON Decoding Error: \(error)")
-                    #endif
-                    completionHandler(.failure(.jsonDecodingError(error: error)))
-                }
             }
         }
-        task.resume()
     }
 
     /// URLError codes that indicate the device is offline rather than
