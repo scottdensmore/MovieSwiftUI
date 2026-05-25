@@ -23,35 +23,35 @@ struct TVSearchView: ConnectedView {
     private static let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 40), count: 5)
 
     func body(props: Props) -> some View {
-        ScrollView {
+        // Branch outside the ScrollView: ContentUnavailableView wants to
+        // fill its container, which it can't do inside a ScrollView's
+        // unbounded height. Only the results grid needs to scroll.
+        Group {
             if searchText.isEmpty {
-                Text("Search for movies")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, 200)
+                ContentUnavailableView("Search for movies",
+                                       systemImage: "magnifyingglass",
+                                       description: Text("Find movies by title."))
                     .accessibilityIdentifier("search.emptyState")
             } else if props.searchResults.isEmpty {
-                Text("No results for \"\(searchText)\"")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 200)
+                // System-standard "No Results for \"…\"" empty state.
+                ContentUnavailableView.search(text: searchText)
                     .accessibilityIdentifier("search.noResults")
             } else {
-                LazyVGrid(columns: Self.gridColumns, spacing: 40) {
-                    ForEach(props.searchResults, id: \.self) { id in
-                        if let movie = props.movies[id] {
-                            NavigationLink(value: id) {
-                                TVSearchCard(movie: movie)
+                ScrollView {
+                    LazyVGrid(columns: Self.gridColumns, spacing: 40) {
+                        ForEach(props.searchResults, id: \.self) { id in
+                            if let movie = props.movies[id] {
+                                NavigationLink(value: id) {
+                                    TVSearchCard(movie: movie)
+                                }
+                                .buttonStyle(.card)
+                                .accessibilityIdentifier("search.result.\(id)")
                             }
-                            .buttonStyle(.card)
-                            .accessibilityIdentifier("search.result.\(id)")
                         }
                     }
+                    .padding(.horizontal, 60)
+                    .padding(.vertical, 40)
                 }
-                .padding(.horizontal, 60)
-                .padding(.vertical, 40)
             }
         }
         .navigationDestination(for: Int.self) { id in

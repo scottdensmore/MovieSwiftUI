@@ -45,6 +45,10 @@ enum FanClubPresentation {
         let message: String
         let accessibilityIdentifier: String
         let showsRetry: Bool
+        /// SF Symbol for the ContentUnavailableView. `nil` marks the
+        /// loading state, which renders a ProgressView instead (the
+        /// idiomatic control for in-progress work).
+        let systemImage: String?
     }
 
     static func emptyState(peoples: [Int],
@@ -60,20 +64,23 @@ enum FanClubPresentation {
             return EmptyState(title: "Loading people",
                               message: "Fetching popular people for your Fan Club.",
                               accessibilityIdentifier: "fanClub.loadingState",
-                              showsRetry: false)
+                              showsRetry: false,
+                              systemImage: nil)
         }
 
         if popularLoadFailed {
             return EmptyState(title: "Could not load popular people",
                               message: "Check your connection and try again.",
                               accessibilityIdentifier: "fanClub.errorState",
-                              showsRetry: true)
+                              showsRetry: true,
+                              systemImage: "exclamationmark.triangle")
         }
 
         return EmptyState(title: "No popular people right now",
                           message: "Try again later to find people to add to your Fan Club.",
                           accessibilityIdentifier: "fanClub.emptyState",
-                          showsRetry: false)
+                          showsRetry: false,
+                          systemImage: "person.2.slash")
     }
 }
 
@@ -338,23 +345,40 @@ struct FanClubHome: ConnectedView {
         props.dispatch(PeopleActions.FetchPopular(page: 1))
     }
 
+    @ViewBuilder
     private func emptyStateView(_ state: FanClubPresentation.EmptyState, props: Props) -> some View {
-        VStack(spacing: 12) {
-            Text(state.title)
-                .font(.headline)
-            Text(state.message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            if state.showsRetry {
-                Button("Retry") {
-                    retryPopularLoad(props: props)
+        Group {
+            if let systemImage = state.systemImage {
+                // Error / empty states → ContentUnavailableView, the
+                // modern idiom (consistent layout, built-in a11y).
+                ContentUnavailableView {
+                    Label(state.title, systemImage: systemImage)
+                } description: {
+                    Text(state.message)
+                } actions: {
+                    if state.showsRetry {
+                        Button("Retry") {
+                            retryPopularLoad(props: props)
+                        }
+                        .accessibilityIdentifier("fanClub.retryButton")
+                    }
                 }
-                .accessibilityIdentifier("fanClub.retryButton")
+            } else {
+                // Loading state → ProgressView is the right control for
+                // in-progress work (ContentUnavailableView is for absence).
+                VStack(spacing: 16) {
+                    ProgressView()
+                    Text(state.message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(24)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        // `.contain` keeps child identities (e.g. the retry button keeps
+        // its own identifier) while still exposing this state identifier.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(state.accessibilityIdentifier)
     }
