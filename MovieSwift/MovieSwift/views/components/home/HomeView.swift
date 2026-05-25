@@ -40,9 +40,17 @@ struct HomeView: App {
             // network response.
             APIService.shared = APIService(apiKeyProvider: DisabledAPIKeyProvider())
         }
-        _isOnboardingPresented = State(initialValue: OnboardingFlow.shouldShowFromCurrentState(
-            isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
-        ))
+        // UI-test hook: onboarding is normally suppressed under
+        // `--ui-smoke-tests` (so the smoke suite lands straight on the
+        // app), which makes the onboarding flow itself untestable via the
+        // smoke launch. `--ui-test-force-onboarding` forces it on so the
+        // onboarding-layout regression test can drive the wizard. Has no
+        // effect in production launches (the arg is never passed).
+        let forceOnboarding = ProcessInfo.processInfo.arguments.contains("--ui-test-force-onboarding")
+        _isOnboardingPresented = State(initialValue: forceOnboarding
+            || OnboardingFlow.shouldShowFromCurrentState(
+                isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
+            ))
     }
 
     var body: some Scene {

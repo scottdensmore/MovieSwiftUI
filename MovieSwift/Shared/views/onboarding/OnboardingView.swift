@@ -67,9 +67,25 @@ struct OnboardingView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 22)
         }
+        // The fixed minimum size is a macOS window-sizing concern only.
+        // On iOS the flow is presented in a `.fullScreenCover`, which
+        // already provides the screen bounds — applying minWidth/minHeight
+        // of 520 there forces the content wider than the device (iPhone
+        // 17 Pro is 402pt wide) so it overflows off both edges. Gate the
+        // frame to macOS; let iOS/tvOS size to their presentation container.
+        #if os(macOS)
         .frame(minWidth: 520, idealWidth: 600, minHeight: 520, idealHeight: 600)
+        #endif
         .background(Color.steam_background.ignoresSafeArea())
-        .accessibilityIdentifier("onboarding.root")
+        // NOTE: do NOT put `.accessibilityIdentifier("onboarding.root")`
+        // on this container. SwiftUI propagates a container-level
+        // identifier down to every descendant accessibility element,
+        // overriding the per-control identifiers below (the
+        // "Get Started" button, the API-key field, the region picker
+        // all ended up reported as "onboarding.root"). That broke both
+        // VoiceOver navigation and UI-test targeting. Onboarding
+        // presence is detected via the step controls instead (e.g.
+        // `onboarding.continueButton`, present on every step).
     }
 
     // MARK: - Step indicator
