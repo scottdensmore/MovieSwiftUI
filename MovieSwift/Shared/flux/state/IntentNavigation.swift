@@ -17,6 +17,7 @@
 //  AppIntent and the view both reach for `.shared`.
 
 import Foundation
+import Observation
 
 @Observable
 final class IntentNavigationStore {
