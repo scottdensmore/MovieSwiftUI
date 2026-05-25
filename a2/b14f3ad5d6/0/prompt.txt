@@ -1,0 +1,177 @@
+PR #4 (onboarding iPhone overflow fix): (1) check + address any review comments — Copilot will have reviewed; (2) check CI run for the branch fix/onboarding-iphone-bounds is all green; (3) if both clear, merge with merge commit, delete branch local+remote, switch to main and pull. Per the project workflow: always check comments before merging.
+
+---
+
+I edited these files myself so we can add them to this pr
+
+---
+
+we should add the .claude directory
+
+---
+
+PR #5 (track agent-tooling config): (1) check + address any review comments (Copilot will have reviewed); (2) verify CI run for branch chore/track-agent-tooling-config is all green; (3) if both clear, merge with merge commit, delete branch local+remote, switch to main and pull. Per the workflow: always check comments before merging.
+
+---
+
+PR #5 (agent-tooling config, now incl. .claude + config.toml cleanup at 689253e): re-check comments (should be addressed now), verify CI all green on the latest commit, then merge with merge commit, delete branch local+remote, switch to main and pull. Always check comments before merging.
+
+---
+
+PR #5: the ios-tests-ipad flake (testLaunchShowsMainTabs background-assertion timeout) was re-run. Verify run 26381380129 is now all green, comments already clean. If green, merge with merge commit, delete branch local+remote, switch to main and pull.
+
+---
+
+I want to make sure the app is localized / localizable.
+
+---
+
+<task-notification>
+<task-id>btstnod9e</task-id>
+<tool-use-id>toolu_01HPKxPwtwjngkJxnu2sRMus</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/2cae28a4-28e8-4bfa-9225-7682543f3664/tasks/btstnod9e.output</output-file>
+<status>completed</status>
+<summary>Background command "Build macOS target" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+Localizability PR: check iOS build (bt6llxmhk) + tvOS build (b5f42nd92) succeeded, then build macOS too, then commit all the String(localized:) fixes + LocalizationTests, push, open PR, workflow.
+Localizability PR: macOS build (btstnod9e) should be done — if green, commit all String(localized:) fixes + LocalizationTests, push branch feat/full-localizability, open PR, then workflow (CI + comments + merge).
+
+---
+
+Check the PR for comments and address them
+
+---
+
+PR #6 (full localizability): (1) check + address any review comments — Copilot will have reviewed; (2) verify CI run for branch feat/full-localizability is all green (re-run any flaky ios-tests-ipad background-assertion timeout); (3) if both clear, merge with merge commit, delete branch local+remote, switch to main and pull. Always check comments before merging.
+Localizability: confirm iOS build SUCCEEDED with the populated catalogs (bk4c78r7g), then commit the two .xcstrings catalog updates to PR #6 branch feat/full-localizability + push (addresses Copilot's 7 comments: catalog entries + plural rule). Then re-verify CI + merge workflow.
+
+---
+
+PR #6 final merge gate: comments already clean (7 Copilot addressed by fc4074b, none new). Verify CI run 26383929599 all 5 jobs green — re-run flaky ios-tests-ipad background-assertion timeout if it recurs. Then merge with merge commit, delete branch local+remote, switch to main and pull.
+
+---
+
+PR #6 (full localizability, catalogs populated at fc4074b): re-check comments (Copilot may re-review the catalog commit — address anything new), verify CI run 26383929599 all green (re-run flaky ios-tests-ipad background-assertion timeout if it recurs), then merge with merge commit, delete branch local+remote, switch to main and pull. Always check comments before merging.
+
+---
+
+is there anything else we can do to make sure the app is modernized?
+
+---
+
+Ok lets do all of this starting with 1. Once you are done remind me of the next thing to do
+
+---
+
+<task-notification>
+<task-id>b3mdjxxfv</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/2cae28a4-28e8-4bfa-9225-7682543f3664/tasks/b3mdjxxfv.output</output-file>
+<status>completed</status>
+<summary>Background command "Run FanClub UI tests (identifier preservation)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+ContentUnavailableView PR: confirm macOS build (b76qbyfn1) green, then run the FanClub UI tests (testFanClubShowsRetryStateWhenPopularLoadFails on iOS — verifies fanClub.errorState + fanClub.retryButton both resolve through ContentUnavailableView) + the tvOS search empty-state test (testSearchTabShowsEmptyState). If identifiers resolve, commit + PR + workflow. If propagation broke identifiers, fix.
+ContentUnavailableView PR: read /tmp/cuv-ios.txt + /tmp/cuv-tv.txt. If FanClub (fanClub.errorState + fanClub.retryButton) and tvOS search.emptyState identifiers resolve through ContentUnavailableView (tests pass), commit + PR #7 + workflow. If a test fails on a missing identifier, the ContentUnavailableView propagated/swallowed it — fix by adjusting where the identifier is applied.
+
+---
+
+Check the pr for commands and address them
+
+---
+
+<task-notification>
+<task-id>bxaep6jfl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/2cae28a4-28e8-4bfa-9225-7682543f3664/tasks/bxaep6jfl.output</output-file>
+<status>completed</status>
+<summary>Background command "Build iOS after loading-title fix" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+PR #7 (ContentUnavailableView, Modernization 1/6): (1) check + address Copilot review comments AND resolve the threads (required by branch protection); (2) verify CI run 26384880546 all 5 jobs green, re-run flaky ios-tests-ipad if needed; (3) merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #1 completed, set task #2 (@Observable for app-owned stores) in_progress, and tell the user Modernization 2 is next.
+PR #7: confirm iOS build (bxaep6jfl) green after restoring state.title in the FanClub loading branch (addresses Copilot's comment), commit + push to feat/content-unavailable-view, resolve the Copilot review thread, then verify CI green + merge + delete + back to main + advance to Modernization 2.
+
+---
+
+PR #7 merge gate (comments addressed + thread resolved already): verify CI run 26385286456 all 5 jobs green, re-run flaky ios-tests-ipad if it hits the background-assertion timeout. Then merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #1 completed, set task #2 in_progress, tell the user Modernization 2 (@Observable) is next.
+
+---
+
+PR #7 merge gate: Copilot comment addressed (cf1ce06) + thread resolved. Verify CI run 26385286456 all 5 jobs green (re-run flaky ios-tests-ipad if needed). Then merge with merge commit, delete branch local+remote, switch to main and pull. Then: mark task #1 completed, set task #2 in_progress, and tell the user Modernization 2 (@Observable for app-owned stores) is next.
+
+---
+
+Ok lets start that
+
+---
+
+<task-notification>
+<task-id>bi0ouvesd</task-id>
+<tool-use-id>toolu_01Wu7UqTZ6Z6db5ApP6vggDg</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/73bfc67d-407a-421c-bdf6-b48fa3a353d2/tasks/bi0ouvesd.output</output-file>
+<status>completed</status>
+<summary>Background command "Build iOS with @Observable migration" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b2sfe3090</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/73bfc67d-407a-421c-bdf6-b48fa3a353d2/tasks/b2sfe3090.output</output-file>
+<status>completed</status>
+<summary>Background command "Run App-Intent routing + MoviesSelectedMenuStore tests" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+@Observable migration: check iOS build (bi0ouvesd) green. Then build macOS (SplitView uses intentNavigation) + tvOS. If all green, run the App-Intent routing UI tests (testAppIntentRoutes* — verify IntentNavigationStore still drives nav as @Observable) + MoviesSelectedMenuStore unit tests, then commit + PR + workflow.
+
+---
+
+@Observable migration: read /tmp/obs-test.txt. If App-Intent routing (IntentNavigationStore drives nav) + MoviesSelectedMenuStore tests pass, the @Observable migration is behaviorally verified — commit + open PR #8 + workflow (CI, resolve Copilot threads, merge, delete, back to main). If a test failed (e.g. observation not firing), diagnose. Then advance to Modernization 3 (async/await APIService).
+
+---
+
+PR #8 (@Observable stores, Modernization 2/6): (1) check + address Copilot review comments AND resolve threads (branch protection requires resolution); (2) verify CI run 26409680101 all 5 jobs green, re-run flaky ios-tests-ipad if needed; (3) merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #2 completed, set task #3 (async/await networking in APIService) in_progress, and tell the user Modernization 3 is next.
+
+---
+
+PR #8: confirm iOS build (bo7w0w0ja) green after adding import Observation to IntentNavigation + MoviesSelectedMenuStore (and removing unused SwiftUI import). Commit + push, resolve the 2 Copilot threads, verify CI green, merge + delete + back to main. Then mark task #2 completed, set task #3 in_progress, tell user Modernization 3 (async/await APIService) is next.
+
+---
+
+PR #8 merge gate: comments addressed (4996792) + both threads resolved. Verify CI run 26410219138 all 5 jobs green (re-run flaky ios-tests-ipad if needed), then merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #2 completed, set task #3 in_progress, and tell the user Modernization 3 (async/await networking in APIService) is next.
+
+---
+
+yes
+
+---
+
+<task-notification>
+<task-id>bl5rnkrzt</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/73bfc67d-407a-421c-bdf6-b48fa3a353d2/tasks/bl5rnkrzt.output</output-file>
+<status>completed</status>
+<summary>Background command "Build iOS + run PeopleActionsTests with async mock" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+async/await APIService: read /tmp/people-test.txt — if PeopleActionsTests pass (async mock works in the iOS target), the APIService modernization is verified across all 3 test suites (APIServiceTests 20, MoviesActionsTests 26, PeopleActionsTests). Commit + open PR #9 + workflow (CI, resolve Copilot threads, merge, delete, back to main). Then advance to Modernization 4 (.foregroundColor → .foregroundStyle).
+
+---
+
+PR #9 (async/await APIService, Modernization 3/6): (1) check + address Copilot review comments AND resolve threads (branch protection requires resolution); (2) verify CI run 26414025802 all 5 jobs green, re-run flaky ios-tests-ipad if needed; (3) merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #3 completed, set task #4 (.foregroundColor → .foregroundStyle) in_progress, tell the user Modernization 4 is next.
+
+---
+
+PR #9 merge gate: 3 Copilot comments addressed (8a8a4c1) + all threads resolved. Verify CI run 26415683211 all 5 jobs green (re-run flaky ios-tests-ipad if needed), then merge with merge commit, delete branch local+remote, switch to main and pull. Then mark task #3 completed, set task #4 in_progress, and tell the user Modernization 4 (.foregroundColor → .foregroundStyle) is next.
