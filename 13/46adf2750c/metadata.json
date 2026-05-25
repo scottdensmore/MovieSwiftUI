@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "1346adf2750c",
+  "strategy": "manual-commit",
+  "branch": "feat/full-localizability",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieInfoRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/extensions/Collection.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/DiscoverFilter.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/types/MoviesMenu.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/LocalizationTests.swift",
+    "MovieSwift/Shared/views/onboarding/OnboardingFlow.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/13/46adf2750c/0/metadata.json",
+      "transcript": "/13/46adf2750c/0/full.jsonl",
+      "content_hash": "/13/46adf2750c/0/content_hash.txt",
+      "prompt": "/13/46adf2750c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6442,
+    "cache_creation_tokens": 24216867,
+    "cache_read_tokens": 1994724553,
+    "output_tokens": 2755632,
+    "api_call_count": 4796
+  }
+}

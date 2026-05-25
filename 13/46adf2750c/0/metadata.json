@@ -1,0 +1,60 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "1346adf2750c",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-25T04:26:13.671637Z",
+  "branch": "feat/full-localizability",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieInfoRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/extensions/Collection.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/DiscoverFilter.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/types/MoviesMenu.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/LocalizationTests.swift",
+    "MovieSwift/Shared/views/onboarding/OnboardingFlow.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "01f23c6ea7ae",
+  "token_usage": {
+    "input_tokens": 6442,
+    "cache_creation_tokens": 24216867,
+    "cache_read_tokens": 1994724553,
+    "output_tokens": 2755632,
+    "api_call_count": 4796
+  },
+  "session_metrics": {
+    "turn_count": 7
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-25T04:26:13.17438Z",
+    "agent_lines": 125,
+    "agent_removed": 18,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 125,
+    "total_lines_changed": 143,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 125,
+      "agent_lines_removed": 18
+    }
+  ]
+}
