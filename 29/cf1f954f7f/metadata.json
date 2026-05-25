@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "29cf1f954f7f",
+  "strategy": "manual-commit",
+  "branch": "feat/content-unavailable-view",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/fan club/FanClubHome.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/29/cf1f954f7f/0/metadata.json",
+      "transcript": "/29/cf1f954f7f/0/full.jsonl",
+      "content_hash": "/29/cf1f954f7f/0/content_hash.txt",
+      "prompt": "/29/cf1f954f7f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6612,
+    "cache_creation_tokens": 24315673,
+    "cache_read_tokens": 2063936322,
+    "output_tokens": 2825573,
+    "api_call_count": 4881
+  }
+}
