@@ -8,7 +8,10 @@ enum PeopleDetailImagesState {
     }
 
     static func accessibilityLabel(for index: Int, total: Int) -> String {
-        "Image \(index + 1) of \(total)"
+        // Returned as a String and handed to `.accessibilityLabel`, so it
+        // must be localized here to reach the catalog.
+        String(localized: "Image \(index + 1) of \(total)",
+               comment: "Accessibility label for a person's photo in the image carousel; args are the 1-based index and total count")
     }
 }
 

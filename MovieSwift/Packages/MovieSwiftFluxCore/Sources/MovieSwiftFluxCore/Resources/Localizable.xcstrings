@@ -42,6 +42,39 @@
     },
     "You're offline. Check your connection and try again." : {
       "comment" : "Inline error banner shown when the device has no network connection."
+    },
+    "Popular" : {
+      "comment" : "Movies menu / nav title: most popular movies"
+    },
+    "Top Rated" : {
+      "comment" : "Movies menu / nav title: highest rated movies"
+    },
+    "Upcoming" : {
+      "comment" : "Movies menu / nav title: upcoming releases"
+    },
+    "Now Playing" : {
+      "comment" : "Movies menu / nav title: movies in theaters now"
+    },
+    "Trending" : {
+      "comment" : "Movies menu / nav title: trending movies"
+    },
+    "Genres" : {
+      "comment" : "Movies menu / nav title: browse by genre"
+    },
+    "by release date" : {
+      "comment" : "Sort option: order movies by release date"
+    },
+    "by added date" : {
+      "comment" : "Sort option: order movies by when the user added them"
+    },
+    "by rating" : {
+      "comment" : "Sort option: order movies by rating"
+    },
+    "by popularity" : {
+      "comment" : "Sort option: order movies by popularity"
+    },
+    "Random" : {
+      "comment" : "Discover filter description shown when no specific year range is set"
     }
   },
   "version" : "1.0"

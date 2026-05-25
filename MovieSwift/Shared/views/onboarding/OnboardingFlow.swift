@@ -16,11 +16,13 @@ public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable {
     public var id: Int { rawValue }
 
     public var title: String {
+        // Compiled into the app targets (Shared/, not a package), so the
+        // default Bundle.main lookup resolves the app's catalog correctly.
         switch self {
-        case .welcome: return "Welcome"
-        case .apiKey:  return "TMDB key"
-        case .region:  return "Region"
-        case .ready:   return "Ready"
+        case .welcome: return String(localized: "Welcome", comment: "Onboarding step name: welcome")
+        case .apiKey:  return String(localized: "TMDB key", comment: "Onboarding step name: TMDB API key setup")
+        case .region:  return String(localized: "Region", comment: "Onboarding step name: region selection")
+        case .ready:   return String(localized: "Ready", comment: "Onboarding step name: finished")
         }
     }
 }

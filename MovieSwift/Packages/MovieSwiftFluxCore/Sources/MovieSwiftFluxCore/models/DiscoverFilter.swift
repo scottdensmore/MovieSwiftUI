@@ -109,7 +109,9 @@ public struct DiscoverFilter: Codable {
         if let startYear = startYear, let endYear = endYear {
             parts.append("\(startYear)-\(endYear)")
         } else {
-            parts.append("Random")
+            // `bundle: .module`: this type is in the MovieSwiftFluxCore package.
+            parts.append(String(localized: "Random", bundle: .module,
+                                comment: "Discover filter description shown when no specific year range is set"))
         }
         if let genre = genre,
             let stateGenre = genres.first(where: { (realGenre) -> Bool in

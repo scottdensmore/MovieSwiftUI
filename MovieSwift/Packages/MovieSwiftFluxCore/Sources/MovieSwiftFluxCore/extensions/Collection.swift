@@ -4,15 +4,21 @@ public enum MoviesSort {
     case byReleaseDate, byAddedDate, byScore, byPopularity
     
     public func title() -> String {
+        // `bundle: .module`: localized strings live in the
+        // MovieSwiftFluxCore package's own catalog, not the app bundle.
         switch self {
         case .byReleaseDate:
-            return "by release date"
+            return String(localized: "by release date", bundle: .module,
+                          comment: "Sort option: order movies by release date")
         case .byAddedDate:
-            return "by added date"
+            return String(localized: "by added date", bundle: .module,
+                          comment: "Sort option: order movies by when the user added them")
         case .byScore:
-            return "by rating"
+            return String(localized: "by rating", bundle: .module,
+                          comment: "Sort option: order movies by rating")
         case .byPopularity:
-            return "by popularity"
+            return String(localized: "by popularity", bundle: .module,
+                          comment: "Sort option: order movies by popularity")
         }
     }
     
