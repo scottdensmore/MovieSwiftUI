@@ -1,5 +1,16 @@
 import Foundation
 
+/// Carries a value across a concurrency boundary without requiring it to
+/// be `Sendable`. Used by `APIService.GET` to hand a caller's ordinary
+/// (non-`Sendable`) completion handler and the decoded result to the
+/// callback queue. Safe because each box is delivered exactly once, to a
+/// single serial queue (`.main` in production); we own that invariant
+/// rather than proving it to the compiler.
+private struct UncheckedSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+    init(_ value: Value) { self.value = value }
+}
+
 public protocol APIKeyProviding {
     func apiKey() -> String?
 }
@@ -245,20 +256,37 @@ public struct APIService {
         }
     }
     
-    // `T: Sendable` and the `@Sendable` completion handler are required
-    // because the decoded value and the callback both cross from the
-    // networking `Task` back to `callbackQueue` — strict concurrency
-    // makes that hand-off explicit rather than racy.
+    // The completion handler is delivered through `deliver(_:)` below,
+    // which boxes both the handler and the result so the networking
+    // `Task` can hand them to `callbackQueue` without forcing `@Sendable`
+    // (and therefore `Sendable` captures) onto every caller. Keeping the
+    // handler an ordinary closure is what lets the Redux action layer —
+    // built on the main-thread-bound, non-Sendable SwiftUIFlux
+    // `DispatchFunction` — call `GET` unchanged.
+    //
+    // `T: Sendable` constrains only the decoded model (every TMDB model
+    // is an immutable value type that already conforms), which keeps the
+    // `decoder.decode(T.self,…)` metatype use inside the `Task` clean. It
+    // deliberately does NOT make the handler `@Sendable`.
     public func GET<T: Codable & Sendable>(endpoint: Endpoint,
                          params: [String: String]?,
-                         completionHandler: @escaping @Sendable (Result<T, APIError>) -> Void) {
+                         completionHandler: @escaping (Result<T, APIError>) -> Void) {
+        // `callbackQueue` is `.main` in production and a serial queue in
+        // tests; the handler is invoked exactly once. Boxing the handler
+        // and each result as `@unchecked Sendable` documents that we own
+        // that single-delivery-on-callbackQueue invariant, rather than
+        // pushing `Sendable` requirements up into the caller.
+        let handlerBox = UncheckedSendableBox(completionHandler)
+        let callbackQueue = self.callbackQueue
+        @Sendable func deliver(_ result: Result<T, APIError>) {
+            let resultBox = UncheckedSendableBox(result)
+            callbackQueue.async { handlerBox.value(resultBox.value) }
+        }
         guard let apiKey = apiKey else {
             #if DEBUG
             print("Missing TMDB_API_KEY. Set it in DeveloperSettings.xcconfig.")
             #endif
-            callbackQueue.async {
-                completionHandler(.failure(.missingAPIKey))
-            }
+            deliver(.failure(.missingAPIKey))
             return
         }
         
@@ -286,9 +314,7 @@ public struct APIService {
         // characters that fail percent-encoding), surface that as a
         // structured failure instead of crashing the request.
         guard let composedURL = components.url else {
-            callbackQueue.async {
-                completionHandler(.failure(.noResponse))
-            }
+            deliver(.failure(.noResponse))
             return
         }
         var request = URLRequest(url: composedURL)
@@ -302,7 +328,6 @@ public struct APIService {
         // networking itself uses structured async/await internally.
         let session = self.session
         let decoder = self.decoder
-        let callbackQueue = self.callbackQueue
         Task {
             do {
                 let (data, response) = try await session.data(for: request)
@@ -327,29 +352,21 @@ public struct APIService {
                     #endif
                     if http.statusCode == 429 {
                         let retryAfter = APIService.retryAfterSeconds(from: http)
-                        callbackQueue.async {
-                            completionHandler(.failure(.rateLimited(retryAfterSeconds: retryAfter)))
-                        }
+                        deliver(.failure(.rateLimited(retryAfterSeconds: retryAfter)))
                     } else {
-                        callbackQueue.async {
-                            completionHandler(.failure(.httpStatus(code: http.statusCode)))
-                        }
+                        deliver(.failure(.httpStatus(code: http.statusCode)))
                     }
                     return
                 }
 
                 do {
                     let object = try decoder.decode(T.self, from: data)
-                    callbackQueue.async {
-                        completionHandler(.success(object))
-                    }
+                    deliver(.success(object))
                 } catch let error {
-                    callbackQueue.async {
-                        #if DEBUG
-                        print("JSON Decoding Error: \(error)")
-                        #endif
-                        completionHandler(.failure(.jsonDecodingError(error: error)))
-                    }
+                    #if DEBUG
+                    print("JSON Decoding Error: \(error)")
+                    #endif
+                    deliver(.failure(.jsonDecodingError(error: error)))
                 }
             } catch {
                 // Transport-level error — distinguish "device is offline"
@@ -357,13 +374,9 @@ public struct APIService {
                 let nsError = error as NSError
                 if nsError.domain == NSURLErrorDomain
                     && APIService.offlineURLErrorCodes.contains(nsError.code) {
-                    callbackQueue.async {
-                        completionHandler(.failure(.offline))
-                    }
+                    deliver(.failure(.offline))
                 } else {
-                    callbackQueue.async {
-                        completionHandler(.failure(.networkError(error: error)))
-                    }
+                    deliver(.failure(.networkError(error: error)))
                 }
             }
         }
