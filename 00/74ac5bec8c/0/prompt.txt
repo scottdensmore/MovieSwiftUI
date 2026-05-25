@@ -119,3 +119,13 @@ Ok lets start that
 <status>completed</status>
 <summary>Background command "Build iOS with @Observable migration" completed (exit code 0)</summary>
 </task-notification>
+
+---
+
+<task-notification>
+<task-id>b2sfe3090</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/73bfc67d-407a-421c-bdf6-b48fa3a353d2/tasks/b2sfe3090.output</output-file>
+<status>completed</status>
+<summary>Background command "Run App-Intent routing + MoviesSelectedMenuStore tests" completed (exit code 0)</summary>
+</task-notification>
