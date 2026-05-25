@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "0074ac5bec8c",
+  "strategy": "manual-commit",
+  "branch": "feat/observable-stores",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/home/HomeView.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/MoviesHome.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/models/MoviesSelectedMenuStore.swift",
+    "MovieSwift/Shared/flux/state/IntentNavigation.swift",
+    "MovieSwift/Shared/views/SplitView.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/00/74ac5bec8c/0/metadata.json",
+      "transcript": "/00/74ac5bec8c/0/full.jsonl",
+      "content_hash": "/00/74ac5bec8c/0/content_hash.txt",
+      "prompt": "/00/74ac5bec8c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 6700,
+    "cache_creation_tokens": 25213806,
+    "cache_read_tokens": 2101591087,
+    "output_tokens": 2848034,
+    "api_call_count": 4925
+  }
+}
