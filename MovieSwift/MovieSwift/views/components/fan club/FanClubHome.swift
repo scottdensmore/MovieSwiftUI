@@ -366,8 +366,12 @@ struct FanClubHome: ConnectedView {
             } else {
                 // Loading state → ProgressView is the right control for
                 // in-progress work (ContentUnavailableView is for absence).
-                VStack(spacing: 16) {
+                // Keeps both the title and message the empty-state view
+                // showed before, so no copy is dropped for this case.
+                VStack(spacing: 12) {
                     ProgressView()
+                    Text(state.title)
+                        .font(.headline)
                     Text(state.message)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
