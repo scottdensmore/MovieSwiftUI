@@ -82,3 +82,13 @@ ContentUnavailableView PR: read /tmp/cuv-ios.txt + /tmp/cuv-tv.txt. If FanClub (
 ---
 
 Check the pr for commands and address them
+
+---
+
+<task-notification>
+<task-id>bxaep6jfl</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/2cae28a4-28e8-4bfa-9225-7682543f3664/tasks/bxaep6jfl.output</output-file>
+<status>completed</status>
+<summary>Background command "Build iOS after loading-title fix" completed (exit code 0)</summary>
+</task-notification>
