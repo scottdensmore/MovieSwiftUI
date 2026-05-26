@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "0905e79f30f6",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-26T03:48:10.630983Z",
+  "branch": "feat/swift6-language-mode",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "7ae79c47720e",
+  "token_usage": {
+    "input_tokens": 7760,
+    "cache_creation_tokens": 26901139,
+    "cache_read_tokens": 2322483592,
+    "output_tokens": 3248789,
+    "api_call_count": 5455
+  },
+  "session_metrics": {
+    "turn_count": 36
+  }
+}
