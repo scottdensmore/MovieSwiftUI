@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "e066d0d635aa",
+  "strategy": "manual-commit",
+  "branch": "feat/swift-testing-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/APIPayloadContractTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/LocalizationTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/LoggingMiddlewareTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ModelUtilityTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesListLoadingStateTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/e0/66d0d635aa/0/metadata.json",
+      "transcript": "/e0/66d0d635aa/0/full.jsonl",
+      "content_hash": "/e0/66d0d635aa/0/content_hash.txt",
+      "prompt": "/e0/66d0d635aa/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7938,
+    "cache_creation_tokens": 27089127,
+    "cache_read_tokens": 2383146719,
+    "output_tokens": 3378589,
+    "api_call_count": 5544
+  }
+}
