@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "16302f665206",
+  "strategy": "manual-commit",
+  "branch": "feat/swift-testing-migration",
+  "checkpoints_count": 0,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/16/302f665206/0/metadata.json",
+      "transcript": "/16/302f665206/0/full.jsonl",
+      "content_hash": "/16/302f665206/0/content_hash.txt",
+      "prompt": "/16/302f665206/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 38200,
+    "cache_read_tokens": 15687159,
+    "output_tokens": 30728,
+    "api_call_count": 24
+  }
+}
