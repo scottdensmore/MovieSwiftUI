@@ -33,10 +33,13 @@ open class SearchTextObservable: ObservableObject {
             .removeDuplicates()
             .filter { !$0.isEmpty }
             .sink { [weak self] searchText in
-                // The debounce scheduler is `DispatchQueue.main`, so this
-                // sink always fires on the main thread — assert that to
-                // call the main-actor `onUpdateTextDebounced` hook.
-                MainActor.assumeIsolated {
+                // Hop to the main actor to call the main-actor
+                // `onUpdateTextDebounced` hook. `Task { @MainActor }` rather
+                // than `MainActor.assumeIsolated` because Combine's GCD
+                // scheduling isn't a hard main-actor-executor guarantee; the
+                // extra runloop tick is immaterial for an already-debounced
+                // search field.
+                Task { @MainActor in
                     self?.onUpdateTextDebounced(text: searchText)
                 }
             }

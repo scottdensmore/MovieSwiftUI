@@ -82,11 +82,13 @@ final class MoviesActionsTests: XCTestCase {
     // @MainActor case, so they can touch the main-actor `originalAPIService`
     // (the sync overrides are nonisolated and would warn).
     override func setUp() async throws {
+        try await super.setUp()
         originalAPIService = APIService.shared
     }
 
     override func tearDown() async throws {
         APIService.shared = originalAPIService
+        try await super.tearDown()
     }
 
     // MARK: - Dispatch capture helper

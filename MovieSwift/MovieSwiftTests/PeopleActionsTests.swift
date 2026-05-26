@@ -49,11 +49,13 @@ final class PeopleActionsTests: XCTestCase {
     // Async setUp/tearDown so they're main-actor-isolated in this
     // @MainActor case and can touch the saved APIService.
     override func setUp() async throws {
+        try await super.setUp()
         originalAPIService = APIService.shared
     }
 
     override func tearDown() async throws {
         APIService.shared = originalAPIService
+        try await super.tearDown()
     }
 
     // MARK: - FetchDetail
