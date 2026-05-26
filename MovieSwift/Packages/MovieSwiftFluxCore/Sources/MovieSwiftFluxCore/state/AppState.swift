@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUIFlux
 
-public struct AppState: FluxState, Codable {
+public struct AppState: FluxState, Codable, Sendable {
     public var moviesState: MoviesState
     public var peoplesState: PeoplesState
 

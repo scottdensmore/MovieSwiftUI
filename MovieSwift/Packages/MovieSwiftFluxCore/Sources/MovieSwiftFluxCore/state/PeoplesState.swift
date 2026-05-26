@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUIFlux
 
-public struct PeoplesState: FluxState, Codable {
+public struct PeoplesState: FluxState, Codable, Sendable {
     public var peoples: [Int: People] = [:]
     public var peoplesMovies: [Int: Set<Int>] = [:]
     public var search: [String: [Int]] = [:]
