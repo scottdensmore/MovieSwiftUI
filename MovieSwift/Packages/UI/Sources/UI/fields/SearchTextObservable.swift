@@ -1,6 +1,12 @@
 import SwiftUI
 import Combine
 
+// `@MainActor`: this drives a SwiftUI search field and is subclassed by
+// main-actor view models in the app target. Isolating it to the main
+// actor keeps that hierarchy consistent under the app's default-MainActor
+// mode. The debounce pipeline below is scheduled on `DispatchQueue.main`,
+// so its sink genuinely runs on the main actor.
+@MainActor
 open class SearchTextObservable: ObservableObject {
     @Published public var searchText = "" {
         willSet {
@@ -14,15 +20,11 @@ open class SearchTextObservable: ObservableObject {
 
     public let searchSubject = PassthroughSubject<String, Never>()
 
-    // Store all subscriptions here to ensure proper lifetime management
+    // Store all subscriptions here to ensure proper lifetime management.
+    // No explicit deinit cleanup: each AnyCancellable cancels itself when
+    // the set is deallocated, and a nonisolated deinit can't touch this
+    // main-actor-isolated, non-Sendable property under the Swift 6 mode.
     private var cancellables = Set<AnyCancellable>()
-
-    deinit {
-        // Not strictly necessary because AnyCancellable in the set cancels on deinit,
-        // but explicit for clarity
-        cancellables.forEach { $0.cancel() }
-        cancellables.removeAll()
-    }
 
     public init() {
         // Debounced, distinct, non-empty search text
@@ -31,7 +33,12 @@ open class SearchTextObservable: ObservableObject {
             .removeDuplicates()
             .filter { !$0.isEmpty }
             .sink { [weak self] searchText in
-                self?.onUpdateTextDebounced(text: searchText)
+                // The debounce scheduler is `DispatchQueue.main`, so this
+                // sink always fires on the main thread — assert that to
+                // call the main-actor `onUpdateTextDebounced` hook.
+                MainActor.assumeIsolated {
+                    self?.onUpdateTextDebounced(text: searchText)
+                }
             }
             .store(in: &cancellables)
     }
