@@ -1,25 +1,20 @@
-import XCTest
+import Testing
+import Foundation
 @testable import Backend
 
-// `@MainActor`: under the Swift 6 language mode `waitForExpectations`
-// is main-actor-isolated, so a nonisolated test method calling it would
-// have to send the non-Sendable `XCTestCase` across actors. Pinning the
-// case to the main actor (where XCTest already runs it) satisfies that
-// without weakening any assertions.
-@MainActor
-final class APIServiceTests: XCTestCase {
+@Suite struct APIServiceTests {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
-        
+
         init(_ value: String?) {
             self.value = value
         }
-        
+
         func apiKey() -> String? {
             value
         }
     }
-    
+
     private final class MockNetworkSession: NetworkSession, @unchecked Sendable {
         var lastRequest: URLRequest?
         var nextData: Data = Data()
@@ -38,15 +33,22 @@ final class APIServiceTests: XCTestCase {
             return (nextData, response)
         }
     }
-    
+
     private enum StubError: Error {
         case failed
     }
-    
-    private struct Payload: Codable, Equatable {
+
+    private struct Payload: Codable, Equatable, Sendable {
         let value: String
     }
-    
+
+    /// Carries a (non-Sendable) `Result` across the continuation so the
+    /// completion-handler `GET` can be awaited and asserted on in the
+    /// test's async context. Safe: the handler fires exactly once.
+    private struct ResultBox<T>: @unchecked Sendable {
+        let result: Result<T, APIService.APIError>
+    }
+
     private func makeService(
         apiKey: String?,
         session: MockNetworkSession,
@@ -60,113 +62,100 @@ final class APIServiceTests: XCTestCase {
             authMode: authMode
         )
     }
-    
-    func testEndpointPathBuildsExpectedValues() {
-        XCTAssertEqual(APIService.Endpoint.popular.path(), "movie/popular")
-        XCTAssertEqual(APIService.Endpoint.movieDetail(movie: 42).path(), "movie/42")
-        XCTAssertEqual(APIService.Endpoint.personImages(person: 99).path(), "person/99/images")
-        XCTAssertEqual(APIService.Endpoint.discover.path(), "discover/movie")
-    }
-    
-    func testGETReturnsMissingAPIKeyWhenProviderIsEmpty() {
-        let session = MockNetworkSession()
-        let service = makeService(apiKey: nil, session: session)
-        let expectation = expectation(description: "Missing API key failure")
-        
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.missingAPIKey) = result else {
-                XCTFail("Expected missing API key error")
-                expectation.fulfill()
-                return
+
+    /// Bridges `APIService.GET`'s completion handler to async/await.
+    private func get<T: Codable & Sendable>(
+        _ service: APIService,
+        endpoint: APIService.Endpoint,
+        params: [String: String]? = nil,
+        as type: T.Type = T.self
+    ) async -> Result<T, APIService.APIError> {
+        await withCheckedContinuation { continuation in
+            service.GET(endpoint: endpoint, params: params) { (result: Result<T, APIService.APIError>) in
+                continuation.resume(returning: ResultBox(result: result))
             }
-            expectation.fulfill()
-        }
-        
-        waitForExpectations(timeout: 1)
-        // Missing key short-circuits before any network call.
-        XCTAssertNil(session.lastRequest)
+        }.result
     }
 
-    func testGETBuildsRequestAndDecodesOnSuccess() {
+    @Test func endpointPathBuildsExpectedValues() {
+        #expect(APIService.Endpoint.popular.path() == "movie/popular")
+        #expect(APIService.Endpoint.movieDetail(movie: 42).path() == "movie/42")
+        #expect(APIService.Endpoint.personImages(person: 99).path() == "person/99/images")
+        #expect(APIService.Endpoint.discover.path() == "discover/movie")
+    }
+
+    @Test func getReturnsMissingAPIKeyWhenProviderIsEmpty() async {
+        let session = MockNetworkSession()
+        let service = makeService(apiKey: nil, session: session)
+
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .failure(.missingAPIKey) = result else {
+            Issue.record("Expected missing API key error")
+            return
+        }
+        // Missing key short-circuits before any network call.
+        #expect(session.lastRequest == nil)
+    }
+
+    @Test func getBuildsRequestAndDecodesOnSuccess() async {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "Success result")
-        
-        service.GET(endpoint: .searchMovie, params: ["page": "2", "query": "batman"]) { (result: Result<Payload, APIService.APIError>) in
-            switch result {
-            case let .success(payload):
-                XCTAssertEqual(payload, Payload(value: "ok"))
-            default:
-                XCTFail("Expected success")
-            }
-            expectation.fulfill()
-        }
-        
-        waitForExpectations(timeout: 1)
 
-        XCTAssertEqual(session.lastRequest?.httpMethod, "GET")
-        
-        guard let requestURL = session.lastRequest?.url,
-              let components = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else {
-            XCTFail("Expected URL on built request")
+        let result: Result<Payload, APIService.APIError> = await get(
+            service, endpoint: .searchMovie, params: ["page": "2", "query": "batman"])
+        guard case let .success(payload) = result else {
+            Issue.record("Expected success")
             return
         }
-        
+        #expect(payload == Payload(value: "ok"))
+
+        #expect(session.lastRequest?.httpMethod == "GET")
+
+        let requestURL = try? #require(session.lastRequest?.url)
+        let components = requestURL.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
         let queryItems = Dictionary(
-            uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") }
+            uniqueKeysWithValues: (components?.queryItems ?? []).map { ($0.name, $0.value ?? "") }
         )
-        
-        XCTAssertTrue(requestURL.absoluteString.contains("/search/movie"))
-        XCTAssertEqual(queryItems["api_key"], "abc123")
-        XCTAssertEqual(queryItems["language"], Locale.preferredLanguages[0])
-        XCTAssertEqual(queryItems["page"], "2")
-        XCTAssertEqual(queryItems["query"], "batman")
+
+        #expect(requestURL?.absoluteString.contains("/search/movie") == true)
+        #expect(queryItems["api_key"] == "abc123")
+        #expect(queryItems["language"] == Locale.preferredLanguages[0])
+        #expect(queryItems["page"] == "2")
+        #expect(queryItems["query"] == "batman")
     }
-    
+
     // (The former testGETReturnsNoResponseWhenDataIsMissing was removed:
     // URLSession.data(for:) always yields a non-nil Data, so the
     // "successful response with missing data" path is structurally
     // impossible under async/await. The `.noResponse` error remains for
     // the URL-construction-failure guard in GET.)
 
-    func testGETReturnsNetworkErrorWhenErrorExists() {
+    @Test func getReturnsNetworkErrorWhenErrorExists() async {
         let session = MockNetworkSession()
         session.nextData = Data()
         session.nextError = StubError.failed
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "Network error failure")
-        
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case let .failure(.networkError(error)) = result else {
-                XCTFail("Expected network error")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertTrue(error is StubError)
-            expectation.fulfill()
+
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case let .failure(.networkError(error)) = result else {
+            Issue.record("Expected network error")
+            return
         }
-        
-        waitForExpectations(timeout: 1)
+        #expect(error is StubError)
     }
-    
-    func testGETReturnsDecodingErrorForInvalidPayload() {
+
+    @Test func getReturnsDecodingErrorForInvalidPayload() async {
         let session = MockNetworkSession()
         session.nextData = Data("not-json".utf8)
         session.nextError = nil
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "Decoding error failure")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.jsonDecodingError) = result else {
-                XCTFail("Expected jsonDecodingError")
-                expectation.fulfill()
-                return
-            }
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .failure(.jsonDecodingError) = result else {
+            Issue.record("Expected jsonDecodingError")
+            return
         }
-
-        waitForExpectations(timeout: 1)
     }
 
     // MARK: - HTTP status + offline error mapping
@@ -186,102 +175,77 @@ final class APIServiceTests: XCTestCase {
         )
     }
 
-    func testGETReturnsHTTPStatusFor401() {
+    @Test func getReturnsHTTPStatusFor401() async {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"status_message":"Invalid API key"}"#.utf8)
         session.nextResponse = httpResponse(statusCode: 401)
         let service = makeService(apiKey: "bogus", session: session)
-        let expectation = expectation(description: "HTTP 401 surfaces as httpStatus")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case let .failure(.httpStatus(code)) = result else {
-                XCTFail("Expected httpStatus error, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertEqual(code, 401)
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case let .failure(.httpStatus(code)) = result else {
+            Issue.record("Expected httpStatus error, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
+        #expect(code == 401)
     }
 
-    func testGETReturnsHTTPStatusFor500() {
+    @Test func getReturnsHTTPStatusFor500() async {
         let session = MockNetworkSession()
         session.nextData = Data()
         session.nextResponse = httpResponse(statusCode: 500)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "HTTP 500 surfaces as httpStatus")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case let .failure(.httpStatus(code)) = result else {
-                XCTFail("Expected httpStatus error, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertEqual(code, 500)
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case let .failure(.httpStatus(code)) = result else {
+            Issue.record("Expected httpStatus error, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
+        #expect(code == 500)
     }
 
-    func testGETReturnsRateLimitedWithRetryAfterFor429() {
+    @Test func getReturnsRateLimitedWithRetryAfterFor429() async {
         let session = MockNetworkSession()
         session.nextData = Data()
         session.nextResponse = httpResponse(statusCode: 429,
                                             headers: ["Retry-After": "12"])
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "HTTP 429 surfaces as rateLimited with parsed Retry-After")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case let .failure(.rateLimited(retryAfter)) = result else {
-                XCTFail("Expected rateLimited error, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertEqual(retryAfter, 12)
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case let .failure(.rateLimited(retryAfter)) = result else {
+            Issue.record("Expected rateLimited error, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
+        #expect(retryAfter == 12)
     }
 
-    func testGETReturnsRateLimitedWithoutRetryAfterWhenHeaderMissing() {
+    @Test func getReturnsRateLimitedWithoutRetryAfterWhenHeaderMissing() async {
         let session = MockNetworkSession()
         session.nextData = Data()
         session.nextResponse = httpResponse(statusCode: 429)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "HTTP 429 with no Retry-After header still surfaces as rateLimited")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case let .failure(.rateLimited(retryAfter)) = result else {
-                XCTFail("Expected rateLimited error, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertNil(retryAfter)
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case let .failure(.rateLimited(retryAfter)) = result else {
+            Issue.record("Expected rateLimited error, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
+        #expect(retryAfter == nil)
     }
 
-    func testGETReturnsOfflineForNotConnectedURLError() {
+    @Test func getReturnsOfflineForNotConnectedURLError() async {
         let session = MockNetworkSession()
         session.nextData = Data()
         session.nextError = URLError(.notConnectedToInternet)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "URLError.notConnectedToInternet surfaces as offline")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.offline) = result else {
-                XCTFail("Expected offline error, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .failure(.offline) = result else {
+            Issue.record("Expected offline error, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
     }
 
-    func testGETStillReturnsNetworkErrorForNonOfflineURLError() {
+    @Test func getStillReturnsNetworkErrorForNonOfflineURLError() async {
         // Domain-resolution-style failure shouldn't masquerade as
         // "you're offline" — the user has a network, the server is
         // just unreachable.
@@ -289,20 +253,15 @@ final class APIServiceTests: XCTestCase {
         session.nextData = Data()
         session.nextError = URLError(.cannotFindHost)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "Other URLErrors stay as networkError")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.networkError) = result else {
-                XCTFail("Expected networkError, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .failure(.networkError) = result else {
+            Issue.record("Expected networkError, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
     }
 
-    func testGETSucceedsWhen2xxStatusEvenWithHTTPResponse() {
+    @Test func getSucceedsWhen2xxStatusEvenWithHTTPResponse() async {
         // Regression guard: adding the HTTP status check shouldn't
         // change the success path. A 200 with valid JSON should still
         // decode normally.
@@ -310,128 +269,106 @@ final class APIServiceTests: XCTestCase {
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
         session.nextResponse = httpResponse(statusCode: 200)
         let service = makeService(apiKey: "abc123", session: session)
-        let expectation = expectation(description: "200 + valid JSON still succeeds")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .success(let payload) = result else {
-                XCTFail("Expected success, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            XCTAssertEqual(payload, Payload(value: "ok"))
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .success(let payload) = result else {
+            Issue.record("Expected success, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
+        #expect(payload == Payload(value: "ok"))
     }
 
     // MARK: - retryAfterSeconds(from:)
 
-    func testRetryAfterParsesIntegerSeconds() {
-        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "5"])!
-        XCTAssertEqual(APIService.retryAfterSeconds(from: response), 5)
+    @Test func retryAfterParsesIntegerSeconds() throws {
+        let response = try #require(httpResponse(statusCode: 429, headers: ["Retry-After": "5"]))
+        #expect(APIService.retryAfterSeconds(from: response) == 5)
     }
 
-    func testRetryAfterTrimsWhitespace() {
+    @Test func retryAfterTrimsWhitespace() throws {
         // HTTPURLResponse rejects header values containing newlines
         // per HTTP spec, so the realistic case is leading/trailing
         // spaces (which a misbehaving proxy might emit).
-        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "  10  "])!
-        XCTAssertEqual(APIService.retryAfterSeconds(from: response), 10)
+        let response = try #require(httpResponse(statusCode: 429, headers: ["Retry-After": "  10  "]))
+        #expect(APIService.retryAfterSeconds(from: response) == 10)
     }
 
-    func testRetryAfterReturnsNilWhenHeaderMissing() {
-        let response = httpResponse(statusCode: 429)!
-        XCTAssertNil(APIService.retryAfterSeconds(from: response))
+    @Test func retryAfterReturnsNilWhenHeaderMissing() throws {
+        let response = try #require(httpResponse(statusCode: 429))
+        #expect(APIService.retryAfterSeconds(from: response) == nil)
     }
 
-    func testRetryAfterReturnsNilWhenHeaderUnparseable() {
-        let response = httpResponse(statusCode: 429, headers: ["Retry-After": "Wed, 01 Jan 2025 00:00:00 GMT"])!
+    @Test func retryAfterReturnsNilWhenHeaderUnparseable() throws {
+        let response = try #require(httpResponse(statusCode: 429, headers: ["Retry-After": "Wed, 01 Jan 2025 00:00:00 GMT"]))
         // We don't currently support HTTP-date format, only seconds.
         // Returning nil keeps the UI's retry behaviour predictable
         // rather than silently waiting an arbitrarily long time.
-        XCTAssertNil(APIService.retryAfterSeconds(from: response))
+        #expect(APIService.retryAfterSeconds(from: response) == nil)
     }
 
     // MARK: - AuthMode
 
-    func testGETWithQueryParameterAuthAppendsAPIKeyToURL() {
+    @Test func getWithQueryParameterAuthAppendsAPIKeyToURL() async throws {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
         let service = makeService(apiKey: "secret-key",
                                    session: session,
                                    authMode: .queryParameter(name: "api_key"))
-        let expectation = expectation(description: "Request with api_key query")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            _ = result
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 1)
+        let _: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
 
-        let request = try! XCTUnwrap(session.lastRequest)
-        let components = try! XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let request = try #require(session.lastRequest)
+        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
         let query = (components.queryItems ?? []).reduce(into: [String: String]()) { acc, item in
             acc[item.name] = item.value
         }
-        XCTAssertEqual(query["api_key"], "secret-key",
-                       "Default authMode should append api_key as query parameter")
-        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"),
-                     "Query-parameter auth should NOT also send a Bearer header")
+        #expect(query["api_key"] == "secret-key",
+                "Default authMode should append api_key as query parameter")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil,
+                "Query-parameter auth should NOT also send a Bearer header")
     }
 
-    func testGETWithBearerAuthSendsAuthorizationHeaderAndOmitsAPIKeyQuery() {
+    @Test func getWithBearerAuthSendsAuthorizationHeaderAndOmitsAPIKeyQuery() async throws {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
         let service = makeService(apiKey: "v4-token",
                                    session: session,
                                    authMode: .bearer)
-        let expectation = expectation(description: "Bearer auth request")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            _ = result
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 1)
+        let _: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
 
-        let request = try! XCTUnwrap(session.lastRequest)
-        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"),
-                       "Bearer v4-token",
-                       "Bearer auth should send the key in the Authorization header")
-        let components = try! XCTUnwrap(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let request = try #require(session.lastRequest)
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer v4-token",
+                "Bearer auth should send the key in the Authorization header")
+        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
         let queryNames = (components.queryItems ?? []).map(\.name)
-        XCTAssertFalse(queryNames.contains("api_key"),
-                       "Bearer auth should NOT also pass the key as a query parameter")
-        XCTAssertTrue(queryNames.contains("language"),
-                      "Bearer auth should still pass non-credential query params (e.g. language)")
+        #expect(!queryNames.contains("api_key"),
+                "Bearer auth should NOT also pass the key as a query parameter")
+        #expect(queryNames.contains("language"),
+                "Bearer auth should still pass non-credential query params (e.g. language)")
     }
 
-    func testGETWithBearerAuthStillReturnsMissingAPIKeyWhenProviderIsEmpty() {
+    @Test func getWithBearerAuthStillReturnsMissingAPIKeyWhenProviderIsEmpty() async {
         // The auth mode shouldn't change how a missing key is
         // surfaced — the failure path remains the same.
         let session = MockNetworkSession()
         let service = makeService(apiKey: nil,
                                    session: session,
                                    authMode: .bearer)
-        let expectation = expectation(description: "Missing key, bearer mode")
 
-        service.GET(endpoint: .popular, params: nil) { (result: Result<Payload, APIService.APIError>) in
-            guard case .failure(.missingAPIKey) = result else {
-                XCTFail("Expected missingAPIKey, got \(result)")
-                expectation.fulfill()
-                return
-            }
-            expectation.fulfill()
+        let result: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
+        guard case .failure(.missingAPIKey) = result else {
+            Issue.record("Expected missingAPIKey, got \(result)")
+            return
         }
-        waitForExpectations(timeout: 1)
     }
 
     // MARK: - defaultBaseURL
 
-    func testDefaultBaseURLFallsBackToTMDBDirect() {
+    @Test func defaultBaseURLFallsBackToTMDBDirect() {
         // The Backend Swift Package test runner doesn't load the
         // app bundle's Info.plist, so TMDB_BASE_URL is unset and
         // the static accessor returns the literal fallback.
-        XCTAssertEqual(APIService.defaultBaseURL.absoluteString,
-                       "https://api.themoviedb.org/3")
+        #expect(APIService.defaultBaseURL.absoluteString == "https://api.themoviedb.org/3")
     }
 }

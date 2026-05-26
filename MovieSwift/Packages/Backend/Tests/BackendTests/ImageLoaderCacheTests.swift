@@ -1,41 +1,41 @@
-import XCTest
+import Testing
 @testable import Backend
 
-final class ImageLoaderCacheTests: XCTestCase {
-    func testLoaderForReturnsSameInstanceForSamePathAndSize() {
+@Suite struct ImageLoaderCacheTests {
+    @Test func loaderForReturnsSameInstanceForSamePathAndSize() {
         let cache = ImageLoaderCache()
-        
+
         let first = cache.loaderFor(path: "/poster.jpg", size: .small)
         let second = cache.loaderFor(path: "/poster.jpg", size: .small)
-        
-        XCTAssertTrue(first === second)
-    }
-    
-    func testLoaderForReturnsDifferentInstanceForDifferentSize() {
-        let cache = ImageLoaderCache()
-        
-        let first = cache.loaderFor(path: "/poster.jpg", size: .small)
-        let second = cache.loaderFor(path: "/poster.jpg", size: .medium)
-        
-        XCTAssertFalse(first === second)
-    }
-    
-    func testLoaderForCachesMissingPathKey() {
-        let cache = ImageLoaderCache()
-        
-        let first = cache.loaderFor(path: nil, size: .cast)
-        let second = cache.loaderFor(path: nil, size: .cast)
-        
-        XCTAssertTrue(first === second)
+
+        #expect(first === second)
     }
 
-    func testClearRemovesCachedLoaders() {
+    @Test func loaderForReturnsDifferentInstanceForDifferentSize() {
+        let cache = ImageLoaderCache()
+
+        let first = cache.loaderFor(path: "/poster.jpg", size: .small)
+        let second = cache.loaderFor(path: "/poster.jpg", size: .medium)
+
+        #expect(first !== second)
+    }
+
+    @Test func loaderForCachesMissingPathKey() {
+        let cache = ImageLoaderCache()
+
+        let first = cache.loaderFor(path: nil, size: .cast)
+        let second = cache.loaderFor(path: nil, size: .cast)
+
+        #expect(first === second)
+    }
+
+    @Test func clearRemovesCachedLoaders() {
         let cache = ImageLoaderCache()
 
         let first = cache.loaderFor(path: "/poster.jpg", size: .small)
         cache.clear()
         let second = cache.loaderFor(path: "/poster.jpg", size: .small)
 
-        XCTAssertFalse(first === second)
+        #expect(first !== second)
     }
 }
