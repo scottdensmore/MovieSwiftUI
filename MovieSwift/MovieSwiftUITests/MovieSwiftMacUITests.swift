@@ -3,10 +3,16 @@
 import XCTest
 import MovieSwiftFluxCore
 
+// `@MainActor`: XCUIApplication / XCUIElement and waitForExpectations are
+// main-actor-isolated under the Swift 6 mode; pin the case to the main
+// actor (the test target is nonisolated by default).
+@MainActor
 final class MovieSwiftMacUITests: XCTestCase {
     private let timeout = UITestConstants.uiWaitTimeout
 
-    override func setUpWithError() throws {
+    // Async setUp variant: main-actor-isolated without clashing with
+    // XCTestCase's nonisolated sync setUpWithError.
+    override func setUp() async throws {
         continueAfterFailure = false
     }
 

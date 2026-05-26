@@ -20,7 +20,12 @@ import MetricKit
 
 #if canImport(MetricKit) && !os(tvOS)
 
-final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber {
+// `@unchecked Sendable`: MetricKit invokes the subscriber callbacks on a
+// background queue, so this can't be a @MainActor type. Its only mutable
+// state, `isObserving`, is touched solely by start/stop at app launch on
+// the main thread; the `didReceive` callbacks just write files. We own
+// that confinement, which makes the `shared` singleton safe to share.
+final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber, @unchecked Sendable {
     static let shared = MetricKitCrashReporter()
 
     private var isObserving = false
@@ -49,7 +54,7 @@ final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber {
         for payload in payloads {
             let data = payload.jsonRepresentation()
             guard !data.isEmpty else { continue }
-            try? CrashReportStore.writeToDefaultDirectory(payload: data, kind: .metric)
+            _ = try? CrashReportStore.writeToDefaultDirectory(payload: data, kind: .metric)
         }
     }
 
@@ -60,7 +65,7 @@ final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber {
         for payload in payloads {
             let data = payload.jsonRepresentation()
             guard !data.isEmpty else { continue }
-            try? CrashReportStore.writeToDefaultDirectory(payload: data, kind: .diagnostic)
+            _ = try? CrashReportStore.writeToDefaultDirectory(payload: data, kind: .diagnostic)
         }
     }
 }
@@ -70,7 +75,7 @@ final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber {
 /// tvOS doesn't ship MetricKit. Provide an API-compatible stub so
 /// the app entry point can call `startObserving()` unconditionally
 /// without a platform branch at the call site.
-final class MetricKitCrashReporter {
+final class MetricKitCrashReporter: Sendable {
     static let shared = MetricKitCrashReporter()
     func startObserving() {}
     func stopObserving() {}

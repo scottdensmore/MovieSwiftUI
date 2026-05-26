@@ -7,6 +7,10 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: under the Swift 6 mode `waitForExpectations` is
+// main-actor-isolated, and these tests swap the main-thread
+// `APIService.shared`. XCTest already runs the case on the main thread.
+@MainActor
 final class PeopleActionsTests: XCTestCase {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
@@ -42,14 +46,16 @@ final class PeopleActionsTests: XCTestCase {
 
     private var originalAPIService: APIService!
 
-    override func setUp() {
-        super.setUp()
+    // Async setUp/tearDown so they're main-actor-isolated in this
+    // @MainActor case and can touch the saved APIService.
+    override func setUp() async throws {
+        try await super.setUp()
         originalAPIService = APIService.shared
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         APIService.shared = originalAPIService
-        super.tearDown()
+        try await super.tearDown()
     }
 
     // MARK: - FetchDetail

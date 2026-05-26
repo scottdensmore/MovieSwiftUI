@@ -26,7 +26,7 @@ public struct PeopleActions {
         }
     }
 
-    public struct ImagesResponse: Codable {
+    public struct ImagesResponse: Codable, Sendable {
         public let id: Int
         public let profiles: [ImageData]
 
@@ -60,7 +60,7 @@ public struct PeopleActions {
         }
     }
 
-    public struct PeopleCreditsResponse: Codable {
+    public struct PeopleCreditsResponse: Codable, Sendable {
         public let cast: [Movie]?
         public let crew: [Movie]?
 

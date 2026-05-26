@@ -21,7 +21,10 @@ import MovieSwiftFluxCore
 /// Pure-logic helpers — exposed regardless of platform so unit tests
 /// can verify the indexable-set composition and identifier
 /// round-tripping without depending on Core Spotlight.
-enum MovieSpotlightIndexer {
+///
+/// `nonisolated`: pure logic invoked from nonisolated unit tests, so it
+/// opts out of the app target's default-MainActor isolation.
+nonisolated enum MovieSpotlightIndexer {
 
     /// Domain identifier so the system groups these results
     /// together and the app can bulk-delete them on logout.
@@ -83,15 +86,19 @@ final class SpotlightStoreObserver {
         update(state: store.state)
 
         // SwiftUIFlux's Store is an ObservableObject; objectWillChange
-        // fires before mutations land, so we hop to the next runloop
-        // tick to read the post-mutation state.
+        // fires *before* the mutation lands. `.receive(on:)` already
+        // reschedules delivery asynchronously onto the main queue — i.e.
+        // a later runloop tick, after the synchronous dispatch+reducer has
+        // finished — so by the time this sink runs `store.state` is the
+        // post-mutation value. (Previously there was an additional
+        // `DispatchQueue.main.async` here; it was a redundant second hop
+        // and, under the Swift 6 mode, sent the non-Sendable self/store
+        // across the boundary.)
         cancellable = store.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self, weak store] _ in
-                DispatchQueue.main.async {
-                    guard let self, let store else { return }
-                    self.update(state: store.state)
-                }
+                guard let self, let store else { return }
+                self.update(state: store.state)
             }
     }
 

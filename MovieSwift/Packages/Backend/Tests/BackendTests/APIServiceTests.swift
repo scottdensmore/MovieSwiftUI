@@ -1,6 +1,12 @@
 import XCTest
 @testable import Backend
 
+// `@MainActor`: under the Swift 6 language mode `waitForExpectations`
+// is main-actor-isolated, so a nonisolated test method calling it would
+// have to send the non-Sendable `XCTestCase` across actors. Pinning the
+// case to the main actor (where XCTest already runs it) satisfies that
+// without weakening any assertions.
+@MainActor
 final class APIServiceTests: XCTestCase {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?

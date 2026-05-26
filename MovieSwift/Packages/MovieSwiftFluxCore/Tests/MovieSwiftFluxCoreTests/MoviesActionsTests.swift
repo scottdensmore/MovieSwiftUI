@@ -17,6 +17,11 @@ import SwiftUIFlux
 /// So success-path tests have to look at three dispatches and pick out the
 /// data action; failure-path tests have to look at two dispatches and assert
 /// the second is a `.failed` SetLoadingState.
+// `@MainActor`: under the Swift 6 language mode `waitForExpectations` is
+// main-actor-isolated, so a nonisolated test method calling it would have
+// to send the non-Sendable XCTestCase across actors. XCTest already runs
+// these on the main thread.
+@MainActor
 final class MoviesActionsTests: XCTestCase {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
@@ -73,14 +78,17 @@ final class MoviesActionsTests: XCTestCase {
 
     private var originalAPIService: APIService!
 
-    override func setUp() {
-        super.setUp()
+    // The async setUp/tearDown variants are main-actor-isolated in this
+    // @MainActor case, so they can touch the main-actor `originalAPIService`
+    // (the sync overrides are nonisolated and would warn).
+    override func setUp() async throws {
+        try await super.setUp()
         originalAPIService = APIService.shared
     }
 
-    override func tearDown() {
+    override func tearDown() async throws {
         APIService.shared = originalAPIService
-        super.tearDown()
+        try await super.tearDown()
     }
 
     // MARK: - Dispatch capture helper
@@ -141,7 +149,7 @@ final class MoviesActionsTests: XCTestCase {
     private func unwrapDispatched<T>(
         _ type: T.Type,
         in dispatched: [Action],
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws -> T {
         let matches = dispatched.compactMap { $0 as? T }
@@ -166,7 +174,7 @@ final class MoviesActionsTests: XCTestCase {
         for key: LoadingKey,
         noDataActionMatching matches: (Action) -> Bool,
         dataActionDescription: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws -> MoviesListLoadFailure {
         let unwantedDataAction = dispatched.first(where: matches)

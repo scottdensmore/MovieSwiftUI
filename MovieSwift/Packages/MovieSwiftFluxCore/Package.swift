@@ -37,5 +37,5 @@ let package = Package(
             resources: [.process("Fixtures")]
         ),
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v6]
 )

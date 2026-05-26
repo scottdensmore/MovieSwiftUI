@@ -2,7 +2,9 @@ import Foundation
 import SwiftUI
 import Combine
 
-public class ImageService {
+// Stateless (no stored properties), so safe to share across threads —
+// the `shared` singleton requires `Sendable` under the Swift 6 mode.
+public final class ImageService: Sendable {
     public static let shared = ImageService()
     
     public enum Size: String {

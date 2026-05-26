@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct People: Codable, Identifiable {
+public struct People: Codable, Identifiable, Sendable {
     public let id: Int
     public let name: String
     public var character: String?
@@ -53,7 +53,7 @@ public struct People: Codable, Identifiable {
         self.images = images
     }
     
-    public struct KnownFor: Codable, Identifiable {
+    public struct KnownFor: Codable, Identifiable, Sendable {
         public let id: Int
         public let original_title: String?
         public let poster_path: String?
@@ -71,7 +71,7 @@ public struct People: Codable, Identifiable {
 }
 
 public extension People {
-    public var knownForText: String? {
+    var knownForText: String? {
         guard let knownFor = known_for else {
             return nil
         }

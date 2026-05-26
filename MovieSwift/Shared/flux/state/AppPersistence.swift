@@ -1,8 +1,12 @@
 import Foundation
 import MovieSwiftFluxCore
 
-enum AppPersistence {
-    private static var savePath: URL?
+nonisolated enum AppPersistence {
+    // Resolved once, lazily and thread-safely — Swift guarantees atomic
+    // `static let` initialization. Replaces a mutable `static var` cache
+    // that the Swift 6 language mode rejects as non-concurrency-safe
+    // global state.
+    private static let savePath: URL? = try? resolvedSavePath()
 
     private static func resolvedSavePath() throws -> URL {
         let icloudDirectory = FileManager.default.url(forUbiquityContainerIdentifier: nil)
@@ -17,22 +21,8 @@ enum AppPersistence {
         return (icloudDirectory ?? documentDirectory).appendingPathComponent("userData")
     }
 
-    private static func ensureSavePath() -> URL? {
-        if let savePath {
-            return savePath
-        }
-
-        do {
-            let path = try resolvedSavePath()
-            savePath = path
-            return path
-        } catch {
-            return nil
-        }
-    }
-
     static func loadState() -> AppState? {
-        guard let savePath = ensureSavePath(),
+        guard let savePath = savePath,
               let data = try? Data(contentsOf: savePath) else {
             return nil
         }
@@ -54,7 +44,7 @@ enum AppPersistence {
     }
 
     static func archive(state: AppState) {
-        guard let resolvedSavePath = ensureSavePath() else {
+        guard let resolvedSavePath = savePath else {
             return
         }
 
@@ -64,7 +54,7 @@ enum AppPersistence {
     }
 
     static func archiveNow(state: AppState) {
-        guard let resolvedSavePath = ensureSavePath() else {
+        guard let resolvedSavePath = savePath else {
             return
         }
 
@@ -72,7 +62,7 @@ enum AppPersistence {
     }
 
     static func archivedStateSizeDescription() -> String {
-        guard let resolvedSavePath = ensureSavePath() else {
+        guard let resolvedSavePath = savePath else {
             return "0 KB"
         }
         do {

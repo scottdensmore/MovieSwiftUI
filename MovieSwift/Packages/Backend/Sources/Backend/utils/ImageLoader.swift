@@ -1,10 +1,15 @@
 import SwiftUI
 import Combine
 
-public class ImageLoaderCache {
+// `@unchecked Sendable`: the only stored property is an `NSCache`, which
+// is documented as thread-safe, and it's never reassigned (`let`). That
+// makes the `shared` singleton safe to share across threads under the
+// Swift 6 mode even though `NSCache` carries no formal `Sendable`
+// conformance.
+public final class ImageLoaderCache: @unchecked Sendable {
     public static let shared = ImageLoaderCache()
-    
-    private var loaders: NSCache<NSString, ImageLoader> = NSCache()
+
+    private let loaders: NSCache<NSString, ImageLoader> = NSCache()
             
     public func loaderFor(path: String?, size: ImageService.Size) -> ImageLoader {
         let key = NSString(string: "\(path ?? "missing")#\(size.rawValue)")

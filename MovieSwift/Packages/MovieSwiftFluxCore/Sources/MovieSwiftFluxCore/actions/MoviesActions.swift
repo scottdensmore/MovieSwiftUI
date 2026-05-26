@@ -376,7 +376,7 @@ public struct MoviesActions {
         }
     }
 
-    public struct GenresResponse: Codable {
+    public struct GenresResponse: Codable, Sendable {
         public let genres: [Genre]
 
         public init(

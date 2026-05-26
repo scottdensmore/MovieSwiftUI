@@ -13,7 +13,7 @@ import MovieSwiftFluxCore
 /// import side can read the version field before attempting to decode
 /// the snapshot body — letting older or newer formats fail with a clear
 /// error instead of silently corrupting state.
-struct AppDataExportEnvelope: Codable {
+nonisolated struct AppDataExportEnvelope: Codable, Sendable {
     /// Bumped when the on-disk export format changes in a way that
     /// would prevent older readers from understanding the file.
     static let currentFormatVersion: Int = 1
@@ -25,7 +25,7 @@ struct AppDataExportEnvelope: Codable {
     let snapshot: AppState
 }
 
-enum AppDataExport {
+nonisolated enum AppDataExport {
     /// Default JSON encoder used for exports. Pretty-printed and ISO 8601
     /// dates so the file is human-inspectable.
     static func makeEncoder() -> JSONEncoder {

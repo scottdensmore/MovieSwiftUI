@@ -18,6 +18,6 @@ let package = Package(
         .target(name: "UI", dependencies: [], path: "Sources")
     ],
     swiftLanguageModes: [
-        .v5
+        .v6
     ]
 )

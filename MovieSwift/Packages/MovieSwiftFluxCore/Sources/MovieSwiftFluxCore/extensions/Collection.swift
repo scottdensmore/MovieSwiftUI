@@ -37,7 +37,7 @@ public enum MoviesSort {
 }
 
 public extension Sequence where Iterator.Element == Int {
-    public func sortedMoviesIds(by: MoviesSort, state: AppState) -> [Int] {
+    func sortedMoviesIds(by: MoviesSort, state: AppState) -> [Int] {
         let ids = Array(self)
 
         switch by {

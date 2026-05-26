@@ -6,6 +6,10 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: exercises a broad slice of main-actor app code (state
+// query helpers, app-launch bootstrap, reducers via the store), so the
+// case runs on the main actor.
+@MainActor
 final class MovieSwiftTests: XCTestCase {
     private func makeMovie(id: Int,
                            keywords: Movie.Keywords? = nil,

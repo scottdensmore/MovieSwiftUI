@@ -59,7 +59,7 @@ struct HomeView: App {
                 TabbarView(isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests)
                     .tint(.steam_gold)
                     .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
-                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+                    .environment(\.archivedStateSizeDescription, { AppPersistence.archivedStateSizeDescription() })
                     .fullScreenCover(isPresented: $isOnboardingPresented) {
                         OnboardingView(onComplete: { isOnboardingPresented = false })
                     }
@@ -166,8 +166,11 @@ struct TabbarView: View {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appReducerWithImports,
+// `nonisolated(unsafe)`: SwiftUIFlux's `Store` is non-Sendable, but these
+// are DEBUG-only fixtures created once and consumed only from the main
+// thread (SwiftUI previews and the UI-smoke-test launch path).
+nonisolated(unsafe) let sampleStore = Store<AppState>(reducer: appReducerWithImports,
                                   state: makePreviewSampleState())
-let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
+nonisolated(unsafe) let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
                                        state: makeUISmokeTestState())
 #endif

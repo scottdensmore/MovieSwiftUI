@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MovieUserMeta: Codable {
+public struct MovieUserMeta: Codable, Sendable {
     public var addedToList: Date?
 
     public init(

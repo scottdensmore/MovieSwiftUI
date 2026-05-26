@@ -18,3 +18,7 @@ public struct PaginatedResponse<T: Codable>: Codable {
         self.results = results
     }
 }
+
+// Conditionally Sendable: a paginated payload is just immutable value
+// fields plus `[T]`, so it's safe to share whenever its element type is.
+extension PaginatedResponse: Sendable where T: Sendable {}

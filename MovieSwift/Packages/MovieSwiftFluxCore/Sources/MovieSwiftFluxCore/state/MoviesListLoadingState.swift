@@ -13,7 +13,7 @@ import Backend
 /// Where a per-menu list is in its load lifecycle. Only stored when
 /// not idle/loaded — `nil` in the dict means "no in-flight request,
 /// data (if any) is the latest known good".
-public enum MoviesListLoadingState: Equatable {
+public enum MoviesListLoadingState: Equatable, Sendable {
     case loading
     case failed(MoviesListLoadFailure)
 }
@@ -24,7 +24,7 @@ public enum MoviesListLoadingState: Equatable {
 /// single `loadingStates: [LoadingKey: MoviesListLoadingState]`
 /// dictionary in `MoviesState` — keeping it unified avoids needing a
 /// parallel state slot inside `PeoplesState`.
-public enum LoadingKey: Hashable {
+public enum LoadingKey: Hashable, Sendable {
     // Movies
     case homeMenu(MoviesMenu)
     case movieDetail(Int)
@@ -50,12 +50,12 @@ public enum LoadingKey: Hashable {
 }
 
 /// User-facing description of a failed list load.
-public struct MoviesListLoadFailure: Equatable {
+public struct MoviesListLoadFailure: Equatable, Sendable {
 
     /// What kind of failure happened. Drives the UI's icon/CTA
     /// choice — e.g. missingAPIKey shows "Open Settings" instead of
     /// "Try again".
-    public enum Kind: Equatable {
+    public enum Kind: Equatable, Sendable {
         case offline
         case rateLimited(retryAfterSeconds: TimeInterval?)
         case missingAPIKey

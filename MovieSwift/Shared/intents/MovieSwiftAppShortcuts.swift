@@ -15,7 +15,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
 
     /// Tint applied to every shortcut row in the Shortcuts app.
     /// Matches the steam_gold accent used throughout the UI.
-    static var shortcutTileColor: ShortcutTileColor = .yellow
+    static let shortcutTileColor: ShortcutTileColor = .yellow
 
     @AppShortcutsBuilder
     static var appShortcuts: [AppShortcut] {

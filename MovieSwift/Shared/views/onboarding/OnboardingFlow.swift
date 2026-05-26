@@ -7,7 +7,11 @@ import Foundation
 import Backend
 
 /// One step in the onboarding wizard. Ordered as the user sees them.
-public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable {
+///
+/// `nonisolated`: pure value type / stateless logic, unit-tested from
+/// nonisolated test code, so it must opt out of the app target's
+/// default-MainActor isolation.
+public nonisolated enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable {
     case welcome
     case apiKey
     case region
@@ -30,7 +34,11 @@ public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable {
 /// Stateless decisions about onboarding: should it appear, can the
 /// user continue from a given step, can they finish? Lives separate
 /// from the view so each branch is unit-testable.
-public enum OnboardingFlow {
+///
+/// `nonisolated`: pure stateless logic invoked from both the main-actor
+/// OnboardingView and nonisolated unit tests, so it must opt out of the
+/// app target's default-MainActor isolation.
+public nonisolated enum OnboardingFlow {
 
     // MARK: - Visibility
 

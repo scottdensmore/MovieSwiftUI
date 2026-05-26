@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct Keyword: Codable, Identifiable, Hashable {
+public struct Keyword: Codable, Identifiable, Hashable, Sendable {
     public let id: Int
     public let name: String
 

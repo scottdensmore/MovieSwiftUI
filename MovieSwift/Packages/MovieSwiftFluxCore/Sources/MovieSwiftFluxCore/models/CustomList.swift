@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-public struct CustomList: Codable, Identifiable {
+public struct CustomList: Codable, Identifiable, Sendable {
     public let id: Int
     public var name: String
     public var cover: Int?

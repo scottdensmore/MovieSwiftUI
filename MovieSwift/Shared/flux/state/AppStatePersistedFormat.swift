@@ -21,7 +21,7 @@ import MovieSwiftFluxCore
 /// Wraps `AppState` with a format version so future schema changes
 /// can be detected (and rejected, if they're newer than this build
 /// understands) instead of silently producing junk data.
-struct PersistedAppStateEnvelope: Codable {
+nonisolated struct PersistedAppStateEnvelope: Codable, Sendable {
     /// Bumped when the persisted on-disk schema changes in a way
     /// that older builds would mis-decode. New optional fields
     /// don't require a bump; renames, removals, and required-field
@@ -33,7 +33,7 @@ struct PersistedAppStateEnvelope: Codable {
     let state: AppState
 }
 
-enum AppStatePersistedFormat {
+nonisolated enum AppStatePersistedFormat {
 
     /// Errors surfaced when a persisted file can't be loaded.
     enum LoadError: LocalizedError {

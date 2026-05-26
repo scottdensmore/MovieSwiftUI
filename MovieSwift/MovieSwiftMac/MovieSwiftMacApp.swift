@@ -46,7 +46,7 @@ struct MovieSwiftMacApp: App {
                     .frame(minWidth: 800, minHeight: 500)
                     .tint(.steam_gold)
                     .environment(\.isRunningUISmokeTests, environment.runtime.isRunningUISmokeTests)
-                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+                    .environment(\.archivedStateSizeDescription, { AppPersistence.archivedStateSizeDescription() })
                     .sheet(isPresented: $isOnboardingPresented) {
                         OnboardingView(onComplete: { isOnboardingPresented = false })
                             .interactiveDismissDisabled()
@@ -78,7 +78,7 @@ struct MovieSwiftMacApp: App {
             StoreProvider(store: store) {
                 SettingsForm(embedInNavigationStack: true,
                              showNavigationTitle: false)
-                    .environment(\.archivedStateSizeDescription, environment.runtime.archivedStateSizeDescription)
+                    .environment(\.archivedStateSizeDescription, { AppPersistence.archivedStateSizeDescription() })
             }
             .frame(width: 450, height: 400)
         }
