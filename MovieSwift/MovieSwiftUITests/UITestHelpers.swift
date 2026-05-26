@@ -73,7 +73,12 @@ extension XCUIApplication {
 /// to avoid conflicts with per-class overrides.
 func logHierarchyOnMissing(_ app: XCUIApplication, element: XCUIElement, named name: String) {
     let shouldLog = ProcessInfo.processInfo.environment["UI_TEST_LOG_HIERARCHY"] == "1"
-    if shouldLog && !element.exists {
+    guard shouldLog else { return }
+    // Evaluate `exists` outside the `&&` short-circuit: the operator's
+    // right-hand side is a nonisolated @autoclosure, which flags the
+    // main-actor `exists` access under the Swift 6 mode.
+    let missing = !element.exists
+    if missing {
         print("Missing element: \(name)")
         print(app.debugDescription)
     }

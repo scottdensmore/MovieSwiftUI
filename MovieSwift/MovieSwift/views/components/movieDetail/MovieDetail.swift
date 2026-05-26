@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUIFlux
+@preconcurrency import SwiftUIFlux
 import Combine
 import UI
 import MovieSwiftFluxCore
@@ -160,7 +160,11 @@ enum MovieDetailPeopleState {
     }
 }
 
-enum MovieDetailFocusTarget: Hashable {
+// `nonisolated`: a pure focus-identity value type used as a `@FocusState`
+// value, whose Hashable conformance is consumed by nonisolated SwiftUI
+// internals — it must not inherit the app target's default main-actor
+// isolation.
+nonisolated enum MovieDetailFocusTarget: Hashable {
     case genre(Int)
     case wishlistButton
     case seenlistButton

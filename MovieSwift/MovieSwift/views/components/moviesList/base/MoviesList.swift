@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUIFlux
+@preconcurrency import SwiftUIFlux
 import Combine
 import UI
 import Backend
@@ -49,6 +49,10 @@ enum MoviesListNavigationRoute: Identifiable, Hashable {
     }
 }
 
+// `@MainActor`: builds main-actor-isolated ConnectedViews (MovieDetail,
+// PeopleDetail, MovieKeywordList). Every caller is a `.navigationDestination`
+// closure inside a SwiftUI view body, so it already runs on the main actor.
+@MainActor
 @ViewBuilder
 func moviesListDestinationView(for route: MoviesListNavigationRoute) -> some View {
     switch route {

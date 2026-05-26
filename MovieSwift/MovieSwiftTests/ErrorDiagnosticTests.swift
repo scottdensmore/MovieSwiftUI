@@ -24,6 +24,9 @@ import AppKit
 /// app shows an unrecoverable error banner — its readability and the
 /// fact it never carries the TMDB API key are both behavioural
 /// contracts worth holding the line on.
+// `@MainActor`: `ErrorDiagnostic.text(for:)` is main-actor-isolated under
+// the Swift 6 mode (its device-model default reads `UIDevice.current`).
+@MainActor
 final class ErrorDiagnosticTests: XCTestCase {
 
     private func makeFailure(

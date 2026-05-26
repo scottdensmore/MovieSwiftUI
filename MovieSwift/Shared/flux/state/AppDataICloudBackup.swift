@@ -11,7 +11,10 @@
 import Foundation
 import MovieSwiftFluxCore
 
-enum AppDataICloudBackup {
+// `nonisolated`: pure iCloud-backup file I/O (like AppPersistence),
+// invoked from the main-actor Settings UI and from nonisolated unit tests.
+// It must opt out of the app target's default-MainActor isolation.
+nonisolated enum AppDataICloudBackup {
 
     /// Errors surfaced by Backup/Restore operations.
     enum BackupError: LocalizedError {

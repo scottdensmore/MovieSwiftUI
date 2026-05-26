@@ -25,6 +25,9 @@ import MovieSwiftFluxCore
 /// `testMoviesReducerSetMovieMenuListPageTwoAppendsList`) so the
 /// data layer for pagination is covered end-to-end across the two
 /// suites.
+// `@MainActor`: exercises `MoviesMenuListPageListener`, a main-actor
+// pagination listener, so the test methods must run on the main actor.
+@MainActor
 final class MoviesMenuListPageListenerTests: XCTestCase {
 
     /// Setting `currentPage` to a new value triggers `loadPage()` via

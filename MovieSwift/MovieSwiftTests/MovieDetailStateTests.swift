@@ -6,6 +6,10 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: exercises MovieDetailState query helpers and the
+// MovieDetail view's nested presentation types, which are main-actor
+// isolated (the MovieDetail view is a @MainActor SwiftUI view).
+@MainActor
 final class MovieDetailStateTests: XCTestCase {
 
     private func makeMovie(id: Int,

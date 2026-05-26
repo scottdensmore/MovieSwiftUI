@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUIFlux
+@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 final class KeywordPageListener: MoviesPagesListener {

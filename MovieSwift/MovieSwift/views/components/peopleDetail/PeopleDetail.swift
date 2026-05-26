@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUIFlux
+@preconcurrency import SwiftUIFlux
 import UI
 import MovieSwiftFluxCore
 

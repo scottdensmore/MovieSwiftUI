@@ -5,7 +5,10 @@ private struct IsRunningUISmokeTestsKey: EnvironmentKey {
 }
 
 private struct ArchivedStateSizeDescriptionKey: EnvironmentKey {
-    static let defaultValue: () -> String = { "0 KB" }
+    // `@Sendable`: an EnvironmentKey default is global state under the
+    // Swift 6 mode, so a bare `() -> String` (a non-Sendable function
+    // type) is rejected.
+    static let defaultValue: @Sendable () -> String = { "0 KB" }
 }
 
 extension EnvironmentValues {
@@ -14,7 +17,7 @@ extension EnvironmentValues {
         set { self[IsRunningUISmokeTestsKey.self] = newValue }
     }
 
-    var archivedStateSizeDescription: () -> String {
+    var archivedStateSizeDescription: @Sendable () -> String {
         get { self[ArchivedStateSizeDescriptionKey.self] }
         set { self[ArchivedStateSizeDescriptionKey.self] = newValue }
     }

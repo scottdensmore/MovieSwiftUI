@@ -12,7 +12,10 @@ enum AppActions {
     }
 }
 
-enum AppStateCacheReset {
+// `nonisolated`: pure state transformations invoked synchronously during
+// reducer dispatch (and from the background archive queue). They must not
+// inherit the app target's default main-actor isolation.
+nonisolated enum AppStateCacheReset {
     static func persistentSnapshot(from state: AppState) -> AppState {
         var snapshot = AppState()
         let preservedMovieIds = preservedMovieIds(from: state)
@@ -57,7 +60,10 @@ enum AppStateCacheReset {
 ///   - `AppActions.ImportAppData`: merges a previously-exported state envelope.
 /// Both depend on app-target types (`AppDataImport`, `AppDataExportEnvelope`)
 /// that aren't available inside the package.
-func appReducerWithImports(state: AppState, action: Action) -> AppState {
+// `nonisolated`: this is the SwiftUIFlux store's reducer, a pure
+// (State, Action) -> State function. It must stay off the main actor so it
+// satisfies the nonisolated `Reducer` type the Store initializer expects.
+nonisolated func appReducerWithImports(state: AppState, action: Action) -> AppState {
     if action is AppActions.ClearCachedData {
         return AppStateCacheReset.persistentSnapshot(from: state)
     }

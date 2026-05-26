@@ -37,6 +37,12 @@ enum ErrorDiagnostic {
     /// Build the diagnostic blob for a `MoviesListLoadFailure`. `now`
     /// and the bundle/device readers are injectable so the unit test can
     /// pin them to known values.
+    ///
+    /// `@MainActor`: the `deviceModel` default reads `UIDevice.current`,
+    /// which is main-actor-isolated. The production caller is a SwiftUI
+    /// view and the tests inject every value, so this stays effectively
+    /// pure while satisfying the isolation requirement.
+    @MainActor
     static func text(
         for failure: MoviesListLoadFailure,
         appVersion: String = AppDataExport.bundleVersion(),
@@ -90,6 +96,12 @@ enum ErrorDiagnostic {
     /// Best-effort device model string. Different platforms expose this
     /// in different places; we deliberately accept "Mac" or "Apple TV"
     /// as the fallback instead of trying to read the IOKit identifier.
+    ///
+    /// `@MainActor`: `UIDevice.current` is main-actor-isolated under the
+    /// Swift 6 mode. The sole production caller (`MoviesListErrorBanner`)
+    /// is a SwiftUI view, and the unit tests pass `deviceModel` explicitly
+    /// so this default is never evaluated off the main actor.
+    @MainActor
     static func defaultDeviceModel() -> String {
         #if os(iOS) || os(tvOS) || os(visionOS)
         let device = UIDevice.current

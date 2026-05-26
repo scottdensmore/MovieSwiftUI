@@ -19,6 +19,12 @@
 import Foundation
 import Observation
 
+// `@MainActor`: this is an @Observable store whose `pendingDestination`
+// drives SwiftUI, so every mutation has to land on the main actor. Under
+// the Swift 6 language mode that makes the `shared` singleton — and the
+// store's mutable state — concurrency-safe. App Intents call into it from
+// their async `perform()` via `await`.
+@MainActor
 @Observable
 final class IntentNavigationStore {
     static let shared = IntentNavigationStore()
@@ -36,18 +42,12 @@ final class IntentNavigationStore {
 
     private init() {}
 
-    /// Posts a destination request from any thread. Hopped to
-    /// main so SwiftUI's `@Published` observation fires on the
-    /// main actor. Safe to call from
-    /// `AppIntent.perform()` which runs on a background queue.
+    /// Posts a destination request. The store is `@MainActor`, so callers
+    /// off the main actor (e.g. `AppIntent.perform()`) reach it with
+    /// `await` and the assignment lands on the main actor where SwiftUI's
+    /// observation expects it.
     func request(_ destination: Destination) {
-        if Thread.isMainThread {
-            pendingDestination = destination
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                self?.pendingDestination = destination
-            }
-        }
+        pendingDestination = destination
     }
 
     /// Reads and clears the pending destination. Views call this

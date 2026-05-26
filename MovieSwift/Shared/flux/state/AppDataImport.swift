@@ -11,7 +11,7 @@
 import Foundation
 import MovieSwiftFluxCore
 
-enum AppDataImport {
+nonisolated enum AppDataImport {
 
     /// Errors surfaced to the UI when an import can't proceed.
     enum ImportError: LocalizedError {

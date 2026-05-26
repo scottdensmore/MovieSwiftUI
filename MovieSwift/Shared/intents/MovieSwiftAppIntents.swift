@@ -16,14 +16,14 @@ import AppIntents
 /// fallback shortcut and as a foundation for future parameterised
 /// intents (e.g. "Open MovieSwift to Popular").
 struct OpenMovieSwiftIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open MovieSwift"
+    static let title: LocalizedStringResource = "Open MovieSwift"
 
-    static var description = IntentDescription(
+    static let description = IntentDescription(
         "Opens MovieSwift to whatever section you were last viewing.",
         categoryName: "Navigation"
     )
 
-    static var openAppWhenRun: Bool = true
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
         // No specific destination — opening the app is the action.
@@ -34,65 +34,65 @@ struct OpenMovieSwiftIntent: AppIntent {
 }
 
 struct OpenWishlistIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Wishlist"
+    static let title: LocalizedStringResource = "Open Wishlist"
 
-    static var description = IntentDescription(
+    static let description = IntentDescription(
         "Opens MovieSwift to your wishlist.",
         categoryName: "Navigation"
     )
 
-    static var openAppWhenRun: Bool = true
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        IntentNavigationStore.shared.request(.wishlist)
+        await IntentNavigationStore.shared.request(.wishlist)
         return .result()
     }
 }
 
 struct OpenDiscoverIntent: AppIntent {
-    static var title: LocalizedStringResource = "Discover Movies"
+    static let title: LocalizedStringResource = "Discover Movies"
 
-    static var description = IntentDescription(
+    static let description = IntentDescription(
         "Opens MovieSwift to the Discover view for swipe-through movie suggestions.",
         categoryName: "Navigation"
     )
 
-    static var openAppWhenRun: Bool = true
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        IntentNavigationStore.shared.request(.discover)
+        await IntentNavigationStore.shared.request(.discover)
         return .result()
     }
 }
 
 struct OpenFanClubIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Fan Club"
+    static let title: LocalizedStringResource = "Open Fan Club"
 
-    static var description = IntentDescription(
+    static let description = IntentDescription(
         "Opens MovieSwift to your Fan Club — actors and people you've added.",
         categoryName: "Navigation"
     )
 
-    static var openAppWhenRun: Bool = true
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        IntentNavigationStore.shared.request(.fanClub)
+        await IntentNavigationStore.shared.request(.fanClub)
         return .result()
     }
 }
 
 struct OpenPopularMoviesIntent: AppIntent {
-    static var title: LocalizedStringResource = "Browse Popular Movies"
+    static let title: LocalizedStringResource = "Browse Popular Movies"
 
-    static var description = IntentDescription(
+    static let description = IntentDescription(
         "Opens MovieSwift to the Popular movies list.",
         categoryName: "Navigation"
     )
 
-    static var openAppWhenRun: Bool = true
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        IntentNavigationStore.shared.request(.popularMovies)
+        await IntentNavigationStore.shared.request(.popularMovies)
         return .result()
     }
 }

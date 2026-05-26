@@ -1,12 +1,20 @@
 import XCTest
 import MovieSwiftFluxCore
 
+// `@MainActor`: XCUIApplication / XCUIElement are main-actor-isolated
+// under the Swift 6 mode, and the test target is nonisolated by default,
+// so pinning the case to the main actor lets every element query and
+// `waitForExpectations` call resolve without sending the non-Sendable
+// XCTestCase across actors.
+@MainActor
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
     private let uiWaitTimeout: TimeInterval = 15
     private let shouldLogHierarchyOnFailure = ProcessInfo.processInfo.environment["UI_TEST_LOG_HIERARCHY"] == "1"
 
-    override func setUpWithError() throws {
+    // Async setUp variant: main-actor-isolated in this @MainActor case
+    // without clashing with XCTestCase's nonisolated sync setUpWithError.
+    override func setUp() async throws {
         continueAfterFailure = false
     }
 

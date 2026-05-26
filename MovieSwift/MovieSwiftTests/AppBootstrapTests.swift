@@ -8,6 +8,11 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: exercises the app-launch bootstrap types (AppBootstrap,
+// AppEnvironment, AppRuntime, AppStoreFactory, AppLaunchMode), which are
+// main-actor-isolated because they run during app startup on the main
+// actor.
+@MainActor
 final class AppBootstrapTests: XCTestCase {
 
     // MARK: - AppLaunchMode

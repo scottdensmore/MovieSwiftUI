@@ -20,7 +20,10 @@ enum CrashReportKind: String {
     case metric
 }
 
-enum CrashReportStore {
+// `nonisolated`: pure crash-report file I/O, written from MetricKit's
+// background callbacks and exercised by nonisolated unit tests, so it
+// opts out of the app target's default-MainActor isolation.
+nonisolated enum CrashReportStore {
 
     enum WriteError: LocalizedError {
         case directoryUnavailable

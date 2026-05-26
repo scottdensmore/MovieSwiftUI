@@ -1,6 +1,6 @@
 import SwiftUI
 import Combine
-import SwiftUIFlux
+@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MoviesHomeState {

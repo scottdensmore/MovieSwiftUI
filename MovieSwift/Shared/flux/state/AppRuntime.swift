@@ -1,5 +1,9 @@
 import Foundation
-import SwiftUIFlux
+// `@preconcurrency`: SwiftUIFlux is pinned at a pre-concurrency revision,
+// so its `Store` carries no Sendable annotations. The archive Timer below
+// captures the store to snapshot state on the main runloop; treat the
+// resulting Sendable diagnostics as warnings from this legacy module.
+@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 final class AppRuntime {
