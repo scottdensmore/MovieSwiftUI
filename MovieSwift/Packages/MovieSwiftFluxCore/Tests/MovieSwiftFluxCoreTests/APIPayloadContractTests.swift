@@ -1,9 +1,10 @@
-import XCTest
+import Testing
+import Foundation
 @testable import MovieSwiftFluxCore
 
-final class APIPayloadContractTests: XCTestCase {
+@Suite struct APIPayloadContractTests {
     private func fixtureData(named name: String) throws -> Data {
-        let url = try XCTUnwrap(Bundle.module.url(forResource: name, withExtension: "json"))
+        let url = try #require(Bundle.module.url(forResource: name, withExtension: "json"))
         return try Data(contentsOf: url)
     }
 
@@ -11,44 +12,44 @@ final class APIPayloadContractTests: XCTestCase {
         try JSONDecoder().decode(T.self, from: fixtureData(named: name))
     }
 
-    func testMovieMenuPayloadDecodesExpectedShape() throws {
+    @Test func movieMenuPayloadDecodesExpectedShape() throws {
         let payload = try decodeFixture("movie_menu_response", as: PaginatedResponse<Movie>.self)
 
-        XCTAssertEqual(payload.page, 3)
-        XCTAssertEqual(payload.total_results, 10000)
-        XCTAssertEqual(payload.total_pages, 500)
-        XCTAssertEqual(payload.results.map(\.id), [101, 102])
-        XCTAssertEqual(payload.results.first?.title, "Movie 101")
+        #expect(payload.page == 3)
+        #expect(payload.total_results == 10000)
+        #expect(payload.total_pages == 500)
+        #expect(payload.results.map(\.id) == [101, 102])
+        #expect(payload.results.first?.title == "Movie 101")
     }
 
-    func testMovieDetailPayloadDecodesNestedContractFields() throws {
+    @Test func movieDetailPayloadDecodesNestedContractFields() throws {
         let payload = try decodeFixture("movie_detail_response", as: Movie.self)
 
-        XCTAssertEqual(payload.id, 205)
-        XCTAssertEqual(payload.runtime, 134)
-        XCTAssertEqual(payload.status, "Released")
-        XCTAssertEqual(payload.genres?.map(\.id), [18, 12])
-        XCTAssertEqual(payload.keywords?.keywords?.map(\.name), ["space", "future"])
-        XCTAssertEqual(payload.images?.posters?.first?.file_path, "/poster-a.jpg")
-        XCTAssertEqual(payload.images?.backdrops?.first?.width, 1920)
-        XCTAssertEqual(payload.production_countries?.map(\.name), ["United States of America", "Canada"])
+        #expect(payload.id == 205)
+        #expect(payload.runtime == 134)
+        #expect(payload.status == "Released")
+        #expect(payload.genres?.map(\.id) == [18, 12])
+        #expect(payload.keywords?.keywords?.map(\.name) == ["space", "future"])
+        #expect(payload.images?.posters?.first?.file_path == "/poster-a.jpg")
+        #expect(payload.images?.backdrops?.first?.width == 1920)
+        #expect(payload.production_countries?.map(\.name) == ["United States of America", "Canada"])
     }
 
-    func testCastResponsePayloadDecodesCastAndCrewMetadata() throws {
+    @Test func castResponsePayloadDecodesCastAndCrewMetadata() throws {
         let payload = try decodeFixture("cast_response", as: CastResponse.self)
 
-        XCTAssertEqual(payload.id, 205)
-        XCTAssertEqual(payload.cast.first?.id, 301)
-        XCTAssertEqual(payload.cast.first?.character, "Pilot")
-        XCTAssertEqual(payload.cast.first?.known_for?.first?.id, 9001)
-        XCTAssertEqual(payload.crew.first?.id, 302)
-        XCTAssertEqual(payload.crew.first?.department, "Directing")
+        #expect(payload.id == 205)
+        #expect(payload.cast.first?.id == 301)
+        #expect(payload.cast.first?.character == "Pilot")
+        #expect(payload.cast.first?.known_for?.first?.id == 9001)
+        #expect(payload.crew.first?.id == 302)
+        #expect(payload.crew.first?.department == "Directing")
     }
 
-    func testGenresResponsePayloadDecodesFetchGenresContract() throws {
+    @Test func genresResponsePayloadDecodesFetchGenresContract() throws {
         let payload = try decodeFixture("genres_response", as: MoviesActions.GenresResponse.self)
 
-        XCTAssertEqual(payload.genres.map(\.id), [27, 35])
-        XCTAssertEqual(payload.genres.map(\.name), ["Horror", "Comedy"])
+        #expect(payload.genres.map(\.id) == [27, 35])
+        #expect(payload.genres.map(\.name) == ["Horror", "Comedy"])
     }
 }

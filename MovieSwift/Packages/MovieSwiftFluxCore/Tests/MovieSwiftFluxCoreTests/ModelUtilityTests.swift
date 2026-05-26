@@ -1,9 +1,10 @@
-import XCTest
+import Testing
+import Foundation
 import Backend
 @testable import MovieSwiftFluxCore
 
-final class ModelUtilityTests: XCTestCase {
-    func testPeopleKnownForTextFiltersNilTitlesAndJoins() {
+@Suite struct ModelUtilityTests {
+    @Test func peopleKnownForTextFiltersNilTitlesAndJoins() {
         let people = People(
             id: 1,
             name: "Person",
@@ -25,10 +26,10 @@ final class ModelUtilityTests: XCTestCase {
             images: nil
         )
 
-        XCTAssertEqual(people.knownForText, "Movie A, Movie B")
+        #expect(people.knownForText == "Movie A, Movie B")
     }
 
-    func testDiscoverFilterToParamsUsesYearWhenRangeMissing() {
+    @Test func discoverFilterToParamsUsesYearWhenRangeMissing() {
         let filter = DiscoverFilter(
             year: 2001,
             startYear: nil,
@@ -40,22 +41,22 @@ final class ModelUtilityTests: XCTestCase {
 
         let params = filter.toParams()
 
-        XCTAssertEqual(params["year"], "2001")
-        XCTAssertNil(params["primary_release_date.gte"])
-        XCTAssertNil(params["primary_release_date.lte"])
-        XCTAssertEqual(params["with_genres"], "28")
-        XCTAssertEqual(params["region"], "US")
-        XCTAssertEqual(params["with_origin_country"], "US")
-        XCTAssertEqual(params["sort_by"], "popularity.desc")
+        #expect(params["year"] == "2001")
+        #expect(params["primary_release_date.gte"] == nil)
+        #expect(params["primary_release_date.lte"] == nil)
+        #expect(params["with_genres"] == "28")
+        #expect(params["region"] == "US")
+        #expect(params["with_origin_country"] == "US")
+        #expect(params["sort_by"] == "popularity.desc")
         // `language` is intentionally absent — APIService.GET adds it
         // unconditionally, and including it here would duplicate the
         // query key in the final URL.
-        XCTAssertNil(params["language"],
-                     "DiscoverFilter.toParams should not duplicate the language query item that APIService.GET already adds")
-        XCTAssertNotNil(params["page"])
+        #expect(params["language"] == nil,
+                "DiscoverFilter.toParams should not duplicate the language query item that APIService.GET already adds")
+        #expect(params["page"] != nil)
     }
 
-    func testDiscoverFilterToParamsUsesRangeWhenProvided() {
+    @Test func discoverFilterToParamsUsesRangeWhenProvided() {
         let filter = DiscoverFilter(
             year: 2020,
             startYear: 1990,
@@ -67,13 +68,13 @@ final class ModelUtilityTests: XCTestCase {
 
         let params = filter.toParams()
 
-        XCTAssertEqual(params["primary_release_date.gte"], "1990-01-01")
-        XCTAssertEqual(params["primary_release_date.lte"], "1999-12-31")
-        XCTAssertNil(params["year"])
-        XCTAssertEqual(params["sort_by"], "vote_average.desc")
+        #expect(params["primary_release_date.gte"] == "1990-01-01")
+        #expect(params["primary_release_date.lte"] == "1999-12-31")
+        #expect(params["year"] == nil)
+        #expect(params["sort_by"] == "vote_average.desc")
     }
 
-    func testDiscoverFilterToTextBuildsExpectedLabel() {
+    @Test func discoverFilterToTextBuildsExpectedLabel() {
         let filter = DiscoverFilter(
             year: 2005,
             startYear: 1990,
@@ -84,10 +85,10 @@ final class ModelUtilityTests: XCTestCase {
         )
         let genres = [Genre(id: 12, name: "Adventure")]
 
-        XCTAssertEqual(filter.toText(genres: genres), "1990-1995 · Adventure · FR")
+        #expect(filter.toText(genres: genres) == "1990-1995 · Adventure · FR")
     }
-    
-    func testDiscoverFilterToTextRandomDoesNotStartWithSeparator() {
+
+    @Test func discoverFilterToTextRandomDoesNotStartWithSeparator() {
         let filter = DiscoverFilter(
             year: 2005,
             startYear: nil,
@@ -96,40 +97,39 @@ final class ModelUtilityTests: XCTestCase {
             genre: nil,
             region: "US"
         )
-        
-        XCTAssertEqual(filter.toText(genres: []), "Random · US")
+
+        #expect(filter.toText(genres: []) == "Random · US")
     }
 
-    func testMovieUserTitleRespectsAlwaysOriginalTitlePreference() {
+    @Test func movieUserTitleRespectsAlwaysOriginalTitlePreference() {
         let original = AppUserDefaults.alwaysOriginalTitle
         defer { AppUserDefaults.alwaysOriginalTitle = original }
 
         let movie = makeMovie(id: 10, title: "Localized", originalTitle: "Original")
 
         AppUserDefaults.alwaysOriginalTitle = false
-        XCTAssertEqual(movie.userTitle, "Localized")
+        #expect(movie.userTitle == "Localized")
 
         AppUserDefaults.alwaysOriginalTitle = true
-        XCTAssertEqual(movie.userTitle, "Original")
+        #expect(movie.userTitle == "Original")
     }
 
-    func testMovieReleaseDateFallsBackToCurrentDateWhenSourceMissing() {
+    @Test func movieReleaseDateFallsBackToCurrentDateWhenSourceMissing() throws {
         let movie = makeMovie(id: 11, releaseDate: nil)
 
         let now = Date()
-        let releaseDate = try? XCTUnwrap(movie.releaseDate)
-        XCTAssertNotNil(releaseDate)
-        XCTAssertLessThan(abs((releaseDate ?? now).timeIntervalSince(now)), 2.0)
+        let releaseDate = try #require(movie.releaseDate)
+        #expect(abs(releaseDate.timeIntervalSince(now)) < 2.0)
     }
 
-    func testMoviesSortSortByAPIValues() {
-        XCTAssertEqual(MoviesSort.byReleaseDate.sortByAPI(), "release_date.desc")
-        XCTAssertEqual(MoviesSort.byAddedDate.sortByAPI(), "primary_release_date.desc")
-        XCTAssertEqual(MoviesSort.byScore.sortByAPI(), "vote_average.desc")
-        XCTAssertEqual(MoviesSort.byPopularity.sortByAPI(), "popularity.desc")
+    @Test func moviesSortSortByAPIValues() {
+        #expect(MoviesSort.byReleaseDate.sortByAPI() == "release_date.desc")
+        #expect(MoviesSort.byAddedDate.sortByAPI() == "primary_release_date.desc")
+        #expect(MoviesSort.byScore.sortByAPI() == "vote_average.desc")
+        #expect(MoviesSort.byPopularity.sortByAPI() == "popularity.desc")
     }
 
-    func testSortedMoviesIdsSortsByScoreAndPopularity() {
+    @Test func sortedMoviesIdsSortsByScoreAndPopularity() {
         let movieA = makeMovie(id: 1, voteAverage: 7.0, popularity: 20.0)
         let movieB = makeMovie(id: 2, voteAverage: 9.0, popularity: 10.0)
         let movieC = makeMovie(id: 3, voteAverage: 8.0, popularity: 30.0)
@@ -139,11 +139,11 @@ final class ModelUtilityTests: XCTestCase {
 
         let ids = [1, 2, 3]
 
-        XCTAssertEqual(ids.sortedMoviesIds(by: .byScore, state: state), [2, 3, 1])
-        XCTAssertEqual(ids.sortedMoviesIds(by: .byPopularity, state: state), [3, 1, 2])
+        #expect(ids.sortedMoviesIds(by: .byScore, state: state) == [2, 3, 1])
+        #expect(ids.sortedMoviesIds(by: .byPopularity, state: state) == [3, 1, 2])
     }
 
-    func testSortedMoviesIdsSortsByReleaseDateAndAddedDate() {
+    @Test func sortedMoviesIdsSortsByReleaseDateAndAddedDate() {
         let movieA = makeMovie(id: 1, releaseDate: "2020-01-01")
         let movieB = makeMovie(id: 2, releaseDate: "2023-01-01")
         let movieC = makeMovie(id: 3, releaseDate: "2021-01-01")
@@ -158,31 +158,31 @@ final class ModelUtilityTests: XCTestCase {
 
         let ids = [1, 2, 3]
 
-        XCTAssertEqual(ids.sortedMoviesIds(by: .byReleaseDate, state: state), [2, 3, 1])
-        XCTAssertEqual(ids.sortedMoviesIds(by: .byAddedDate, state: state), [2, 3, 1])
+        #expect(ids.sortedMoviesIds(by: .byReleaseDate, state: state) == [2, 3, 1])
+        #expect(ids.sortedMoviesIds(by: .byAddedDate, state: state) == [2, 3, 1])
     }
 
-    func testPaginatedResponseDecodingRegression() throws {
+    @Test func paginatedResponseDecodingRegression() throws {
         let json = #"{"page":1,"total_results":1,"total_pages":1,"results":[{"id":7,"name":"Drama"}]}"#
         let data = Data(json.utf8)
 
         let decoded = try JSONDecoder().decode(PaginatedResponse<Genre>.self, from: data)
 
-        XCTAssertEqual(decoded.page, 1)
-        XCTAssertEqual(decoded.total_results, 1)
-        XCTAssertEqual(decoded.total_pages, 1)
-        XCTAssertEqual(decoded.results.first?.id, 7)
-        XCTAssertEqual(decoded.results.first?.name, "Drama")
+        #expect(decoded.page == 1)
+        #expect(decoded.total_results == 1)
+        #expect(decoded.total_pages == 1)
+        #expect(decoded.results.first?.id == 7)
+        #expect(decoded.results.first?.name == "Drama")
     }
 
-    func testDiscoverFilterRandomHelpersStayInExpectedDomain() {
+    @Test func discoverFilterRandomHelpersStayInExpectedDomain() {
         let year = DiscoverFilter.randomYear()
         let currentYear = Calendar.current.component(.year, from: Date())
-        XCTAssertGreaterThanOrEqual(year, 1950)
-        XCTAssertLessThan(year, currentYear)
+        #expect(year >= 1950)
+        #expect(year < currentYear)
 
         let sort = DiscoverFilter.randomSort()
-        XCTAssertTrue([
+        #expect([
             "popularity.desc",
             "popularity.asc",
             "vote_average.asc",
@@ -190,7 +190,7 @@ final class ModelUtilityTests: XCTestCase {
         ].contains(sort))
 
         let page = DiscoverFilter.randomPage()
-        XCTAssertTrue((1..<20).contains(page))
+        #expect((1..<20).contains(page))
     }
 
     private func makeMovie(

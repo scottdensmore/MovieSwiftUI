@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import MovieSwiftFluxCore
 
-final class LoggingMiddlewareTests: XCTestCase {
-    func testLoggingMiddlewareForwardsActionToNext() {
+@Suite struct LoggingMiddlewareTests {
+    @Test func loggingMiddlewareForwardsActionToNext() {
         var forwardedMovie: Int?
         var nextCallCount = 0
 
@@ -16,7 +16,7 @@ final class LoggingMiddlewareTests: XCTestCase {
 
         dispatch(MoviesActions.AddToWishlist(movie: 42))
 
-        XCTAssertEqual(nextCallCount, 1)
-        XCTAssertEqual(forwardedMovie, 42)
+        #expect(nextCallCount == 1)
+        #expect(forwardedMovie == 42)
     }
 }
