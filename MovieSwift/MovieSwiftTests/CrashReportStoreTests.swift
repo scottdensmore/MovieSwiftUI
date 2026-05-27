@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 #if os(tvOS)
 @testable import MovieSwiftTV
 #elseif os(macOS)
@@ -7,12 +8,15 @@ import XCTest
 @testable import MovieSwift
 #endif
 
-final class CrashReportStoreTests: XCTestCase {
+// `.serialized` + final class: these tests perform crash-report file
+// I/O, and the class's init/deinit act as per-test setup/teardown to
+// stand up and tear down a temp container directory.
+@Suite(.serialized)
+final class CrashReportStoreTests {
 
     private var tempContainer: URL!
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         tempContainer = FileManager.default
             .temporaryDirectory
             .appendingPathComponent("CrashReportStoreTests-\(UUID().uuidString)",
@@ -20,17 +24,15 @@ final class CrashReportStoreTests: XCTestCase {
         // Don't pre-create — `write` should create on demand.
     }
 
-    override func tearDownWithError() throws {
+    deinit {
         if let tempContainer {
             try? FileManager.default.removeItem(at: tempContainer)
         }
-        tempContainer = nil
-        try super.tearDownWithError()
     }
 
     // MARK: - Filename composition
 
-    func testFilenameUsesUTCISODateAndKnownSuffix() {
+    @Test func filenameUsesUTCISODateAndKnownSuffix() {
         var components = DateComponents()
         components.year = 2026
         components.month = 5
@@ -49,19 +51,19 @@ final class CrashReportStoreTests: XCTestCase {
                                              suffix: "abc12345",
                                              calendar: calendar,
                                              timeZone: utc)
-        XCTAssertEqual(name, "diagnostic-2026-05-03-143007-abc12345.json")
+        #expect(name == "diagnostic-2026-05-03-143007-abc12345.json")
     }
 
-    func testFilenameDifferentiatesKinds() {
+    @Test func filenameDifferentiatesKinds() {
         let date = Date(timeIntervalSince1970: 1_700_000_000)
         let metric = CrashReportStore.filename(for: .metric, date: date, suffix: "x")
         let diagnostic = CrashReportStore.filename(for: .diagnostic, date: date, suffix: "x")
 
-        XCTAssertTrue(metric.hasPrefix("metric-"))
-        XCTAssertTrue(diagnostic.hasPrefix("diagnostic-"))
+        #expect(metric.hasPrefix("metric-"))
+        #expect(diagnostic.hasPrefix("diagnostic-"))
     }
 
-    func testFilenamesWithSequentialDatesSortChronologically() {
+    @Test func filenamesWithSequentialDatesSortChronologically() {
         // Filenames are designed so alphabetical sort produces
         // chronological order. Verify with two dates a minute apart.
         let earlier = Date(timeIntervalSince1970: 1_700_000_000)
@@ -70,49 +72,50 @@ final class CrashReportStoreTests: XCTestCase {
         let a = CrashReportStore.filename(for: .diagnostic, date: earlier, suffix: "00000000")
         let b = CrashReportStore.filename(for: .diagnostic, date: later, suffix: "00000000")
 
-        XCTAssertLessThan(a, b)
+        #expect(a < b)
     }
 
     // MARK: - Default suffix
 
-    func testDefaultSuffixIsEightCharacters() {
+    @Test func defaultSuffixIsEightCharacters() {
         // Stable length keeps filenames sorting cleanly even when
         // multiple payloads land in the same second.
         let suffix = CrashReportStore.defaultSuffix()
-        XCTAssertEqual(suffix.count, 8)
+        #expect(suffix.count == 8)
     }
 
     // MARK: - Write
 
-    func testWriteCreatesIntermediateDirectoriesAndStoresPayload() throws {
+    @Test func writeCreatesIntermediateDirectoriesAndStoresPayload() throws {
         let payload = Data("{\"hello\":\"world\"}".utf8)
         let url = try CrashReportStore.write(payload: payload,
                                               kind: .diagnostic,
                                               to: tempContainer,
                                               suffix: "deadbeef")
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: tempContainer.path),
-                      "Write should have created the directory")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path),
-                      "Write should have created the payload file")
+        #expect(FileManager.default.fileExists(atPath: tempContainer.path),
+                "Write should have created the directory")
+        #expect(FileManager.default.fileExists(atPath: url.path),
+                "Write should have created the payload file")
 
         let readBack = try Data(contentsOf: url)
-        XCTAssertEqual(readBack, payload)
+        #expect(readBack == payload)
     }
 
-    func testWriteWrapsUnderlyingErrorsInWriteFailed() {
+    @Test func writeWrapsUnderlyingErrorsInWriteFailed() {
         // Pointing the directory at a non-creatable location forces
         // a failure. /dev/null/foo isn't a valid URL we can create
         // a directory under, so write() should throw.
         let invalid = URL(fileURLWithPath: "/dev/null/CrashReportStoreTests/should-fail")
 
-        XCTAssertThrowsError(
+        do {
             try CrashReportStore.write(payload: Data(),
                                         kind: .diagnostic,
                                         to: invalid)
-        ) { error in
+            Issue.record("Expected write to throw writeFailed")
+        } catch {
             guard case CrashReportStore.WriteError.writeFailed = error else {
-                XCTFail("Expected writeFailed, got \(error)")
+                Issue.record("Expected writeFailed, got \(error)")
                 return
             }
         }
@@ -120,7 +123,7 @@ final class CrashReportStoreTests: XCTestCase {
 
     // MARK: - List
 
-    func testListReportsReturnsOnlyJSONFilesSortedAlphabetically() throws {
+    @Test func listReportsReturnsOnlyJSONFilesSortedAlphabetically() throws {
         try FileManager.default.createDirectory(at: tempContainer,
                                                 withIntermediateDirectories: true)
         // Three valid reports + one stray non-JSON file that should
@@ -131,25 +134,25 @@ final class CrashReportStoreTests: XCTestCase {
         try Data().write(to: tempContainer.appendingPathComponent("README.txt"))
 
         let urls = CrashReportStore.listReports(in: tempContainer)
-        XCTAssertEqual(urls.count, 3, "Non-JSON files should be filtered out")
-        XCTAssertEqual(urls.map(\.lastPathComponent), [
+        #expect(urls.count == 3, "Non-JSON files should be filtered out")
+        #expect(urls.map(\.lastPathComponent) == [
             "diagnostic-2026-05-03-090000-bbbbbbbb.json",
             "metric-2026-05-03-100000-aaaaaaaa.json",
             "metric-2026-05-03-110000-cccccccc.json",
         ], "Listed reports must sort by filename, which sorts chronologically")
     }
 
-    func testListReportsReturnsEmptyWhenDirectoryDoesNotExist() {
+    @Test func listReportsReturnsEmptyWhenDirectoryDoesNotExist() {
         // Brand-new install case: directory hasn't been created yet,
         // no payloads have been received. Should return [] cleanly
         // rather than throwing.
         let urls = CrashReportStore.listReports(in: tempContainer)
-        XCTAssertEqual(urls, [])
+        #expect(urls == [])
     }
 
     // MARK: - End-to-end: write multiple, list back
 
-    func testWriteThenListReturnsAllPayloadsInOrder() throws {
+    @Test func writeThenListReturnsAllPayloadsInOrder() throws {
         let payload = Data("{}".utf8)
 
         let earlierDate = Date(timeIntervalSince1970: 1_700_000_000)
@@ -171,16 +174,16 @@ final class CrashReportStoreTests: XCTestCase {
         let urls = CrashReportStore.listReports(in: tempContainer)
         let names = urls.map(\.lastPathComponent)
 
-        XCTAssertEqual(names.count, 3)
+        #expect(names.count == 3)
         // diagnostic-...-1700000000... < metric-...-1700000000... < metric-...-1700001000...
-        XCTAssertTrue(names[0].hasPrefix("diagnostic-"))
-        XCTAssertTrue(names[1].hasPrefix("metric-"))
-        XCTAssertLessThan(names[1], names[2])
+        #expect(names[0].hasPrefix("diagnostic-"))
+        #expect(names[1].hasPrefix("metric-"))
+        #expect(names[1] < names[2])
     }
 
     // MARK: - Filename round-trip parsing
 
-    func testParseKindAndDateRoundTripsFilenamesProducedByFilename() {
+    @Test func parseKindAndDateRoundTripsFilenamesProducedByFilename() {
         var components = DateComponents()
         components.year = 2026
         components.month = 5
@@ -203,24 +206,24 @@ final class CrashReportStoreTests: XCTestCase {
             let parsed = CrashReportStore.parseKindAndDate(fromFilename: name,
                                                             calendar: calendar,
                                                             timeZone: utc)
-            XCTAssertNotNil(parsed)
-            XCTAssertEqual(parsed?.kind, kind)
-            XCTAssertEqual(parsed?.date, date,
-                           "Round-trip date for \(kind) should match the input")
+            #expect(parsed != nil)
+            #expect(parsed?.kind == kind)
+            #expect(parsed?.date == date,
+                    "Round-trip date for \(kind) should match the input")
         }
     }
 
-    func testParseKindAndDateReturnsNilForUnknownFilename() {
-        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "README.txt"))
-        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "metric.json"),
-                     "Filenames missing the date components should not parse")
-        XCTAssertNil(CrashReportStore.parseKindAndDate(fromFilename: "telemetry-2026-05-03-090000-deadbeef.json"),
-                     "Unknown kinds should not parse")
+    @Test func parseKindAndDateReturnsNilForUnknownFilename() {
+        #expect(CrashReportStore.parseKindAndDate(fromFilename: "README.txt") == nil)
+        #expect(CrashReportStore.parseKindAndDate(fromFilename: "metric.json") == nil,
+                "Filenames missing the date components should not parse")
+        #expect(CrashReportStore.parseKindAndDate(fromFilename: "telemetry-2026-05-03-090000-deadbeef.json") == nil,
+                "Unknown kinds should not parse")
     }
 
     // MARK: - listReportFiles
 
-    func testListReportFilesReturnsMetadataNewestFirst() throws {
+    @Test func listReportFilesReturnsMetadataNewestFirst() throws {
         // Three reports written at known different dates. The
         // listing helper should return them newest-first (the
         // filename-sorted order is reversed for date-desc).
@@ -243,20 +246,20 @@ final class CrashReportStoreTests: XCTestCase {
                                     suffix: "aaaaaaaa")
 
         let files = CrashReportStore.listReportFiles(in: tempContainer)
-        XCTAssertEqual(files.count, 3)
-        XCTAssertEqual(files[0].date, latest)
-        XCTAssertEqual(files[1].date, middle)
-        XCTAssertEqual(files[2].date, earliest)
+        #expect(files.count == 3)
+        #expect(files[0].date == latest)
+        #expect(files[1].date == middle)
+        #expect(files[2].date == earliest)
     }
 
-    func testListReportFilesReturnsEmptyWhenDirectoryMissing() {
+    @Test func listReportFilesReturnsEmptyWhenDirectoryMissing() {
         // Brand-new install: directory hasn't been created yet,
         // viewer should render the empty state, not crash.
         let files = CrashReportStore.listReportFiles(in: tempContainer)
-        XCTAssertEqual(files, [])
+        #expect(files == [])
     }
 
-    func testMetadataIncludesFileSize() throws {
+    @Test func metadataIncludesFileSize() throws {
         // The viewer shows "X KB" per row so the user has a rough
         // idea of how big a payload is before sharing. Verify
         // metadata reports the actual on-disk byte count.
@@ -266,17 +269,17 @@ final class CrashReportStoreTests: XCTestCase {
                                               to: tempContainer,
                                               suffix: "deadbeef")
 
-        let info = try XCTUnwrap(CrashReportStore.metadata(forReportAt: url))
-        XCTAssertEqual(info.sizeBytes, 1234)
+        let info = try #require(CrashReportStore.metadata(forReportAt: url))
+        #expect(info.sizeBytes == 1234)
     }
 
-    func testMetadataReturnsNilForUnparseableFilename() throws {
+    @Test func metadataReturnsNilForUnparseableFilename() throws {
         try FileManager.default.createDirectory(at: tempContainer,
                                                 withIntermediateDirectories: true)
         let bogus = tempContainer.appendingPathComponent("README.txt")
         try Data("hi".utf8).write(to: bogus)
 
-        XCTAssertNil(CrashReportStore.metadata(forReportAt: bogus),
-                     "Files that don't match the kind-date-suffix shape shouldn't appear in the viewer list")
+        #expect(CrashReportStore.metadata(forReportAt: bogus) == nil,
+                "Files that don't match the kind-date-suffix shape shouldn't appear in the viewer list")
     }
 }

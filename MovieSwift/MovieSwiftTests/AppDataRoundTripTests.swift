@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -24,7 +25,7 @@ import MovieSwiftFluxCore
 /// logic, or the snapshot-trim that runs before encoding, would still
 /// pass the per-side unit tests but break the journey. These tests fail
 /// loudly if any of those pieces drifts.
-final class AppDataRoundTripTests: XCTestCase {
+@Suite struct AppDataRoundTripTests {
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
@@ -70,7 +71,7 @@ final class AppDataRoundTripTests: XCTestCase {
     /// every user-facing list on Phone B contains exactly what Phone A
     /// had, and the cached movie/person records that those lists reference
     /// rode along too.
-    func testFullRoundTripFromPopulatedPhoneAToEmptyPhoneB() throws {
+    @Test func fullRoundTripFromPopulatedPhoneAToEmptyPhoneB() throws {
         // Phone A: user has built up a library across all four list types.
         var phoneA = AppState()
         phoneA.moviesState.movies[100] = makeMovie(id: 100)
@@ -100,37 +101,37 @@ final class AppDataRoundTripTests: XCTestCase {
         let merged = AppDataImport.merge(envelope: envelope, into: phoneB)
 
         // Phone B's lists now match Phone A's.
-        XCTAssertEqual(merged.moviesState.wishlist, Set([100]))
-        XCTAssertEqual(merged.moviesState.seenlist, Set([200]))
-        XCTAssertEqual(merged.peoplesState.fanClub, Set([7]))
-        XCTAssertEqual(merged.moviesState.customLists.count, 1)
-        XCTAssertEqual(merged.moviesState.customLists[42]?.name, "Favorites")
-        XCTAssertEqual(merged.moviesState.customLists[42]?.cover, 100)
-        XCTAssertEqual(merged.moviesState.customLists[42]?.movies, Set([300]))
+        #expect(merged.moviesState.wishlist == Set([100]))
+        #expect(merged.moviesState.seenlist == Set([200]))
+        #expect(merged.peoplesState.fanClub == Set([7]))
+        #expect(merged.moviesState.customLists.count == 1)
+        #expect(merged.moviesState.customLists[42]?.name == "Favorites")
+        #expect(merged.moviesState.customLists[42]?.cover == 100)
+        #expect(merged.moviesState.customLists[42]?.movies == Set([300]))
 
         // The cached movie/people records the lists refer to rode along —
         // otherwise Phone B would have wishlist[100] but no Movie 100 to
         // render, and the row would be empty.
-        XCTAssertEqual(merged.moviesState.movies[100]?.id, 100)
-        XCTAssertEqual(merged.moviesState.movies[200]?.id, 200)
-        XCTAssertEqual(merged.moviesState.movies[300]?.id, 300)
-        XCTAssertEqual(merged.peoplesState.peoples[7]?.name, "Person 7")
+        #expect(merged.moviesState.movies[100]?.id == 100)
+        #expect(merged.moviesState.movies[200]?.id == 200)
+        #expect(merged.moviesState.movies[300]?.id == 300)
+        #expect(merged.peoplesState.peoples[7]?.name == "Person 7")
 
         // The preview-counts UI shows the same numbers the user is
         // committing to.
-        XCTAssertEqual(counts.wishlistAdded, 1)
-        XCTAssertEqual(counts.seenlistAdded, 1)
-        XCTAssertEqual(counts.fanClubAdded, 1)
-        XCTAssertEqual(counts.customListsAdded, 1)
-        XCTAssertEqual(counts.customListsUpdated, 0)
-        XCTAssertTrue(counts.hasAnyChanges)
+        #expect(counts.wishlistAdded == 1)
+        #expect(counts.seenlistAdded == 1)
+        #expect(counts.fanClubAdded == 1)
+        #expect(counts.customListsAdded == 1)
+        #expect(counts.customListsUpdated == 0)
+        #expect(counts.hasAnyChanges)
     }
 
     /// Phone B already has its own data; importing Phone A's export
     /// should UNION rather than overwrite. Catches regressions where the
     /// merge implementation accidentally replaces local state with the
     /// envelope's snapshot.
-    func testFullRoundTripUnionsWithExistingPhoneBData() throws {
+    @Test func fullRoundTripUnionsWithExistingPhoneBData() throws {
         var phoneA = AppState()
         phoneA.moviesState.movies[100] = makeMovie(id: 100)
         phoneA.moviesState.wishlist.insert(100)
@@ -148,19 +149,19 @@ final class AppDataRoundTripTests: XCTestCase {
         let merged = AppDataImport.merge(envelope: envelope, into: phoneB)
 
         // Both Phone A's and Phone B's prior lists are present.
-        XCTAssertTrue(merged.moviesState.wishlist.contains(100))
-        XCTAssertTrue(merged.moviesState.wishlist.contains(200))
-        XCTAssertTrue(merged.peoplesState.fanClub.contains(7))
-        XCTAssertTrue(merged.peoplesState.fanClub.contains(8))
-        XCTAssertNotNil(merged.moviesState.movies[100])
-        XCTAssertNotNil(merged.moviesState.movies[200])
+        #expect(merged.moviesState.wishlist.contains(100))
+        #expect(merged.moviesState.wishlist.contains(200))
+        #expect(merged.peoplesState.fanClub.contains(7))
+        #expect(merged.peoplesState.fanClub.contains(8))
+        #expect(merged.moviesState.movies[100] != nil)
+        #expect(merged.moviesState.movies[200] != nil)
     }
 
     /// Re-importing the same export onto a Phone B that already has
     /// the data is a no-op — preview counts say "nothing new" and the
     /// merged state equals the input. Catches regressions where the
     /// merge double-counts or duplicates entries.
-    func testReImportingSameExportIsAnIdempotentNoOp() throws {
+    @Test func reImportingSameExportIsAnIdempotentNoOp() throws {
         var state = AppState()
         state.moviesState.movies[100] = makeMovie(id: 100)
         state.moviesState.wishlist.insert(100)
@@ -171,16 +172,16 @@ final class AppDataRoundTripTests: XCTestCase {
         let envelope = try AppDataImport.decodeEnvelope(from: bytes)
         let counts = AppDataImport.previewCounts(for: envelope, against: state)
 
-        XCTAssertEqual(counts.wishlistAdded, 0)
-        XCTAssertEqual(counts.fanClubAdded, 0)
-        XCTAssertEqual(counts.customListsAdded, 0)
-        XCTAssertEqual(counts.customListsUpdated, 0)
-        XCTAssertFalse(counts.hasAnyChanges,
-                       "Re-importing the same data should not be a 'has any changes' state")
+        #expect(counts.wishlistAdded == 0)
+        #expect(counts.fanClubAdded == 0)
+        #expect(counts.customListsAdded == 0)
+        #expect(counts.customListsUpdated == 0)
+        #expect(!(counts.hasAnyChanges),
+                "Re-importing the same data should not be a 'has any changes' state")
 
         let merged = AppDataImport.merge(envelope: envelope, into: state)
-        XCTAssertEqual(merged.moviesState.wishlist, state.moviesState.wishlist)
-        XCTAssertEqual(merged.peoplesState.fanClub, state.peoplesState.fanClub)
+        #expect(merged.moviesState.wishlist == state.moviesState.wishlist)
+        #expect(merged.peoplesState.fanClub == state.peoplesState.fanClub)
     }
 
     /// The export envelope's snapshot strips transient fetch caches that
@@ -188,7 +189,7 @@ final class AppDataRoundTripTests: XCTestCase {
     /// dictionaries, popular-people lists, etc. After roundtripping,
     /// Phone B should NOT inherit Phone A's transient fetch state, only
     /// the user-owned lists.
-    func testRoundTripDoesNotLeakTransientFetchCaches() throws {
+    @Test func roundTripDoesNotLeakTransientFetchCaches() throws {
         var phoneA = AppState()
         phoneA.moviesState.wishlist.insert(100)  // user-owned
         phoneA.moviesState.movies[100] = makeMovie(id: 100)
@@ -203,16 +204,16 @@ final class AppDataRoundTripTests: XCTestCase {
         let merged = AppDataImport.merge(envelope: envelope, into: AppState())
 
         // User data crosses.
-        XCTAssertTrue(merged.moviesState.wishlist.contains(100))
+        #expect(merged.moviesState.wishlist.contains(100))
 
         // Transient caches DO NOT cross.
-        XCTAssertTrue(merged.moviesState.search.isEmpty,
-                      "Phone A's search results should not appear on Phone B")
-        XCTAssertTrue(merged.moviesState.recentSearches.isEmpty,
-                      "Phone A's recent searches should not appear on Phone B")
-        XCTAssertTrue(merged.peoplesState.popular.isEmpty,
-                      "Phone A's popular-people list should not appear on Phone B")
-        XCTAssertTrue(merged.peoplesState.search.isEmpty,
-                      "Phone A's people search cache should not appear on Phone B")
+        #expect(merged.moviesState.search.isEmpty,
+                "Phone A's search results should not appear on Phone B")
+        #expect(merged.moviesState.recentSearches.isEmpty,
+                "Phone A's recent searches should not appear on Phone B")
+        #expect(merged.peoplesState.popular.isEmpty,
+                "Phone A's popular-people list should not appear on Phone B")
+        #expect(merged.peoplesState.search.isEmpty,
+                "Phone A's people search cache should not appear on Phone B")
     }
 }

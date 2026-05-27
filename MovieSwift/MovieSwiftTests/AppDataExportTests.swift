@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,7 +9,7 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class AppDataExportTests: XCTestCase {
+@Suite struct AppDataExportTests {
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
@@ -51,7 +52,7 @@ final class AppDataExportTests: XCTestCase {
 
     // MARK: - Envelope contents
 
-    func testEnvelopeIncludesPersistentSnapshotOfUserLists() throws {
+    @Test func envelopeIncludesPersistentSnapshotOfUserLists() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[2] = makeMovie(id: 2)
@@ -65,15 +66,15 @@ final class AppDataExportTests: XCTestCase {
                                               appVersion: "1.0",
                                               appBuild: "1")
 
-        XCTAssertTrue(envelope.snapshot.moviesState.wishlist.contains(1))
-        XCTAssertTrue(envelope.snapshot.moviesState.seenlist.contains(2))
-        XCTAssertEqual(envelope.snapshot.moviesState.customLists[10]?.name, "Favs")
-        XCTAssertNotNil(envelope.snapshot.moviesState.movies[1])
-        XCTAssertNotNil(envelope.snapshot.moviesState.movies[2])
-        XCTAssertNotNil(envelope.snapshot.moviesState.movies[3])
+        #expect(envelope.snapshot.moviesState.wishlist.contains(1))
+        #expect(envelope.snapshot.moviesState.seenlist.contains(2))
+        #expect(envelope.snapshot.moviesState.customLists[10]?.name == "Favs")
+        #expect(envelope.snapshot.moviesState.movies[1] != nil)
+        #expect(envelope.snapshot.moviesState.movies[2] != nil)
+        #expect(envelope.snapshot.moviesState.movies[3] != nil)
     }
 
-    func testEnvelopeStripsTransientCachesViaPersistentSnapshot() throws {
+    @Test func envelopeStripsTransientCachesViaPersistentSnapshot() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[99] = makeMovie(id: 99)
@@ -86,15 +87,15 @@ final class AppDataExportTests: XCTestCase {
                                               appVersion: "1.0",
                                               appBuild: "1")
 
-        XCTAssertNotNil(envelope.snapshot.moviesState.movies[1])
-        XCTAssertNil(envelope.snapshot.moviesState.movies[99],
-                     "Movies that aren't in any user list shouldn't be exported")
-        XCTAssertTrue(envelope.snapshot.moviesState.moviesList.isEmpty)
-        XCTAssertTrue(envelope.snapshot.moviesState.search.isEmpty)
-        XCTAssertTrue(envelope.snapshot.moviesState.recommended.isEmpty)
+        #expect(envelope.snapshot.moviesState.movies[1] != nil)
+        #expect(envelope.snapshot.moviesState.movies[99] == nil,
+                "Movies that aren't in any user list shouldn't be exported")
+        #expect(envelope.snapshot.moviesState.moviesList.isEmpty)
+        #expect(envelope.snapshot.moviesState.search.isEmpty)
+        #expect(envelope.snapshot.moviesState.recommended.isEmpty)
     }
 
-    func testEnvelopeIncludesFanClubPeople() throws {
+    @Test func envelopeIncludesFanClubPeople() throws {
         var state = AppState()
         state.peoplesState.peoples[5] = makePeople(id: 5)
         state.peoplesState.peoples[6] = makePeople(id: 6)
@@ -104,30 +105,30 @@ final class AppDataExportTests: XCTestCase {
                                               appVersion: "1.0",
                                               appBuild: "1")
 
-        XCTAssertTrue(envelope.snapshot.peoplesState.fanClub.contains(5))
-        XCTAssertNotNil(envelope.snapshot.peoplesState.peoples[5])
-        XCTAssertNil(envelope.snapshot.peoplesState.peoples[6],
-                     "Non-fan-club people shouldn't be exported")
+        #expect(envelope.snapshot.peoplesState.fanClub.contains(5))
+        #expect(envelope.snapshot.peoplesState.peoples[5] != nil)
+        #expect(envelope.snapshot.peoplesState.peoples[6] == nil,
+                "Non-fan-club people shouldn't be exported")
     }
 
     // MARK: - Metadata
 
-    func testEnvelopeStampsFormatVersionDateAndAppVersion() throws {
+    @Test func envelopeStampsFormatVersionDateAndAppVersion() throws {
         let date = Date(timeIntervalSince1970: 1_700_000_000)
         let envelope = AppDataExport.envelope(from: AppState(),
                                               exportDate: date,
                                               appVersion: "2.3",
                                               appBuild: "42")
 
-        XCTAssertEqual(envelope.formatVersion, AppDataExportEnvelope.currentFormatVersion)
-        XCTAssertEqual(envelope.exportDate, date)
-        XCTAssertEqual(envelope.appVersion, "2.3")
-        XCTAssertEqual(envelope.appBuild, "42")
+        #expect(envelope.formatVersion == AppDataExportEnvelope.currentFormatVersion)
+        #expect(envelope.exportDate == date)
+        #expect(envelope.appVersion == "2.3")
+        #expect(envelope.appBuild == "42")
     }
 
     // MARK: - JSON encoding round-trip
 
-    func testEncodedDataRoundTripsBackToTheSameUserLists() throws {
+    @Test func encodedDataRoundTripsBackToTheSameUserLists() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[2] = makeMovie(id: 2)
@@ -140,27 +141,27 @@ final class AppDataExportTests: XCTestCase {
 
         let decoded = try AppDataExport.makeDecoder().decode(AppDataExportEnvelope.self, from: data)
 
-        XCTAssertEqual(decoded.formatVersion, AppDataExportEnvelope.currentFormatVersion)
-        XCTAssertTrue(decoded.snapshot.moviesState.wishlist.contains(1))
-        XCTAssertTrue(decoded.snapshot.moviesState.seenlist.contains(2))
-        XCTAssertTrue(decoded.snapshot.peoplesState.fanClub.contains(5))
+        #expect(decoded.formatVersion == AppDataExportEnvelope.currentFormatVersion)
+        #expect(decoded.snapshot.moviesState.wishlist.contains(1))
+        #expect(decoded.snapshot.moviesState.seenlist.contains(2))
+        #expect(decoded.snapshot.peoplesState.fanClub.contains(5))
     }
 
-    func testEncodedDataIsPrettyPrintedJSON() throws {
+    @Test func encodedDataIsPrettyPrintedJSON() throws {
         let data = try AppDataExport.data(from: AppState())
 
         let json = String(data: data, encoding: .utf8) ?? ""
-        XCTAssertTrue(json.contains("\n"),
-                      "Expected pretty-printed JSON to contain newlines")
-        XCTAssertTrue(json.contains("\"formatVersion\""),
-                      "Expected formatVersion key in the encoded JSON")
-        XCTAssertTrue(json.contains("\"snapshot\""),
-                      "Expected snapshot key in the encoded JSON")
+        #expect(json.contains("\n"),
+                "Expected pretty-printed JSON to contain newlines")
+        #expect(json.contains("\"formatVersion\""),
+                "Expected formatVersion key in the encoded JSON")
+        #expect(json.contains("\"snapshot\""),
+                "Expected snapshot key in the encoded JSON")
     }
 
     // MARK: - Filename
 
-    func testSuggestedFilenameUsesISODate() {
+    @Test func suggestedFilenameUsesISODate() {
         var components = DateComponents()
         components.year = 2026
         components.month = 5
@@ -177,6 +178,6 @@ final class AppDataExportTests: XCTestCase {
         let filename = AppDataExport.suggestedFilename(for: date,
                                                        calendar: calendarWithZone,
                                                        timeZone: timeZone)
-        XCTAssertEqual(filename, "MovieSwift-Export-2026-05-02")
+        #expect(filename == "MovieSwift-Export-2026-05-02")
     }
 }

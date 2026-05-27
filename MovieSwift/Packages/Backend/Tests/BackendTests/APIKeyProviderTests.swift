@@ -1,7 +1,12 @@
-import XCTest
+import Testing
 @testable import Backend
 
-final class APIKeyProviderTests: XCTestCase {
+// `.serialized` + final class: several tests round-trip the shared
+// `AppUserDefaults.userTMDBAPIKey` (backed by UserDefaults.standard), so
+// they can't run in parallel, and the class's init/deinit act as
+// per-test setup/teardown to snapshot and restore that value.
+@Suite(.serialized)
+final class APIKeyProviderTests {
 
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
@@ -15,90 +20,83 @@ final class APIKeyProviderTests: XCTestCase {
         }
     }
 
+    // Snapshot whatever's in the real defaults before each test and
+    // restore it after — so tests don't pollute the developer's
+    // environment and can run in any order.
+    private let savedUserKey: String
+
+    init() {
+        savedUserKey = AppUserDefaults.userTMDBAPIKey
+        AppUserDefaults.userTMDBAPIKey = ""
+    }
+
+    deinit {
+        AppUserDefaults.userTMDBAPIKey = savedUserKey
+    }
+
     // MARK: - LayeredAPIKeyProvider
 
-    func testLayeredProviderReturnsFirstNonNilKey() {
+    @Test func layeredProviderReturnsFirstNonNilKey() {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider("user-key"),
             StubAPIKeyProvider("bundled-key")
         ])
-        XCTAssertEqual(layered.apiKey(), "user-key")
+        #expect(layered.apiKey() == "user-key")
     }
 
-    func testLayeredProviderFallsThroughEmptyProviders() {
+    @Test func layeredProviderFallsThroughEmptyProviders() {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider("bundled-key")
         ])
-        XCTAssertEqual(layered.apiKey(), "bundled-key")
+        #expect(layered.apiKey() == "bundled-key")
     }
 
-    func testLayeredProviderReturnsNilWhenAllProvidersAreEmpty() {
+    @Test func layeredProviderReturnsNilWhenAllProvidersAreEmpty() {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider(nil)
         ])
-        XCTAssertNil(layered.apiKey())
+        #expect(layered.apiKey() == nil)
     }
 
-    func testLayeredProviderEmptyChainReturnsNil() {
+    @Test func layeredProviderEmptyChainReturnsNil() {
         let layered = LayeredAPIKeyProvider(providers: [])
-        XCTAssertNil(layered.apiKey())
+        #expect(layered.apiKey() == nil)
     }
 
     // MARK: - UserDefaultsAPIKeyProvider
-    //
-    // These tests round-trip the real `AppUserDefaults.userTMDBAPIKey`
-    // value via UserDefaults.standard. We snapshot whatever's there
-    // before each test and restore after — both so the test doesn't
-    // pollute the developer's environment and so the suite can run in
-    // any order.
 
-    private var savedUserKey: String!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        savedUserKey = AppUserDefaults.userTMDBAPIKey
+    @Test func userDefaultsProviderReturnsNilWhenEmpty() {
         AppUserDefaults.userTMDBAPIKey = ""
+        #expect(UserDefaultsAPIKeyProvider().apiKey() == nil)
     }
 
-    override func tearDownWithError() throws {
-        AppUserDefaults.userTMDBAPIKey = savedUserKey
-        savedUserKey = nil
-        try super.tearDownWithError()
-    }
-
-    func testUserDefaultsProviderReturnsNilWhenEmpty() {
-        AppUserDefaults.userTMDBAPIKey = ""
-        XCTAssertNil(UserDefaultsAPIKeyProvider().apiKey())
-    }
-
-    func testUserDefaultsProviderReturnsNilWhenWhitespaceOnly() {
+    @Test func userDefaultsProviderReturnsNilWhenWhitespaceOnly() {
         AppUserDefaults.userTMDBAPIKey = "   \n  "
-        XCTAssertNil(UserDefaultsAPIKeyProvider().apiKey(),
-                     "Whitespace-only values shouldn't count as a configured key")
+        #expect(UserDefaultsAPIKeyProvider().apiKey() == nil,
+                "Whitespace-only values shouldn't count as a configured key")
     }
 
-    func testUserDefaultsProviderReturnsTrimmedSavedKey() {
+    @Test func userDefaultsProviderReturnsTrimmedSavedKey() {
         AppUserDefaults.userTMDBAPIKey = "  abc-real-key  \n"
-        XCTAssertEqual(UserDefaultsAPIKeyProvider().apiKey(), "abc-real-key")
+        #expect(UserDefaultsAPIKeyProvider().apiKey() == "abc-real-key")
     }
 
-    func testUserDefaultsProviderRoundTripsExactValue() {
+    @Test func userDefaultsProviderRoundTripsExactValue() {
         AppUserDefaults.userTMDBAPIKey = "exact-key-no-trim"
-        XCTAssertEqual(UserDefaultsAPIKeyProvider().apiKey(), "exact-key-no-trim")
+        #expect(UserDefaultsAPIKeyProvider().apiKey() == "exact-key-no-trim")
     }
 
     // MARK: - Default convenience
 
-    func testUserKeyOverridingBundleConvenienceWiresUserKeyAhead() {
+    @Test func userKeyOverridingBundleConvenienceWiresUserKeyAhead() {
         // When the user has set their own key, the layered convenience
         // composition must surface that one — not whatever the bundle
         // would have returned in production.
         AppUserDefaults.userTMDBAPIKey = "user-priority"
-        XCTAssertEqual(LayeredAPIKeyProvider.userKeyOverridingBundle.apiKey(),
-                       "user-priority")
+        #expect(LayeredAPIKeyProvider.userKeyOverridingBundle.apiKey() == "user-priority")
     }
 }

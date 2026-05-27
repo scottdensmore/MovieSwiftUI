@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 @testable import MovieSwiftFluxCore
 
 /// Guards the localizability of the display-name helpers in this package.
@@ -18,9 +18,9 @@ import XCTest
 /// correctness is exercised at runtime by the app (wrong-bundle lookups
 /// would fall back to the key, which here is identical, so it stays safe
 /// either way).
-final class LocalizationTests: XCTestCase {
+@Suite struct LocalizationTests {
 
-    func testMoviesMenuTitlesResolveForEveryCase() {
+    @Test func moviesMenuTitlesResolveForEveryCase() {
         let expected: [MoviesMenu: String] = [
             .popular: "Popular",
             .topRated: "Top Rated",
@@ -32,16 +32,15 @@ final class LocalizationTests: XCTestCase {
         // Every case must be covered, and each must produce a non-empty title.
         for menu in MoviesMenu.allCases {
             let title = menu.title()
-            XCTAssertFalse(title.isEmpty, "MoviesMenu.\(menu) produced an empty title")
-            XCTAssertEqual(title, expected[menu],
-                           "MoviesMenu.\(menu).title() should resolve to its English source string")
+            #expect(!title.isEmpty, "MoviesMenu.\(menu) produced an empty title")
+            #expect(title == expected[menu],
+                    "MoviesMenu.\(menu).title() should resolve to its English source string")
         }
-        XCTAssertEqual(Set(MoviesMenu.allCases.map { $0.title() }).count,
-                       MoviesMenu.allCases.count,
-                       "Every MoviesMenu title should be distinct")
+        #expect(Set(MoviesMenu.allCases.map { $0.title() }).count == MoviesMenu.allCases.count,
+                "Every MoviesMenu title should be distinct")
     }
 
-    func testMoviesSortTitlesResolveForEveryCase() {
+    @Test func moviesSortTitlesResolveForEveryCase() {
         let cases: [(MoviesSort, String)] = [
             (.byReleaseDate, "by release date"),
             (.byAddedDate, "by added date"),
@@ -50,20 +49,20 @@ final class LocalizationTests: XCTestCase {
         ]
         for (sort, expected) in cases {
             let title = sort.title()
-            XCTAssertFalse(title.isEmpty, "MoviesSort title was empty")
-            XCTAssertEqual(title, expected,
-                           "MoviesSort.\(sort).title() should resolve to its English source string")
+            #expect(!title.isEmpty, "MoviesSort title was empty")
+            #expect(title == expected,
+                    "MoviesSort.\(sort).title() should resolve to its English source string")
         }
     }
 
-    func testDiscoverFilterToTextLocalizesRandomFallback() {
+    @Test func discoverFilterToTextLocalizesRandomFallback() {
         // A filter with no explicit year range renders the localized
         // "Random" token (rather than a bare literal). English source
         // resolves to "Random".
         let filter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil,
                                     sort: "popularity.desc")
         let text = filter.toText(genres: [])
-        XCTAssertTrue(text.contains("Random"),
-                      "DiscoverFilter.toText should include the localized Random token when no year range is set; got: \(text)")
+        #expect(text.contains("Random"),
+                "DiscoverFilter.toText should include the localized Random token when no year range is set; got: \(text)")
     }
 }

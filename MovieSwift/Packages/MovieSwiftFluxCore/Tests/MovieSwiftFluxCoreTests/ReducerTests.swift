@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import MovieSwiftFluxCore
 
-final class ReducerTests: XCTestCase {
-    func testMoviesReducerSetMovieMenuListPageOneReplacesList() {
+@Suite struct ReducerTests {
+    @Test func moviesReducerSetMovieMenuListPageOneReplacesList() {
         var state = MoviesState()
         state.moviesList[.popular] = [999]
 
@@ -11,12 +11,12 @@ final class ReducerTests: XCTestCase {
 
         let reduced = moviesStateReducer(state: state, action: action)
 
-        XCTAssertEqual(reduced.moviesList[.popular] ?? [], [1, 2])
-        XCTAssertEqual(reduced.movies[1]?.id, 1)
-        XCTAssertEqual(reduced.movies[2]?.id, 2)
+        #expect((reduced.moviesList[.popular] ?? []) == [1, 2])
+        #expect(reduced.movies[1]?.id == 1)
+        #expect(reduced.movies[2]?.id == 2)
     }
 
-    func testMoviesReducerSetMovieMenuListPageTwoAppendsList() {
+    @Test func moviesReducerSetMovieMenuListPageTwoAppendsList() {
         var state = MoviesState()
         state.moviesList[.trending] = [1]
 
@@ -25,21 +25,21 @@ final class ReducerTests: XCTestCase {
 
         let reduced = moviesStateReducer(state: state, action: action)
 
-        XCTAssertEqual(reduced.moviesList[.trending] ?? [], [1, 2, 3])
+        #expect((reduced.moviesList[.trending] ?? []) == [1, 2, 3])
     }
 
-    func testMoviesReducerAddToWishlistMovesMovieAndAddsMetaTimestamp() {
+    @Test func moviesReducerAddToWishlistMovesMovieAndAddsMetaTimestamp() {
         var state = MoviesState()
         state.seenlist.insert(42)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.AddToWishlist(movie: 42))
 
-        XCTAssertTrue(reduced.wishlist.contains(42))
-        XCTAssertFalse(reduced.seenlist.contains(42))
-        XCTAssertNotNil(reduced.moviesUserMeta[42]?.addedToList)
+        #expect(reduced.wishlist.contains(42))
+        #expect(!(reduced.seenlist.contains(42)))
+        #expect(reduced.moviesUserMeta[42]?.addedToList != nil)
     }
 
-    func testMoviesReducerSetRandomDiscoverPrependsWhenBelowLimit() {
+    @Test func moviesReducerSetRandomDiscoverPrependsWhenBelowLimit() {
         var state = MoviesState()
         state.discover = [100, 101]
         let filter = DiscoverFilter(year: 1990, startYear: nil, endYear: nil, sort: "popularity.desc", genre: 12, region: "US")
@@ -50,16 +50,16 @@ final class ReducerTests: XCTestCase {
             action: MoviesActions.SetRandomDiscover(filter: filter, response: response)
         )
 
-        XCTAssertEqual(reduced.discover, [1, 2, 100, 101])
-        XCTAssertEqual(reduced.movies[1]?.id, 1)
-        XCTAssertEqual(reduced.movies[2]?.id, 2)
-        XCTAssertEqual(reduced.discoverFilter?.year, filter.year)
-        XCTAssertEqual(reduced.discoverFilter?.sort, filter.sort)
-        XCTAssertEqual(reduced.discoverFilter?.genre, filter.genre)
-        XCTAssertEqual(reduced.discoverFilter?.region, filter.region)
+        #expect(reduced.discover == [1, 2, 100, 101])
+        #expect(reduced.movies[1]?.id == 1)
+        #expect(reduced.movies[2]?.id == 2)
+        #expect(reduced.discoverFilter?.year == filter.year)
+        #expect(reduced.discoverFilter?.sort == filter.sort)
+        #expect(reduced.discoverFilter?.genre == filter.genre)
+        #expect(reduced.discoverFilter?.region == filter.region)
     }
 
-    func testMoviesReducerSetRandomDiscoverDoesNotPrependWhenAtLimit() {
+    @Test func moviesReducerSetRandomDiscoverDoesNotPrependWhenAtLimit() {
         var state = MoviesState()
         state.discover = Array(1...10)
         let filter = DiscoverFilter(year: 1990, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
@@ -70,38 +70,38 @@ final class ReducerTests: XCTestCase {
             action: MoviesActions.SetRandomDiscover(filter: filter, response: response)
         )
 
-        XCTAssertEqual(reduced.discover, Array(1...10))
-        XCTAssertEqual(reduced.movies[99]?.id, 99)
-        XCTAssertEqual(reduced.discoverFilter?.year, 1990)
+        #expect(reduced.discover == Array(1...10))
+        #expect(reduced.movies[99]?.id == 99)
+        #expect(reduced.discoverFilter?.year == 1990)
     }
-    
-    func testMoviesReducerSetActiveDiscoverFilterUpdatesFilterImmediately() {
+
+    @Test func moviesReducerSetActiveDiscoverFilterUpdatesFilterImmediately() {
         var state = MoviesState()
         state.discoverFilter = nil
         let filter = DiscoverFilter(year: 2001, startYear: 1990, endYear: 1999, sort: "popularity.desc", genre: 28, region: "US")
-        
+
         let reduced = moviesStateReducer(
             state: state,
             action: MoviesActions.SetActiveDiscoverFilter(filter: filter)
         )
-        
-        XCTAssertEqual(reduced.discoverFilter?.startYear, 1990)
-        XCTAssertEqual(reduced.discoverFilter?.endYear, 1999)
-        XCTAssertEqual(reduced.discoverFilter?.genre, 28)
-        XCTAssertEqual(reduced.discoverFilter?.region, "US")
+
+        #expect(reduced.discoverFilter?.startYear == 1990)
+        #expect(reduced.discoverFilter?.endYear == 1999)
+        #expect(reduced.discoverFilter?.genre == 28)
+        #expect(reduced.discoverFilter?.region == "US")
     }
 
-    func testMoviesReducerSetGenresInsertsRandomGenreFirst() {
+    @Test func moviesReducerSetGenresInsertsRandomGenreFirst() {
         let genres = [Genre(id: 7, name: "Drama"), Genre(id: 8, name: "Comedy")]
 
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetGenres(genres: genres))
 
-        XCTAssertEqual(reduced.genres.first?.id, -1)
-        XCTAssertEqual(reduced.genres.first?.name, "Random")
-        XCTAssertEqual(reduced.genres.dropFirst().map(\.id), [7, 8])
+        #expect(reduced.genres.first?.id == -1)
+        #expect(reduced.genres.first?.name == "Random")
+        #expect(reduced.genres.dropFirst().map(\.id) == [7, 8])
     }
 
-    func testMoviesReducerAddMoviesToCustomListMergesIntoExistingList() {
+    @Test func moviesReducerAddMoviesToCustomListMergesIntoExistingList() {
         let existing = CustomList(id: 9, name: "Favorites", cover: nil, movies: [1, 2])
         var state = MoviesState()
         state.customLists[9] = existing
@@ -111,10 +111,10 @@ final class ReducerTests: XCTestCase {
             action: MoviesActions.AddMoviesToCustomList(list: 9, movies: [2, 3, 4])
         )
 
-        XCTAssertEqual(reduced.customLists[9]?.movies, Set([1, 2, 3, 4]))
+        #expect(reduced.customLists[9]?.movies == Set([1, 2, 3, 4]))
     }
 
-    func testMoviesReducerEditCustomListUpdatesOnlyProvidedFields() {
+    @Test func moviesReducerEditCustomListUpdatesOnlyProvidedFields() {
         let existing = CustomList(id: 4, name: "Weekend", cover: 7, movies: [7, 8])
         var state = MoviesState()
         state.customLists[4] = existing
@@ -123,18 +123,18 @@ final class ReducerTests: XCTestCase {
             state: state,
             action: MoviesActions.EditCustomList(list: 4, title: "Weeknight", cover: nil)
         )
-        XCTAssertEqual(renamed.customLists[4]?.name, "Weeknight")
-        XCTAssertEqual(renamed.customLists[4]?.cover, 7)
+        #expect(renamed.customLists[4]?.name == "Weeknight")
+        #expect(renamed.customLists[4]?.cover == 7)
 
         let recoved = moviesStateReducer(
             state: renamed,
             action: MoviesActions.EditCustomList(list: 4, title: nil, cover: 11)
         )
-        XCTAssertEqual(recoved.customLists[4]?.name, "Weeknight")
-        XCTAssertEqual(recoved.customLists[4]?.cover, 11)
+        #expect(recoved.customLists[4]?.name == "Weeknight")
+        #expect(recoved.customLists[4]?.cover == 11)
     }
 
-    func testPeopleReducerSetDetailPreservesExistingMetadataFields() {
+    @Test func peopleReducerSetDetailPreservesExistingMetadataFields() {
         let knownFor = [People.KnownFor(id: 90, original_title: "Old", poster_path: "/old.jpg")]
         let images = [ImageData(aspect_ratio: 1.0, file_path: "/img.jpg", height: 10, width: 10)]
 
@@ -144,28 +144,28 @@ final class ReducerTests: XCTestCase {
         let incoming = makePeople(id: 5, name: "New Name", character: nil, department: nil, knownFor: nil, images: nil)
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetDetail(person: incoming))
 
-        XCTAssertEqual(reduced.peoples[5]?.name, "New Name")
+        #expect(reduced.peoples[5]?.name == "New Name")
         // SetDetail only preserves known_for and images from the existing record;
         // character and department come from the incoming person as-is.
-        XCTAssertNil(reduced.peoples[5]?.character)
-        XCTAssertNil(reduced.peoples[5]?.department)
-        XCTAssertEqual(reduced.peoples[5]?.known_for?.first?.id, 90)
-        XCTAssertEqual(reduced.peoples[5]?.images?.first?.file_path, "/img.jpg")
+        #expect(reduced.peoples[5]?.character == nil)
+        #expect(reduced.peoples[5]?.department == nil)
+        #expect(reduced.peoples[5]?.known_for?.first?.id == 90)
+        #expect(reduced.peoples[5]?.images?.first?.file_path == "/img.jpg")
     }
 
-    func testPeopleReducerSetMovieCastsMergesPeopleAndIndexesMovie() {
+    @Test func peopleReducerSetMovieCastsMergesPeopleAndIndexesMovie() {
         let cast = makePeople(id: 1, name: "Cast Member")
         let crew = makePeople(id: 2, name: "Crew Member")
         let response = CastResponse(id: 100, cast: [cast], crew: [crew])
 
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.SetMovieCasts(movie: 99, response: response))
 
-        XCTAssertEqual(reduced.peoples[1]?.name, "Cast Member")
-        XCTAssertEqual(reduced.peoples[2]?.name, "Crew Member")
-        XCTAssertEqual(reduced.peoplesMovies[99], Set([1, 2]))
+        #expect(reduced.peoples[1]?.name == "Cast Member")
+        #expect(reduced.peoples[2]?.name == "Crew Member")
+        #expect(reduced.peoplesMovies[99] == Set([1, 2]))
     }
 
-    func testPeopleReducerSetPeopleCreditsStoresCharacterAndDepartmentMaps() {
+    @Test func peopleReducerSetPeopleCreditsStoresCharacterAndDepartmentMaps() {
         let castMovie = makeMovie(id: 10, character: "Hero", department: nil)
         let castMovieWithoutCharacter = makeMovie(id: 11, character: nil, department: nil)
         let crewMovie = makeMovie(id: 20, character: nil, department: "Directing")
@@ -181,174 +181,174 @@ final class ReducerTests: XCTestCase {
             action: PeopleActions.SetPeopleCredits(people: 7, response: response)
         )
 
-        XCTAssertEqual(reduced.casts[7]?[10], "Hero")
-        XCTAssertNil(reduced.casts[7]?[11])
-        XCTAssertEqual(reduced.crews[7]?[20], "Directing")
-        XCTAssertNil(reduced.crews[7]?[21])
+        #expect(reduced.casts[7]?[10] == "Hero")
+        #expect(reduced.casts[7]?[11] == nil)
+        #expect(reduced.crews[7]?[20] == "Directing")
+        #expect(reduced.crews[7]?[21] == nil)
     }
 
-    func testAppReducerRoutesMovieActionToMoviesState() {
+    @Test func appReducerRoutesMovieActionToMoviesState() {
         var state = AppState()
         state.moviesState.seenlist.insert(5)
 
         let reduced = appStateReducer(state: state, action: MoviesActions.AddToWishlist(movie: 5))
 
-        XCTAssertTrue(reduced.moviesState.wishlist.contains(5))
-        XCTAssertFalse(reduced.moviesState.seenlist.contains(5))
+        #expect(reduced.moviesState.wishlist.contains(5))
+        #expect(!(reduced.moviesState.seenlist.contains(5)))
     }
 
-    func testAppReducerRoutesPeopleActionToPeoplesState() {
+    @Test func appReducerRoutesPeopleActionToPeoplesState() {
         let reduced = appStateReducer(state: AppState(), action: PeopleActions.AddToFanClub(people: 55))
 
-        XCTAssertTrue(reduced.peoplesState.fanClub.contains(55))
+        #expect(reduced.peoplesState.fanClub.contains(55))
     }
 
     // MARK: - MoviesReducer: SetDetail
 
-    func testMoviesReducerSetDetailStoresMovieAndMarksDetailed() {
+    @Test func moviesReducerSetDetailStoresMovieAndMarksDetailed() {
         let movie = makeMovie(id: 42)
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetDetail(movie: 42, response: movie))
 
-        XCTAssertEqual(reduced.movies[42]?.id, 42)
-        XCTAssertTrue(reduced.detailed.contains(42))
+        #expect(reduced.movies[42]?.id == 42)
+        #expect(reduced.detailed.contains(42))
     }
 
     // MARK: - MoviesReducer: SetRecommended / SetSimilar
 
-    func testMoviesReducerSetRecommendedMergesMoviesAndMarksLoaded() {
+    @Test func moviesReducerSetRecommendedMergesMoviesAndMarksLoaded() {
         let response = paginated([makeMovie(id: 10), makeMovie(id: 11)])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetRecommended(movie: 5, response: response))
 
-        XCTAssertEqual(reduced.recommended[5], [10, 11])
-        XCTAssertTrue(reduced.recommendedLoaded.contains(5))
-        XCTAssertNotNil(reduced.movies[10])
-        XCTAssertNotNil(reduced.movies[11])
+        #expect(reduced.recommended[5] == [10, 11])
+        #expect(reduced.recommendedLoaded.contains(5))
+        #expect(reduced.movies[10] != nil)
+        #expect(reduced.movies[11] != nil)
     }
 
-    func testMoviesReducerSetSimilarMergesMoviesAndMarksLoaded() {
+    @Test func moviesReducerSetSimilarMergesMoviesAndMarksLoaded() {
         let response = paginated([makeMovie(id: 20)])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetSimilar(movie: 6, response: response))
 
-        XCTAssertEqual(reduced.similar[6], [20])
-        XCTAssertTrue(reduced.similarLoaded.contains(6))
+        #expect(reduced.similar[6] == [20])
+        #expect(reduced.similarLoaded.contains(6))
     }
 
     // MARK: - MoviesReducer: SetVideos
 
-    func testMoviesReducerSetVideosStoresResultsAndMarksLoaded() {
+    @Test func moviesReducerSetVideosStoresResultsAndMarksLoaded() {
         let video = Video(id: "v1", name: "Trailer", site: "YouTube", key: "abc", type: "Trailer")
         let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [video])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetVideos(movie: 7, response: response))
 
-        XCTAssertEqual(reduced.videos[7]?.first?.key, "abc")
-        XCTAssertTrue(reduced.videosLoaded.contains(7))
+        #expect(reduced.videos[7]?.first?.key == "abc")
+        #expect(reduced.videosLoaded.contains(7))
     }
 
     // MARK: - MoviesReducer: SetSearch
 
-    func testMoviesReducerSetSearchPageOneReplacesList() {
+    @Test func moviesReducerSetSearchPageOneReplacesList() {
         var state = MoviesState()
         state.search["old"] = [999]
 
         let response = paginated([makeMovie(id: 1)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetSearch(query: "old", page: 1, response: response))
 
-        XCTAssertEqual(reduced.search["old"], [1])
+        #expect(reduced.search["old"] == [1])
     }
 
-    func testMoviesReducerSetSearchPageTwoAppendsList() {
+    @Test func moviesReducerSetSearchPageTwoAppendsList() {
         var state = MoviesState()
         state.search["q"] = [1]
 
         let response = paginated([makeMovie(id: 2)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetSearch(query: "q", page: 2, response: response))
 
-        XCTAssertEqual(reduced.search["q"], [1, 2])
+        #expect(reduced.search["q"] == [1, 2])
     }
 
     // MARK: - MoviesReducer: SetSearchKeyword
 
-    func testMoviesReducerSetSearchKeywordStoresKeywords() {
+    @Test func moviesReducerSetSearchKeywordStoresKeywords() {
         let keywords = [Keyword(id: 1, name: "neo-noir"), Keyword(id: 2, name: "heist")]
         let response = PaginatedResponse(page: 1, total_results: 2, total_pages: 1, results: keywords)
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetSearchKeyword(query: "noir", response: response))
 
-        XCTAssertEqual(reduced.searchKeywords["noir"]?.count, 2)
-        XCTAssertEqual(reduced.searchKeywords["noir"]?.first?.name, "neo-noir")
+        #expect(reduced.searchKeywords["noir"]?.count == 2)
+        #expect(reduced.searchKeywords["noir"]?.first?.name == "neo-noir")
     }
 
     // MARK: - MoviesReducer: Wishlist / Seenlist
 
-    func testMoviesReducerRemoveFromWishlistRemovesMovie() {
+    @Test func moviesReducerRemoveFromWishlistRemovesMovie() {
         var state = MoviesState()
         state.wishlist.insert(42)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.RemoveFromWishlist(movie: 42))
 
-        XCTAssertFalse(reduced.wishlist.contains(42))
+        #expect(!(reduced.wishlist.contains(42)))
     }
 
-    func testMoviesReducerAddToSeenListMovesFromWishlistAndAddsTimestamp() {
+    @Test func moviesReducerAddToSeenListMovesFromWishlistAndAddsTimestamp() {
         var state = MoviesState()
         state.wishlist.insert(42)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.AddToSeenList(movie: 42))
 
-        XCTAssertTrue(reduced.seenlist.contains(42))
-        XCTAssertFalse(reduced.wishlist.contains(42))
-        XCTAssertNotNil(reduced.moviesUserMeta[42]?.addedToList)
+        #expect(reduced.seenlist.contains(42))
+        #expect(!(reduced.wishlist.contains(42)))
+        #expect(reduced.moviesUserMeta[42]?.addedToList != nil)
     }
 
-    func testMoviesReducerRemoveFromSeenListRemovesMovie() {
+    @Test func moviesReducerRemoveFromSeenListRemovesMovie() {
         var state = MoviesState()
         state.seenlist.insert(42)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.RemoveFromSeenList(movie: 42))
 
-        XCTAssertFalse(reduced.seenlist.contains(42))
+        #expect(!(reduced.seenlist.contains(42)))
     }
 
     // MARK: - MoviesReducer: CustomList operations
 
-    func testMoviesReducerAddMovieToCustomListInsertsMovie() {
+    @Test func moviesReducerAddMovieToCustomListInsertsMovie() {
         var state = MoviesState()
         state.customLists[1] = CustomList(id: 1, name: "Favorites", cover: nil, movies: [10])
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.AddMovieToCustomList(list: 1, movie: 20))
 
-        XCTAssertTrue(reduced.customLists[1]?.movies.contains(20) == true)
-        XCTAssertTrue(reduced.customLists[1]?.movies.contains(10) == true)
+        #expect(reduced.customLists[1]?.movies.contains(20) == true)
+        #expect(reduced.customLists[1]?.movies.contains(10) == true)
     }
 
-    func testMoviesReducerRemoveMovieFromCustomListRemovesMovie() {
+    @Test func moviesReducerRemoveMovieFromCustomListRemovesMovie() {
         var state = MoviesState()
         state.customLists[1] = CustomList(id: 1, name: "Favorites", cover: nil, movies: [10, 20])
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.RemoveMovieFromCustomList(list: 1, movie: 10))
 
-        XCTAssertFalse(reduced.customLists[1]?.movies.contains(10) == true)
-        XCTAssertTrue(reduced.customLists[1]?.movies.contains(20) == true)
+        #expect(!(reduced.customLists[1]?.movies.contains(10) == true))
+        #expect(reduced.customLists[1]?.movies.contains(20) == true)
     }
 
-    func testMoviesReducerAddCustomListStoresList() {
+    @Test func moviesReducerAddCustomListStoresList() {
         let list = CustomList(id: 5, name: "Watch Later", cover: nil, movies: [])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.AddCustomList(list: list))
 
-        XCTAssertEqual(reduced.customLists[5]?.name, "Watch Later")
+        #expect(reduced.customLists[5]?.name == "Watch Later")
     }
 
-    func testMoviesReducerRemoveCustomListNilifiesEntry() {
+    @Test func moviesReducerRemoveCustomListNilifiesEntry() {
         var state = MoviesState()
         state.customLists[5] = CustomList(id: 5, name: "Old", cover: nil, movies: [])
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.RemoveCustomList(list: 5))
 
-        XCTAssertNil(reduced.customLists[5])
+        #expect(reduced.customLists[5] == nil)
     }
 
     // MARK: - MoviesReducer: Genre / Crew / Keyword movies
 
-    func testMoviesReducerSetMovieForGenrePageOneReplacesList() {
+    @Test func moviesReducerSetMovieForGenrePageOneReplacesList() {
         var state = MoviesState()
         state.withGenre[28] = [999]
 
@@ -356,10 +356,10 @@ final class ReducerTests: XCTestCase {
         let response = paginated([makeMovie(id: 1)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieForGenre(genre: genre, page: 1, response: response))
 
-        XCTAssertEqual(reduced.withGenre[28], [1])
+        #expect(reduced.withGenre[28] == [1])
     }
 
-    func testMoviesReducerSetMovieForGenrePageTwoAppendsList() {
+    @Test func moviesReducerSetMovieForGenrePageTwoAppendsList() {
         var state = MoviesState()
         state.withGenre[28] = [1]
 
@@ -367,79 +367,79 @@ final class ReducerTests: XCTestCase {
         let response = paginated([makeMovie(id: 2)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieForGenre(genre: genre, page: 2, response: response))
 
-        XCTAssertEqual(reduced.withGenre[28], [1, 2])
+        #expect(reduced.withGenre[28] == [1, 2])
     }
 
-    func testMoviesReducerSetMovieWithCrewStoresResults() {
+    @Test func moviesReducerSetMovieWithCrewStoresResults() {
         let response = paginated([makeMovie(id: 10)])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetMovieWithCrew(crew: 15, response: response))
 
-        XCTAssertEqual(reduced.withCrew[15], [10])
+        #expect(reduced.withCrew[15] == [10])
     }
 
-    func testMoviesReducerSetMovieWithKeywordPageOneReplacesList() {
+    @Test func moviesReducerSetMovieWithKeywordPageOneReplacesList() {
         var state = MoviesState()
         state.withKeywords[50] = [999]
 
         let response = paginated([makeMovie(id: 1)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieWithKeyword(keyword: 50, page: 1, response: response))
 
-        XCTAssertEqual(reduced.withKeywords[50], [1])
+        #expect(reduced.withKeywords[50] == [1])
     }
 
-    func testMoviesReducerSetMovieWithKeywordPageTwoAppendsList() {
+    @Test func moviesReducerSetMovieWithKeywordPageTwoAppendsList() {
         var state = MoviesState()
         state.withKeywords[50] = [1]
 
         let response = paginated([makeMovie(id: 2)])
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieWithKeyword(keyword: 50, page: 2, response: response))
 
-        XCTAssertEqual(reduced.withKeywords[50], [1, 2])
+        #expect(reduced.withKeywords[50] == [1, 2])
     }
 
     // MARK: - MoviesReducer: Reviews
 
-    func testMoviesReducerSetMovieReviewsStoresResultsAndMarksLoaded() {
+    @Test func moviesReducerSetMovieReviewsStoresResultsAndMarksLoaded() {
         let review = Review(id: "r1", author: "Critic", content: "Great")
         let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [review])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetMovieReviews(movie: 8, response: response))
 
-        XCTAssertEqual(reduced.reviews[8]?.first?.author, "Critic")
-        XCTAssertTrue(reduced.reviewsLoaded.contains(8))
+        #expect(reduced.reviews[8]?.first?.author == "Critic")
+        #expect(reduced.reviewsLoaded.contains(8))
     }
 
     // MARK: - MoviesReducer: Discover operations
 
-    func testMoviesReducerPopRandomDiscoverRemovesLastElement() {
+    @Test func moviesReducerPopRandomDiscoverRemovesLastElement() {
         var state = MoviesState()
         state.discover = [1, 2, 3]
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.PopRandromDiscover())
 
-        XCTAssertEqual(reduced.discover, [1, 2])
+        #expect(reduced.discover == [1, 2])
     }
 
-    func testMoviesReducerPushRandomDiscoverAppendsMovie() {
+    @Test func moviesReducerPushRandomDiscoverAppendsMovie() {
         var state = MoviesState()
         state.discover = [1, 2]
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.PushRandomDiscover(movie: 3))
 
-        XCTAssertEqual(reduced.discover, [1, 2, 3])
+        #expect(reduced.discover == [1, 2, 3])
     }
 
-    func testMoviesReducerResetRandomDiscoverClearsFilterAndList() {
+    @Test func moviesReducerResetRandomDiscoverClearsFilterAndList() {
         var state = MoviesState()
         state.discover = [1, 2, 3]
         state.discoverFilter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.ResetRandomDiscover())
 
-        XCTAssertTrue(reduced.discover.isEmpty)
-        XCTAssertNil(reduced.discoverFilter)
+        #expect(reduced.discover.isEmpty)
+        #expect(reduced.discoverFilter == nil)
     }
 
-    func testMoviesReducerSaveDiscoverFilterAppendsFilter() {
+    @Test func moviesReducerSaveDiscoverFilterAppendsFilter() {
         var state = MoviesState()
         let filter1 = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
         state.savedDiscoverFilters = [filter1]
@@ -447,58 +447,58 @@ final class ReducerTests: XCTestCase {
         let filter2 = DiscoverFilter(year: 2010, startYear: nil, endYear: nil, sort: "vote_average.desc", genre: 28, region: "US")
         let reduced = moviesStateReducer(state: state, action: MoviesActions.SaveDiscoverFilter(filter: filter2))
 
-        XCTAssertEqual(reduced.savedDiscoverFilters.count, 2)
-        XCTAssertEqual(reduced.savedDiscoverFilters.last?.year, 2010)
+        #expect(reduced.savedDiscoverFilters.count == 2)
+        #expect(reduced.savedDiscoverFilters.last?.year == 2010)
     }
 
-    func testMoviesReducerClearSavedDiscoverFiltersEmptiesArray() {
+    @Test func moviesReducerClearSavedDiscoverFiltersEmptiesArray() {
         var state = MoviesState()
         let filter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
         state.savedDiscoverFilters = [filter]
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.ClearSavedDiscoverFilters())
 
-        XCTAssertTrue(reduced.savedDiscoverFilters.isEmpty)
+        #expect(reduced.savedDiscoverFilters.isEmpty)
     }
 
     // MARK: - MoviesReducer: Cross-reducer (PeopleCredits merges movies)
 
-    func testMoviesReducerPeopleCreditsAlsoMergesMoviesIntoMoviesState() {
+    @Test func moviesReducerPeopleCreditsAlsoMergesMoviesIntoMoviesState() {
         let castMovie = makeMovie(id: 10)
         let crewMovie = makeMovie(id: 20)
         let response = PeopleActions.PeopleCreditsResponse(cast: [castMovie], crew: [crewMovie])
 
         let reduced = moviesStateReducer(state: MoviesState(), action: PeopleActions.SetPeopleCredits(people: 7, response: response))
 
-        XCTAssertNotNil(reduced.movies[10])
-        XCTAssertNotNil(reduced.movies[20])
+        #expect(reduced.movies[10] != nil)
+        #expect(reduced.movies[20] != nil)
     }
 
     // MARK: - PeopleReducer: Search
 
-    func testPeopleReducerSetSearchPageOneReplacesList() {
+    @Test func peopleReducerSetSearchPageOneReplacesList() {
         var state = PeoplesState()
         state.search["old"] = [999]
 
         let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 1, name: "A")])
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: "old", page: 1, response: response))
 
-        XCTAssertEqual(reduced.search["old"], [1])
+        #expect(reduced.search["old"] == [1])
     }
 
-    func testPeopleReducerSetSearchPageTwoAppendsList() {
+    @Test func peopleReducerSetSearchPageTwoAppendsList() {
         var state = PeoplesState()
         state.search["q"] = [1]
 
         let response = PaginatedResponse(page: 2, total_results: 2, total_pages: 2, results: [makePeople(id: 2, name: "B")])
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: "q", page: 2, response: response))
 
-        XCTAssertEqual(reduced.search["q"], [1, 2])
+        #expect(reduced.search["q"] == [1, 2])
     }
 
     // MARK: - PeopleReducer: Popular
 
-    func testPeopleReducerSetPopularPageOneReplacesList() {
+    @Test func peopleReducerSetPopularPageOneReplacesList() {
         var state = PeoplesState()
         state.popular = [999]
         state.popularLoading = true
@@ -506,77 +506,77 @@ final class ReducerTests: XCTestCase {
         let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 1, name: "A")])
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: 1, response: response))
 
-        XCTAssertEqual(reduced.popular, [1])
-        XCTAssertFalse(reduced.popularLoading)
-        XCTAssertTrue(reduced.popularInitialLoadCompleted)
+        #expect(reduced.popular == [1])
+        #expect(!(reduced.popularLoading))
+        #expect(reduced.popularInitialLoadCompleted)
     }
 
-    func testPeopleReducerSetPopularPageTwoAppendsUnique() {
+    @Test func peopleReducerSetPopularPageTwoAppendsUnique() {
         var state = PeoplesState()
         state.popular = [1, 2]
 
         let response = PaginatedResponse(page: 2, total_results: 3, total_pages: 2, results: [makePeople(id: 2, name: "B"), makePeople(id: 3, name: "C")])
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: 2, response: response))
 
-        XCTAssertEqual(reduced.popular, [1, 2, 3])
+        #expect(reduced.popular == [1, 2, 3])
     }
 
     // MARK: - PeopleReducer: PopularRequestStarted / Failed
 
-    func testPeopleReducerPopularRequestStartedSetsLoadingState() {
+    @Test func peopleReducerPopularRequestStartedSetsLoadingState() {
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.PopularRequestStarted(page: 1))
 
-        XCTAssertTrue(reduced.popularLoading)
-        XCTAssertFalse(reduced.popularLoadFailed)
-        XCTAssertFalse(reduced.popularInitialLoadCompleted)
+        #expect(reduced.popularLoading)
+        #expect(!(reduced.popularLoadFailed))
+        #expect(!(reduced.popularInitialLoadCompleted))
     }
 
-    func testPeopleReducerPopularRequestFailedSetsFailedState() {
+    @Test func peopleReducerPopularRequestFailedSetsFailedState() {
         var state = PeoplesState()
         state.popularLoading = true
 
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.PopularRequestFailed(page: 1))
 
-        XCTAssertFalse(reduced.popularLoading)
-        XCTAssertTrue(reduced.popularLoadFailed)
-        XCTAssertTrue(reduced.popularInitialLoadCompleted)
+        #expect(!(reduced.popularLoading))
+        #expect(reduced.popularLoadFailed)
+        #expect(reduced.popularInitialLoadCompleted)
     }
 
     // MARK: - PeopleReducer: FanClub
 
-    func testPeopleReducerAddToFanClubInsertsPeopleId() {
+    @Test func peopleReducerAddToFanClubInsertsPeopleId() {
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.AddToFanClub(people: 55))
 
-        XCTAssertTrue(reduced.fanClub.contains(55))
+        #expect(reduced.fanClub.contains(55))
     }
 
-    func testPeopleReducerRemoveFromFanClubRemovesPeopleId() {
+    @Test func peopleReducerRemoveFromFanClubRemovesPeopleId() {
         var state = PeoplesState()
         state.fanClub.insert(55)
 
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.RemoveFromFanClub(people: 55))
 
-        XCTAssertFalse(reduced.fanClub.contains(55))
+        #expect(!(reduced.fanClub.contains(55)))
     }
 
     // MARK: - PeopleReducer: SetImages
 
-    func testPeopleReducerSetImagesStoresImagesAndMarksLoaded() {
+    @Test func peopleReducerSetImagesStoresImagesAndMarksLoaded() {
         let images = [ImageData(aspect_ratio: 0.67, file_path: "/img.jpg", height: 300, width: 200)]
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.SetImages(people: 7, images: images))
 
-        XCTAssertEqual(reduced.peoples[7]?.images?.first?.file_path, "/img.jpg")
-        XCTAssertTrue(reduced.imagesLoaded.contains(7))
+        #expect(reduced.peoples[7]?.images?.first?.file_path == "/img.jpg")
+        #expect(reduced.imagesLoaded.contains(7))
     }
 
     // MARK: - PeopleReducer: SetDetail new person
 
-    func testPeopleReducerSetDetailNewPersonStoresDirectly() {
+    @Test func peopleReducerSetDetailNewPersonStoresDirectly() {
         let person = makePeople(id: 10, name: "New Person")
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.SetDetail(person: person))
 
-        XCTAssertEqual(reduced.peoples[10]?.name, "New Person")
-        XCTAssertTrue(reduced.detailed.contains(10))
+        #expect(reduced.peoples[10]?.name == "New Person")
+        #expect(reduced.detailed.contains(10))
     }
 
     private func paginated<T: Codable>(_ values: [T]) -> PaginatedResponse<T> {

@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,7 +9,7 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class AppDataImportTests: XCTestCase {
+@Suite struct AppDataImportTests {
 
     private func makeMovie(id: Int, title: String? = nil) -> Movie {
         Movie(id: id,
@@ -62,7 +63,7 @@ final class AppDataImportTests: XCTestCase {
 
     // MARK: - Decoding
 
-    func testDecodeEnvelopeRoundTripsExportedData() throws {
+    @Test func decodeEnvelopeRoundTripsExportedData() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.wishlist.insert(1)
@@ -70,11 +71,11 @@ final class AppDataImportTests: XCTestCase {
         let data = try AppDataExport.data(from: state)
         let decoded = try AppDataImport.decodeEnvelope(from: data)
 
-        XCTAssertEqual(decoded.formatVersion, AppDataExportEnvelope.currentFormatVersion)
-        XCTAssertTrue(decoded.snapshot.moviesState.wishlist.contains(1))
+        #expect(decoded.formatVersion == AppDataExportEnvelope.currentFormatVersion)
+        #expect(decoded.snapshot.moviesState.wishlist.contains(1))
     }
 
-    func testDecodeEnvelopeRejectsUnsupportedFormatVersion() throws {
+    @Test func decodeEnvelopeRejectsUnsupportedFormatVersion() throws {
         // Build an envelope by hand with a future format version.
         let unsupported = AppDataExportEnvelope(
             formatVersion: AppDataExportEnvelope.currentFormatVersion + 1,
@@ -85,21 +86,27 @@ final class AppDataImportTests: XCTestCase {
         )
         let data = try AppDataExport.data(from: unsupported)
 
-        XCTAssertThrowsError(try AppDataImport.decodeEnvelope(from: data)) { error in
+        do {
+            _ = try AppDataImport.decodeEnvelope(from: data)
+            Issue.record("Expected unsupportedFormatVersion error, but no error was thrown")
+        } catch {
             guard case AppDataImport.ImportError.unsupportedFormatVersion(let found, _) = error else {
-                XCTFail("Expected unsupportedFormatVersion error, got \(error)")
+                Issue.record("Expected unsupportedFormatVersion error, got \(error)")
                 return
             }
-            XCTAssertEqual(found, AppDataExportEnvelope.currentFormatVersion + 1)
+            #expect(found == AppDataExportEnvelope.currentFormatVersion + 1)
         }
     }
 
-    func testDecodeEnvelopeWrapsCorruptDataInDecodeFailedError() {
+    @Test func decodeEnvelopeWrapsCorruptDataInDecodeFailedError() {
         let bogus = Data("not actually json".utf8)
 
-        XCTAssertThrowsError(try AppDataImport.decodeEnvelope(from: bogus)) { error in
+        do {
+            _ = try AppDataImport.decodeEnvelope(from: bogus)
+            Issue.record("Expected decodeFailed error, but no error was thrown")
+        } catch {
             guard case AppDataImport.ImportError.decodeFailed = error else {
-                XCTFail("Expected decodeFailed error, got \(error)")
+                Issue.record("Expected decodeFailed error, got \(error)")
                 return
             }
         }
@@ -107,7 +114,7 @@ final class AppDataImportTests: XCTestCase {
 
     // MARK: - Preview counts
 
-    func testPreviewCountsTrackOnlyAdditionsAndUpserts() {
+    @Test func previewCountsTrackOnlyAdditionsAndUpserts() {
         var current = AppState()
         current.moviesState.wishlist.insert(1) // already present
         current.moviesState.customLists[10] = CustomList(id: 10, name: "Existing", cover: nil, movies: [])
@@ -122,15 +129,15 @@ final class AppDataImportTests: XCTestCase {
 
         let counts = AppDataImport.previewCounts(for: envelope(wrapping: imported), against: current)
 
-        XCTAssertEqual(counts.wishlistAdded, 1)
-        XCTAssertEqual(counts.seenlistAdded, 1)
-        XCTAssertEqual(counts.fanClubAdded, 1)
-        XCTAssertEqual(counts.customListsAdded, 1)
-        XCTAssertEqual(counts.customListsUpdated, 1)
-        XCTAssertTrue(counts.hasAnyChanges)
+        #expect(counts.wishlistAdded == 1)
+        #expect(counts.seenlistAdded == 1)
+        #expect(counts.fanClubAdded == 1)
+        #expect(counts.customListsAdded == 1)
+        #expect(counts.customListsUpdated == 1)
+        #expect(counts.hasAnyChanges)
     }
 
-    func testPreviewCountsHasNoChangesWhenImportIsASubset() {
+    @Test func previewCountsHasNoChangesWhenImportIsASubset() {
         var current = AppState()
         current.moviesState.wishlist.insert(1)
         current.moviesState.wishlist.insert(2)
@@ -141,12 +148,12 @@ final class AppDataImportTests: XCTestCase {
         imported.peoplesState.fanClub.insert(7)
 
         let counts = AppDataImport.previewCounts(for: envelope(wrapping: imported), against: current)
-        XCTAssertFalse(counts.hasAnyChanges)
+        #expect(!(counts.hasAnyChanges))
     }
 
     // MARK: - Merge semantics
 
-    func testMergeUnionsWishlistSeenlistAndFanClub() {
+    @Test func mergeUnionsWishlistSeenlistAndFanClub() {
         var current = AppState()
         current.moviesState.wishlist.insert(1)
         current.moviesState.seenlist.insert(2)
@@ -159,12 +166,12 @@ final class AppDataImportTests: XCTestCase {
 
         let merged = AppDataImport.merge(envelope: envelope(wrapping: imported), into: current)
 
-        XCTAssertEqual(merged.moviesState.wishlist, [1, 3])
-        XCTAssertEqual(merged.moviesState.seenlist, [2, 4])
-        XCTAssertEqual(merged.peoplesState.fanClub, [5, 6])
+        #expect(merged.moviesState.wishlist == [1, 3])
+        #expect(merged.moviesState.seenlist == [2, 4])
+        #expect(merged.peoplesState.fanClub == [5, 6])
     }
 
-    func testMergeImportedCustomListWinsOnConflict() {
+    @Test func mergeImportedCustomListWinsOnConflict() {
         var current = AppState()
         current.moviesState.customLists[10] = CustomList(id: 10, name: "Old name", cover: 1, movies: [1])
 
@@ -174,12 +181,12 @@ final class AppDataImportTests: XCTestCase {
 
         let merged = AppDataImport.merge(envelope: envelope(wrapping: imported), into: current)
 
-        XCTAssertEqual(merged.moviesState.customLists[10]?.name, "Exported name")
-        XCTAssertEqual(merged.moviesState.customLists[10]?.movies, [2, 3])
-        XCTAssertNotNil(merged.moviesState.customLists[11])
+        #expect(merged.moviesState.customLists[10]?.name == "Exported name")
+        #expect(merged.moviesState.customLists[10]?.movies == [2, 3])
+        #expect(merged.moviesState.customLists[11] != nil)
     }
 
-    func testMergeKeepsCurrentReverseCacheEntriesOnConflict() {
+    @Test func mergeKeepsCurrentReverseCacheEntriesOnConflict() {
         var current = AppState()
         // Current has a fresher entry — stash a marker we can verify
         // wasn't overwritten.
@@ -191,13 +198,13 @@ final class AppDataImportTests: XCTestCase {
 
         let merged = AppDataImport.merge(envelope: envelope(wrapping: imported), into: current)
 
-        XCTAssertEqual(merged.moviesState.movies[42]?.title, "Fresh title",
-                       "Current cache entry should win on conflict")
-        XCTAssertNotNil(merged.moviesState.movies[99],
-                        "New cache entries from imported should be added")
+        #expect(merged.moviesState.movies[42]?.title == "Fresh title",
+                "Current cache entry should win on conflict")
+        #expect(merged.moviesState.movies[99] != nil,
+                "New cache entries from imported should be added")
     }
 
-    func testMergeKeepsCurrentMovieUserMetaOnConflict() {
+    @Test func mergeKeepsCurrentMovieUserMetaOnConflict() {
         var current = AppState()
         var currentMeta = MovieUserMeta()
         currentMeta.addedToList = Date(timeIntervalSince1970: 1000)
@@ -211,14 +218,13 @@ final class AppDataImportTests: XCTestCase {
 
         let merged = AppDataImport.merge(envelope: envelope(wrapping: imported), into: current)
 
-        XCTAssertEqual(merged.moviesState.moviesUserMeta[1]?.addedToList,
-                       Date(timeIntervalSince1970: 1000),
-                       "Current meta should win on conflict")
-        XCTAssertNotNil(merged.moviesState.moviesUserMeta[2],
-                        "Imported meta for new ids should be added")
+        #expect(merged.moviesState.moviesUserMeta[1]?.addedToList == Date(timeIntervalSince1970: 1000),
+                "Current meta should win on conflict")
+        #expect(merged.moviesState.moviesUserMeta[2] != nil,
+                "Imported meta for new ids should be added")
     }
 
-    func testMergeAppendsNewSavedDiscoverFiltersAndDeduplicates() {
+    @Test func mergeAppendsNewSavedDiscoverFiltersAndDeduplicates() {
         let existingFilter = DiscoverFilter(
             year: 2000, startYear: nil, endYear: nil,
             sort: "popularity.desc", genre: nil, region: nil
@@ -236,14 +242,14 @@ final class AppDataImportTests: XCTestCase {
 
         let merged = AppDataImport.merge(envelope: envelope(wrapping: imported), into: current)
 
-        XCTAssertEqual(merged.moviesState.savedDiscoverFilters.count, 2,
-                       "Duplicate filters should not be re-added")
-        XCTAssertEqual(merged.moviesState.savedDiscoverFilters.last?.year, 2010)
+        #expect(merged.moviesState.savedDiscoverFilters.count == 2,
+                "Duplicate filters should not be re-added")
+        #expect(merged.moviesState.savedDiscoverFilters.last?.year == 2010)
     }
 
     // MARK: - Reducer integration
 
-    func testAppActionsImportAppDataDispatchesIntoTheReducer() {
+    @Test func appActionsImportAppDataDispatchesIntoTheReducer() {
         var current = AppState()
         current.moviesState.wishlist.insert(1)
 
@@ -255,8 +261,8 @@ final class AppDataImportTests: XCTestCase {
         let action = AppActions.ImportAppData(envelope: envelope(wrapping: imported))
         let result = appReducerWithImports(state: current, action: action)
 
-        XCTAssertEqual(result.moviesState.wishlist, [1, 2])
-        XCTAssertTrue(result.peoplesState.fanClub.contains(5))
-        XCTAssertNotNil(result.peoplesState.peoples[5])
+        #expect(result.moviesState.wishlist == [1, 2])
+        #expect(result.peoplesState.fanClub.contains(5))
+        #expect(result.peoplesState.peoples[5] != nil)
     }
 }

@@ -1,123 +1,123 @@
-import XCTest
+import Testing
 #if os(macOS)
 @testable import Film_O_Matic
 #else
 @testable import MovieSwift
 #endif
 
-final class OnboardingFlowTests: XCTestCase {
+@Suite struct OnboardingFlowTests {
 
     // MARK: - shouldShow
 
-    func testShouldShowReturnsFalseForUISmokeTestsRegardlessOfState() {
+    @Test func shouldShowReturnsFalseForUISmokeTestsRegardlessOfState() {
         // UI smoke tests bypass onboarding so the test rig can drive
         // the app from a known menu without a sheet covering the UI.
-        XCTAssertFalse(OnboardingFlow.shouldShow(
+        #expect(!(OnboardingFlow.shouldShow(
             hasCompletedOnboarding: false,
             hasUsableAPIKey: false,
             isRunningUISmokeTests: true
-        ))
-        XCTAssertFalse(OnboardingFlow.shouldShow(
+        )))
+        #expect(!(OnboardingFlow.shouldShow(
             hasCompletedOnboarding: true,
             hasUsableAPIKey: true,
             isRunningUISmokeTests: true
-        ))
+        )))
     }
 
-    func testShouldShowWhenOnboardingNotCompleted() {
-        XCTAssertTrue(OnboardingFlow.shouldShow(
+    @Test func shouldShowWhenOnboardingNotCompleted() {
+        #expect(OnboardingFlow.shouldShow(
             hasCompletedOnboarding: false,
             hasUsableAPIKey: true,
             isRunningUISmokeTests: false
         ))
     }
 
-    func testShouldShowWhenNoAPIKeyEvenIfOnboardingCompleted() {
+    @Test func shouldShowWhenNoAPIKeyEvenIfOnboardingCompleted() {
         // The app can't function without a key, so re-enter the flow
         // until the user provides one.
-        XCTAssertTrue(OnboardingFlow.shouldShow(
+        #expect(OnboardingFlow.shouldShow(
             hasCompletedOnboarding: true,
             hasUsableAPIKey: false,
             isRunningUISmokeTests: false
         ))
     }
 
-    func testShouldNotShowWhenCompletedAndKeyAvailable() {
-        XCTAssertFalse(OnboardingFlow.shouldShow(
+    @Test func shouldNotShowWhenCompletedAndKeyAvailable() {
+        #expect(!(OnboardingFlow.shouldShow(
             hasCompletedOnboarding: true,
             hasUsableAPIKey: true,
             isRunningUISmokeTests: false
-        ))
+        )))
     }
 
     // MARK: - Step navigation
 
-    func testNextStepWalksThroughTheWizard() {
-        XCTAssertEqual(OnboardingFlow.nextStep(after: .welcome), .apiKey)
-        XCTAssertEqual(OnboardingFlow.nextStep(after: .apiKey), .region)
-        XCTAssertEqual(OnboardingFlow.nextStep(after: .region), .ready)
+    @Test func nextStepWalksThroughTheWizard() {
+        #expect(OnboardingFlow.nextStep(after: .welcome) == .apiKey)
+        #expect(OnboardingFlow.nextStep(after: .apiKey) == .region)
+        #expect(OnboardingFlow.nextStep(after: .region) == .ready)
     }
 
-    func testNextStepReturnsNilForLastStep() {
-        XCTAssertNil(OnboardingFlow.nextStep(after: .ready))
+    @Test func nextStepReturnsNilForLastStep() {
+        #expect(OnboardingFlow.nextStep(after: .ready) == nil)
     }
 
-    func testPreviousStepWalksBackThroughTheWizard() {
-        XCTAssertEqual(OnboardingFlow.previousStep(before: .ready), .region)
-        XCTAssertEqual(OnboardingFlow.previousStep(before: .region), .apiKey)
-        XCTAssertEqual(OnboardingFlow.previousStep(before: .apiKey), .welcome)
+    @Test func previousStepWalksBackThroughTheWizard() {
+        #expect(OnboardingFlow.previousStep(before: .ready) == .region)
+        #expect(OnboardingFlow.previousStep(before: .region) == .apiKey)
+        #expect(OnboardingFlow.previousStep(before: .apiKey) == .welcome)
     }
 
-    func testPreviousStepReturnsNilForFirstStep() {
-        XCTAssertNil(OnboardingFlow.previousStep(before: .welcome))
+    @Test func previousStepReturnsNilForFirstStep() {
+        #expect(OnboardingFlow.previousStep(before: .welcome) == nil)
     }
 
     // MARK: - canAdvance
 
-    func testCanAdvanceFromWelcomeAlways() {
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .welcome, hasUsableAPIKey: false))
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .welcome, hasUsableAPIKey: true))
+    @Test func canAdvanceFromWelcomeAlways() {
+        #expect(OnboardingFlow.canAdvance(from: .welcome, hasUsableAPIKey: false))
+        #expect(OnboardingFlow.canAdvance(from: .welcome, hasUsableAPIKey: true))
     }
 
-    func testCanAdvanceFromRegionAlways() {
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .region, hasUsableAPIKey: false))
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .region, hasUsableAPIKey: true))
+    @Test func canAdvanceFromRegionAlways() {
+        #expect(OnboardingFlow.canAdvance(from: .region, hasUsableAPIKey: false))
+        #expect(OnboardingFlow.canAdvance(from: .region, hasUsableAPIKey: true))
     }
 
-    func testCannotAdvanceFromAPIKeyStepWithoutKey() {
-        XCTAssertFalse(OnboardingFlow.canAdvance(from: .apiKey, hasUsableAPIKey: false))
+    @Test func cannotAdvanceFromAPIKeyStepWithoutKey() {
+        #expect(!(OnboardingFlow.canAdvance(from: .apiKey, hasUsableAPIKey: false)))
     }
 
-    func testCanAdvanceFromAPIKeyStepWithKey() {
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .apiKey, hasUsableAPIKey: true))
+    @Test func canAdvanceFromAPIKeyStepWithKey() {
+        #expect(OnboardingFlow.canAdvance(from: .apiKey, hasUsableAPIKey: true))
     }
 
-    func testCannotFinishFromReadyStepWithoutKey() {
+    @Test func cannotFinishFromReadyStepWithoutKey() {
         // Edge case: user navigated back, cleared their key, then
         // navigated forward to Ready. Finish should still be blocked.
-        XCTAssertFalse(OnboardingFlow.canAdvance(from: .ready, hasUsableAPIKey: false))
+        #expect(!(OnboardingFlow.canAdvance(from: .ready, hasUsableAPIKey: false)))
     }
 
-    func testCanFinishFromReadyStepWithKey() {
-        XCTAssertTrue(OnboardingFlow.canAdvance(from: .ready, hasUsableAPIKey: true))
+    @Test func canFinishFromReadyStepWithKey() {
+        #expect(OnboardingFlow.canAdvance(from: .ready, hasUsableAPIKey: true))
     }
 
     // MARK: - OnboardingStep model
 
-    func testStepRawValuesAreContiguousAndStartAtZero() {
-        XCTAssertEqual(OnboardingStep.welcome.rawValue, 0)
-        XCTAssertEqual(OnboardingStep.apiKey.rawValue, 1)
-        XCTAssertEqual(OnboardingStep.region.rawValue, 2)
-        XCTAssertEqual(OnboardingStep.ready.rawValue, 3)
+    @Test func stepRawValuesAreContiguousAndStartAtZero() {
+        #expect(OnboardingStep.welcome.rawValue == 0)
+        #expect(OnboardingStep.apiKey.rawValue == 1)
+        #expect(OnboardingStep.region.rawValue == 2)
+        #expect(OnboardingStep.ready.rawValue == 3)
     }
 
-    func testStepAllCasesIsOrdered() {
-        XCTAssertEqual(OnboardingStep.allCases, [.welcome, .apiKey, .region, .ready])
+    @Test func stepAllCasesIsOrdered() {
+        #expect(OnboardingStep.allCases == [.welcome, .apiKey, .region, .ready])
     }
 
-    func testStepTitlesAreNonEmpty() {
+    @Test func stepTitlesAreNonEmpty() {
         for step in OnboardingStep.allCases {
-            XCTAssertFalse(step.title.isEmpty, "\(step) should have a non-empty title")
+            #expect(!(step.title.isEmpty), "\(step) should have a non-empty title")
         }
     }
 }

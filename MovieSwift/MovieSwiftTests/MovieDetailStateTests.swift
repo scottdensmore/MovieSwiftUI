@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import MovieSwiftFluxCore
 #if os(macOS)
 @testable import Film_O_Matic
@@ -9,8 +9,8 @@ import MovieSwiftFluxCore
 // `@MainActor`: exercises MovieDetailState query helpers and the
 // MovieDetail view's nested presentation types, which are main-actor
 // isolated (the MovieDetail view is a @MainActor SwiftUI view).
-@MainActor
-final class MovieDetailStateTests: XCTestCase {
+@Suite @MainActor
+struct MovieDetailStateTests {
 
     private func makeMovie(id: Int,
                            keywords: Movie.Keywords? = nil,
@@ -55,23 +55,23 @@ final class MovieDetailStateTests: XCTestCase {
 
     // MARK: - MovieDetailState
 
-    func testMovieReturnsNilWhenMovieIsMissing() {
-        XCTAssertNil(MovieDetailState.movie(movieId: 404, from: AppState()))
+    @Test func movieReturnsNilWhenMovieIsMissing() {
+        #expect(MovieDetailState.movie(movieId: 404, from: AppState()) == nil)
     }
 
-    func testMovieReturnsMovieWhenPresent() {
+    @Test func movieReturnsMovieWhenPresent() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
 
-        XCTAssertEqual(MovieDetailState.movie(movieId: 1, from: state)?.id, 1)
+        #expect(MovieDetailState.movie(movieId: 1, from: state)?.id == 1)
     }
 
-    func testHasLoadedDetailRequiresKeywordsAndImages() {
+    @Test func hasLoadedDetailRequiresKeywordsAndImages() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.detailed.insert(1)
 
-        XCTAssertFalse(MovieDetailState.hasLoadedDetail(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedDetail(movieId: 1, from: state)))
 
         state.moviesState.movies[1] = makeMovie(
             id: 1,
@@ -79,10 +79,10 @@ final class MovieDetailStateTests: XCTestCase {
             images: Movie.MovieImages(posters: [], backdrops: [])
         )
 
-        XCTAssertTrue(MovieDetailState.hasLoadedDetail(movieId: 1, from: state))
+        #expect(MovieDetailState.hasLoadedDetail(movieId: 1, from: state))
     }
 
-    func testHasLoadedDetailReturnsFalseWhenNotInDetailedSet() {
+    @Test func hasLoadedDetailReturnsFalseWhenNotInDetailedSet() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(
             id: 1,
@@ -90,81 +90,81 @@ final class MovieDetailStateTests: XCTestCase {
             images: Movie.MovieImages(posters: [], backdrops: [])
         )
 
-        XCTAssertFalse(MovieDetailState.hasLoadedDetail(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedDetail(movieId: 1, from: state)))
     }
 
-    func testHasLoadedRecommendedRequiresBothSetAndEntry() {
+    @Test func hasLoadedRecommendedRequiresBothSetAndEntry() {
         var state = AppState()
 
-        XCTAssertFalse(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state)))
 
         state.moviesState.recommendedLoaded.insert(1)
-        XCTAssertFalse(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state)))
 
         state.moviesState.recommended[1] = [10]
-        XCTAssertTrue(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state))
+        #expect(MovieDetailState.hasLoadedRecommended(movieId: 1, from: state))
     }
 
-    func testHasLoadedSimilarRequiresBothSetAndEntry() {
+    @Test func hasLoadedSimilarRequiresBothSetAndEntry() {
         var state = AppState()
 
-        XCTAssertFalse(MovieDetailState.hasLoadedSimilar(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedSimilar(movieId: 1, from: state)))
 
         state.moviesState.similarLoaded.insert(1)
         state.moviesState.similar[1] = []
-        XCTAssertTrue(MovieDetailState.hasLoadedSimilar(movieId: 1, from: state))
+        #expect(MovieDetailState.hasLoadedSimilar(movieId: 1, from: state))
     }
 
-    func testHasLoadedReviewsRequiresBothSetAndEntry() {
+    @Test func hasLoadedReviewsRequiresBothSetAndEntry() {
         var state = AppState()
 
-        XCTAssertFalse(MovieDetailState.hasLoadedReviews(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedReviews(movieId: 1, from: state)))
 
         state.moviesState.reviewsLoaded.insert(1)
         state.moviesState.reviews[1] = []
-        XCTAssertTrue(MovieDetailState.hasLoadedReviews(movieId: 1, from: state))
+        #expect(MovieDetailState.hasLoadedReviews(movieId: 1, from: state))
     }
 
-    func testHasLoadedVideosRequiresBothSetAndEntry() {
+    @Test func hasLoadedVideosRequiresBothSetAndEntry() {
         var state = AppState()
 
-        XCTAssertFalse(MovieDetailState.hasLoadedVideos(movieId: 1, from: state))
+        #expect(!(MovieDetailState.hasLoadedVideos(movieId: 1, from: state)))
 
         state.moviesState.videosLoaded.insert(1)
         state.moviesState.videos[1] = []
-        XCTAssertTrue(MovieDetailState.hasLoadedVideos(movieId: 1, from: state))
+        #expect(MovieDetailState.hasLoadedVideos(movieId: 1, from: state))
     }
 
     // MARK: - MovieDetailListState
 
-    func testIsInWishlist() {
+    @Test func isInWishlist() {
         var state = AppState()
-        XCTAssertFalse(MovieDetailListState.isInWishlist(movieId: 1, from: state))
+        #expect(!(MovieDetailListState.isInWishlist(movieId: 1, from: state)))
 
         state.moviesState.wishlist.insert(1)
-        XCTAssertTrue(MovieDetailListState.isInWishlist(movieId: 1, from: state))
+        #expect(MovieDetailListState.isInWishlist(movieId: 1, from: state))
     }
 
-    func testIsInSeenlist() {
+    @Test func isInSeenlist() {
         var state = AppState()
-        XCTAssertFalse(MovieDetailListState.isInSeenlist(movieId: 1, from: state))
+        #expect(!(MovieDetailListState.isInSeenlist(movieId: 1, from: state)))
 
         state.moviesState.seenlist.insert(1)
-        XCTAssertTrue(MovieDetailListState.isInSeenlist(movieId: 1, from: state))
+        #expect(MovieDetailListState.isInSeenlist(movieId: 1, from: state))
     }
 
-    func testCustomListsReturnsAllLists() {
+    @Test func customListsReturnsAllLists() {
         var state = AppState()
         state.moviesState.customLists[1] = CustomList(id: 1, name: "A", cover: nil, movies: [])
         state.moviesState.customLists[2] = CustomList(id: 2, name: "B", cover: nil, movies: [])
 
         let lists = MovieDetailListState.customLists(from: state)
-        XCTAssertEqual(lists.count, 2)
+        #expect(lists.count == 2)
     }
 
     // MARK: - MovieDetailPeopleState
 
-    func testCharactersReturnsContextualPeopleWithCharacterRole() {
+    @Test func charactersReturnsContextualPeopleWithCharacterRole() {
         var state = AppState()
         state.peoplesState.peoples[10] = makePeople(id: 10, name: "Actor A")
         state.peoplesState.movieCastOrder[1] = [10]
@@ -173,13 +173,13 @@ final class MovieDetailStateTests: XCTestCase {
 
         let characters = MovieDetailPeopleState.characters(movieId: 1, from: state)
 
-        XCTAssertEqual(characters?.count, 1)
-        XCTAssertEqual(characters?.first?.name, "Actor A")
-        XCTAssertEqual(characters?.first?.character, "Hero")
-        XCTAssertNil(characters?.first?.department)
+        #expect(characters?.count == 1)
+        #expect(characters?.first?.name == "Actor A")
+        #expect(characters?.first?.character == "Hero")
+        #expect(characters?.first?.department == nil)
     }
 
-    func testCreditsReturnsContextualPeopleWithDepartmentRole() {
+    @Test func creditsReturnsContextualPeopleWithDepartmentRole() {
         var state = AppState()
         state.peoplesState.peoples[20] = makePeople(id: 20, name: "Director B")
         state.peoplesState.movieCrewOrder[1] = [20]
@@ -188,54 +188,54 @@ final class MovieDetailStateTests: XCTestCase {
 
         let credits = MovieDetailPeopleState.credits(movieId: 1, from: state)
 
-        XCTAssertEqual(credits?.count, 1)
-        XCTAssertEqual(credits?.first?.name, "Director B")
-        XCTAssertEqual(credits?.first?.department, "Directing")
-        XCTAssertNil(credits?.first?.character)
+        #expect(credits?.count == 1)
+        #expect(credits?.first?.name == "Director B")
+        #expect(credits?.first?.department == "Directing")
+        #expect(credits?.first?.character == nil)
     }
 
-    func testHasLoadedCreditsRequiresResolvedPeople() {
+    @Test func hasLoadedCreditsRequiresResolvedPeople() {
         var state = AppState()
 
-        XCTAssertFalse(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
+        #expect(!(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state)))
 
         state.peoplesState.movieCreditsLoaded.insert(1)
         state.peoplesState.movieCastOrder[1] = [10]
         state.peoplesState.movieCrewOrder[1] = [20]
 
-        XCTAssertFalse(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
+        #expect(!(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state)))
 
         state.peoplesState.peoples[10] = makePeople(id: 10, name: "Actor")
         state.peoplesState.casts[10] = [1: "Role"]
 
-        XCTAssertTrue(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
+        #expect(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
     }
 
-    func testHasLoadedCreditsReturnsTrueWhenExplicitlyEmptyCredits() {
+    @Test func hasLoadedCreditsReturnsTrueWhenExplicitlyEmptyCredits() {
         var state = AppState()
         state.peoplesState.movieCreditsLoaded.insert(1)
         state.peoplesState.movieCastOrder[1] = []
         state.peoplesState.movieCrewOrder[1] = []
 
-        XCTAssertTrue(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
+        #expect(MovieDetailPeopleState.hasLoadedMovieCredits(movieId: 1, from: state))
     }
 
-    func testCharactersReturnsNilWhenNoPeopleResolved() {
+    @Test func charactersReturnsNilWhenNoPeopleResolved() {
         var state = AppState()
         state.peoplesState.movieCastOrder[1] = [10]
 
         let characters = MovieDetailPeopleState.characters(movieId: 1, from: state)
-        XCTAssertNil(characters)
+        #expect(characters == nil)
     }
 
-    func testCharactersSkipsPeopleWithEmptyRole() {
+    @Test func charactersSkipsPeopleWithEmptyRole() {
         var state = AppState()
         state.peoplesState.peoples[10] = makePeople(id: 10, name: "Actor")
         state.peoplesState.movieCastOrder[1] = [10]
         state.peoplesState.casts[10] = [1: "   "]
 
         let characters = MovieDetailPeopleState.characters(movieId: 1, from: state)
-        XCTAssertNil(characters)
+        #expect(characters == nil)
     }
 
     // MARK: - MovieDetail navigation presentation identity
@@ -245,24 +245,24 @@ final class MovieDetailStateTests: XCTestCase {
     // value SwiftUI treats as stable — otherwise the sheet re-mounts (or,
     // historically, triggers a body-invalidation loop on macOS 26).
 
-    func testPeopleListPresentationEqualsByIdOnly() {
+    @Test func peopleListPresentationEqualsByIdOnly() {
         let a = MovieDetail.PeopleListPresentation(id: "same", title: "Cast", peopleIds: [1, 2, 3])
         let b = MovieDetail.PeopleListPresentation(id: "same", title: "Crew", peopleIds: [7, 8])
         let c = MovieDetail.PeopleListPresentation(id: "other", title: "Cast", peopleIds: [1, 2, 3])
 
-        XCTAssertEqual(a, b, "Structs with the same id should be considered equal regardless of other fields")
-        XCTAssertNotEqual(a, c)
-        XCTAssertEqual(a.hashValue, b.hashValue)
+        #expect(a == b, "Structs with the same id should be considered equal regardless of other fields")
+        #expect(a != c)
+        #expect(a.hashValue == b.hashValue)
     }
 
-    func testCrosslineMoviesPresentationEqualsByIdOnly() {
+    @Test func crosslineMoviesPresentationEqualsByIdOnly() {
         let a = MovieDetail.CrosslineMoviesPresentation(id: "same", title: "Similar", movieIds: [1, 2])
         let b = MovieDetail.CrosslineMoviesPresentation(id: "same", title: "Recommended", movieIds: [5, 6, 7])
         let c = MovieDetail.CrosslineMoviesPresentation(id: "other", title: "Similar", movieIds: [1, 2])
 
-        XCTAssertEqual(a, b, "Structs with the same id should be considered equal regardless of other fields")
-        XCTAssertNotEqual(a, c)
-        XCTAssertEqual(a.hashValue, b.hashValue)
+        #expect(a == b, "Structs with the same id should be considered equal regardless of other fields")
+        #expect(a != c)
+        #expect(a.hashValue == b.hashValue)
     }
 
     // MARK: - MovieDetailFocusNavigation
@@ -282,162 +282,162 @@ final class MovieDetailStateTests: XCTestCase {
         [.backdrop("/bd1.jpg"), .backdrop("/bd2.jpg")]
     ]
 
-    func testTabFromNilGoesToFirstGroupFirstItem() {
+    @Test func tabFromNilGoesToFirstGroupFirstItem() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: nil,
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .genre(1))
+        #expect(target == .genre(1))
     }
 
-    func testShiftTabFromNilGoesToLastGroupFirstItem() {
+    @Test func shiftTabFromNilGoesToLastGroupFirstItem() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: nil,
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(target, .backdrop("/bd1.jpg"))
+        #expect(target == .backdrop("/bd1.jpg"))
     }
 
-    func testTabFromCrewGoesToSimilarMovies() {
+    @Test func tabFromCrewGoesToSimilarMovies() {
         // Regression: Tab on a crew person should jump OUT of the crew
         // row to the first similar movie, not walk through crew items.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .crewPerson(600),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .similarMovie(900))
+        #expect(target == .similarMovie(900))
     }
 
-    func testTabFromSimilarGoesToRecommended() {
+    @Test func tabFromSimilarGoesToRecommended() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .similarMovie(900),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .recommendedMovie(950))
+        #expect(target == .recommendedMovie(950))
     }
 
-    func testTabFromRecommendedGoesToFirstPoster() {
+    @Test func tabFromRecommendedGoesToFirstPoster() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .recommendedMovie(950),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .poster("/a.jpg"))
+        #expect(target == .poster("/a.jpg"))
     }
 
-    func testTabFromPostersGoesToFirstBackdrop() {
+    @Test func tabFromPostersGoesToFirstBackdrop() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .poster("/b.jpg"),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .backdrop("/bd1.jpg"))
+        #expect(target == .backdrop("/bd1.jpg"))
     }
 
-    func testTabFromLastBackdropReturnsNil() {
+    @Test func tabFromLastBackdropReturnsNil() {
         // Backdrops are the last group; Tab should consume with no move.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .backdrop("/bd2.jpg"),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertNil(target)
+        #expect(target == nil)
     }
 
-    func testArrowWithinPostersMovesBetweenPosters() {
+    @Test func arrowWithinPostersMovesBetweenPosters() {
         let forward = MovieDetailFocusNavigation.adjacentInGroup(
             from: .poster("/a.jpg"),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(forward, .poster("/b.jpg"))
+        #expect(forward == .poster("/b.jpg"))
 
         let backward = MovieDetailFocusNavigation.adjacentInGroup(
             from: .poster("/b.jpg"),
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(backward, .poster("/a.jpg"))
+        #expect(backward == .poster("/a.jpg"))
     }
 
-    func testTabLandsOnFirstItemOfNextGroupRegardlessOfPositionWithin() {
+    @Test func tabLandsOnFirstItemOfNextGroupRegardlessOfPositionWithin() {
         // From the middle of the genres group → first action button.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .genre(2),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .wishlistButton)
+        #expect(target == .wishlistButton)
     }
 
-    func testTabFromLastItemOfGroupJumpsOverRemainingItemsInNextGroup() {
+    @Test func tabFromLastItemOfGroupJumpsOverRemainingItemsInNextGroup() {
         // On the last cast item (castSeeAll) → first crew item.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .castSeeAll,
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .crewPerson(600))
+        #expect(target == .crewPerson(600))
     }
 
-    func testTabFromRecommendedSeeAllJumpsToPosters() {
+    @Test func tabFromRecommendedSeeAllJumpsToPosters() {
         // Recommended is no longer the last group — posters follow it.
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .recommendedSeeAll,
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .poster("/a.jpg"))
+        #expect(target == .poster("/a.jpg"))
     }
 
-    func testShiftTabFromFirstGroupReturnsNil() {
+    @Test func shiftTabFromFirstGroupReturnsNil() {
         let target = MovieDetailFocusNavigation.nextGroupStart(
             from: .genre(1),
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertNil(target)
+        #expect(target == nil)
     }
 
-    func testArrowWithinGenresMovesToNextGenre() {
+    @Test func arrowWithinGenresMovesToNextGenre() {
         let target = MovieDetailFocusNavigation.adjacentInGroup(
             from: .genre(2),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertEqual(target, .genre(3))
+        #expect(target == .genre(3))
     }
 
-    func testArrowAtLastGenreReturnsNilInsteadOfLeakingIntoActions() {
+    @Test func arrowAtLastGenreReturnsNilInsteadOfLeakingIntoActions() {
         // Tab should jump out of the genres group, but a right arrow
         // should stay put once we're on the last genre.
         let target = MovieDetailFocusNavigation.adjacentInGroup(
             from: .genre(3),
             in: Self.focusSampleGroups,
             forward: true)
-        XCTAssertNil(target)
+        #expect(target == nil)
     }
 
-    func testArrowOnSingleItemGroupReturnsNil() {
-        XCTAssertNil(MovieDetailFocusNavigation.adjacentInGroup(
+    @Test func arrowOnSingleItemGroupReturnsNil() {
+        #expect(MovieDetailFocusNavigation.adjacentInGroup(
             from: .readMoreButton,
             in: Self.focusSampleGroups,
-            forward: true))
-        XCTAssertNil(MovieDetailFocusNavigation.adjacentInGroup(
+            forward: true) == nil)
+        #expect(MovieDetailFocusNavigation.adjacentInGroup(
             from: .readMoreButton,
             in: Self.focusSampleGroups,
-            forward: false))
+            forward: false) == nil)
     }
 
-    func testArrowBackwardsInKeywordsMovesToPreviousKeyword() {
+    @Test func arrowBackwardsInKeywordsMovesToPreviousKeyword() {
         let target = MovieDetailFocusNavigation.adjacentInGroup(
             from: .keyword(11),
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(target, .keyword(10))
+        #expect(target == .keyword(10))
     }
 
-    func testArrowFromCastSeeAllBacksIntoLastCastPerson() {
+    @Test func arrowFromCastSeeAllBacksIntoLastCastPerson() {
         let target = MovieDetailFocusNavigation.adjacentInGroup(
             from: .castSeeAll,
             in: Self.focusSampleGroups,
             forward: false)
-        XCTAssertEqual(target, .castPerson(501))
+        #expect(target == .castPerson(501))
     }
 
     // MARK: - MovieDetailFocusRow scroll anchors
 
-    func testRowScrollIdMapsEveryTargetCaseToItsSection() {
+    @Test func rowScrollIdMapsEveryTargetCaseToItsSection() {
         let assertions: [(MovieDetailFocusTarget, String)] = [
             (.genre(1), "row.cover"),
             (.wishlistButton, "row.buttons"),
@@ -460,9 +460,8 @@ final class MovieDetailStateTests: XCTestCase {
         ]
 
         for (target, expected) in assertions {
-            XCTAssertEqual(MovieDetailFocusRow.scrollId(for: target),
-                           expected,
-                           "Unexpected scroll id for \(target)")
+            #expect(MovieDetailFocusRow.scrollId(for: target) == expected,
+                    "Unexpected scroll id for \(target)")
         }
     }
 }

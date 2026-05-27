@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,28 +9,33 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class AppDataICloudBackupTests: XCTestCase {
+// `.serialized` + final class: these tests perform iCloud-backup file
+// I/O, and the class's init/deinit act as per-test setup/teardown to
+// stand up and tear down a temp container directory.
+@Suite(.serialized)
+final class AppDataICloudBackupTests {
 
     private var tempContainer: URL!
 
-    override func setUpWithError() throws {
-        try super.setUpWithError()
+    init() {
         // Stand up a temp directory that mimics an iCloud container —
         // pure-logic helpers don't care that it's not iCloud-backed.
+        // Non-throwing init (best-effort `try?`): creating a uniquely-named
+        // temp directory won't realistically fail, and keeping it
+        // non-throwing means a problem surfaces in the specific @Test that
+        // can't write rather than as an opaque suite-construction failure.
         tempContainer = FileManager.default
             .temporaryDirectory
             .appendingPathComponent("AppDataICloudBackupTests-\(UUID().uuidString)",
                                     isDirectory: true)
-        try FileManager.default.createDirectory(at: tempContainer,
-                                                withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: tempContainer,
+                                                 withIntermediateDirectories: true)
     }
 
-    override func tearDownWithError() throws {
+    deinit {
         if let tempContainer {
             try? FileManager.default.removeItem(at: tempContainer)
         }
-        tempContainer = nil
-        try super.tearDownWithError()
     }
 
     private func makeMovie(id: Int) -> Movie {
@@ -56,19 +62,19 @@ final class AppDataICloudBackupTests: XCTestCase {
 
     // MARK: - URL composition
 
-    func testBackupDirectoryAndFileURLLayout() {
+    @Test func backupDirectoryAndFileURLLayout() {
         let dir = AppDataICloudBackup.backupDirectory(in: tempContainer)
         let file = AppDataICloudBackup.backupFileURL(in: tempContainer)
 
-        XCTAssertEqual(dir.lastPathComponent, "Backups")
-        XCTAssertEqual(dir.deletingLastPathComponent().lastPathComponent, "Documents")
-        XCTAssertEqual(file.lastPathComponent, AppDataICloudBackup.backupFilename)
-        XCTAssertEqual(file.deletingLastPathComponent(), dir)
+        #expect(dir.lastPathComponent == "Backups")
+        #expect(dir.deletingLastPathComponent().lastPathComponent == "Documents")
+        #expect(file.lastPathComponent == AppDataICloudBackup.backupFilename)
+        #expect(file.deletingLastPathComponent() == dir)
     }
 
     // MARK: - Write
 
-    func testWriteBackupCreatesIntermediateDirectoriesAndWritesEnvelope() throws {
+    @Test func writeBackupCreatesIntermediateDirectoriesAndWritesEnvelope() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.wishlist.insert(1)
@@ -77,16 +83,16 @@ final class AppDataICloudBackupTests: XCTestCase {
 
         try AppDataICloudBackup.writeBackup(state: state, to: fileURL)
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: fileURL.path),
-                      "Backup file should exist after write")
+        #expect(FileManager.default.fileExists(atPath: fileURL.path),
+                "Backup file should exist after write")
 
         let data = try Data(contentsOf: fileURL)
         let decoded = try AppDataImport.decodeEnvelope(from: data)
-        XCTAssertEqual(decoded.formatVersion, AppDataExportEnvelope.currentFormatVersion)
-        XCTAssertTrue(decoded.snapshot.moviesState.wishlist.contains(1))
+        #expect(decoded.formatVersion == AppDataExportEnvelope.currentFormatVersion)
+        #expect(decoded.snapshot.moviesState.wishlist.contains(1))
     }
 
-    func testWriteBackupOverwritesPreviousBackup() throws {
+    @Test func writeBackupOverwritesPreviousBackup() throws {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
 
         var firstState = AppState()
@@ -98,14 +104,14 @@ final class AppDataICloudBackupTests: XCTestCase {
         try AppDataICloudBackup.writeBackup(state: secondState, to: fileURL)
 
         let envelope = try AppDataICloudBackup.readBackup(from: fileURL)
-        XCTAssertFalse(envelope.snapshot.moviesState.wishlist.contains(11),
-                       "Old backup data should not survive overwrite")
-        XCTAssertTrue(envelope.snapshot.moviesState.wishlist.contains(22))
+        #expect(!(envelope.snapshot.moviesState.wishlist.contains(11)),
+                "Old backup data should not survive overwrite")
+        #expect(envelope.snapshot.moviesState.wishlist.contains(22))
     }
 
     // MARK: - Read
 
-    func testReadBackupRoundTripsTheWrittenEnvelope() throws {
+    @Test func readBackupRoundTripsTheWrittenEnvelope() throws {
         var state = AppState()
         state.moviesState.movies[5] = makeMovie(id: 5)
         state.moviesState.seenlist.insert(5)
@@ -115,31 +121,37 @@ final class AppDataICloudBackupTests: XCTestCase {
         try AppDataICloudBackup.writeBackup(state: state, to: fileURL)
 
         let envelope = try AppDataICloudBackup.readBackup(from: fileURL)
-        XCTAssertTrue(envelope.snapshot.moviesState.seenlist.contains(5))
-        XCTAssertTrue(envelope.snapshot.peoplesState.fanClub.contains(7))
+        #expect(envelope.snapshot.moviesState.seenlist.contains(5))
+        #expect(envelope.snapshot.peoplesState.fanClub.contains(7))
     }
 
-    func testReadBackupThrowsNoBackupExistsWhenFileMissing() {
+    @Test func readBackupThrowsNoBackupExistsWhenFileMissing() {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
+        #expect(!(FileManager.default.fileExists(atPath: fileURL.path)))
 
-        XCTAssertThrowsError(try AppDataICloudBackup.readBackup(from: fileURL)) { error in
+        do {
+            _ = try AppDataICloudBackup.readBackup(from: fileURL)
+            Issue.record("Expected readBackup to throw noBackupExists")
+        } catch {
             guard case AppDataICloudBackup.BackupError.noBackupExists = error else {
-                XCTFail("Expected noBackupExists, got \(error)")
+                Issue.record("Expected noBackupExists, got \(error)")
                 return
             }
         }
     }
 
-    func testReadBackupWrapsCorruptDataInReadFailedError() throws {
+    @Test func readBackupWrapsCorruptDataInReadFailedError() throws {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(),
                                                 withIntermediateDirectories: true)
         try Data("not actually json".utf8).write(to: fileURL)
 
-        XCTAssertThrowsError(try AppDataICloudBackup.readBackup(from: fileURL)) { error in
+        do {
+            _ = try AppDataICloudBackup.readBackup(from: fileURL)
+            Issue.record("Expected readBackup to throw readFailed")
+        } catch {
             guard case AppDataICloudBackup.BackupError.readFailed = error else {
-                XCTFail("Expected readFailed, got \(error)")
+                Issue.record("Expected readFailed, got \(error)")
                 return
             }
         }
@@ -147,20 +159,20 @@ final class AppDataICloudBackupTests: XCTestCase {
 
     // MARK: - lastBackupDate
 
-    func testLastBackupDateReturnsNilWhenFileMissing() {
+    @Test func lastBackupDateReturnsNilWhenFileMissing() {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
-        XCTAssertNil(AppDataICloudBackup.lastBackupDate(at: fileURL))
+        #expect(AppDataICloudBackup.lastBackupDate(at: fileURL) == nil)
     }
 
-    func testLastBackupDateReturnsModificationDate() throws {
+    @Test func lastBackupDateReturnsModificationDate() throws {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
         try AppDataICloudBackup.writeBackup(state: AppState(), to: fileURL)
 
         let modDate = AppDataICloudBackup.lastBackupDate(at: fileURL)
-        XCTAssertNotNil(modDate)
+        #expect(modDate != nil)
         if let modDate {
-            XCTAssertLessThan(abs(modDate.timeIntervalSinceNow), 5,
-                              "Mod date should be within 5 seconds of now")
+            #expect(abs(modDate.timeIntervalSinceNow) < 5,
+                    "Mod date should be within 5 seconds of now")
         }
     }
 
@@ -172,14 +184,14 @@ final class AppDataICloudBackupTests: XCTestCase {
     // missing-file paths, and the shape of BackupVersionInfo for
     // freshly written non-iCloud files.
 
-    func testAvailableVersionsReturnsEmptyWhenFileMissing() {
+    @Test func availableVersionsReturnsEmptyWhenFileMissing() {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: fileURL.path))
-        XCTAssertTrue(AppDataICloudBackup.availableVersions(at: fileURL).isEmpty,
-                      "Missing file should produce no versions, not crash")
+        #expect(!(FileManager.default.fileExists(atPath: fileURL.path)))
+        #expect(AppDataICloudBackup.availableVersions(at: fileURL).isEmpty,
+                "Missing file should produce no versions, not crash")
     }
 
-    func testAvailableVersionsExposesCurrentVersionForLocalFile() throws {
+    @Test func availableVersionsExposesCurrentVersionForLocalFile() throws {
         // For a local (non-iCloud) file NSFileVersion still returns
         // a "current" version with the file's modification date —
         // verify our wrapper surfaces it as isCurrent = true and
@@ -188,15 +200,15 @@ final class AppDataICloudBackupTests: XCTestCase {
         try AppDataICloudBackup.writeBackup(state: AppState(), to: fileURL)
 
         let versions = AppDataICloudBackup.availableVersions(at: fileURL)
-        XCTAssertGreaterThanOrEqual(versions.count, 1,
-                                     "A written file should yield at least one version")
-        XCTAssertTrue(versions.contains { $0.isCurrent },
-                      "One version should be marked current")
-        XCTAssertFalse(versions.contains { $0.isUnresolvedConflict },
-                       "A freshly written local file shouldn't have unresolved conflicts")
+        #expect(versions.count >= 1,
+                "A written file should yield at least one version")
+        #expect(versions.contains { $0.isCurrent },
+                "One version should be marked current")
+        #expect(!(versions.contains { $0.isUnresolvedConflict }),
+                "A freshly written local file shouldn't have unresolved conflicts")
     }
 
-    func testReadBackupAtVersionRoundTripsLocalFile() throws {
+    @Test func readBackupAtVersionRoundTripsLocalFile() throws {
         let fileURL = AppDataICloudBackup.backupFileURL(in: tempContainer)
         var state = AppState()
         state.moviesState.wishlist.insert(42)
@@ -206,11 +218,11 @@ final class AppDataICloudBackupTests: XCTestCase {
         // version-aware path. Should match what readBackup(from:)
         // would have returned.
         let versions = AppDataICloudBackup.availableVersions(at: fileURL)
-        let current = try XCTUnwrap(versions.first(where: \.isCurrent),
-                                     "Expected a current version for the freshly written file")
+        let current = try #require(versions.first(where: { $0.isCurrent }),
+                                   "Expected a current version for the freshly written file")
 
         let envelope = try AppDataICloudBackup.readBackup(at: current.version)
-        XCTAssertTrue(envelope.snapshot.moviesState.wishlist.contains(42),
-                      "Reading at a specific version should return the same data as reading the file directly")
+        #expect(envelope.snapshot.moviesState.wishlist.contains(42),
+                "Reading at a specific version should return the same data as reading the file directly")
     }
 }

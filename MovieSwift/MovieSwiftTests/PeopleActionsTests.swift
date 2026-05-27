@@ -1,5 +1,7 @@
-import XCTest
+import Testing
+import Foundation
 import Backend
+import SwiftUIFlux
 import MovieSwiftFluxCore
 #if os(macOS)
 @testable import Film_O_Matic
@@ -7,11 +9,11 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-// `@MainActor`: under the Swift 6 mode `waitForExpectations` is
-// main-actor-isolated, and these tests swap the main-thread
-// `APIService.shared`. XCTest already runs the case on the main thread.
-@MainActor
-final class PeopleActionsTests: XCTestCase {
+// `.serialized` + final class: every test swaps the shared global
+// `APIService.shared`, so the suite can't run in parallel, and init/deinit
+// snapshot & restore that value as per-test setup/teardown.
+@Suite(.serialized)
+final class PeopleActionsTests {
     private final class StubAPIKeyProvider: APIKeyProviding {
         private let value: String?
 
@@ -44,23 +46,88 @@ final class PeopleActionsTests: XCTestCase {
         case failed
     }
 
-    private var originalAPIService: APIService!
+    private let originalAPIService: APIService
 
-    // Async setUp/tearDown so they're main-actor-isolated in this
-    // @MainActor case and can touch the saved APIService.
-    override func setUp() async throws {
-        try await super.setUp()
+    init() {
         originalAPIService = APIService.shared
     }
 
-    override func tearDown() async throws {
+    deinit {
         APIService.shared = originalAPIService
-        try await super.tearDown()
+    }
+
+    // MARK: - Dispatch capture helpers
+    //
+    // The AsyncAction `execute(state:dispatch:)` flow funnels through
+    // `APIService.GET`'s completion handler, which fires on a background
+    // callback queue. These bridge that to async/await: a lock guards the
+    // cross-thread mutation, and a class box carries the non-Sendable
+    // `[Action]` across the continuation.
+
+    private final class DispatchCollector: @unchecked Sendable {
+        let lock = NSLock()
+        var dispatched: [Action] = []
+        var didResume = false
+    }
+
+    private struct ActionsBox: @unchecked Sendable {
+        let actions: [Action]
+    }
+
+    /// Collects dispatched actions, returning once `trigger` matches one of
+    /// them (or after a 2s safety timeout).
+    private func collectDispatches(
+        until trigger: @escaping (Action) -> Bool,
+        when execute: (@escaping DispatchFunction) -> Void
+    ) async -> [Action] {
+        let collector = DispatchCollector()
+        return await withCheckedContinuation { (continuation: CheckedContinuation<ActionsBox, Never>) in
+            execute { action in
+                collector.lock.lock()
+                collector.dispatched.append(action)
+                let shouldResume = trigger(action) && !collector.didResume
+                if shouldResume { collector.didResume = true }
+                let snapshot = collector.dispatched
+                collector.lock.unlock()
+                if shouldResume { continuation.resume(returning: ActionsBox(actions: snapshot)) }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 2.0) {
+                collector.lock.lock()
+                let shouldResume = !collector.didResume
+                if shouldResume { collector.didResume = true }
+                let snapshot = collector.dispatched
+                collector.lock.unlock()
+                if shouldResume { continuation.resume(returning: ActionsBox(actions: snapshot)) }
+            }
+        }.actions
+    }
+
+    /// Collects everything dispatched within `seconds` and returns it — the
+    /// async equivalent of an inverted XCTestExpectation (used to assert a
+    /// particular data action is NOT dispatched on a failure path).
+    private func collectDispatches(
+        forSeconds seconds: Double,
+        when execute: (@escaping DispatchFunction) -> Void
+    ) async -> [Action] {
+        let collector = DispatchCollector()
+        return await withCheckedContinuation { (continuation: CheckedContinuation<ActionsBox, Never>) in
+            execute { action in
+                collector.lock.lock()
+                collector.dispatched.append(action)
+                collector.lock.unlock()
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + seconds) {
+                collector.lock.lock()
+                let snapshot = collector.dispatched
+                collector.lock.unlock()
+                continuation.resume(returning: ActionsBox(actions: snapshot))
+            }
+        }.actions
     }
 
     // MARK: - FetchDetail
 
-    func testFetchDetailDispatchesSetDetailOnSuccess() throws {
+    @Test func fetchDetailDispatchesSetDetailOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(makePeople(id: 5, name: "Alice"))
 
@@ -70,25 +137,20 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchDetail")
         )
 
-        let expectation = expectation(description: "Dispatch SetDetail")
-        var dispatchedAction: PeopleActions.SetDetail?
-
-        PeopleActions.FetchDetail(people: 5).execute(state: nil) { action in
-            dispatchedAction = action as? PeopleActions.SetDetail
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetDetail }) { dispatch in
+            PeopleActions.FetchDetail(people: 5).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
+        let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetDetail }.first
+        #expect(dispatchedAction?.person.id == 5)
+        #expect(dispatchedAction?.person.name == "Alice")
+        #expect(session.lastRequest != nil, "expected the request to be issued")
 
-        XCTAssertEqual(dispatchedAction?.person.id, 5)
-        XCTAssertEqual(dispatchedAction?.person.name, "Alice")
-        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
-
-        let requestURL = try XCTUnwrap(session.lastRequest?.url)
-        XCTAssertTrue(requestURL.path.contains("/person/5"))
+        let requestURL = try #require(session.lastRequest?.url)
+        #expect(requestURL.path.contains("/person/5"))
     }
 
-    func testFetchDetailDoesNotDispatchOnFailure() {
+    @Test func fetchDetailDoesNotDispatchOnFailure() async {
         let session = MockNetworkSession()
         session.nextData = nil
         session.nextError = StubError.failed
@@ -99,26 +161,20 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchDetailFailure")
         )
 
-        let expectation = expectation(description: "No SetDetail on detail failure")
-        expectation.isInverted = true
-
-        // FetchDetail also dispatches SetLoadingState(.loading)
-        // synchronously and SetLoadingState(.failed(...)) on failure.
-        // This test specifically checks the data action — ignoring
-        // those.
-        PeopleActions.FetchDetail(people: 5).execute(state: nil) { action in
-            if action is PeopleActions.SetDetail {
-                expectation.fulfill()
-            }
+        // FetchDetail also dispatches SetLoadingState(.loading) synchronously
+        // and SetLoadingState(.failed(...)) on failure. This test specifically
+        // checks the data action is NOT dispatched — ignoring those.
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            PeopleActions.FetchDetail(people: 5).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
-        XCTAssertNotNil(session.lastRequest, "expected the request to be issued")
+        #expect(!dispatched.contains { $0 is PeopleActions.SetDetail })
+        #expect(session.lastRequest != nil, "expected the request to be issued")
     }
 
     // MARK: - FetchImages
 
-    func testFetchImagesDispatchesSetImagesOnSuccess() throws {
+    @Test func fetchImagesDispatchesSetImagesOnSuccess() async throws {
         let session = MockNetworkSession()
         let payload = PeopleActions.ImagesResponse(
             id: 7,
@@ -132,22 +188,17 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchImages")
         )
 
-        let expectation = expectation(description: "Dispatch SetImages")
-        var dispatchedAction: PeopleActions.SetImages?
-
-        PeopleActions.FetchImages(people: 7).execute(state: nil) { action in
-            dispatchedAction = action as? PeopleActions.SetImages
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetImages }) { dispatch in
+            PeopleActions.FetchImages(people: 7).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.people, 7)
-        XCTAssertEqual(dispatchedAction?.images.count, 1)
-        XCTAssertEqual(dispatchedAction?.images.first?.file_path, "/img.jpg")
+        let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetImages }.first
+        #expect(dispatchedAction?.people == 7)
+        #expect(dispatchedAction?.images.count == 1)
+        #expect(dispatchedAction?.images.first?.file_path == "/img.jpg")
     }
 
-    func testFetchImagesDoesNotDispatchOnFailure() {
+    @Test func fetchImagesDoesNotDispatchOnFailure() async {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -157,21 +208,16 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchImagesFailure")
         )
 
-        let expectation = expectation(description: "No SetImages on images failure")
-        expectation.isInverted = true
-
-        PeopleActions.FetchImages(people: 7).execute(state: nil) { action in
-            if action is PeopleActions.SetImages {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            PeopleActions.FetchImages(people: 7).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        #expect(!dispatched.contains { $0 is PeopleActions.SetImages })
     }
 
     // MARK: - FetchPeopleCredits
 
-    func testFetchPeopleCreditsDispatchesSetPeopleCreditsOnSuccess() throws {
+    @Test func fetchPeopleCreditsDispatchesSetPeopleCreditsOnSuccess() async throws {
         let session = MockNetworkSession()
         let payload = PeopleActions.PeopleCreditsResponse(
             cast: [makeMovie(id: 10, character: "Hero")],
@@ -185,22 +231,17 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchCredits")
         )
 
-        let expectation = expectation(description: "Dispatch SetPeopleCredits")
-        var dispatchedAction: PeopleActions.SetPeopleCredits?
-
-        PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil) { action in
-            dispatchedAction = action as? PeopleActions.SetPeopleCredits
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetPeopleCredits }) { dispatch in
+            PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.people, 3)
-        XCTAssertEqual(dispatchedAction?.response.cast?.first?.id, 10)
-        XCTAssertEqual(dispatchedAction?.response.crew?.first?.id, 20)
+        let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetPeopleCredits }.first
+        #expect(dispatchedAction?.people == 3)
+        #expect(dispatchedAction?.response.cast?.first?.id == 10)
+        #expect(dispatchedAction?.response.crew?.first?.id == 20)
     }
 
-    func testFetchPeopleCreditsDoesNotDispatchOnFailure() {
+    @Test func fetchPeopleCreditsDoesNotDispatchOnFailure() async {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -210,21 +251,16 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchCreditsFailure")
         )
 
-        let expectation = expectation(description: "No SetPeopleCredits on credits failure")
-        expectation.isInverted = true
-
-        PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil) { action in
-            if action is PeopleActions.SetPeopleCredits {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        #expect(!dispatched.contains { $0 is PeopleActions.SetPeopleCredits })
     }
 
     // MARK: - FetchMovieCasts
 
-    func testFetchMovieCastsDispatchesSetMovieCastsOnSuccess() throws {
+    @Test func fetchMovieCastsDispatchesSetMovieCastsOnSuccess() async throws {
         let session = MockNetworkSession()
         let payload = CastResponse(
             id: 99,
@@ -239,25 +275,20 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchMovieCasts")
         )
 
-        let expectation = expectation(description: "Dispatch SetMovieCasts")
-        var dispatchedAction: PeopleActions.SetMovieCasts?
-
-        PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil) { action in
-            dispatchedAction = action as? PeopleActions.SetMovieCasts
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetMovieCasts }) { dispatch in
+            PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
+        let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetMovieCasts }.first
+        #expect(dispatchedAction?.movie == 99)
+        #expect(dispatchedAction?.response.cast.first?.name == "Actor")
+        #expect(dispatchedAction?.response.crew.first?.name == "Director")
 
-        XCTAssertEqual(dispatchedAction?.movie, 99)
-        XCTAssertEqual(dispatchedAction?.response.cast.first?.name, "Actor")
-        XCTAssertEqual(dispatchedAction?.response.crew.first?.name, "Director")
-
-        let requestURL = try XCTUnwrap(session.lastRequest?.url)
-        XCTAssertTrue(requestURL.path.contains("/movie/99/credits"))
+        let requestURL = try #require(session.lastRequest?.url)
+        #expect(requestURL.path.contains("/movie/99/credits"))
     }
 
-    func testFetchMovieCastsDoesNotDispatchOnFailure() {
+    @Test func fetchMovieCastsDoesNotDispatchOnFailure() async {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -267,21 +298,16 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchMovieCastsFailure")
         )
 
-        let expectation = expectation(description: "No SetMovieCasts on movie casts failure")
-        expectation.isInverted = true
-
-        PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil) { action in
-            if action is PeopleActions.SetMovieCasts {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        #expect(!dispatched.contains { $0 is PeopleActions.SetMovieCasts })
     }
 
     // MARK: - FetchSearch
 
-    func testFetchSearchDispatchesSetSearchOnSuccess() throws {
+    @Test func fetchSearchDispatchesSetSearchOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
             PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 10, name: "Bob")])
@@ -293,22 +319,17 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchSearch")
         )
 
-        let expectation = expectation(description: "Dispatch SetSearch")
-        var dispatchedAction: PeopleActions.SetSearch?
-
-        PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil) { action in
-            dispatchedAction = action as? PeopleActions.SetSearch
-            if dispatchedAction != nil { expectation.fulfill() }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetSearch }) { dispatch in
+            PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertEqual(dispatchedAction?.query, "bob")
-        XCTAssertEqual(dispatchedAction?.page, 1)
-        XCTAssertEqual(dispatchedAction?.response.results.first?.name, "Bob")
+        let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetSearch }.first
+        #expect(dispatchedAction?.query == "bob")
+        #expect(dispatchedAction?.page == 1)
+        #expect(dispatchedAction?.response.results.first?.name == "Bob")
     }
 
-    func testFetchSearchDoesNotDispatchOnFailure() {
+    @Test func fetchSearchDoesNotDispatchOnFailure() async {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -318,21 +339,16 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchSearchFailure")
         )
 
-        let expectation = expectation(description: "No SetSearch on search failure")
-        expectation.isInverted = true
-
-        PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil) { action in
-            if action is PeopleActions.SetSearch {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 0.2)
+        #expect(!dispatched.contains { $0 is PeopleActions.SetSearch })
     }
 
     // MARK: - FetchPopular
 
-    func testFetchPopularDispatchesPopularRequestStartedThenSetPopularOnSuccess() throws {
+    @Test func fetchPopularDispatchesPopularRequestStartedThenSetPopularOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
             PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 20, name: "Star")])
@@ -344,25 +360,17 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchPopular")
         )
 
-        let expectation = expectation(description: "Dispatch SetPopular")
-        var actions: [Any] = []
-
-        PeopleActions.FetchPopular(page: 1).execute(state: nil) { action in
-            actions.append(action)
-            if action is PeopleActions.SetPopular {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.SetPopular }) { dispatch in
+            PeopleActions.FetchPopular(page: 1).execute(state: nil, dispatch: dispatch)
         }
 
-        waitForExpectations(timeout: 1)
-
-        XCTAssertTrue(actions.first is PeopleActions.PopularRequestStarted)
-        let setPopular = actions.last as? PeopleActions.SetPopular
-        XCTAssertEqual(setPopular?.page, 1)
-        XCTAssertEqual(setPopular?.response.results.first?.name, "Star")
+        #expect(dispatched.first is PeopleActions.PopularRequestStarted)
+        let setPopular = dispatched.last as? PeopleActions.SetPopular
+        #expect(setPopular?.page == 1)
+        #expect(setPopular?.response.results.first?.name == "Star")
     }
 
-    func testFetchPopularDispatchesPopularRequestFailedOnFailure() {
+    @Test func fetchPopularDispatchesPopularRequestFailedOnFailure() async {
         let session = MockNetworkSession()
         session.nextError = StubError.failed
 
@@ -372,26 +380,18 @@ final class PeopleActionsTests: XCTestCase {
             callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchPopularFailure")
         )
 
-        let expectation = expectation(description: "Dispatch PopularRequestFailed")
-        var actions: [Any] = []
-
-        PeopleActions.FetchPopular(page: 2).execute(state: nil) { action in
-            actions.append(action)
-            if action is PeopleActions.PopularRequestFailed {
-                expectation.fulfill()
-            }
+        let dispatched = await collectDispatches(until: { $0 is PeopleActions.PopularRequestFailed }) { dispatch in
+            PeopleActions.FetchPopular(page: 2).execute(state: nil, dispatch: dispatch)
         }
-
-        waitForExpectations(timeout: 1)
 
         // FetchPopular now also dispatches SetLoadingState transitions
         // through makeTrackedHandler in addition to its existing
         // PopularRequestStarted / PopularRequestFailed pair. The
         // existing pair remains the source of truth for paginated
         // retry — we just verify it still fires as before.
-        XCTAssertTrue(actions.contains { $0 is PeopleActions.PopularRequestStarted })
-        let failed = actions.compactMap { $0 as? PeopleActions.PopularRequestFailed }.last
-        XCTAssertEqual(failed?.page, 2)
+        #expect(dispatched.contains { $0 is PeopleActions.PopularRequestStarted })
+        let failed = dispatched.compactMap { $0 as? PeopleActions.PopularRequestFailed }.last
+        #expect(failed?.page == 2)
     }
 
     // MARK: - Helpers

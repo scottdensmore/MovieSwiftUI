@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import Backend
 @testable import MovieSwiftFluxCore
 
@@ -16,28 +17,25 @@ import Backend
 /// assertions below intentionally check substrings of the development
 /// language text. The real safety net is that the catalog file ships
 /// with the package and the build doesn't strip it.
-final class MoviesListLoadingStateTests: XCTestCase {
+@Suite struct MoviesListLoadingStateTests {
 
-    func testOfflineFailureResolvesEnglishMessageThroughPackageBundle() {
+    @Test func offlineFailureResolvesEnglishMessageThroughPackageBundle() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .offline)
-        XCTAssertEqual(failure.kind, .offline)
-        XCTAssertEqual(failure.message,
-                       "You're offline. Check your connection and try again.")
-        XCTAssertEqual(failure.retryActionTitle, "Try again")
+        #expect(failure.kind == .offline)
+        #expect(failure.message == "You're offline. Check your connection and try again.")
+        #expect(failure.retryActionTitle == "Try again")
     }
 
-    func testMissingAPIKeyFailureResolvesEnglishMessageThroughPackageBundle() {
+    @Test func missingAPIKeyFailureResolvesEnglishMessageThroughPackageBundle() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .missingAPIKey)
-        XCTAssertEqual(failure.kind, .missingAPIKey)
-        XCTAssertEqual(failure.message,
-                       "No TMDB API key is configured. Add one in Settings to load movies.")
-        XCTAssertEqual(failure.retryActionTitle, "Open Settings")
+        #expect(failure.kind == .missingAPIKey)
+        #expect(failure.message == "No TMDB API key is configured. Add one in Settings to load movies.")
+        #expect(failure.retryActionTitle == "Open Settings")
     }
 
-    func testRateLimitedSingularSecondResolvesThroughPackageBundle() {
+    @Test func rateLimitedSingularSecondResolvesThroughPackageBundle() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .rateLimited(retryAfterSeconds: 1))
-        XCTAssertEqual(failure.message,
-                       "Too many requests to TMDB right now. Try again in 1 second.")
+        #expect(failure.message == "Too many requests to TMDB right now. Try again in 1 second.")
     }
 
     /// `Bundle.module` is only synthesized when the target declares
@@ -45,7 +43,7 @@ final class MoviesListLoadingStateTests: XCTestCase {
     /// `resources: [.process("Resources")]` from `Package.swift`
     /// breaks the build instead of silently regressing the lookup
     /// path back to `Bundle.main`.
-    func testPackageBundleIsAvailable() {
-        XCTAssertFalse(Bundle.module.bundlePath.isEmpty)
+    @Test func packageBundleIsAvailable() {
+        #expect(!Bundle.module.bundlePath.isEmpty)
     }
 }

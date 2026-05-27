@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if canImport(UIKit)
 import UIKit
@@ -26,8 +27,8 @@ import AppKit
 /// contracts worth holding the line on.
 // `@MainActor`: `ErrorDiagnostic.text(for:)` is main-actor-isolated under
 // the Swift 6 mode (its device-model default reads `UIDevice.current`).
-@MainActor
-final class ErrorDiagnosticTests: XCTestCase {
+@Suite @MainActor
+struct ErrorDiagnosticTests {
 
     private func makeFailure(
         kind: MoviesListLoadFailure.Kind = .other,
@@ -54,7 +55,7 @@ final class ErrorDiagnosticTests: XCTestCase {
         return Calendar(identifier: .gregorian).date(from: components)!
     }
 
-    func testDiagnosticTextRendersAllPinnedFieldsInOrder() {
+    @Test func diagnosticTextRendersAllPinnedFieldsInOrder() {
         let blob = ErrorDiagnostic.text(
             for: makeFailure(kind: .other),
             appVersion: "1.2.3",
@@ -65,7 +66,7 @@ final class ErrorDiagnosticTests: XCTestCase {
             now: makeFixedDate()
         )
 
-        XCTAssertEqual(blob, """
+        #expect(blob == """
         MovieSwift diagnostic
         ─────────────────────
         app:      MovieSwift 1.2.3 (42)
@@ -82,7 +83,7 @@ final class ErrorDiagnosticTests: XCTestCase {
     /// never read it from anywhere in `text(for:)`, but a regression
     /// could change that — assert defensively). Also no request URL,
     /// auth header, or anything that could be PII-leaking.
-    func testDiagnosticTextNeverContainsAPIKeyOrURL() {
+    @Test func diagnosticTextNeverContainsAPIKeyOrURL() {
         // Even with a failure message that pretends to contain a key —
         // unlikely but defensive — the diagnostic should still render
         // only what was passed in via the message field; the helper
@@ -98,14 +99,14 @@ final class ErrorDiagnosticTests: XCTestCase {
             now: makeFixedDate()
         )
 
-        XCTAssertFalse(blob.lowercased().contains("api_key"),
-                       "Diagnostic must not embed 'api_key=' anywhere")
-        XCTAssertFalse(blob.lowercased().contains("apikey"),
-                       "Diagnostic must not embed 'apiKey' anywhere")
-        XCTAssertFalse(blob.contains("https://"),
-                       "Diagnostic must not embed any URL")
-        XCTAssertFalse(blob.contains("Bearer "),
-                       "Diagnostic must not embed an auth header")
+        #expect(!blob.lowercased().contains("api_key"),
+                "Diagnostic must not embed 'api_key=' anywhere")
+        #expect(!blob.lowercased().contains("apikey"),
+                "Diagnostic must not embed 'apiKey' anywhere")
+        #expect(!blob.contains("https://"),
+                "Diagnostic must not embed any URL")
+        #expect(!blob.contains("Bearer "),
+                "Diagnostic must not embed an auth header")
     }
 
     /// Each `MoviesListLoadFailure.Kind` case renders distinctly so the
@@ -113,7 +114,7 @@ final class ErrorDiagnosticTests: XCTestCase {
     /// makes this exhaustive — if a new kind is added to the enum, this
     /// test makes the author add it here too (or accept the default
     /// CustomStringConvertible behaviour).
-    func testDiagnosticIncludesAllFailureKindsDistinctly() {
+    @Test func diagnosticIncludesAllFailureKindsDistinctly() {
         let kinds: [MoviesListLoadFailure.Kind] = [
             .offline, .rateLimited(retryAfterSeconds: 30), .missingAPIKey, .unauthorized,
             .forbidden, .server, .decode, .other
@@ -128,32 +129,34 @@ final class ErrorDiagnosticTests: XCTestCase {
             )
             // Extract just the failure line so we're not comparing entire blobs.
             guard let line = blob.split(separator: "\n").first(where: { $0.hasPrefix("failure:") }) else {
-                XCTFail("Expected a 'failure:' line in the diagnostic blob")
+                Issue.record("Expected a 'failure:' line in the diagnostic blob")
                 return
             }
             rendered.insert(String(line))
         }
-        XCTAssertEqual(rendered.count, kinds.count,
-                       "Each failure kind should render a distinct 'failure:' line so triage can tell them apart; got duplicates: \(rendered)")
+        #expect(rendered.count == kinds.count,
+                "Each failure kind should render a distinct 'failure:' line so triage can tell them apart; got duplicates: \(rendered)")
     }
 
     /// Sanity check that `Clipboard.copy(_:)` actually wrote what we
     /// asked it to write. Doesn't assert anything about Clipboard's
     /// platform impl beyond round-trip identity — sufficient for the
     /// banner's "Copied!" feedback to be honest.
-    func testClipboardCopyRoundTripsTheStringOnHostPlatform() throws {
+    @Test func clipboardCopyRoundTripsTheStringOnHostPlatform() {
         let payload = "MovieSwift diagnostic test \(UUID().uuidString)"
         let succeeded = Clipboard.copy(payload)
-        // tvOS has no pasteboard, so Clipboard.copy returns false there —
-        // skip rather than fail.
-        try XCTSkipUnless(succeeded, "Clipboard.copy returned false — tvOS (no pasteboard) or a sandboxed test host without clipboard access")
+        // tvOS has no pasteboard, so Clipboard.copy returns false there (as
+        // can a sandboxed test host); there's nothing to round-trip, so
+        // return without asserting — the Swift Testing equivalent of the
+        // old XCTSkipUnless.
+        guard succeeded else { return }
 
         #if os(tvOS)
-        // unreachable — the XCTSkipUnless above always skips on tvOS
+        // unreachable — `succeeded` is always false on tvOS (no pasteboard)
         #elseif canImport(UIKit)
-        XCTAssertEqual(UIPasteboard.general.string, payload)
+        #expect(UIPasteboard.general.string == payload)
         #elseif canImport(AppKit)
-        XCTAssertEqual(NSPasteboard.general.string(forType: .string), payload)
+        #expect(NSPasteboard.general.string(forType: .string) == payload)
         #endif
     }
 }
