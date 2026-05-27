@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "78b0fdac8c80",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T04:27:40.841393Z",
+  "branch": "feat/async-image-loading",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/shared/images/BigMoviePosterImage.swift",
+    "MovieSwift/MovieSwift/views/shared/images/FullscreenMoviePosterImage.swift",
+    "MovieSwift/MovieSwift/views/shared/images/ImagesCarouselView.swift",
+    "MovieSwift/MovieSwift/views/shared/images/MovieBackdropImage.swift",
+    "MovieSwift/MovieSwift/views/shared/images/MovieTopBackdropImage.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/ImageService.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/utils/ImageLoader.swift",
+    "MovieSwift/Packages/Backend/Tests/BackendTests/ImageLoaderCacheTests.swift",
+    "MovieSwift/Shared/views/MoviePosterImage.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "cfb7683cba33",
+  "token_usage": {
+    "input_tokens": 8200,
+    "cache_creation_tokens": 28855903,
+    "cache_read_tokens": 2494088305,
+    "output_tokens": 3453465,
+    "api_call_count": 5675
+  },
+  "session_metrics": {
+    "turn_count": 45
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T04:27:40.092986Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 9,
+    "human_modified": 42,
+    "human_removed": 0,
+    "total_committed": 9,
+    "total_lines_changed": 55,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
