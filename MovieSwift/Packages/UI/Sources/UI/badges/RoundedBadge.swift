@@ -27,7 +27,7 @@ public struct RoundedBadge : View {
             .background(
                 Rectangle()
                     .foregroundStyle(color)
-                    .cornerRadius(12)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
         )
             .padding(.bottom, 4)
     }

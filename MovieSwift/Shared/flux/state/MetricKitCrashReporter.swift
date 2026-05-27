@@ -59,8 +59,8 @@ final class MetricKitCrashReporter: NSObject, MXMetricManagerSubscriber, @unchec
     }
 
     /// Diagnostic payloads (crashes, hangs, CPU exceptions, disk
-    /// write exceptions). Available since iOS 14 / macOS 12.
-    @available(iOS 14.0, macOS 12.0, *)
+    /// write exceptions). (The old `@available(iOS 14, macOS 12)` gate is
+    /// dropped — the app's deployment minimum is well past those.)
     func didReceive(_ payloads: [MXDiagnosticPayload]) {
         for payload in payloads {
             let data = payload.jsonRepresentation()

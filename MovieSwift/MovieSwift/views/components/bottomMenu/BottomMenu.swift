@@ -61,7 +61,7 @@ struct BottomMenu<Content>: View where Content: View {
                 }
             }
             .background(Color.steam_background)
-            .cornerRadius(10)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
             .offset(x: 0, y: self.currentYOffset(geometry: geometry))
                 .gesture(DragGesture().updating(self.$dragState) { drag, state, transaction in
                     state = .dragging(translation: drag.translation)

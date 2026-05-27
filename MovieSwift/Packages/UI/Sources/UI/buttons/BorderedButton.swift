@@ -33,7 +33,7 @@ public struct BorderedButton : View {
             .background(RoundedRectangle(cornerRadius: 8)
                 .stroke(color, lineWidth: isOn ? 0 : 2)
                 .background(isOn ? color : .clear)
-                .cornerRadius(8))
+                .clipShape(RoundedRectangle(cornerRadius: 8)))
             #if os(macOS)
             .focusable()
             .focused($isFocused)
