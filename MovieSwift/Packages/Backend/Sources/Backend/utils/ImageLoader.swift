@@ -1,16 +1,14 @@
-import SwiftUI
-import Combine
+import Foundation
+import Observation
 
-// `@unchecked Sendable`: the only stored property is an `NSCache`, which
-// is documented as thread-safe, and it's never reassigned (`let`). That
-// makes the `shared` singleton safe to share across threads under the
-// Swift 6 mode even though `NSCache` carries no formal `Sendable`
-// conformance.
-public final class ImageLoaderCache: @unchecked Sendable {
+// `@MainActor`: an image cache whose `ImageLoader` values drive SwiftUI
+// and are created/read from view bodies on the main actor.
+@MainActor
+public final class ImageLoaderCache {
     public static let shared = ImageLoaderCache()
 
     private let loaders: NSCache<NSString, ImageLoader> = NSCache()
-            
+
     public func loaderFor(path: String?, size: ImageService.Size) -> ImageLoader {
         let key = NSString(string: "\(path ?? "missing")#\(size.rawValue)")
         if let loader = loaders.object(forKey: key) {
@@ -27,30 +25,36 @@ public final class ImageLoaderCache: @unchecked Sendable {
     }
 }
 
-public final class ImageLoader: ObservableObject {
+// `@MainActor @Observable`: a SwiftUI-observed image holder. The download
+// runs off the main actor (URLSession's async `data(from:)`) and the
+// resulting `image` is published back on the main actor.
+@MainActor
+@Observable
+public final class ImageLoader {
     public let path: String?
     public let size: ImageService.Size
 
-    @Published public var image: Data? = nil
-    
-    public var cancellable: AnyCancellable?
-        
+    public var image: Data?
+
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
+
     public init(path: String?, size: ImageService.Size) {
         self.size = size
         self.path = path
         loadImage()
     }
-    
+
     private func loadImage() {
         guard let poster = path, image == nil else {
             return
         }
-        cancellable = ImageService.shared.fetchImage(poster: poster, size: size)
-            .receive(on: DispatchQueue.main)
-            .assign(to: \ImageLoader.image, on: self)
+        loadTask = Task { [weak self, size] in
+            let data = await ImageService.shared.fetchImage(poster: poster, size: size)
+            self?.image = data
+        }
     }
-    
+
     deinit {
-        cancellable?.cancel()
+        loadTask?.cancel()
     }
 }

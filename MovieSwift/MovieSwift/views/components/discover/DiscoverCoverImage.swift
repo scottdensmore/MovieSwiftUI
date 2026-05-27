@@ -17,7 +17,7 @@ extension View {
 }
 
 struct DiscoverCoverImage : View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
         
     var body: some View {
         if let imageData = imageLoader.image {

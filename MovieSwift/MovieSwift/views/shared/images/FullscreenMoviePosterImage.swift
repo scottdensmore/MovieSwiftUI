@@ -2,7 +2,7 @@ import SwiftUI
 import Backend
 
 struct FullscreenMoviePosterImage: View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
     
     var body: some View {
         ZStack {
