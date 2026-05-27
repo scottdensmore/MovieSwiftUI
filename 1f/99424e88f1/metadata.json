@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "1f99424e88f1",
+  "strategy": "manual-commit",
+  "branch": "feat/deprecation-cleanup",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/bottomMenu/BottomMenu.swift",
+    "MovieSwift/MovieSwift/views/components/custom list/rows/CustomListRow.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverCoverImage.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieButtonsRow.swift",
+    "MovieSwift/MovieSwift/views/shared/images/PeopleImage.swift",
+    "MovieSwift/Packages/UI/Sources/UI/buttons/BorderedButton.swift",
+    "MovieSwift/Packages/UI/Sources/UI/fields/SearchField.swift",
+    "MovieSwift/Shared/flux/state/MetricKitCrashReporter.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1f/99424e88f1/0/metadata.json",
+      "transcript": "/1f/99424e88f1/0/full.jsonl",
+      "content_hash": "/1f/99424e88f1/0/content_hash.txt",
+      "prompt": "/1f/99424e88f1/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8118,
+    "cache_creation_tokens": 28815169,
+    "cache_read_tokens": 2457264762,
+    "output_tokens": 3426936,
+    "api_call_count": 5634
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "1f99424e88f1",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T03:13:50.564941Z",
+  "branch": "feat/deprecation-cleanup",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/bottomMenu/BottomMenu.swift",
+    "MovieSwift/MovieSwift/views/components/custom list/rows/CustomListRow.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverCoverImage.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieButtonsRow.swift",
+    "MovieSwift/MovieSwift/views/shared/images/PeopleImage.swift",
+    "MovieSwift/Packages/UI/Sources/UI/buttons/BorderedButton.swift",
+    "MovieSwift/Packages/UI/Sources/UI/fields/SearchField.swift",
+    "MovieSwift/Shared/flux/state/MetricKitCrashReporter.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "4dca755490d9",
+  "token_usage": {
+    "input_tokens": 8118,
+    "cache_creation_tokens": 28815169,
+    "cache_read_tokens": 2457264762,
+    "output_tokens": 3426936,
+    "api_call_count": 5634
+  },
+  "session_metrics": {
+    "turn_count": 43
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T03:13:49.930067Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 5,
+    "human_modified": 14,
+    "human_removed": 0,
+    "total_committed": 5,
+    "total_lines_changed": 22,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
