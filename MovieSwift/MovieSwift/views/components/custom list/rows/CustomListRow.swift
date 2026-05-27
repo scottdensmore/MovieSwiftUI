@@ -33,7 +33,7 @@ struct SmallMoviePosterImage : View {
             if let imageData = self.imageLoader.image {
                 DataImage(data: imageData, renderingMode: .original)
                     .frame(width: 33, height: 50)
-                    .cornerRadius(3)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
                     .opacity(isImageLoaded ? 1 : 0.1)
                     .shadow(radius: 2)
                     .animation(.easeInOut, value: self.isImageLoaded)
@@ -44,7 +44,7 @@ struct SmallMoviePosterImage : View {
                 Rectangle()
                     .foregroundStyle(.gray)
                     .frame(width: 33, height: 50)
-                    .cornerRadius(3)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
                     .opacity(0.3)
             }
             }

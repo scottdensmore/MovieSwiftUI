@@ -22,7 +22,7 @@ public struct NotificationBadge : View {
             .foregroundStyle(.white)
             .padding()
             .background(color)
-            .cornerRadius(8)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .scaleEffect(show ? 1: 0.5)
             .opacity(show ? 1 : 0)
             .animation(animation, value: show)

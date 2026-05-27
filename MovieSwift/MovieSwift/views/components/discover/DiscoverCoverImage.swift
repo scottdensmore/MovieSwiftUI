@@ -6,7 +6,7 @@ struct DiscoverPosterStyle: ViewModifier {
         content
             .aspectRatio(0.66, contentMode: .fit)
             .frame(maxWidth: 245)
-            .cornerRadius(5)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
     }
 }
 

@@ -28,7 +28,7 @@ struct PosterStyle: ViewModifier {
     func body(content: Content) -> some View {
         return content
             .frame(width: size.width(), height: size.height())
-            .cornerRadius(5)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
             .opacity(loaded ? 1 : 0.1)
             .shadow(radius: 8)
     }
