@@ -1,0 +1,52 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "30abf8e93a4d",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-27T01:56:57.411424Z",
+  "branch": "feat/swift-testing-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/AppBootstrapTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataExportTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataICloudBackupTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataImportTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataRoundTripTests.swift",
+    "MovieSwift/MovieSwiftTests/AppPersistenceTests.swift",
+    "MovieSwift/MovieSwiftTests/AppStatePersistedFormatTests.swift",
+    "MovieSwift/MovieSwiftTests/CrashReportStoreTests.swift",
+    "MovieSwift/MovieSwiftTests/ErrorDiagnosticTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieSpotlightIndexerTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieSwiftTests.swift",
+    "MovieSwift/MovieSwiftTests/MoviesListLoadingStateTests.swift",
+    "MovieSwift/MovieSwiftTests/MoviesMenuListPageListenerTests.swift",
+    "MovieSwift/MovieSwiftTests/OnboardingFlowTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "344055f141c8",
+  "token_usage": {
+    "input_tokens": 8016,
+    "cache_creation_tokens": 28771189,
+    "cache_read_tokens": 2413540060,
+    "output_tokens": 3395441,
+    "api_call_count": 5583
+  },
+  "session_metrics": {
+    "turn_count": 40
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-27T01:56:56.767976Z",
+    "agent_lines": 1430,
+    "agent_removed": 1413,
+    "human_added": 2,
+    "human_modified": 12,
+    "human_removed": 0,
+    "total_committed": 1444,
+    "total_lines_changed": 2857,
+    "agent_percentage": 99.50997549877493,
+    "metric_version": 2
+  }
+}
