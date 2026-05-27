@@ -97,7 +97,7 @@ import Foundation
         #expect(session.lastRequest == nil)
     }
 
-    @Test func getBuildsRequestAndDecodesOnSuccess() async {
+    @Test func getBuildsRequestAndDecodesOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = Data(#"{"value":"ok"}"#.utf8)
         let service = makeService(apiKey: "abc123", session: session)
@@ -112,13 +112,13 @@ import Foundation
 
         #expect(session.lastRequest?.httpMethod == "GET")
 
-        let requestURL = try? #require(session.lastRequest?.url)
-        let components = requestURL.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
+        let requestURL = try #require(session.lastRequest?.url)
+        let components = try #require(URLComponents(url: requestURL, resolvingAgainstBaseURL: false))
         let queryItems = Dictionary(
-            uniqueKeysWithValues: (components?.queryItems ?? []).map { ($0.name, $0.value ?? "") }
+            uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") }
         )
 
-        #expect(requestURL?.absoluteString.contains("/search/movie") == true)
+        #expect(requestURL.absoluteString.contains("/search/movie"))
         #expect(queryItems["api_key"] == "abc123")
         #expect(queryItems["language"] == Locale.preferredLanguages[0])
         #expect(queryItems["page"] == "2")

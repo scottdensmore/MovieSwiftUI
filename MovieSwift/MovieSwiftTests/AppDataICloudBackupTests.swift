@@ -17,15 +17,19 @@ final class AppDataICloudBackupTests {
 
     private var tempContainer: URL!
 
-    init() throws {
+    init() {
         // Stand up a temp directory that mimics an iCloud container —
         // pure-logic helpers don't care that it's not iCloud-backed.
+        // Non-throwing init (best-effort `try?`): creating a uniquely-named
+        // temp directory won't realistically fail, and keeping it
+        // non-throwing means a problem surfaces in the specific @Test that
+        // can't write rather than as an opaque suite-construction failure.
         tempContainer = FileManager.default
             .temporaryDirectory
             .appendingPathComponent("AppDataICloudBackupTests-\(UUID().uuidString)",
                                     isDirectory: true)
-        try FileManager.default.createDirectory(at: tempContainer,
-                                                withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: tempContainer,
+                                                 withIntermediateDirectories: true)
     }
 
     deinit {
