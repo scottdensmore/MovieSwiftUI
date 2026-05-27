@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-// The iOS 13 / OSX 10.15 availability gate is dropped — the package's
+// The iOS 13 / macOS 10.15 availability gate is dropped — the package's
 // minimum is far past it. The tvOS/watchOS `unavailable` gates remain:
 // SearchField is intentionally excluded on those platforms.
 @available(tvOS, unavailable)
