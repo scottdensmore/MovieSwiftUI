@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "187c66ec7162",
+  "strategy": "manual-commit",
+  "branch": "feat/deprecation-cleanup",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/18/7c66ec7162/0/metadata.json",
+      "transcript": "/18/7c66ec7162/0/full.jsonl",
+      "content_hash": "/18/7c66ec7162/0/content_hash.txt",
+      "prompt": "/18/7c66ec7162/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8136,
+    "cache_creation_tokens": 28821073,
+    "cache_read_tokens": 2465205498,
+    "output_tokens": 3429997,
+    "api_call_count": 5643
+  }
+}
