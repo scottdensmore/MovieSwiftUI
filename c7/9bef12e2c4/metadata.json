@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "c79bef12e2c4",
+  "strategy": "manual-commit",
+  "branch": "feat/swift-testing-migration",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/Packages/Backend/Tests/BackendTests/APIServiceTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c7/9bef12e2c4/0/metadata.json",
+      "transcript": "/c7/9bef12e2c4/0/full.jsonl",
+      "content_hash": "/c7/9bef12e2c4/0/content_hash.txt",
+      "prompt": "/c7/9bef12e2c4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8052,
+    "cache_creation_tokens": 28786283,
+    "cache_read_tokens": 2428711570,
+    "output_tokens": 3405741,
+    "api_call_count": 5601
+  }
+}
