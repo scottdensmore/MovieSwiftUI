@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,7 +8,7 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class MovieSpotlightIndexerTests: XCTestCase {
+@Suite struct MovieSpotlightIndexerTests {
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
@@ -34,27 +34,27 @@ final class MovieSpotlightIndexerTests: XCTestCase {
 
     // MARK: - Identifier round-trip
 
-    func testIdentifierRoundTrip() {
+    @Test func identifierRoundTrip() {
         for id in [1, 42, 999, 12345] {
             let identifier = MovieSpotlightIndexer.identifier(forMovieId: id)
-            XCTAssertEqual(MovieSpotlightIndexer.movieId(fromIdentifier: identifier), id)
+            #expect(MovieSpotlightIndexer.movieId(fromIdentifier: identifier) == id)
         }
     }
 
-    func testMovieIdFromIdentifierReturnsNilForUnknownPrefix() {
-        XCTAssertNil(MovieSpotlightIndexer.movieId(fromIdentifier: "com.other.app.42"))
-        XCTAssertNil(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.person.42"))
-        XCTAssertNil(MovieSpotlightIndexer.movieId(fromIdentifier: "42"))
+    @Test func movieIdFromIdentifierReturnsNilForUnknownPrefix() {
+        #expect(MovieSpotlightIndexer.movieId(fromIdentifier: "com.other.app.42") == nil)
+        #expect(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.person.42") == nil)
+        #expect(MovieSpotlightIndexer.movieId(fromIdentifier: "42") == nil)
     }
 
-    func testMovieIdFromIdentifierReturnsNilForNonNumericSuffix() {
-        XCTAssertNil(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.movie.abc"))
-        XCTAssertNil(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.movie."))
+    @Test func movieIdFromIdentifierReturnsNilForNonNumericSuffix() {
+        #expect(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.movie.abc") == nil)
+        #expect(MovieSpotlightIndexer.movieId(fromIdentifier: "com.movieswift.movie.") == nil)
     }
 
     // MARK: - indexableMovieIds
 
-    func testIndexableMovieIdsUnionsWishlistSeenlistAndCustomLists() {
+    @Test func indexableMovieIdsUnionsWishlistSeenlistAndCustomLists() {
         var state = AppState()
         state.moviesState.wishlist.insert(1)
         state.moviesState.wishlist.insert(2)
@@ -71,11 +71,11 @@ final class MovieSpotlightIndexerTests: XCTestCase {
 
         let ids = MovieSpotlightIndexer.indexableMovieIds(in: state)
 
-        XCTAssertEqual(ids, [1, 2, 3, 4, 5, 6],
-                       "Indexable set should union all three sources, deduplicated")
+        #expect(ids == [1, 2, 3, 4, 5, 6],
+                "Indexable set should union all three sources, deduplicated")
     }
 
-    func testIndexableMovieIdsExcludesUnsavedCachedMovies() {
+    @Test func indexableMovieIdsExcludesUnsavedCachedMovies() {
         // Movies in the state's cache that aren't in any list
         // (e.g. results of a TMDB Popular query) should NOT be
         // indexed — we don't want every TMDB title appearing
@@ -88,16 +88,16 @@ final class MovieSpotlightIndexerTests: XCTestCase {
         // 2 and 99 are cached but not in any list.
 
         let ids = MovieSpotlightIndexer.indexableMovieIds(in: state)
-        XCTAssertEqual(ids, [1])
+        #expect(ids == [1])
     }
 
-    func testIndexableMovieIdsIsEmptyForFreshState() {
+    @Test func indexableMovieIdsIsEmptyForFreshState() {
         let state = AppState()
-        XCTAssertTrue(MovieSpotlightIndexer.indexableMovieIds(in: state).isEmpty,
-                      "A fresh AppState shouldn't index anything except the placeholder data")
+        #expect(MovieSpotlightIndexer.indexableMovieIds(in: state).isEmpty,
+                "A fresh AppState shouldn't index anything except the placeholder data")
     }
 
-    func testIndexableMovieIdsIncludesEmptyCustomLists() {
+    @Test func indexableMovieIdsIncludesEmptyCustomLists() {
         // An empty custom list contributes nothing to the
         // indexable set — confirmed by union behaviour rather
         // than special-casing.
@@ -106,6 +106,6 @@ final class MovieSpotlightIndexerTests: XCTestCase {
                                                       name: "Empty",
                                                       cover: nil,
                                                       movies: [])
-        XCTAssertTrue(MovieSpotlightIndexer.indexableMovieIds(in: state).isEmpty)
+        #expect(MovieSpotlightIndexer.indexableMovieIds(in: state).isEmpty)
     }
 }

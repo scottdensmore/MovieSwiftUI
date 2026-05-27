@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,7 +9,7 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class AppPersistenceTests: XCTestCase {
+@Suite struct AppPersistenceTests {
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
@@ -51,7 +52,7 @@ final class AppPersistenceTests: XCTestCase {
 
     // MARK: - AppStateCacheReset
 
-    func testPersistentSnapshotPreservesWishlistSeenlistAndCustomLists() {
+    @Test func persistentSnapshotPreservesWishlistSeenlistAndCustomLists() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[2] = makeMovie(id: 2)
@@ -62,15 +63,15 @@ final class AppPersistenceTests: XCTestCase {
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertTrue(snapshot.moviesState.wishlist.contains(1))
-        XCTAssertTrue(snapshot.moviesState.seenlist.contains(2))
-        XCTAssertEqual(snapshot.moviesState.customLists[10]?.name, "Favs")
-        XCTAssertNotNil(snapshot.moviesState.movies[1])
-        XCTAssertNotNil(snapshot.moviesState.movies[2])
-        XCTAssertNotNil(snapshot.moviesState.movies[3])
+        #expect(snapshot.moviesState.wishlist.contains(1))
+        #expect(snapshot.moviesState.seenlist.contains(2))
+        #expect(snapshot.moviesState.customLists[10]?.name == "Favs")
+        #expect(snapshot.moviesState.movies[1] != nil)
+        #expect(snapshot.moviesState.movies[2] != nil)
+        #expect(snapshot.moviesState.movies[3] != nil)
     }
 
-    func testPersistentSnapshotStripsTransientCaches() {
+    @Test func persistentSnapshotStripsTransientCaches() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[99] = makeMovie(id: 99)
@@ -81,14 +82,14 @@ final class AppPersistenceTests: XCTestCase {
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertNotNil(snapshot.moviesState.movies[1])
-        XCTAssertNil(snapshot.moviesState.movies[99])
-        XCTAssertTrue(snapshot.moviesState.moviesList.isEmpty)
-        XCTAssertTrue(snapshot.moviesState.search.isEmpty)
-        XCTAssertTrue(snapshot.moviesState.recommended.isEmpty)
+        #expect(snapshot.moviesState.movies[1] != nil)
+        #expect(snapshot.moviesState.movies[99] == nil)
+        #expect(snapshot.moviesState.moviesList.isEmpty)
+        #expect(snapshot.moviesState.search.isEmpty)
+        #expect(snapshot.moviesState.recommended.isEmpty)
     }
 
-    func testPersistentSnapshotPreservesFanClubPeople() {
+    @Test func persistentSnapshotPreservesFanClubPeople() {
         var state = AppState()
         state.peoplesState.peoples[5] = makePeople(id: 5)
         state.peoplesState.peoples[6] = makePeople(id: 6)
@@ -96,12 +97,12 @@ final class AppPersistenceTests: XCTestCase {
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertNotNil(snapshot.peoplesState.peoples[5])
-        XCTAssertNil(snapshot.peoplesState.peoples[6])
-        XCTAssertTrue(snapshot.peoplesState.fanClub.contains(5))
+        #expect(snapshot.peoplesState.peoples[5] != nil)
+        #expect(snapshot.peoplesState.peoples[6] == nil)
+        #expect(snapshot.peoplesState.fanClub.contains(5))
     }
 
-    func testPersistentSnapshotPreservesMovieUserMeta() {
+    @Test func persistentSnapshotPreservesMovieUserMeta() {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[99] = makeMovie(id: 99)
@@ -117,11 +118,11 @@ final class AppPersistenceTests: XCTestCase {
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertNotNil(snapshot.moviesState.moviesUserMeta[1])
-        XCTAssertNil(snapshot.moviesState.moviesUserMeta[99])
+        #expect(snapshot.moviesState.moviesUserMeta[1] != nil)
+        #expect(snapshot.moviesState.moviesUserMeta[99] == nil)
     }
 
-    func testPersistentSnapshotPreservesDiscoverFilter() {
+    @Test func persistentSnapshotPreservesDiscoverFilter() {
         var state = AppState()
         state.moviesState.discoverFilter = DiscoverFilter(
             year: 2000, startYear: nil, endYear: nil,
@@ -135,18 +136,18 @@ final class AppPersistenceTests: XCTestCase {
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertEqual(snapshot.moviesState.discoverFilter?.year, 2000)
-        XCTAssertEqual(snapshot.moviesState.savedDiscoverFilters.count, 1)
-        XCTAssertEqual(snapshot.moviesState.savedDiscoverFilters.first?.genre, 28)
+        #expect(snapshot.moviesState.discoverFilter?.year == 2000)
+        #expect(snapshot.moviesState.savedDiscoverFilters.count == 1)
+        #expect(snapshot.moviesState.savedDiscoverFilters.first?.genre == 28)
     }
 
-    func testPersistentSnapshotPreservesCustomListCoverMovie() {
+    @Test func persistentSnapshotPreservesCustomListCoverMovie() {
         var state = AppState()
         state.moviesState.movies[50] = makeMovie(id: 50)
         state.moviesState.customLists[1] = CustomList(id: 1, name: "Test", cover: 50, movies: [])
 
         let snapshot = AppStateCacheReset.persistentSnapshot(from: state)
 
-        XCTAssertNotNil(snapshot.moviesState.movies[50])
+        #expect(snapshot.moviesState.movies[50] != nil)
     }
 }

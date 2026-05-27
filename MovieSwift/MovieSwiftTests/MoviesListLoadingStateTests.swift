@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import Backend
 import MovieSwiftFluxCore
 #if os(tvOS)
@@ -9,96 +9,96 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class MoviesListLoadingStateTests: XCTestCase {
+@Suite struct MoviesListLoadingStateTests {
 
     // MARK: - APIError → MoviesListLoadFailure presenter
 
-    func testPresenterMapsMissingAPIKeyToOpenSettings() {
+    @Test func presenterMapsMissingAPIKeyToOpenSettings() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .missingAPIKey)
-        XCTAssertEqual(failure.kind, .missingAPIKey)
-        XCTAssertEqual(failure.retryActionTitle, "Open Settings",
-                       "missingAPIKey should send the user to fix their key, not retry")
-        XCTAssertTrue(failure.message.contains("Settings"))
+        #expect(failure.kind == .missingAPIKey)
+        #expect(failure.retryActionTitle == "Open Settings",
+                "missingAPIKey should send the user to fix their key, not retry")
+        #expect(failure.message.contains("Settings"))
     }
 
-    func testPresenterMapsOfflineToConnectionMessage() {
+    @Test func presenterMapsOfflineToConnectionMessage() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .offline)
-        XCTAssertEqual(failure.kind, .offline)
-        XCTAssertEqual(failure.retryActionTitle, "Try again")
-        XCTAssertTrue(failure.message.lowercased().contains("offline"))
+        #expect(failure.kind == .offline)
+        #expect(failure.retryActionTitle == "Try again")
+        #expect(failure.message.lowercased().contains("offline"))
     }
 
-    func testPresenterMapsRateLimitedWithKnownRetryAfterToCountdownText() {
+    @Test func presenterMapsRateLimitedWithKnownRetryAfterToCountdownText() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .rateLimited(retryAfterSeconds: 8))
-        XCTAssertEqual(failure.kind, .rateLimited(retryAfterSeconds: 8))
-        XCTAssertTrue(failure.message.contains("8 seconds"),
-                      "Expected message to surface the retry-after seconds, got \(failure.message)")
+        #expect(failure.kind == .rateLimited(retryAfterSeconds: 8))
+        #expect(failure.message.contains("8 seconds"),
+                "Expected message to surface the retry-after seconds, got \(failure.message)")
     }
 
-    func testPresenterMapsRateLimitedWithSingleSecondToSingularText() {
+    @Test func presenterMapsRateLimitedWithSingleSecondToSingularText() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .rateLimited(retryAfterSeconds: 1))
-        XCTAssertTrue(failure.message.contains("1 second"))
-        XCTAssertFalse(failure.message.contains("1 seconds"),
-                       "Singular grammar matters in user-facing copy")
+        #expect(failure.message.contains("1 second"))
+        #expect(!(failure.message.contains("1 seconds")),
+                "Singular grammar matters in user-facing copy")
     }
 
-    func testPresenterMapsRateLimitedWithUnknownRetryAfterToVagueText() {
+    @Test func presenterMapsRateLimitedWithUnknownRetryAfterToVagueText() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .rateLimited(retryAfterSeconds: nil))
-        XCTAssertTrue(failure.message.lowercased().contains("moment"),
-                      "Without a known retry-after, fall back to a vague 'try again in a moment'")
+        #expect(failure.message.lowercased().contains("moment"),
+                "Without a known retry-after, fall back to a vague 'try again in a moment'")
     }
 
-    func testPresenterMapsHTTP401ToUnauthorizedKey() {
+    @Test func presenterMapsHTTP401ToUnauthorizedKey() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .httpStatus(code: 401))
-        XCTAssertEqual(failure.kind, .unauthorized)
-        XCTAssertEqual(failure.retryActionTitle, "Open Settings")
+        #expect(failure.kind == .unauthorized)
+        #expect(failure.retryActionTitle == "Open Settings")
     }
 
-    func testPresenterMapsHTTP403ToForbidden() {
+    @Test func presenterMapsHTTP403ToForbidden() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .httpStatus(code: 403))
-        XCTAssertEqual(failure.kind, .forbidden)
+        #expect(failure.kind == .forbidden)
     }
 
-    func testPresenterMapsHTTP500RangeToServer() {
+    @Test func presenterMapsHTTP500RangeToServer() {
         for code in [500, 502, 503, 599] {
             let failure = MoviesListLoadFailurePresenter.failure(from: .httpStatus(code: code))
-            XCTAssertEqual(failure.kind, .server, "HTTP \(code) should be classified as server")
-            XCTAssertTrue(failure.message.contains("\(code)"),
-                          "Server error messages should include the status code for diagnosis")
+            #expect(failure.kind == .server, "HTTP \(code) should be classified as server")
+            #expect(failure.message.contains("\(code)"),
+                    "Server error messages should include the status code for diagnosis")
         }
     }
 
-    func testPresenterMapsOtherHTTPCodesToOther() {
+    @Test func presenterMapsOtherHTTPCodesToOther() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .httpStatus(code: 418))
-        XCTAssertEqual(failure.kind, .other)
-        XCTAssertTrue(failure.message.contains("418"))
+        #expect(failure.kind == .other)
+        #expect(failure.message.contains("418"))
     }
 
-    func testPresenterMapsDecodeErrorToDecodeKind() {
+    @Test func presenterMapsDecodeErrorToDecodeKind() {
         struct StubError: Error {}
         let failure = MoviesListLoadFailurePresenter.failure(from: .jsonDecodingError(error: StubError()))
-        XCTAssertEqual(failure.kind, .decode)
+        #expect(failure.kind == .decode)
     }
 
-    func testPresenterMapsNoResponseToOtherWithRetry() {
+    @Test func presenterMapsNoResponseToOtherWithRetry() {
         let failure = MoviesListLoadFailurePresenter.failure(from: .noResponse)
-        XCTAssertEqual(failure.kind, .other)
-        XCTAssertEqual(failure.retryActionTitle, "Try again")
+        #expect(failure.kind == .other)
+        #expect(failure.retryActionTitle == "Try again")
     }
 
     // MARK: - Reducer integration
 
-    func testReducerSetsLoadingStateForKey() {
+    @Test func reducerSetsLoadingStateForKey() {
         let initial = MoviesState()
         let result = moviesStateReducer(
             state: initial,
             action: MoviesActions.SetLoadingState(key: .homeMenu(.popular),
                                                    state: .loading)
         )
-        XCTAssertEqual(result.loadingStates[.homeMenu(.popular)], .loading)
+        #expect(result.loadingStates[.homeMenu(.popular)] == .loading)
     }
 
-    func testReducerSetsFailureStateForKey() {
+    @Test func reducerSetsFailureStateForKey() {
         let initial = MoviesState()
         let failure = MoviesListLoadFailure(kind: .offline, message: "offline")
         let result = moviesStateReducer(
@@ -106,10 +106,10 @@ final class MoviesListLoadingStateTests: XCTestCase {
             action: MoviesActions.SetLoadingState(key: .homeMenu(.topRated),
                                                    state: .failed(failure))
         )
-        XCTAssertEqual(result.loadingStates[.homeMenu(.topRated)], .failed(failure))
+        #expect(result.loadingStates[.homeMenu(.topRated)] == .failed(failure))
     }
 
-    func testReducerClearsLoadingStateWhenStateIsNil() {
+    @Test func reducerClearsLoadingStateWhenStateIsNil() {
         // Arrange: a menu currently sitting in a failed state.
         var initial = MoviesState()
         initial.loadingStates[.homeMenu(.popular)] = .failed(
@@ -125,10 +125,10 @@ final class MoviesListLoadingStateTests: XCTestCase {
                                                    state: nil)
         )
 
-        XCTAssertNil(result.loadingStates[.homeMenu(.popular)])
+        #expect(result.loadingStates[.homeMenu(.popular)] == nil)
     }
 
-    func testReducerKeepsLoadingStatePerKey() {
+    @Test func reducerKeepsLoadingStatePerKey() {
         // Different keys shouldn't trample each other's state.
         var state = MoviesState()
         state = moviesStateReducer(
@@ -142,11 +142,11 @@ final class MoviesListLoadingStateTests: XCTestCase {
             action: MoviesActions.SetLoadingState(key: .homeMenu(.topRated),
                                                    state: .failed(failure))
         )
-        XCTAssertEqual(state.loadingStates[.homeMenu(.popular)], .loading)
-        XCTAssertEqual(state.loadingStates[.homeMenu(.topRated)], .failed(failure))
+        #expect(state.loadingStates[.homeMenu(.popular)] == .loading)
+        #expect(state.loadingStates[.homeMenu(.topRated)] == .failed(failure))
     }
 
-    func testReducerHandlesPeopleAndMovieKeysInTheSameDict() {
+    @Test func reducerHandlesPeopleAndMovieKeysInTheSameDict() {
         // The unified LoadingKey enum spans both Movies and People
         // fetchers. Verify entries don't collide.
         var state = MoviesState()
@@ -160,11 +160,11 @@ final class MoviesListLoadingStateTests: XCTestCase {
             action: MoviesActions.SetLoadingState(key: .personDetail(42),
                                                    state: .failed(MoviesListLoadFailure(kind: .server, message: "500")))
         )
-        XCTAssertEqual(state.loadingStates[.movieDetail(42)], .loading)
+        #expect(state.loadingStates[.movieDetail(42)] == .loading)
         if case .failed = state.loadingStates[.personDetail(42)] {
             // ok
         } else {
-            XCTFail("Expected personDetail(42) to be in failed state")
+            Issue.record("Expected personDetail(42) to be in failed state")
         }
     }
 }

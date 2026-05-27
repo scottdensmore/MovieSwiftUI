@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import Foundation
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -8,7 +9,7 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
-final class AppStatePersistedFormatTests: XCTestCase {
+@Suite struct AppStatePersistedFormatTests {
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
@@ -51,7 +52,7 @@ final class AppStatePersistedFormatTests: XCTestCase {
 
     // MARK: - Encode
 
-    func testEncodeProducesEnvelopeWithCurrentFormatVersion() throws {
+    @Test func encodeProducesEnvelopeWithCurrentFormatVersion() throws {
         let data = try AppStatePersistedFormat.encode(state: AppState())
 
         // The encoded data must decode as the envelope and carry the
@@ -60,23 +61,22 @@ final class AppStatePersistedFormatTests: XCTestCase {
         // values), confirming we wrote the envelope shape.
         let decoder = AppStatePersistedFormat.makeDecoder()
         let envelope = try decoder.decode(PersistedAppStateEnvelope.self, from: data)
-        XCTAssertEqual(envelope.formatVersion,
-                       PersistedAppStateEnvelope.currentFormatVersion)
+        #expect(envelope.formatVersion == PersistedAppStateEnvelope.currentFormatVersion)
     }
 
-    func testEncodeStampsSavedAtCloseToProvidedDate() throws {
+    @Test func encodeStampsSavedAtCloseToProvidedDate() throws {
         let date = Date(timeIntervalSince1970: 1_700_000_000)
         let data = try AppStatePersistedFormat.encode(state: AppState(),
                                                        savedAt: date)
 
         let envelope = try AppStatePersistedFormat.makeDecoder()
             .decode(PersistedAppStateEnvelope.self, from: data)
-        XCTAssertEqual(envelope.savedAt, date)
+        #expect(envelope.savedAt == date)
     }
 
     // MARK: - Round trip
 
-    func testRoundTripPreservesUserCollections() throws {
+    @Test func roundTripPreservesUserCollections() throws {
         var state = AppState()
         state.moviesState.movies[1] = makeMovie(id: 1)
         state.moviesState.movies[2] = makeMovie(id: 2)
@@ -89,16 +89,16 @@ final class AppStatePersistedFormatTests: XCTestCase {
         let data = try AppStatePersistedFormat.encode(state: state)
         let decoded = try AppStatePersistedFormat.decode(data: data)
 
-        XCTAssertTrue(decoded.moviesState.wishlist.contains(1))
-        XCTAssertTrue(decoded.moviesState.seenlist.contains(2))
-        XCTAssertEqual(decoded.moviesState.customLists[10]?.name, "Favs")
-        XCTAssertTrue(decoded.peoplesState.fanClub.contains(5))
-        XCTAssertNotNil(decoded.peoplesState.peoples[5])
+        #expect(decoded.moviesState.wishlist.contains(1))
+        #expect(decoded.moviesState.seenlist.contains(2))
+        #expect(decoded.moviesState.customLists[10]?.name == "Favs")
+        #expect(decoded.peoplesState.fanClub.contains(5))
+        #expect(decoded.peoplesState.peoples[5] != nil)
     }
 
     // MARK: - Legacy bare-AppState fallback (the critical path)
 
-    func testDecodeFallsBackToLegacyBareAppStateFormat() throws {
+    @Test func decodeFallsBackToLegacyBareAppStateFormat() throws {
         // Pre-versioning builds wrote `try? encoder.encode(state)`
         // directly — no envelope. Existing user installs upgrading
         // to the new build must continue to load their data.
@@ -112,12 +112,12 @@ final class AppStatePersistedFormatTests: XCTestCase {
 
         let decoded = try AppStatePersistedFormat.decode(data: legacyData)
 
-        XCTAssertTrue(decoded.moviesState.wishlist.contains(42),
-                      "Legacy bare-AppState files must keep loading after the upgrade")
-        XCTAssertTrue(decoded.peoplesState.fanClub.contains(7))
+        #expect(decoded.moviesState.wishlist.contains(42),
+                "Legacy bare-AppState files must keep loading after the upgrade")
+        #expect(decoded.peoplesState.fanClub.contains(7))
     }
 
-    func testLegacyFallbackPreservesSampleStateLikeProduction() throws {
+    @Test func legacyFallbackPreservesSampleStateLikeProduction() throws {
         // A pre-versioning install would also have the sample
         // placeholder rows from `ensurePlaceholderData()`. Make sure
         // those survive the legacy decode path.
@@ -127,13 +127,13 @@ final class AppStatePersistedFormatTests: XCTestCase {
 
         let decoded = try AppStatePersistedFormat.decode(data: legacyData)
 
-        XCTAssertNotNil(decoded.moviesState.movies[0],
-                        "AppState() initializer always seeds movies[0] = sampleMovie")
+        #expect(decoded.moviesState.movies[0] != nil,
+                "AppState() initializer always seeds movies[0] = sampleMovie")
     }
 
     // MARK: - Version validation
 
-    func testDecodeRejectsFormatVersionFromAFutureBuild() throws {
+    @Test func decodeRejectsFormatVersionFromAFutureBuild() throws {
         // Build an envelope with a version ahead of what this build
         // supports, encode, then attempt to decode. Should throw
         // unsupportedFutureVersion rather than silently producing
@@ -145,24 +145,29 @@ final class AppStatePersistedFormatTests: XCTestCase {
         )
         let data = try AppStatePersistedFormat.makeEncoder().encode(future)
 
-        XCTAssertThrowsError(try AppStatePersistedFormat.decode(data: data)) { error in
+        do {
+            _ = try AppStatePersistedFormat.decode(data: data)
+            Issue.record("Expected unsupportedFutureVersion, but no error was thrown")
+        } catch {
             guard case AppStatePersistedFormat.LoadError.unsupportedFutureVersion(let found, _) = error else {
-                XCTFail("Expected unsupportedFutureVersion, got \(error)")
+                Issue.record("Expected unsupportedFutureVersion, got \(error)")
                 return
             }
-            XCTAssertEqual(found,
-                           PersistedAppStateEnvelope.currentFormatVersion + 1)
+            #expect(found == PersistedAppStateEnvelope.currentFormatVersion + 1)
         }
     }
 
     // MARK: - Garbage / corrupt data
 
-    func testDecodeWrapsCorruptDataInDecodeFailedError() {
+    @Test func decodeWrapsCorruptDataInDecodeFailedError() {
         let bogus = Data("not actually json".utf8)
 
-        XCTAssertThrowsError(try AppStatePersistedFormat.decode(data: bogus)) { error in
+        do {
+            _ = try AppStatePersistedFormat.decode(data: bogus)
+            Issue.record("Expected decodeFailed, but no error was thrown")
+        } catch {
             guard case AppStatePersistedFormat.LoadError.decodeFailed = error else {
-                XCTFail("Expected decodeFailed, got \(error)")
+                Issue.record("Expected decodeFailed, got \(error)")
                 return
             }
         }
@@ -170,8 +175,8 @@ final class AppStatePersistedFormatTests: XCTestCase {
 
     // MARK: - Supported range invariant
 
-    func testSupportedFormatVersionsCoversCurrentFormat() {
-        XCTAssertTrue(
+    @Test func supportedFormatVersionsCoversCurrentFormat() {
+        #expect(
             AppStatePersistedFormat.supportedFormatVersions
                 .contains(PersistedAppStateEnvelope.currentFormatVersion),
             "Whatever the current format version is, this build must be able to read it"

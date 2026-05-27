@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import MovieSwiftFluxCore
 #if os(tvOS)
 @testable import MovieSwiftTV
@@ -12,107 +12,107 @@ import MovieSwiftFluxCore
 // AppEnvironment, AppRuntime, AppStoreFactory, AppLaunchMode), which are
 // main-actor-isolated because they run during app startup on the main
 // actor.
-@MainActor
-final class AppBootstrapTests: XCTestCase {
+@Suite @MainActor
+struct AppBootstrapTests {
 
     // MARK: - AppLaunchMode
 
-    func testAppLaunchModeDefaultsToNormalWithNoArguments() {
+    @Test func appLaunchModeDefaultsToNormalWithNoArguments() {
         let mode = AppLaunchMode.from(arguments: [], environment: [:])
-        XCTAssertEqual(mode, .normal)
+        #expect(mode == .normal)
     }
 
-    func testAppLaunchModeDetectsUISmokeTestsFromArguments() {
+    @Test func appLaunchModeDetectsUISmokeTestsFromArguments() {
         let mode = AppLaunchMode.from(arguments: ["--ui-smoke-tests"], environment: [:])
         #if DEBUG
-        XCTAssertEqual(mode, .uiSmokeTests)
+        #expect(mode == .uiSmokeTests)
         #else
-        XCTAssertEqual(mode, .normal)
+        #expect(mode == .normal)
         #endif
     }
 
-    func testAppLaunchModeDetectsUISmokeTestsFromEnvironment() {
+    @Test func appLaunchModeDetectsUISmokeTestsFromEnvironment() {
         let mode = AppLaunchMode.from(arguments: [], environment: ["UI_SMOKE_TESTS": "1"])
         #if DEBUG
-        XCTAssertEqual(mode, .uiSmokeTests)
+        #expect(mode == .uiSmokeTests)
         #else
-        XCTAssertEqual(mode, .normal)
+        #expect(mode == .normal)
         #endif
     }
 
-    func testAppLaunchModeDetectsPreviewFromEnvironment() {
+    @Test func appLaunchModeDetectsPreviewFromEnvironment() {
         let mode = AppLaunchMode.from(arguments: [], environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"])
         #if DEBUG
-        XCTAssertEqual(mode, .preview)
+        #expect(mode == .preview)
         #else
-        XCTAssertEqual(mode, .normal)
+        #expect(mode == .normal)
         #endif
     }
 
-    func testAppLaunchModePreviewTakesPriorityOverSmokeTests() {
+    @Test func appLaunchModePreviewTakesPriorityOverSmokeTests() {
         let mode = AppLaunchMode.from(
             arguments: ["--ui-smoke-tests"],
             environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]
         )
         #if DEBUG
-        XCTAssertEqual(mode, .preview)
+        #expect(mode == .preview)
         #else
-        XCTAssertEqual(mode, .normal)
+        #expect(mode == .normal)
         #endif
     }
 
     // MARK: - AppRuntime
 
-    func testAppRuntimeIsRunningUISmokeTestsMatchesLaunchMode() {
+    @Test func appRuntimeIsRunningUISmokeTestsMatchesLaunchMode() {
         let smokeRuntime = AppRuntime(launchMode: .uiSmokeTests)
-        XCTAssertTrue(smokeRuntime.isRunningUISmokeTests)
+        #expect(smokeRuntime.isRunningUISmokeTests)
 
         let normalRuntime = AppRuntime(launchMode: .normal)
-        XCTAssertFalse(normalRuntime.isRunningUISmokeTests)
+        #expect(!(normalRuntime.isRunningUISmokeTests))
     }
 
-    func testAppRuntimeIsRunningTestsDetectsXCTestConfigurationFilePath() {
+    @Test func appRuntimeIsRunningTestsDetectsXCTestConfigurationFilePath() {
         let testingRuntime = AppRuntime(
             launchMode: .normal,
             environment: [AppRuntime.xctestConfigurationFilePathKey: "/some/path"]
         )
-        XCTAssertTrue(testingRuntime.isRunningTests)
+        #expect(testingRuntime.isRunningTests)
 
         let normalRuntime = AppRuntime(launchMode: .normal, environment: [:])
-        XCTAssertFalse(normalRuntime.isRunningTests)
+        #expect(!(normalRuntime.isRunningTests))
     }
 
     // MARK: - AppLoggingPolicy
 
-    func testAppLoggingPolicyDisabledDuringTests() {
-        XCTAssertFalse(AppLoggingPolicy.shouldEnableLogging(isRunningTests: true))
-        XCTAssertTrue(AppLoggingPolicy.shouldEnableLogging(isRunningTests: false))
+    @Test func appLoggingPolicyDisabledDuringTests() {
+        #expect(!(AppLoggingPolicy.shouldEnableLogging(isRunningTests: true)))
+        #expect(AppLoggingPolicy.shouldEnableLogging(isRunningTests: false))
     }
 
     // MARK: - AppStoreFactory
 
-    func testAppStoreFactoryMakesStoreForNormalMode() {
+    @Test func appStoreFactoryMakesStoreForNormalMode() {
         let store = AppStoreFactory.makeStore(launchMode: .normal, isLoggingEnabled: false)
-        XCTAssertNotNil(store.state)
+        #expect(store.state != nil)
     }
 
-    func testAppStoreFactoryMakesStoreForUISmokeTestMode() {
+    @Test func appStoreFactoryMakesStoreForUISmokeTestMode() {
         let store = AppStoreFactory.makeStore(launchMode: .uiSmokeTests, isLoggingEnabled: false)
-        XCTAssertNotNil(store.state)
+        #expect(store.state != nil)
     }
 
     // MARK: - AppEnvironment
 
-    func testAppEnvironmentMakeCreatesValidEnvironment() {
+    @Test func appEnvironmentMakeCreatesValidEnvironment() {
         let env = AppEnvironment.make(launchMode: .normal, environment: [:])
-        XCTAssertEqual(env.launchMode, .normal)
-        XCTAssertNotNil(env.store)
-        XCTAssertFalse(env.runtime.isRunningUISmokeTests)
+        #expect(env.launchMode == .normal)
+        #expect(env.store != nil)
+        #expect(!(env.runtime.isRunningUISmokeTests))
     }
 
-    func testAppEnvironmentMakeWithSmokeTestMode() {
+    @Test func appEnvironmentMakeWithSmokeTestMode() {
         let env = AppEnvironment.make(launchMode: .uiSmokeTests, environment: [:])
-        XCTAssertEqual(env.launchMode, .uiSmokeTests)
-        XCTAssertTrue(env.runtime.isRunningUISmokeTests)
+        #expect(env.launchMode == .uiSmokeTests)
+        #expect(env.runtime.isRunningUISmokeTests)
     }
 }
