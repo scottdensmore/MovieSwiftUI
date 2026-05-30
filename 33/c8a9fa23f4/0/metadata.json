@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "33c8a9fa23f4",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-30T02:43:16.574572Z",
+  "branch": "modernize/parameterize-reducer-tests",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "68e570f1bd24",
+  "token_usage": {
+    "input_tokens": 8311,
+    "cache_creation_tokens": 29957855,
+    "cache_read_tokens": 2515554509,
+    "output_tokens": 3512794,
+    "api_call_count": 5759
+  },
+  "session_metrics": {
+    "turn_count": 48
+  }
+}
