@@ -25,7 +25,7 @@ struct CustomListRow : View {
 }
 
 struct SmallMoviePosterImage : View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
     @State var isImageLoaded = false
     
     var body: some View {

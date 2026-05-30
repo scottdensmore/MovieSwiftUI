@@ -13,12 +13,12 @@ struct CarouselImageView: View {
     let path: String
     let size: CGSize
 
-    @StateObject private var loader: ImageLoader
+    @State private var loader: ImageLoader
 
     init(path: String, size: CGSize) {
         self.path = path
         self.size = size
-        self._loader = StateObject(wrappedValue: ImageLoaderCache.shared.loaderFor(path: path, size: .medium))
+        self._loader = State(wrappedValue: ImageLoaderCache.shared.loaderFor(path: path, size: .medium))
     }
 
     var body: some View {

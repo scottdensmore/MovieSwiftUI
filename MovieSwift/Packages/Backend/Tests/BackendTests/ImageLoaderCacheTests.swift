@@ -1,7 +1,9 @@
 import Testing
 @testable import Backend
 
-@Suite struct ImageLoaderCacheTests {
+// `@MainActor`: ImageLoaderCache / ImageLoader are main-actor-isolated.
+@Suite @MainActor
+struct ImageLoaderCacheTests {
     @Test func loaderForReturnsSameInstanceForSamePathAndSize() {
         let cache = ImageLoaderCache()
 

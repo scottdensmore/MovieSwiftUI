@@ -2,7 +2,7 @@ import SwiftUI
 import Backend
 
 struct MoviePosterImage: View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
     let posterSize: PosterStyle.Size
     
     var body: some View {

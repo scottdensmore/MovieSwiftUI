@@ -2,7 +2,7 @@ import SwiftUI
 import Backend
 
 struct PeopleImage : View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
 
     var body: some View {
         ZStack {
@@ -23,7 +23,7 @@ struct PeopleImage : View {
 
 
 struct BigPeopleImage : View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
 
     var body: some View {
         ZStack {

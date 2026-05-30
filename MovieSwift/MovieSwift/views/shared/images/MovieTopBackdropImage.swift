@@ -2,7 +2,7 @@ import SwiftUI
 import Backend
 
 struct MovieTopBackdropImage : View {
-    @ObservedObject var imageLoader: ImageLoader
+    var imageLoader: ImageLoader
     @State var isImageLoaded = false
     
     var fill: Bool = false
