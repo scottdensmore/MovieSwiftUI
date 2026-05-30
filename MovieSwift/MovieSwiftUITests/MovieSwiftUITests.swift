@@ -3,9 +3,9 @@ import MovieSwiftFluxCore
 
 // `@MainActor`: XCUIApplication / XCUIElement are main-actor-isolated
 // under the Swift 6 mode, and the test target is nonisolated by default,
-// so pinning the case to the main actor lets every element query and
-// `await fulfillment(of:)` call resolve without sending the non-Sendable
-// XCTestCase across actors.
+// so pinning the case to the main actor lets element queries and
+// `await fulfillment(of:)` calls resolve without sending the
+// non-Sendable XCTestCase across actors.
 @MainActor
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
