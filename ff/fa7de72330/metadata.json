@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "fffa7de72330",
+  "strategy": "manual-commit",
+  "branch": "docs/tdd-and-precommit-lint",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/ff/fa7de72330/0/metadata.json",
+      "transcript": "/ff/fa7de72330/0/full.jsonl",
+      "content_hash": "/ff/fa7de72330/0/content_hash.txt",
+      "prompt": "/ff/fa7de72330/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8587,
+    "cache_creation_tokens": 30881049,
+    "cache_read_tokens": 2574516421,
+    "output_tokens": 3662006,
+    "api_call_count": 5950
+  }
+}
