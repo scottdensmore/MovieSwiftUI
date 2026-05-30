@@ -44,7 +44,10 @@ case "${MODE}" in
         swiftlint lint --strict
         ;;
     warn)
-        swiftlint lint
+        # Advisory mode: surface violations but always exit 0. Without
+        # `|| true`, `set -e` + `swiftlint lint`'s non-zero exit on
+        # error-level violations would defeat the "advisory" contract.
+        swiftlint lint || true
         ;;
     strict)
         swiftlint lint --strict

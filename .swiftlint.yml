@@ -34,6 +34,11 @@ opt_in_rules:
   - toggle_bool
   - unneeded_parentheses_in_closure_argument
   - yoda_condition
+  # Not enabled yet: `force_unwrapping`. ~50 existing `!` sites
+  # (static-URL construction, test JSON round-trips, reducer/state
+  # fixtures) would need to be audited or annotated first. Tracked
+  # as a follow-up — turn the rule on after the baseline cleanup
+  # PR lands.
 
 disabled_rules:
   # SwiftUI ViewBuilders and presentation modifiers (.sheet, .alert,

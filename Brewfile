@@ -6,8 +6,12 @@
 # Used by:
 #   scripts/lint.sh    → swiftlint
 #   scripts/format.sh  → swiftformat
-#   .github/workflows/lint.yml (CI) installs the same tools via Homebrew
-#   so versions stay aligned between dev and CI.
+#
+# Note: formulas are not version-pinned, and CI installs its own copies
+# via `brew install` (see .github/workflows/lint.yml). Dev and CI may
+# drift if Homebrew ships a new release between runs; if lint behavior
+# differs between local and CI, run `brew upgrade swiftlint swiftformat`
+# locally to catch up.
 
 brew "swiftlint"
 brew "swiftformat"
