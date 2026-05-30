@@ -1,20 +1,34 @@
 # MovieSwiftUI — Project Guidelines
 
-## Always write tests for fixes
+## Test-Driven Development (TDD) — write the test first
 
-Any time you fix a bug or change behavior, add or update a test that
-exercises the change. Before committing a fix:
+Every behaviour change ships with a test, and the test is written
+**before** the production code. This applies to bug fixes, new
+features, refactors that change observable behaviour, and
+parameterization/modernization passes — anything that isn't pure
+formatting.
 
-1. Reproduce the bug in a test (unit or UI) so the failing test
-   demonstrates the problem.
-2. Apply the code fix.
-3. Verify the test now passes, and run the broader affected test
-   suite.
-4. Include the test in the same commit as the fix. The commit message
-   should mention what the test covers.
+The cycle is **red → green → refactor**:
 
-This applies to every `fix:` commit — reducer changes, view logic,
-navigation, focus handling, parsing, anything.
+1. **RED.** Write the smallest test that captures the next desired
+   behaviour (or, for a bug, reproduces the bug). Run it. It MUST
+   fail for the right reason — wrong assertion, missing symbol,
+   wrong value — not because the harness mis-loaded.
+2. **GREEN.** Write the minimum production code to make that test
+   pass. Resist the urge to write code the failing test doesn't
+   demand.
+3. **REFACTOR.** Tidy the production code and/or the test while
+   keeping the suite green. Run the affected suite again at the
+   end.
+
+The test and the code that satisfies it land in the **same commit**.
+The commit message names what the test covers (e.g.
+`fix(reducer): clear popularLoading when SetPopular dispatches with
+empty results — covered by peopleReducerSetPopularClearsLoadingOnEmpty`).
+
+This applies to every `fix:`, `feat:`, and `refactor:` commit —
+reducer changes, view logic, navigation, focus handling, parsing,
+test-helper rewrites, anything that crosses an assertion boundary.
 
 ### Where tests live
 
@@ -42,7 +56,37 @@ destination.
 If a fix can only be verified visually (layout, animation, focus
 ring), still note that in the commit message and add at least a
 structural assertion (e.g. view builds without crashing, the
-relevant accessibility identifier is present) where possible.
+relevant accessibility identifier is present) where possible. The
+TDD cycle still applies — the failing test is the structural
+assertion before the visual fix lands.
+
+## Lint & format before every commit
+
+Run the project's linter and (for files you touched) the formatter
+before staging changes. CI runs `swiftlint --strict` on every PR
+(`.github/workflows/lint.yml`) — catching violations locally avoids
+a forced fixup commit + extra CI cycle.
+
+Before `git commit`:
+
+```bash
+# Format only the files you touched. Targeted runs avoid reflowing
+# unrelated parts of the tree.
+swiftformat path/to/ChangedFile.swift path/to/OtherChanged.swift
+
+# Lint the whole repo (fast, ~5s). `--fix` auto-applies correctable
+# rules (whitespace, colon spacing, trailing commas, brace position).
+./scripts/lint.sh --fix
+```
+
+Either of the above can also be run as the bare repo-root tools
+(`swiftlint --fix` / `swiftformat MovieSwift`); the scripts just
+wire in the standard flags and exit-code semantics.
+
+If a rule fires on code that's intentionally exempted (font factory
+names, Redux switches, etc.), use an inline
+`// swiftlint:disable:next <rule>` annotation with a one-line
+reason rather than relaxing the rule in `.swiftlint.yml`.
 
 ## No file-header boilerplate
 
