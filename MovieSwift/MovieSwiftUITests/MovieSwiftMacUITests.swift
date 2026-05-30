@@ -3,8 +3,8 @@
 import XCTest
 import MovieSwiftFluxCore
 
-// `@MainActor`: XCUIApplication / XCUIElement and waitForExpectations are
-// main-actor-isolated under the Swift 6 mode; pin the case to the main
+// `@MainActor`: XCUIApplication / XCUIElement and `await fulfillment(of:)`
+// are main-actor-isolated under the Swift 6 mode; pin the case to the main
 // actor (the test target is nonisolated by default).
 @MainActor
 final class MovieSwiftMacUITests: XCTestCase {
@@ -150,7 +150,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(toggled.waitForExistence(timeout: timeout))
     }
 
-    func testSidebarMenuChangePopsPushedMovieDetail() {
+    func testSidebarMenuChangePopsPushedMovieDetail() async {
         // Regression test: clicking a different sidebar menu while a
         // MovieDetail is pushed in the right pane must pop the pushed
         // destination. NavigationSplitView on macOS used to hold on to
@@ -172,7 +172,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // movie list must be at the root.
         let detailGone = NSPredicate(format: "exists == false")
         let detailDismissed = expectation(for: detailGone, evaluatedWith: addToListButton)
-        wait(for: [detailDismissed], timeout: timeout)
+        await fulfillment(of: [detailDismissed], timeout: timeout)
 
         let firstMovie = app.identifiedElement("moviesList.movie.0")
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
@@ -242,7 +242,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// attached via the `.macBackKeyboardShortcut()` modifier on every
     /// MovieDetail navigation destination. The same machinery also
     /// handles Cmd+[ (Safari/Finder-style back).
-    func testEscapePopsPushedMovieDetail() {
+    func testEscapePopsPushedMovieDetail() async {
         let app = launchApp()
 
         // Push MovieDetail from the default Popular menu.
@@ -254,8 +254,8 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         // The detail is gone and the movie list is back at the root.
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: addToListButton)
-        waitForExpectations(timeout: timeout)
+        let detailGone = expectation(for: absent, evaluatedWith: addToListButton)
+        await fulfillment(of: [detailGone], timeout: timeout)
 
         let firstMovie = app.identifiedElement("moviesList.movie.0")
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
@@ -346,7 +346,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// so the sort options surface as native NSMenu items. Verifies
     /// the menu opens with all four options and selecting one
     /// dismisses cleanly without leaving the screen in a stuck state.
-    func testMyListsSortMenuShowsAllSortOptionsAndDismisses() {
+    func testMyListsSortMenuShowsAllSortOptionsAndDismisses() async {
         let app = launchApp(selectMenu: "My Lists")
 
         // The toolbar Sort button uses `myLists.sortButton`. We added an
@@ -377,8 +377,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         sortByRatings.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: sortByRatings, handler: nil)
-        waitForExpectations(timeout: timeout)
+        let menuDismissed = expectation(for: absent, evaluatedWith: sortByRatings, handler: nil)
+        await fulfillment(of: [menuDismissed], timeout: timeout)
 
         XCTAssertTrue(sortButton.waitForExistence(timeout: timeout))
         XCTAssertTrue(sortButton.isHittable,
@@ -493,7 +493,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// passes — `SettingsFormRefreshPolicy.menusToRefresh` returns
     /// `[]` for an unchanged region and the rest of the journey
     /// (popUp value matches, Movies tab still works) remains valid.
-    func testSettingsRegionPickerSelectionTriggersAutoSave() {
+    func testSettingsRegionPickerSelectionTriggersAutoSave() async {
         let app = launchApp(selectMenu: "Settings")
 
         let regionPicker = app.identifiedElement("settings.regionPicker")
@@ -518,8 +518,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         // popUp's accessibility value carries the chosen item's title
         // on macOS (NSPopUpButton convention).
         let valueIsAlbania = NSPredicate(format: "value == %@", "Albania")
-        expectation(for: valueIsAlbania, evaluatedWith: regionPicker, handler: nil)
-        waitForExpectations(timeout: timeout)
+        let pickerUpdated = expectation(for: valueIsAlbania, evaluatedWith: regionPicker, handler: nil)
+        await fulfillment(of: [pickerUpdated], timeout: timeout)
 
         // Navigate back to Popular in the sidebar — exercises that the
         // dispatch loop didn't tear down the Movies surface. If
@@ -540,7 +540,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// "Using your key" → "the bundled key"-or-"No API key" in turn.
     /// Self-cleaning: if a previous run left a user-provided key behind, we
     /// tap Clear before running the real assertion sequence.
-    func testSettingsTMDBAPIKeyPasteSaveAndClearRoundTrip() {
+    func testSettingsTMDBAPIKeyPasteSaveAndClearRoundTrip() async {
         let app = launchApp(selectMenu: "Settings")
 
         let apiKeyField = app.secureTextFields["settings.tmdb.apiKeyField"]
@@ -571,8 +571,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         clearButton.tap()
         let usingYourKey = app.staticTexts["Using your key"]
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: usingYourKey)
-        waitForExpectations(timeout: timeout)
+        let statusCleared = expectation(for: absent, evaluatedWith: usingYourKey)
+        await fulfillment(of: [statusCleared], timeout: timeout)
         XCTAssertFalse(clearButton.waitForExistence(timeout: 2),
                        "Clear button should hide once the user key is removed")
     }
@@ -621,7 +621,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// verify Settings is still functional. Catches regressions in the
     /// dispatch/archive path triggered by
     /// `SettingsFormCacheResetPolicy.clearCachedData`.
-    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() {
+    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() async {
         let app = launchApp(selectMenu: "Settings")
 
         let clearButton = app.buttons["settings.clearCachedDataButton"]
@@ -639,8 +639,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         confirmButton.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: timeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: timeout)
 
         XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
         XCTAssertTrue(clearButton.isHittable,
@@ -649,7 +649,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     /// Show onboarding again → Cancel: confirms the destructive dialog
     /// shows both options and Cancel dismisses without side effect.
-    func testSettingsResetOnboardingCancelDismissesWithoutEffect() {
+    func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
         let app = launchApp(selectMenu: "Settings")
 
         let resetButton = app.buttons["settings.resetOnboardingButton"]
@@ -668,8 +668,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         cancel.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: timeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: timeout)
 
         XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
     }
@@ -678,7 +678,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// crashing. The actual `hasCompletedOnboarding=false` mutation +
     /// what happens on next launch are covered by `OnboardingFlowTests`
     /// at the unit level.
-    func testSettingsResetOnboardingConfirmDismissesDialog() {
+    func testSettingsResetOnboardingConfirmDismissesDialog() async {
         let app = launchApp(selectMenu: "Settings")
 
         let resetButton = app.buttons["settings.resetOnboardingButton"]
@@ -693,8 +693,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         confirmButton.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: timeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: timeout)
 
         XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
     }
