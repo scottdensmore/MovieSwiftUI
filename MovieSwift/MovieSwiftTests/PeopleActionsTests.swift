@@ -125,6 +125,67 @@ final class PeopleActionsTests {
         }.actions
     }
 
+    // MARK: - Parameterized failure-path coverage
+    //
+    // All five "FetchX" AsyncActions share the same failure-side shape: on a
+    // network error, the corresponding `SetX` data action must NOT be
+    // dispatched (the success path is asserted per-action below, since each
+    // verifies action-specific fields). Parameterizing over a `Sendable`
+    // enum + instance-method switch (rather than a struct of @Sendable
+    // closures) keeps `DispatchFunction` — a non-Sendable function type —
+    // off the `@Test(arguments:)` boundary.
+    private enum FailureFetchKind: String, Sendable, CaseIterable {
+        case fetchDetail = "FetchDetail"
+        case fetchImages = "FetchImages"
+        case fetchPeopleCredits = "FetchPeopleCredits"
+        case fetchMovieCasts = "FetchMovieCasts"
+        case fetchSearch = "FetchSearch"
+    }
+
+    private func execute(_ kind: FailureFetchKind, dispatch: @escaping DispatchFunction) {
+        switch kind {
+        case .fetchDetail:
+            PeopleActions.FetchDetail(people: 5).execute(state: nil, dispatch: dispatch)
+        case .fetchImages:
+            PeopleActions.FetchImages(people: 7).execute(state: nil, dispatch: dispatch)
+        case .fetchPeopleCredits:
+            PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil, dispatch: dispatch)
+        case .fetchMovieCasts:
+            PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil, dispatch: dispatch)
+        case .fetchSearch:
+            PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil, dispatch: dispatch)
+        }
+    }
+
+    private func isDataAction(_ kind: FailureFetchKind, _ action: Action) -> Bool {
+        switch kind {
+        case .fetchDetail: return action is PeopleActions.SetDetail
+        case .fetchImages: return action is PeopleActions.SetImages
+        case .fetchPeopleCredits: return action is PeopleActions.SetPeopleCredits
+        case .fetchMovieCasts: return action is PeopleActions.SetMovieCasts
+        case .fetchSearch: return action is PeopleActions.SetSearch
+        }
+    }
+
+    @Test(arguments: FailureFetchKind.allCases)
+    private func fetchActionDoesNotDispatchDataActionOnFailure(kind: FailureFetchKind) async {
+        let session = MockNetworkSession()
+        session.nextError = StubError.failed
+
+        APIService.shared = APIService(
+            apiKeyProvider: StubAPIKeyProvider("test-key"),
+            session: session,
+            callbackQueue: DispatchQueue(label: "PeopleActionsTests.\(kind.rawValue)Failure")
+        )
+
+        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
+            execute(kind, dispatch: dispatch)
+        }
+
+        #expect(!dispatched.contains { isDataAction(kind, $0) },
+                "\(kind.rawValue): SetX data action should not be dispatched on failure")
+    }
+
     // MARK: - FetchDetail
 
     @Test func fetchDetailDispatchesSetDetailOnSuccess() async throws {
@@ -150,27 +211,8 @@ final class PeopleActionsTests {
         #expect(requestURL.path.contains("/person/5"))
     }
 
-    @Test func fetchDetailDoesNotDispatchOnFailure() async {
-        let session = MockNetworkSession()
-        session.nextData = nil
-        session.nextError = StubError.failed
-
-        APIService.shared = APIService(
-            apiKeyProvider: StubAPIKeyProvider("test-key"),
-            session: session,
-            callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchDetailFailure")
-        )
-
-        // FetchDetail also dispatches SetLoadingState(.loading) synchronously
-        // and SetLoadingState(.failed(...)) on failure. This test specifically
-        // checks the data action is NOT dispatched — ignoring those.
-        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
-            PeopleActions.FetchDetail(people: 5).execute(state: nil, dispatch: dispatch)
-        }
-
-        #expect(!dispatched.contains { $0 is PeopleActions.SetDetail })
-        #expect(session.lastRequest != nil, "expected the request to be issued")
-    }
+    // Failure path now covered by
+    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchDetail)`.
 
     // MARK: - FetchImages
 
@@ -198,22 +240,8 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.images.first?.file_path == "/img.jpg")
     }
 
-    @Test func fetchImagesDoesNotDispatchOnFailure() async {
-        let session = MockNetworkSession()
-        session.nextError = StubError.failed
-
-        APIService.shared = APIService(
-            apiKeyProvider: StubAPIKeyProvider("test-key"),
-            session: session,
-            callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchImagesFailure")
-        )
-
-        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
-            PeopleActions.FetchImages(people: 7).execute(state: nil, dispatch: dispatch)
-        }
-
-        #expect(!dispatched.contains { $0 is PeopleActions.SetImages })
-    }
+    // Failure path now covered by
+    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchImages)`.
 
     // MARK: - FetchPeopleCredits
 
@@ -241,22 +269,8 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.response.crew?.first?.id == 20)
     }
 
-    @Test func fetchPeopleCreditsDoesNotDispatchOnFailure() async {
-        let session = MockNetworkSession()
-        session.nextError = StubError.failed
-
-        APIService.shared = APIService(
-            apiKeyProvider: StubAPIKeyProvider("test-key"),
-            session: session,
-            callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchCreditsFailure")
-        )
-
-        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
-            PeopleActions.FetchPeopleCredits(people: 3).execute(state: nil, dispatch: dispatch)
-        }
-
-        #expect(!dispatched.contains { $0 is PeopleActions.SetPeopleCredits })
-    }
+    // Failure path now covered by
+    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchPeopleCredits)`.
 
     // MARK: - FetchMovieCasts
 
@@ -288,22 +302,8 @@ final class PeopleActionsTests {
         #expect(requestURL.path.contains("/movie/99/credits"))
     }
 
-    @Test func fetchMovieCastsDoesNotDispatchOnFailure() async {
-        let session = MockNetworkSession()
-        session.nextError = StubError.failed
-
-        APIService.shared = APIService(
-            apiKeyProvider: StubAPIKeyProvider("test-key"),
-            session: session,
-            callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchMovieCastsFailure")
-        )
-
-        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
-            PeopleActions.FetchMovieCasts(movie: 99).execute(state: nil, dispatch: dispatch)
-        }
-
-        #expect(!dispatched.contains { $0 is PeopleActions.SetMovieCasts })
-    }
+    // Failure path now covered by
+    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchMovieCasts)`.
 
     // MARK: - FetchSearch
 
@@ -329,22 +329,8 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.response.results.first?.name == "Bob")
     }
 
-    @Test func fetchSearchDoesNotDispatchOnFailure() async {
-        let session = MockNetworkSession()
-        session.nextError = StubError.failed
-
-        APIService.shared = APIService(
-            apiKeyProvider: StubAPIKeyProvider("test-key"),
-            session: session,
-            callbackQueue: DispatchQueue(label: "PeopleActionsTests.fetchSearchFailure")
-        )
-
-        let dispatched = await collectDispatches(forSeconds: 0.2) { dispatch in
-            PeopleActions.FetchSearch(query: "bob", page: 1).execute(state: nil, dispatch: dispatch)
-        }
-
-        #expect(!dispatched.contains { $0 is PeopleActions.SetSearch })
-    }
+    // Failure path now covered by
+    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchSearch)`.
 
     // MARK: - FetchPopular
 
