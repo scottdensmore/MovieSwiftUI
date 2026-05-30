@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "f0402f76ea85",
+  "strategy": "manual-commit",
+  "branch": "modernize/xcuitest-async-fulfillment",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f0/402f76ea85/0/metadata.json",
+      "transcript": "/f0/402f76ea85/0/full.jsonl",
+      "content_hash": "/f0/402f76ea85/0/content_hash.txt",
+      "prompt": "/f0/402f76ea85/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8292,
+    "cache_creation_tokens": 29912680,
+    "cache_read_tokens": 2513226448,
+    "output_tokens": 3496103,
+    "api_call_count": 5740
+  }
+}

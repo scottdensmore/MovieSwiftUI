@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "f0402f76ea85",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-30T02:32:50.506766Z",
+  "branch": "modernize/xcuitest-async-fulfillment",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "68e570f1bd24",
+  "token_usage": {
+    "input_tokens": 8292,
+    "cache_creation_tokens": 29912680,
+    "cache_read_tokens": 2513226448,
+    "output_tokens": 3496103,
+    "api_call_count": 5740
+  },
+  "session_metrics": {
+    "turn_count": 48
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-05-30T02:32:49.850065Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 53,
+    "human_removed": 0,
+    "total_committed": 0,
+    "total_lines_changed": 53,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
