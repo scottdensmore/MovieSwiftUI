@@ -2,30 +2,32 @@ import Testing
 @testable import MovieSwiftFluxCore
 
 @Suite struct ReducerTests {
-    @Test func moviesReducerSetMovieMenuListPageOneReplacesList() {
+    // Pagination: page 1 replaces, page > 1 appends. Same shape across
+    // `MoviesMenu` keys — varying the menu (`.popular`, `.trending`) also
+    // exercises the dictionary-keyed update path on both.
+    @Test(arguments: [
+        (page: 1, list: MoviesMenu.popular, existing: [999], incoming: [1, 2], expected: [1, 2]),
+        (page: 2, list: MoviesMenu.trending, existing: [1], incoming: [2, 3], expected: [1, 2, 3]),
+    ])
+    func moviesReducerSetMovieMenuListPaginates(
+        page: Int,
+        list: MoviesMenu,
+        existing: [Int],
+        incoming: [Int],
+        expected: [Int]
+    ) {
         var state = MoviesState()
-        state.moviesList[.popular] = [999]
+        state.moviesList[list] = existing
 
-        let response = paginated([makeMovie(id: 1), makeMovie(id: 2)])
-        let action = MoviesActions.SetMovieMenuList(page: 1, list: .popular, response: response)
+        let response = paginated(incoming.map { makeMovie(id: $0) })
+        let action = MoviesActions.SetMovieMenuList(page: page, list: list, response: response)
 
         let reduced = moviesStateReducer(state: state, action: action)
 
-        #expect((reduced.moviesList[.popular] ?? []) == [1, 2])
-        #expect(reduced.movies[1]?.id == 1)
-        #expect(reduced.movies[2]?.id == 2)
-    }
-
-    @Test func moviesReducerSetMovieMenuListPageTwoAppendsList() {
-        var state = MoviesState()
-        state.moviesList[.trending] = [1]
-
-        let response = paginated([makeMovie(id: 2), makeMovie(id: 3)])
-        let action = MoviesActions.SetMovieMenuList(page: 2, list: .trending, response: response)
-
-        let reduced = moviesStateReducer(state: state, action: action)
-
-        #expect((reduced.moviesList[.trending] ?? []) == [1, 2, 3])
+        #expect((reduced.moviesList[list] ?? []) == expected)
+        for id in incoming {
+            #expect(reduced.movies[id]?.id == id)
+        }
     }
 
     @Test func moviesReducerAddToWishlistMovesMovieAndAddsMetaTimestamp() {
@@ -246,24 +248,24 @@ import Testing
 
     // MARK: - MoviesReducer: SetSearch
 
-    @Test func moviesReducerSetSearchPageOneReplacesList() {
+    @Test(arguments: [
+        (page: 1, query: "old", existing: [999], incoming: [1], expected: [1]),
+        (page: 2, query: "q", existing: [1], incoming: [2], expected: [1, 2]),
+    ])
+    func moviesReducerSetSearchPaginates(
+        page: Int,
+        query: String,
+        existing: [Int],
+        incoming: [Int],
+        expected: [Int]
+    ) {
         var state = MoviesState()
-        state.search["old"] = [999]
+        state.search[query] = existing
 
-        let response = paginated([makeMovie(id: 1)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetSearch(query: "old", page: 1, response: response))
+        let response = paginated(incoming.map { makeMovie(id: $0) })
+        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetSearch(query: query, page: page, response: response))
 
-        #expect(reduced.search["old"] == [1])
-    }
-
-    @Test func moviesReducerSetSearchPageTwoAppendsList() {
-        var state = MoviesState()
-        state.search["q"] = [1]
-
-        let response = paginated([makeMovie(id: 2)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetSearch(query: "q", page: 2, response: response))
-
-        #expect(reduced.search["q"] == [1, 2])
+        #expect(reduced.search[query] == expected)
     }
 
     // MARK: - MoviesReducer: SetSearchKeyword
@@ -348,26 +350,24 @@ import Testing
 
     // MARK: - MoviesReducer: Genre / Crew / Keyword movies
 
-    @Test func moviesReducerSetMovieForGenrePageOneReplacesList() {
+    @Test(arguments: [
+        (page: 1, existing: [999], incoming: [1], expected: [1]),
+        (page: 2, existing: [1], incoming: [2], expected: [1, 2]),
+    ])
+    func moviesReducerSetMovieForGenrePaginates(
+        page: Int,
+        existing: [Int],
+        incoming: [Int],
+        expected: [Int]
+    ) {
         var state = MoviesState()
-        state.withGenre[28] = [999]
+        state.withGenre[28] = existing
 
         let genre = Genre(id: 28, name: "Action")
-        let response = paginated([makeMovie(id: 1)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieForGenre(genre: genre, page: 1, response: response))
+        let response = paginated(incoming.map { makeMovie(id: $0) })
+        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieForGenre(genre: genre, page: page, response: response))
 
-        #expect(reduced.withGenre[28] == [1])
-    }
-
-    @Test func moviesReducerSetMovieForGenrePageTwoAppendsList() {
-        var state = MoviesState()
-        state.withGenre[28] = [1]
-
-        let genre = Genre(id: 28, name: "Action")
-        let response = paginated([makeMovie(id: 2)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieForGenre(genre: genre, page: 2, response: response))
-
-        #expect(reduced.withGenre[28] == [1, 2])
+        #expect(reduced.withGenre[28] == expected)
     }
 
     @Test func moviesReducerSetMovieWithCrewStoresResults() {
@@ -377,24 +377,23 @@ import Testing
         #expect(reduced.withCrew[15] == [10])
     }
 
-    @Test func moviesReducerSetMovieWithKeywordPageOneReplacesList() {
+    @Test(arguments: [
+        (page: 1, existing: [999], incoming: [1], expected: [1]),
+        (page: 2, existing: [1], incoming: [2], expected: [1, 2]),
+    ])
+    func moviesReducerSetMovieWithKeywordPaginates(
+        page: Int,
+        existing: [Int],
+        incoming: [Int],
+        expected: [Int]
+    ) {
         var state = MoviesState()
-        state.withKeywords[50] = [999]
+        state.withKeywords[50] = existing
 
-        let response = paginated([makeMovie(id: 1)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieWithKeyword(keyword: 50, page: 1, response: response))
+        let response = paginated(incoming.map { makeMovie(id: $0) })
+        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieWithKeyword(keyword: 50, page: page, response: response))
 
-        #expect(reduced.withKeywords[50] == [1])
-    }
-
-    @Test func moviesReducerSetMovieWithKeywordPageTwoAppendsList() {
-        var state = MoviesState()
-        state.withKeywords[50] = [1]
-
-        let response = paginated([makeMovie(id: 2)])
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.SetMovieWithKeyword(keyword: 50, page: 2, response: response))
-
-        #expect(reduced.withKeywords[50] == [1, 2])
+        #expect(reduced.withKeywords[50] == expected)
     }
 
     // MARK: - MoviesReducer: Reviews
@@ -476,49 +475,56 @@ import Testing
 
     // MARK: - PeopleReducer: Search
 
-    @Test func peopleReducerSetSearchPageOneReplacesList() {
+    @Test(arguments: [
+        (page: 1, query: "old", existing: [999], incoming: [(1, "A")], expected: [1]),
+        (page: 2, query: "q", existing: [1], incoming: [(2, "B")], expected: [1, 2]),
+    ])
+    func peopleReducerSetSearchPaginates(
+        page: Int,
+        query: String,
+        existing: [Int],
+        incoming: [(Int, String)],
+        expected: [Int]
+    ) {
         var state = PeoplesState()
-        state.search["old"] = [999]
+        state.search[query] = existing
 
-        let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 1, name: "A")])
-        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: "old", page: 1, response: response))
+        let results = incoming.map { makePeople(id: $0.0, name: $0.1) }
+        let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
+        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: query, page: page, response: response))
 
-        #expect(reduced.search["old"] == [1])
-    }
-
-    @Test func peopleReducerSetSearchPageTwoAppendsList() {
-        var state = PeoplesState()
-        state.search["q"] = [1]
-
-        let response = PaginatedResponse(page: 2, total_results: 2, total_pages: 2, results: [makePeople(id: 2, name: "B")])
-        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: "q", page: 2, response: response))
-
-        #expect(reduced.search["q"] == [1, 2])
+        #expect(reduced.search[query] == expected)
     }
 
     // MARK: - PeopleReducer: Popular
 
-    @Test func peopleReducerSetPopularPageOneReplacesList() {
+    // SetPopular normalizes `popularLoading=false` /
+    // `popularInitialLoadCompleted=true` on every successful response
+    // regardless of page, so we assert that for both cases. Page 2
+    // also exercises `appendUnique` (incoming id 2 already present in
+    // `existing` must not duplicate).
+    @Test(arguments: [
+        (page: 1, existing: [999], existingLoading: true, incoming: [(1, "A")], expected: [1]),
+        (page: 2, existing: [1, 2], existingLoading: false, incoming: [(2, "B"), (3, "C")], expected: [1, 2, 3]),
+    ])
+    func peopleReducerSetPopularPaginates(
+        page: Int,
+        existing: [Int],
+        existingLoading: Bool,
+        incoming: [(Int, String)],
+        expected: [Int]
+    ) {
         var state = PeoplesState()
-        state.popular = [999]
-        state.popularLoading = true
+        state.popular = existing
+        state.popularLoading = existingLoading
 
-        let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 1, name: "A")])
-        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: 1, response: response))
+        let results = incoming.map { makePeople(id: $0.0, name: $0.1) }
+        let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
+        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: page, response: response))
 
-        #expect(reduced.popular == [1])
+        #expect(reduced.popular == expected)
         #expect(!(reduced.popularLoading))
         #expect(reduced.popularInitialLoadCompleted)
-    }
-
-    @Test func peopleReducerSetPopularPageTwoAppendsUnique() {
-        var state = PeoplesState()
-        state.popular = [1, 2]
-
-        let response = PaginatedResponse(page: 2, total_results: 3, total_pages: 2, results: [makePeople(id: 2, name: "B"), makePeople(id: 3, name: "C")])
-        let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: 2, response: response))
-
-        #expect(reduced.popular == [1, 2, 3])
     }
 
     // MARK: - PeopleReducer: PopularRequestStarted / Failed
