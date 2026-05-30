@@ -79,7 +79,7 @@ extension APIKeyProviding where Self == LayeredAPIKeyProvider {
     public static var userKeyOverridingBundle: LayeredAPIKeyProvider {
         LayeredAPIKeyProvider(providers: [
             UserDefaultsAPIKeyProvider(),
-            BundleAPIKeyProvider()
+            BundleAPIKeyProvider(),
         ])
     }
 }
@@ -171,7 +171,7 @@ public struct APIService {
     private var apiKey: String? {
         apiKeyProvider.apiKey()
     }
-    
+
     public enum APIError: Error {
         /// No usable TMDB key from any provider in the chain.
         case missingAPIKey
@@ -197,7 +197,7 @@ public struct APIService {
         /// is misconfigured (4xx — most commonly 401 from a bad key).
         case httpStatus(code: Int)
     }
-    
+
     public enum Endpoint {
         case popular, topRated, upcoming, nowPlaying, trending
         case movieDetail(movie: Int), recommended(movie: Int), similar(movie: Int), videos(movie: Int)
@@ -209,7 +209,7 @@ public struct APIService {
         case personImages(person: Int)
         case genres
         case discover
-        
+
         func path() -> String {
             switch self {
             case .popular:
@@ -255,7 +255,7 @@ public struct APIService {
             }
         }
     }
-    
+
     // The completion handler is delivered through `deliver(_:)` below,
     // which boxes both the handler and the result so the networking
     // `Task` can hand them to `callbackQueue` without forcing `@Sendable`
@@ -289,7 +289,7 @@ public struct APIService {
             deliver(.failure(.missingAPIKey))
             return
         }
-        
+
         let queryURL = baseURL.appendingPathComponent(endpoint.path())
         var components = URLComponents(url: queryURL, resolvingAgainstBaseURL: true)!
         var queryItems: [URLQueryItem] = [
@@ -303,7 +303,7 @@ public struct APIService {
             queryItems.append(URLQueryItem(name: name, value: apiKey))
         }
         if let params {
-            for (_, value) in params.enumerated() {
+            for value in params {
                 queryItems.append(URLQueryItem(name: value.key, value: value.value))
             }
         }
@@ -390,7 +390,7 @@ public struct APIService {
         URLError.notConnectedToInternet.rawValue,
         URLError.networkConnectionLost.rawValue,
         URLError.dataNotAllowed.rawValue,
-        URLError.internationalRoamingOff.rawValue
+        URLError.internationalRoamingOff.rawValue,
     ]
 
     /// Parses the `Retry-After` header from a 429 response. TMDB

@@ -65,6 +65,7 @@ struct MoviesListErrorBanner: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("errorBanner.copyDiagnosticButton")
+                    // swiftlint:disable:next line_length
                     .accessibilityHint(Text("Copies a sanitized summary of the failure (app version, OS, device, locale, error kind) for pasting into a bug report. Does not include your TMDB key or any saved data."))
                 }
                 .padding(.top, 2)

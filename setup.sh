@@ -117,4 +117,17 @@ TMDB_API_KEY = ${TMDB_API_KEY}
 SETTINGS
 
 chmod 600 "${SETTINGS_PATH}"
+
+# Install Homebrew-managed dev tooling (swiftlint, swiftformat) if a
+# Brewfile is present and brew is installed. Skipping is fine — the
+# CI lint job installs its own copies — but local lint/format scripts
+# won't run without these.
+if [ -f "${SCRIPT_DIR}/Brewfile" ] && command -v brew >/dev/null 2>&1; then
+  echo "Installing dev tooling from Brewfile (swiftlint, swiftformat)..."
+  (cd "${SCRIPT_DIR}" && brew bundle install --no-upgrade) || \
+    echo "warning: 'brew bundle install' failed; run it manually if you want local lint/format." >&2
+elif [ -f "${SCRIPT_DIR}/Brewfile" ]; then
+  echo "note: install Homebrew (https://brew.sh) and run 'brew bundle install' for local lint/format."
+fi
+
 echo "Done. Open Xcode and build MovieSwift or MovieSwiftTV."

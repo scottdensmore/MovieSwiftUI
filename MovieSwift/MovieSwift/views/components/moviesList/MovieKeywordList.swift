@@ -5,7 +5,7 @@ import MovieSwiftFluxCore
 final class KeywordPageListener: MoviesPagesListener {
     var keyword: Int?
     var dispatchPage: ((Int, Int) -> Void)?
-    
+
     override func loadPage() {
         guard let keyword else {
             return
@@ -24,7 +24,7 @@ enum MovieKeywordListState {
     }
 }
 
-struct MovieKeywordList : ConnectedView {
+struct MovieKeywordList: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let movies: [Int]

@@ -1,0 +1,39 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Same minimum-scope token the other workflows use: only need to read
+# the checkout, no writes.
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swiftlint:
+    name: SwiftLint
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install swiftlint via Homebrew so the CI version matches what
+      # devs get from `brew bundle install` locally. Brew is preinstalled
+      # on the macos-26 runner.
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: SwiftLint version
+        run: swiftlint version
+
+      # `--strict` promotes warnings to errors, matching the local
+      # `scripts/lint.sh` default. The repo-root `.swiftlint.yml` is
+      # the single source of configuration.
+      - name: Run SwiftLint
+        run: ./scripts/lint.sh

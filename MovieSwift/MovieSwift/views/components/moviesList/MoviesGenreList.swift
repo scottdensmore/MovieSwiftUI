@@ -18,18 +18,18 @@ enum MoviesGenreListState {
 final class MovieGenrePageListener: MoviesPagesListener {
     var genre: Genre
     var dispatch: DispatchFunction?
-    
+
     var sort: MoviesSort = .byPopularity {
         didSet {
             currentPage = 1
             loadPage()
         }
     }
-    
+
     override func loadPage() {
         dispatch?(MovieGenrePageAction.fetch(genre: genre, page: currentPage, sort: sort))
     }
-    
+
     init(genre: Genre) {
         self.genre = genre
         super.init()
@@ -42,24 +42,24 @@ struct MoviesGenreList: ConnectedView {
         let movies: [Int]
         let dispatch: DispatchFunction
     }
-    
+
     let genre: Genre
     let pageListener: MovieGenrePageListener
-    
+
     @State var isSortSheetPresented = false
     @State var selectedSort: MoviesSort = .byPopularity
     @State private var navigationRoute: MoviesListNavigationRoute?
-    
+
     init(genre: Genre) {
         self.genre = genre
         self.pageListener = MovieGenrePageListener(genre: self.genre)
     }
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(movies: MoviesGenreListState.movies(for: genre, from: state),
               dispatch: dispatch)
     }
-    
+
     func body(props: Props) -> some View {
         VStack(spacing: 0) {
             MoviesList(movies: props.movies,

@@ -4,6 +4,10 @@ import Backend
 import SwiftUIFlux
 @testable import MovieSwiftFluxCore
 
+// `.serialized`: every test mutates the shared global `APIService.shared`,
+// and Swift Testing runs tests in parallel by default. Serializing keeps the
+// snapshot/restore in init/deinit consistent across tests.
+
 /// Tests for the `MoviesActions` AsyncAction execute paths.
 ///
 /// **Dispatch contract.** Every action that hits the network funnels through
@@ -18,9 +22,6 @@ import SwiftUIFlux
 /// So success-path tests have to look at three dispatches and pick out the
 /// data action; failure-path tests have to look at two dispatches and assert
 /// the second is a `.failed` SetLoadingState.
-// `.serialized`: every test mutates the shared global `APIService.shared`,
-// and Swift Testing runs tests in parallel by default. Serializing keeps the
-// snapshot/restore in init/deinit consistent across tests.
 @Suite(.serialized)
 final class MoviesActionsTests {
     private final class StubAPIKeyProvider: APIKeyProviding {
@@ -51,7 +52,7 @@ final class MoviesActionsTests {
         /// returns/throws it. Falls back to `(nextData, nextResponse,
         /// nextError)` once the queue drains, so existing tests that only
         /// set `nextData` keep working.
-        var responseQueue: [(Data?, URLResponse?, Error?)] = []
+        var responseQueue: [(Data?, URLResponse?, Error?)] = [] // swiftlint:disable:this large_tuple
 
         func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
@@ -782,7 +783,7 @@ final class MoviesActionsTests {
         )
         session.responseQueue = [
             (probeData, nil, nil),
-            (phase2Data, nil, nil)
+            (phase2Data, nil, nil),
         ]
 
         APIService.shared = APIService(
@@ -844,7 +845,7 @@ final class MoviesActionsTests {
                 .execute(state: nil, dispatch: dispatch)
         }
 
-        let _ = try assertFailureDispatch(
+        _ = try assertFailureDispatch(
             in: dispatched,
             for: .randomDiscover,
             noDataActionMatching: { $0 is MoviesActions.SetRandomDiscover },

@@ -23,21 +23,21 @@ enum MovieInfoState {
     }
 }
 
-struct MovieInfoRow : View {
+struct MovieInfoRow: View {
     let movie: Movie
 
     private var presentation: MovieInfoPresentation {
         MovieInfoState.presentation(for: movie)
     }
-    
+
     var asyncTextTransition: AnyTransition {
         .opacity
     }
-    
+
     var asyncTextAnimation: Animation {
         .easeInOut
     }
-    
+
     private var infos: some View {
         HStack {
             if let yearText = presentation.yearText {
@@ -58,7 +58,7 @@ struct MovieInfoRow : View {
         }
         .foregroundStyle(.white)
     }
-    
+
     private var productionCountry: some View {
         Group {
             if let productionCountryText = presentation.productionCountryText {
@@ -68,7 +68,7 @@ struct MovieInfoRow : View {
             }
         }
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             infos

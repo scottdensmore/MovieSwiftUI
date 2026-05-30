@@ -164,7 +164,7 @@ public struct PeopleActions {
             APIService.shared.GET(
                 endpoint: .popularPersons,
                 params: ["page": "\(page)",
-                         "region": AppUserDefaults.region]
+                         "region": AppUserDefaults.region, ]
             ) { (result: Result<PaginatedResponse<People>, APIService.APIError>) in
                 if case .failure = result {
                     dispatch(PopularRequestFailed(page: self.page))
@@ -193,7 +193,7 @@ public struct PeopleActions {
             self.page = page
         }
     }
-    
+
     public struct SetDetail: Action {
         public let person: People
 
@@ -203,7 +203,7 @@ public struct PeopleActions {
             self.person = person
         }
     }
-    
+
     public struct SetImages: Action {
         public let people: Int
         public let images: [ImageData]
@@ -216,7 +216,7 @@ public struct PeopleActions {
             self.images = images
         }
     }
-    
+
     public struct SetMovieCasts: Action {
         public let movie: Int
         public let response: CastResponse
@@ -229,7 +229,7 @@ public struct PeopleActions {
             self.response = response
         }
     }
-    
+
     public struct SetSearch: Action {
         public let query: String
         public let page: Int
@@ -245,7 +245,7 @@ public struct PeopleActions {
             self.response = response
         }
     }
-    
+
     public struct SetPopular: Action {
         public let page: Int
         public let response: PaginatedResponse<People>
@@ -258,7 +258,7 @@ public struct PeopleActions {
             self.response = response
         }
     }
-    
+
     public struct SetPeopleCredits: Action {
         public let people: Int
         public let response: PeopleCreditsResponse
@@ -271,7 +271,7 @@ public struct PeopleActions {
             self.response = response
         }
     }
-    
+
     public struct AddToFanClub: Action {
         public let people: Int
 
@@ -281,7 +281,7 @@ public struct PeopleActions {
             self.people = people
         }
     }
-    
+
     public struct RemoveFromFanClub: Action {
         public let people: Int
 

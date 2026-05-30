@@ -20,7 +20,7 @@ enum MovieBackdropsState {
     }
 }
 
-struct MovieBackdropsRow : View {
+struct MovieBackdropsRow: View {
     let backdrops: [ImageData]
     #if os(macOS)
     let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
@@ -88,7 +88,7 @@ struct MovieBackdropsRow : View {
     return MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
                                                    file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                                    height: 1200,
-                                                   width: 1800)],
+                                                   width: 1800), ],
                              focusedItem: $item,
                              selectedBackdrop: .constant(nil))
 }
@@ -97,6 +97,6 @@ struct MovieBackdropsRow : View {
     MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
                                          file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                          height: 1200,
-                                         width: 1800)])
+                                         width: 1800), ])
 }
 #endif

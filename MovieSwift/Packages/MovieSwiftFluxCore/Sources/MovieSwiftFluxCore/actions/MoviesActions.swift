@@ -5,9 +5,9 @@ import Backend
 public struct MoviesActions {
 
     public init() {}
-    
+
     // MARK: - Requests
-    
+
     public struct FetchMoviesMenuList: AsyncAction {
         public let list: MoviesMenu
         public let page: Int
@@ -31,7 +31,7 @@ public struct MoviesActions {
             APIService.shared.GET(
                 endpoint: list.endpoint(),
                 params: ["page": "\(page)",
-                         "region": AppUserDefaults.region],
+                         "region": AppUserDefaults.region, ],
                 completionHandler: handler
             )
         }
@@ -56,7 +56,7 @@ public struct MoviesActions {
             APIService.shared.GET(
                 endpoint: .movieDetail(movie: movie),
                 params: ["append_to_response": "keywords,images",
-                         "include_image_language": "\(languageCode),en,null"],
+                         "include_image_language": "\(languageCode),en,null", ],
                 completionHandler: handler
             )
         }
@@ -82,7 +82,6 @@ public struct MoviesActions {
                                   completionHandler: handler)
         }
     }
-
 
     public struct FetchSimilar: AsyncAction {
         public let movie: Int
@@ -125,7 +124,6 @@ public struct MoviesActions {
                                   completionHandler: handler)
         }
     }
-
 
     public struct FetchSearch: AsyncAction {
         public let query: String
@@ -201,7 +199,7 @@ public struct MoviesActions {
                 endpoint: .discover,
                 params: ["with_genres": "\(genre.id)",
                          "page": "\(page)",
-                         "sort_by": sortBy.sortByAPI()],
+                         "sort_by": sortBy.sortByAPI(), ],
                 completionHandler: handler
             )
         }
@@ -228,7 +226,6 @@ public struct MoviesActions {
         }
     }
 
-
     public struct FetchMovieWithCrew: AsyncAction {
         public let crew: Int
 
@@ -249,8 +246,6 @@ public struct MoviesActions {
                                   completionHandler: handler)
         }
     }
-
-
 
     public struct FetchMovieWithKeywords: AsyncAction {
         public let keyword: Int
@@ -274,7 +269,7 @@ public struct MoviesActions {
                 }
             APIService.shared.GET(endpoint: .discover,
                                   params: ["page": "\(page)",
-                                           "with_keywords": "\(keyword)"],
+                                           "with_keywords": "\(keyword)", ],
                                   completionHandler: handler)
         }
     }
@@ -399,7 +394,7 @@ public struct MoviesActions {
                                   completionHandler: handler)
         }
     }
-    
+
     public struct SetMovieMenuList: Action {
         public let page: Int
         public let list: MoviesMenu
@@ -468,7 +463,7 @@ public struct MoviesActions {
             }
         }
     }
-    
+
     public struct SetDetail: Action {
         public let movie: Int
         public let response: Movie
@@ -505,7 +500,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct SetVideos: Action {
         public let movie: Int
         public let response: PaginatedResponse<Video>
@@ -518,7 +513,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct KeywordResponse: Codable {
         public let id: Int
         public let keywords: [Keyword]
@@ -531,7 +526,7 @@ public struct MoviesActions {
             self.keywords = keywords
         }
     }
-    
+
     public struct SetSearch: Action {
         public let query: String
         public let page: Int
@@ -547,7 +542,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct SetGenres: Action {
         public let genres: [Genre]
 
@@ -557,7 +552,7 @@ public struct MoviesActions {
             self.genres = genres
         }
     }
-    
+
     public struct SetSearchKeyword: Action {
         public let query: String
         public let response: PaginatedResponse<Keyword>
@@ -570,7 +565,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct AddToWishlist: Action {
         public let movie: Int
 
@@ -580,7 +575,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct RemoveFromWishlist: Action {
         public let movie: Int
 
@@ -590,7 +585,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct AddToSeenList: Action {
         public let movie: Int
 
@@ -600,7 +595,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct RemoveFromSeenList: Action {
         public let movie: Int
 
@@ -610,7 +605,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct SetMovieForGenre: Action {
         public let genre: Genre
         public let page: Int
@@ -626,7 +621,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct SetMovieWithCrew: Action {
         public let crew: Int
         public let response: PaginatedResponse<Movie>
@@ -639,7 +634,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct SetMovieWithKeyword: Action {
         public let keyword: Int
         public let page: Int
@@ -655,13 +650,13 @@ public struct MoviesActions {
             self.response = response
         }
     }
-        
+
     public struct ResetRandomDiscover: Action {
 
         public init() {}
-        
+
     }
-    
+
     public struct SetRandomDiscover: Action {
         public let filter: DiscoverFilter
         public let response: PaginatedResponse<Movie>
@@ -674,7 +669,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct SetActiveDiscoverFilter: Action {
         public let filter: DiscoverFilter
 
@@ -684,7 +679,7 @@ public struct MoviesActions {
             self.filter = filter
         }
     }
-    
+
     public struct PushRandomDiscover: Action {
         public let movie: Int
 
@@ -694,13 +689,13 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct PopRandromDiscover: Action {
 
         public init() {}
-        
+
     }
-    
+
     public struct SetMovieReviews: Action {
         public let movie: Int
         public let response: PaginatedResponse<Review>
@@ -713,7 +708,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
-    
+
     public struct AddCustomList: Action {
         public let list: CustomList
 
@@ -723,7 +718,7 @@ public struct MoviesActions {
             self.list = list
         }
     }
-    
+
     public struct EditCustomList: Action {
         public let list: Int
         public let title: String?
@@ -739,7 +734,7 @@ public struct MoviesActions {
             self.cover = cover
         }
     }
-    
+
     public struct AddMovieToCustomList: Action {
         public let list: Int
         public let movie: Int
@@ -752,7 +747,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct AddMoviesToCustomList: Action {
         public let list: Int
         public let movies: [Int]
@@ -765,7 +760,7 @@ public struct MoviesActions {
             self.movies = movies
         }
     }
-    
+
     public struct RemoveMovieFromCustomList: Action {
         public let list: Int
         public let movie: Int
@@ -778,7 +773,7 @@ public struct MoviesActions {
             self.movie = movie
         }
     }
-    
+
     public struct RemoveCustomList: Action {
         public let list: Int
 
@@ -788,7 +783,7 @@ public struct MoviesActions {
             self.list = list
         }
     }
-    
+
     public struct SaveDiscoverFilter: Action {
         public let filter: DiscoverFilter
 
@@ -798,7 +793,7 @@ public struct MoviesActions {
             self.filter = filter
         }
     }
-    
+
     public struct ClearSavedDiscoverFilters: Action {
         public init() {}
     }

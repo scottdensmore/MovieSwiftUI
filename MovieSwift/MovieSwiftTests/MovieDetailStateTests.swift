@@ -279,7 +279,7 @@ struct MovieDetailStateTests {
         [.similarMovie(900), .similarMovie(901), .similarSeeAll],
         [.recommendedMovie(950), .recommendedMovie(951), .recommendedSeeAll],
         [.poster("/a.jpg"), .poster("/b.jpg"), .poster("/c.jpg")],
-        [.backdrop("/bd1.jpg"), .backdrop("/bd2.jpg")]
+        [.backdrop("/bd1.jpg"), .backdrop("/bd2.jpg")],
     ]
 
     @Test func tabFromNilGoesToFirstGroupFirstItem() {
@@ -456,7 +456,7 @@ struct MovieDetailStateTests {
             (.recommendedMovie(400), "row.recommended"),
             (.recommendedSeeAll, "row.recommended"),
             (.poster("/a.jpg"), "row.posters"),
-            (.backdrop("/b.jpg"), "row.backdrops")
+            (.backdrop("/b.jpg"), "row.backdrops"),
         ]
 
         for (target, expected) in assertions {

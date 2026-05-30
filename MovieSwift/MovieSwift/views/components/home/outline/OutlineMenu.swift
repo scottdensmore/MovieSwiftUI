@@ -13,10 +13,9 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
     var id: Int {
         return self.rawValue
     }
-    
-    
+
     case popular, topRated, upcoming, nowPlaying, trending, genres, fanClub, discover, myLists, settings
-    
+
     var title: String {
         switch self {
         case .popular:    return "Popular"
@@ -31,7 +30,7 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .settings:   return "Settings"
         }
     }
-    
+
     var image: String {
         switch self {
         case .popular:    return "film.fill"
@@ -46,7 +45,7 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         case .settings:   return "wrench"
         }
     }
-    
+
     private func detailRoot<Content: View>(title: String,
                                            @ViewBuilder content: () -> Content) -> some View {
         #if os(macOS)
@@ -65,7 +64,7 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
         }
         #endif
     }
-    
+
     private func moviesList(menu: MoviesMenu,
                             isRunningUISmokeTests: Bool,
                             navigationRoute: Binding<MoviesListNavigationRoute?>) -> some View {
@@ -75,40 +74,40 @@ enum OutlineMenu: Int, CaseIterable, Identifiable {
                                   navigationRoute: navigationRoute)
         }
     }
-    
+
     private var genresList: some View {
         detailRoot(title: "Genres") {
             GenresList()
         }
     }
-    
+
     private var discoverList: some View {
         detailRoot(title: "Discover") {
             DiscoverView()
         }
     }
-    
+
     private var fanClubList: some View {
         detailRoot(title: "Fan Club") {
             FanClubHome(embedInNavigationStack: false,
                         showNavigationTitle: false)
         }
     }
-    
+
     private var myListsList: some View {
         detailRoot(title: "My Lists") {
             MyLists(embedInNavigationStack: false,
                     showNavigationTitle: false)
         }
     }
-    
+
     private var settingsList: some View {
         detailRoot(title: "Settings") {
             SettingsForm(embedInNavigationStack: false,
                          showNavigationTitle: false)
         }
     }
-    
+
     @ViewBuilder
     func contentView(isRunningUISmokeTests: Bool,
                      navigationRoute: Binding<MoviesListNavigationRoute?>) -> some View {

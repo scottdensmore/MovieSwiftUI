@@ -1,9 +1,9 @@
 import SwiftUI
 
-struct OutlineRow : View {
+struct OutlineRow: View {
     let item: OutlineMenu
     let isSelected: Bool
-    
+
     var body: some View {
         HStack {
             Group {

@@ -32,7 +32,7 @@ enum MovieCoverState {
     }
 }
 
-struct MovieCoverRow : ConnectedView {
+struct MovieCoverRow: ConnectedView {
     let movieId: Int
     #if os(macOS)
     let focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
@@ -83,7 +83,7 @@ struct MovieCoverRow : ConnectedView {
         }
         .listRowInsets(EdgeInsets()))
     }
-    
+
     private func genresBadges(props: Props) -> some View {
         let presentation = presentation(props: props)
         #if os(macOS)

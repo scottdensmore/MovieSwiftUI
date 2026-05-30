@@ -24,7 +24,7 @@ enum MoviePostersState {
     }
 }
 
-struct MoviePostersRow : View {
+struct MoviePostersRow: View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
     #if os(macOS)
@@ -101,7 +101,7 @@ struct MoviePostersRow : View {
     return MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
                                                file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                height: 720,
-                                               width: 1280)],
+                                               width: 1280), ],
                            selectedPoster: .constant(nil),
                            focusedItem: $item)
 }
@@ -110,7 +110,7 @@ struct MoviePostersRow : View {
     MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
                                          file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                          height: 720,
-                                         width: 1280)],
+                                         width: 1280), ],
                     selectedPoster: .constant(nil))
 }
 #endif

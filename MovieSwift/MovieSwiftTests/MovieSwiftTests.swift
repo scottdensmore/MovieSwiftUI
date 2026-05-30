@@ -10,6 +10,10 @@ import MovieSwiftFluxCore
 // `@MainActor`: exercises a broad slice of main-actor app code (state
 // query helpers, app-launch bootstrap, reducers via the store), so the
 // case runs on the main actor.
+//
+// 197 tests across the app's high-level behaviour live here; splitting
+// by feature is a long-running follow-up.
+// swiftlint:disable type_body_length
 @Suite @MainActor
 struct MovieSwiftTests {
     private func makeMovie(id: Int,
@@ -511,7 +515,7 @@ struct MovieSwiftTests {
                                                                                                                   place_of_birth: nil,
                                                                                                                   biography: nil,
                                                                                                                   popularity: nil,
-                                                                                                                  images: nil)],
+                                                                                                                  images: nil), ],
                                                                                                     crew: [])))
 
         #expect(updated.peoples[1]?.character == "New Role")
@@ -559,7 +563,7 @@ struct MovieSwiftTests {
         let images = [ImageData(aspect_ratio: 1,
                                 file_path: "/profile.jpg",
                                 height: 200,
-                                width: 100)]
+                                width: 100), ]
 
         let updated = peoplesStateReducer(state: state,
                                           action: PeopleActions.SetImages(people: 77, images: images))
@@ -591,7 +595,7 @@ struct MovieSwiftTests {
                                                                                                                                  status: nil,
                                                                                                                                  video: false,
                                                                                                                                  character: "New Role",
-                                                                                                                                 department: nil)],
+                                                                                                                                 department: nil), ],
                                                                                                                              crew: [])))
 
         #expect(updated.casts[7]?[12] == "New Role")
@@ -627,7 +631,7 @@ struct MovieSwiftTests {
                 makePerson(id: 1, character: "Prince Akeem"),
                 makePerson(id: 1, character: "Randy Watson"),
                 makePerson(id: 1, character: "Clarence"),
-                makePerson(id: 2, character: "Lisa McDowell")
+                makePerson(id: 2, character: "Lisa McDowell"),
             ],
             crew: []
         )
@@ -647,7 +651,7 @@ struct MovieSwiftTests {
                 makePerson(id: 1, character: "Prince Akeem"),
                 makePerson(id: 1, character: "Randy Watson"),
                 makePerson(id: 1, character: "Clarence"),
-                makePerson(id: 1, character: "Saul")
+                makePerson(id: 1, character: "Saul"),
             ],
             crew: []
         )
@@ -667,7 +671,7 @@ struct MovieSwiftTests {
             crew: [
                 makePerson(id: 7, department: "Directing"),
                 makePerson(id: 7, department: "Writing"),
-                makePerson(id: 7, department: "Production")
+                makePerson(id: 7, department: "Production"),
             ]
         )
 
@@ -686,7 +690,7 @@ struct MovieSwiftTests {
             crew: [
                 makePerson(id: 7, department: "Directing"),
                 makePerson(id: 7, department: "directing"), // case-insensitive duplicate
-                makePerson(id: 7, department: "Writing")
+                makePerson(id: 7, department: "Writing"),
             ]
         )
 
@@ -703,11 +707,11 @@ struct MovieSwiftTests {
             cast: [
                 makePerson(id: 1, character: ""),
                 makePerson(id: 2, character: "   "),
-                makePerson(id: 3, character: "Real Role")
+                makePerson(id: 3, character: "Real Role"),
             ],
             crew: [
                 makePerson(id: 10, department: nil),
-                makePerson(id: 11, department: "Editing")
+                makePerson(id: 11, department: "Editing"),
             ]
         )
 
@@ -727,11 +731,11 @@ struct MovieSwiftTests {
             id: 42,
             cast: [
                 makePerson(id: 1, character: "Hero"),
-                makePerson(id: 2, character: "Sidekick")
+                makePerson(id: 2, character: "Sidekick"),
             ],
             crew: [
                 makePerson(id: 10, department: "Directing"),
-                makePerson(id: 10, department: "Writing")
+                makePerson(id: 10, department: "Writing"),
             ]
         )
 
@@ -770,7 +774,7 @@ struct MovieSwiftTests {
                                   images: [ImageData(aspect_ratio: 1,
                                                      file_path: "/profile.jpg",
                                                      height: 200,
-                                                     width: 100)])
+                                                     width: 100), ])
         state.casts[7] = [12: "Actor"]
         state.crews[7] = [13: "Director"]
         state.detailed.insert(7)
@@ -849,7 +853,7 @@ struct MovieSwiftTests {
                                                              place_of_birth: nil,
                                                              biography: nil,
                                                              popularity: nil,
-                                                             images: nil)])
+                                                             images: nil), ])
         let seeded = peoplesStateReducer(state: state,
                                          action: PeopleActions.SetPopular(page: 1,
                                                                          response: PaginatedResponse(page: 1,
@@ -868,7 +872,7 @@ struct MovieSwiftTests {
                                                                                                                       place_of_birth: nil,
                                                                                                                       biography: nil,
                                                                                                                       popularity: nil,
-                                                                                                                      images: nil)])))
+                                                                                                                      images: nil), ])))
 
         let inFlight = peoplesStateReducer(state: seeded,
                                            action: PeopleActions.PopularRequestStarted(page: 2))
@@ -1407,7 +1411,7 @@ struct MovieSwiftTests {
         state.moviesState.moviesList[.popular] = [1, 2]
         state.moviesState.genres = [Genre(id: 0, name: "Random"),
                                     Genre(id: 1, name: "Comedy"),
-                                    Genre(id: 2, name: "Drama")]
+                                    Genre(id: 2, name: "Drama"), ]
 
         #expect(MoviesHomeGridState.movies(from: state)[.popular] == [1, 2])
         #expect(MoviesHomeGridState.genres(from: state).map(\.id) == [1, 2])
@@ -1468,7 +1472,7 @@ struct MovieSwiftTests {
         state.moviesState.seenlist = [7]
         state.moviesState.customLists = [
             3: CustomList(id: 3, name: "Favorites", cover: nil, movies: [12]),
-            8: CustomList(id: 8, name: "Watch Later", cover: nil, movies: [])
+            8: CustomList(id: 8, name: "Watch Later", cover: nil, movies: []),
         ]
 
         #expect(MovieDetailListState.isInWishlist(movieId: 12, from: state))
@@ -1493,7 +1497,7 @@ struct MovieSwiftTests {
                   genres: nil,
                   runtime: nil,
                   status: nil,
-                  video: false)
+                  video: false),
         ]
 
         #expect(MovieCrosslineState.movieIds(from: movies) == [sampleMovie.id, 12])
@@ -1613,7 +1617,7 @@ struct MovieSwiftTests {
     @Test func moviePostersStateBuildsPresentationsAndSelection() {
         let posters = [
             ImageData(aspect_ratio: 0.7, file_path: "/poster-a.jpg", height: 1000, width: 700),
-            ImageData(aspect_ratio: 0.7, file_path: "/poster-b.jpg", height: 1000, width: 700)
+            ImageData(aspect_ratio: 0.7, file_path: "/poster-b.jpg", height: 1000, width: 700),
         ]
 
         let presentations = MoviePostersState.presentations(from: posters)
@@ -1626,7 +1630,7 @@ struct MovieSwiftTests {
     @Test func movieBackdropsStateBuildsPresentations() {
         let backdrops = [
             ImageData(aspect_ratio: 1.7, file_path: "/backdrop-a.jpg", height: 1200, width: 1800),
-            ImageData(aspect_ratio: 1.7, file_path: "/backdrop-b.jpg", height: 1200, width: 1800)
+            ImageData(aspect_ratio: 1.7, file_path: "/backdrop-b.jpg", height: 1200, width: 1800),
         ]
 
         let presentations = MovieBackdropsState.presentations(from: backdrops)
@@ -1657,7 +1661,7 @@ struct MovieSwiftTests {
     @Test func genresListStateReturnsGenresFromState() {
         var state = AppState()
         state.moviesState.genres = [Genre(id: 1, name: "Comedy"),
-                                    Genre(id: 2, name: "Drama")]
+                                    Genre(id: 2, name: "Drama"), ]
 
         #expect(GenresListState.genres(from: state).map(\.id) == [1, 2])
     }
@@ -1761,7 +1765,7 @@ struct MovieSwiftTests {
                                                        selectedCountry: 0,
                                                        datesInt: [0, 1950, 1960],
                                                        genres: [Genre(id: 0, name: "Random"),
-                                                                Genre(id: 12, name: "Adventure")]) == nil)
+                                                                Genre(id: 12, name: "Adventure"), ]) == nil)
     }
 
     @Test func discoverFilterFormStateBuildsFilterFromSelections() {
@@ -1771,7 +1775,7 @@ struct MovieSwiftTests {
                                                         selectedCountry: 1,
                                                         datesInt: [0, 1950, 1960],
                                                         genres: [Genre(id: 0, name: "Random"),
-                                                                 Genre(id: 12, name: "Adventure")])
+                                                                 Genre(id: 12, name: "Adventure"), ])
 
         #expect(filter?.startYear == 1950)
         #expect(filter?.endYear == 1959)
@@ -1788,7 +1792,7 @@ struct MovieSwiftTests {
                                     genre: 28,
                                     region: "US")
         let genres = [Genre(id: 0, name: "Random"),
-                      Genre(id: 28, name: "Action")]
+                      Genre(id: 28, name: "Action"), ]
 
         #expect(DiscoverFilterFormState.selectedDate(currentFilter: filter,
                                                             datesInt: [0, 1950, 1960, 1970]) ==
@@ -2277,3 +2281,4 @@ struct MovieSwiftTests {
         #expect(MyListsPresentation.sortedMovies([], by: .byReleaseDate, state: AppState()) == [])
     }
 }
+// swiftlint:enable type_body_length

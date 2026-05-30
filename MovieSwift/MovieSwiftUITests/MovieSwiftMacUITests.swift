@@ -60,7 +60,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         let sidebarItems = ["Popular", "Top rated", "Upcoming", "Now Playing",
                             "Trending", "Genres", "Fan Club", "Discover",
-                            "My Lists", "Settings"]
+                            "My Lists", "Settings", ]
         for item in sidebarItems {
             XCTAssertTrue(
                 app.identifiedElement("sidebar.\(item)").waitForExistence(timeout: timeout),
@@ -170,7 +170,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         // The pushed MovieDetail must be gone and the new menu's
         // movie list must be at the root.
-        let detailGone = NSPredicate(format: "exists == false")
+        let detailGone = NSPredicate(format: "exists == NO")
         let detailDismissed = expectation(for: detailGone, evaluatedWith: addToListButton)
         await fulfillment(of: [detailDismissed], timeout: timeout)
 
@@ -377,7 +377,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         sortByRatings.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        let menuDismissed = expectation(for: absent, evaluatedWith: sortByRatings, handler: nil)
+        let menuDismissed = expectation(for: absent, evaluatedWith: sortByRatings)
         await fulfillment(of: [menuDismissed], timeout: timeout)
 
         XCTAssertTrue(sortButton.waitForExistence(timeout: timeout))
@@ -518,7 +518,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // popUp's accessibility value carries the chosen item's title
         // on macOS (NSPopUpButton convention).
         let valueIsAlbania = NSPredicate(format: "value == %@", "Albania")
-        let pickerUpdated = expectation(for: valueIsAlbania, evaluatedWith: regionPicker, handler: nil)
+        let pickerUpdated = expectation(for: valueIsAlbania, evaluatedWith: regionPicker)
         await fulfillment(of: [pickerUpdated], timeout: timeout)
 
         // Navigate back to Popular in the sidebar — exercises that the

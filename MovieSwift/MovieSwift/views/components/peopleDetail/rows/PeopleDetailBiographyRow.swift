@@ -12,7 +12,7 @@ enum PeopleDetailBiographyState {
     }
 }
 
-struct PeopleDetailBiographyRow : View {
+struct PeopleDetailBiographyRow: View {
     let biography: String?
     let birthDate: String?
     let deathDate: String?

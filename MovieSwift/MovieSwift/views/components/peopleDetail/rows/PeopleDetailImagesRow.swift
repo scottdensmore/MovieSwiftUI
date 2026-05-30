@@ -15,7 +15,7 @@ enum PeopleDetailImagesState {
     }
 }
 
-struct PeopleDetailImagesRow : View {
+struct PeopleDetailImagesRow: View {
     let images: [ImageData]
     @Binding var selectedPoster: ImageData?
     #if os(macOS)

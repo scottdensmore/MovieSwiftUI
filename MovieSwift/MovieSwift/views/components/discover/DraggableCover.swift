@@ -9,14 +9,14 @@ enum DiscoverPosterLookup {
     }
 }
 
-struct DraggableCover : View {
-    
+struct DraggableCover: View {
+
     // MARK: - Drag State
     enum DragState {
         case inactive
         case pressing
         case dragging(translation: CGSize, predictedLocation: CGPoint)
-        
+
         var translation: CGSize {
             switch self {
             case .inactive, .pressing:
@@ -25,7 +25,7 @@ struct DraggableCover : View {
                 return translation
             }
         }
-        
+
         var predictedLocation: CGPoint {
             switch self {
             case .inactive, .pressing:
@@ -34,7 +34,7 @@ struct DraggableCover : View {
                 return predictedLocation
             }
         }
-        
+
         var isActive: Bool {
             switch self {
             case .inactive:
@@ -43,7 +43,7 @@ struct DraggableCover : View {
                 return true
             }
         }
-        
+
         var isDragging: Bool {
             switch self {
             case .inactive, .pressing:
@@ -53,13 +53,13 @@ struct DraggableCover : View {
             }
         }
     }
-    
+
     enum EndState {
         case left, right, cancelled
     }
-    
+
     // MARK: - Internal vars
-    @State private var predictedEndLocation: CGPoint? = nil
+    @State private var predictedEndLocation: CGPoint?
     @State private var hasMoved = false
     @State private var delayedIsActive = false
     @State private var viewWidth: CGFloat = 0
@@ -67,51 +67,51 @@ struct DraggableCover : View {
     #if os(iOS)
     private let hapticFeedback = UISelectionFeedbackGenerator()
     #endif
-    
+
     // MARK: - Internal consts
     private let minimumLongPressDuration = 0.01
     private let shadowSize: CGFloat = 4
     private let shadowRadius: CGFloat = 16
-    
+
     // MARK: - Constructor vars
     let posterPath: String?
     @Binding var gestureViewState: DragState
     let onTapGesture: () -> Void
     let willEndGesture: (CGSize) -> Void
     let endGestureHandler: (EndState) -> Void
-    
+
     // MARK: - Viewd functions
-    
+
     private func computedOffset() -> CGSize {
         if let location = predictedEndLocation {
             return CGSize(width: location.x,
                           height: 0)
         }
-        
+
         return CGSize(
             width: dragState.isActive ? dragState.translation.width : 0,
             height: 0
         )
     }
-    
+
     private func computeAngle() -> Angle {
         if let location = predictedEndLocation {
             return Angle(degrees: Double(location.x / 15))
         }
         return Angle(degrees: Double(dragState.translation.width / 15))
     }
-    
+
     private var coverSpringAnimation: Animation {
         .interpolatingSpring(mass: 1, stiffness: 150, damping: 15, initialVelocity: 5)
     }
-    
+
     // MARK: - View
-    
+
     var body: some View {
         // MARK: - Gesture
         let longPressDrag = LongPressGesture(minimumDuration: minimumLongPressDuration)
             .sequenced(before: DragGesture())
-            .updating($dragState) { value, state, transaction in
+            .updating($dragState) { value, state, _ in
                 switch value {
                 case .first(true):
                     state = .pressing
@@ -123,7 +123,7 @@ struct DraggableCover : View {
                 default:
                     state = .inactive
                 }
-            }.onChanged { value in
+            }.onChanged { _ in
                 self.delayedIsActive = true
                 if self.dragState.translation.width == 0.0 {
                     self.hasMoved = false
@@ -133,7 +133,7 @@ struct DraggableCover : View {
                     self.gestureViewState = .dragging(translation: self.dragState.translation,
                                                       predictedLocation: self.dragState.predictedLocation)
                 }
-            }.onEnded { value in
+            }.onEnded { _ in
                 let endLocation = self.gestureViewState.predictedLocation
                 if endLocation.x < -150 {
                     self.predictedEndLocation = endLocation
@@ -152,7 +152,7 @@ struct DraggableCover : View {
                 }
                 self.gestureViewState = .inactive
             }
-        
+
         // MARK: - View return
         return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: posterPath,
                                                                                  size: .medium))
@@ -183,7 +183,7 @@ struct DraggableCover : View {
                         }
                 }
             )
-            .onAppear{
+            .onAppear {
                 #if os(iOS)
                 self.hapticFeedback.prepare()
                 #endif
@@ -201,7 +201,7 @@ struct DraggableCover : View {
                    willEndGesture: { _ in
 
     },
-                   endGestureHandler: {handler in
+                   endGestureHandler: {_ in
 
     })
 }

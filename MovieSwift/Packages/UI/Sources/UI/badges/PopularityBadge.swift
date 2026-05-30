@@ -1,29 +1,27 @@
 import SwiftUI
 
-public struct PopularityBadge : View {
+public struct PopularityBadge: View {
     public let score: Int
     public let textColor: Color
-    
+
     @State private var isDisplayed = false
-    
+
     public init(score: Int, textColor: Color = .primary) {
         self.score = score
         self.textColor = textColor
     }
-    
+
     var scoreColor: Color {
-        get {
-            if score < 40 {
-                return .red
-            } else if score < 60 {
-                return .orange
-            } else if score < 75 {
-                return .yellow
-            }
-            return .green
+        if score < 40 {
+            return .red
+        } else if score < 60 {
+            return .orange
+        } else if score < 75 {
+            return .yellow
         }
+        return .green
     }
-    
+
     var overlay: some View {
         ZStack {
             Circle()
@@ -38,7 +36,7 @@ public struct PopularityBadge : View {
             self.isDisplayed = true
         }
     }
-    
+
     public var body: some View {
         ZStack {
             Circle()

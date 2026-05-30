@@ -96,16 +96,16 @@ struct TabbarView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            MoviesHome(isRunningUISmokeTests: isRunningUISmokeTests).tabItem{
+            MoviesHome(isRunningUISmokeTests: isRunningUISmokeTests).tabItem {
                 self.tabbarItem(text: "Movies", image: "film")
             }.tag(Tab.movies)
-            DiscoverView().tabItem{
+            DiscoverView().tabItem {
                 self.tabbarItem(text: "Discover", image: "square.stack")
             }.tag(Tab.discover)
-            FanClubHome().tabItem{
+            FanClubHome().tabItem {
                 self.tabbarItem(text: "Fan Club", image: "star.circle.fill")
             }.tag(Tab.fanClub)
-            MyLists().tabItem{
+            MyLists().tabItem {
                 self.tabbarItem(text: "My Lists", image: "heart.circle")
             }.tag(Tab.myLists)
         }

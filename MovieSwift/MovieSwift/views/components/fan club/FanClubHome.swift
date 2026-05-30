@@ -108,7 +108,7 @@ struct FanClubHome: ConnectedView {
     @FocusState private var isFanClubFocused: Bool
     #endif
 
-    func map(state: AppState , dispatch: @escaping DispatchFunction) -> Props {
+    func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         searchTextWrapper.bindDispatchSearches { text, page in
             dispatch(PeopleActions.FetchSearch(query: text, page: page))
         }
@@ -126,7 +126,7 @@ struct FanClubHome: ConnectedView {
                      searchResults: searchResults,
                      dispatch: dispatch)
     }
-    
+
     @ViewBuilder
     private func peopleNavigationLink(people: Int) -> some View {
         #if os(macOS)
@@ -156,7 +156,7 @@ struct FanClubHome: ConnectedView {
         .accessibilityIdentifier("fanClub.person.\(people)")
         #endif
     }
-    
+
     private var searchField: some View {
         SearchField(searchTextWrapper: searchTextWrapper,
                     placeholder: "Search actors",
@@ -429,7 +429,7 @@ struct FanClubHome: ConnectedView {
         nextPopularPage += 1
         props.dispatch(PeopleActions.FetchPopular(page: page))
     }
-    
+
     func body(props: Props) -> some View {
         Group {
             if embedInNavigationStack {

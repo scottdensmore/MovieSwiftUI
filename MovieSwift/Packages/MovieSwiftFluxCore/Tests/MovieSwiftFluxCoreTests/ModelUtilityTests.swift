@@ -15,7 +15,7 @@ import Backend
             known_for: [
                 People.KnownFor(id: 100, original_title: "Movie A", poster_path: nil),
                 People.KnownFor(id: 101, original_title: nil, poster_path: nil),
-                People.KnownFor(id: 102, original_title: "Movie B", poster_path: nil)
+                People.KnownFor(id: 102, original_title: "Movie B", poster_path: nil),
             ],
             also_known_as: nil,
             birthDay: nil,
@@ -153,7 +153,7 @@ import Backend
         state.moviesState.moviesUserMeta = [
             1: MovieUserMeta(addedToList: Date(timeIntervalSince1970: 100)),
             2: MovieUserMeta(addedToList: Date(timeIntervalSince1970: 300)),
-            3: MovieUserMeta(addedToList: Date(timeIntervalSince1970: 200))
+            3: MovieUserMeta(addedToList: Date(timeIntervalSince1970: 200)),
         ]
 
         let ids = [1, 2, 3]
@@ -186,7 +186,7 @@ import Backend
             "popularity.desc",
             "popularity.asc",
             "vote_average.asc",
-            "vote_average.desc"
+            "vote_average.desc",
         ].contains(sort))
 
         let page = DiscoverFilter.randomPage()

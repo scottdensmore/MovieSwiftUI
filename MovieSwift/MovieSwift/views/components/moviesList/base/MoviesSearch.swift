@@ -8,7 +8,7 @@ final class MoviesSearchPageListener: MoviesPagesListener {
     init(dispatchSearches: ((String, Int) -> Void)? = nil) {
         self.dispatchSearches = dispatchSearches
     }
-    
+
     override func loadPage() {
         if let text = text, !text.isEmpty {
             dispatchSearches?(text, currentPage)
@@ -26,7 +26,7 @@ final class MoviesSearchTextWrapper: SearchTextObservable {
     func bindDispatchSearches(_ dispatchSearches: @escaping (String, Int) -> Void) {
         searchPageListener.dispatchSearches = dispatchSearches
     }
-    
+
     override func onUpdateTextDebounced(text: String) {
         searchPageListener.text = text
         searchPageListener.currentPage = 1

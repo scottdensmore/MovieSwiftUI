@@ -20,16 +20,16 @@ enum PeopleContextMenuFanClubAction: Equatable {
 }
 
 struct PeopleContextMenu: ConnectedView {
-    
+
     struct Props {
         let isInFanClub: Bool
         let title: String
         let systemImageName: String
         let toggleFanClub: () -> Void
     }
-    
+
     let people: Int
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         let isInFanClub = state.peoplesState.fanClub.contains(self.people)
         return Props(isInFanClub: isInFanClub,
@@ -44,7 +44,7 @@ struct PeopleContextMenu: ConnectedView {
                         }
                      })
     }
-    
+
     func body(props: Props) -> some View {
         VStack {
             Button(action: props.toggleFanClub) {

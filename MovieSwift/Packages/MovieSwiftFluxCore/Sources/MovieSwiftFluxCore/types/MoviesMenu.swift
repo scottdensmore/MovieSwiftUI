@@ -3,7 +3,7 @@ import Backend
 
 public enum MoviesMenu: Int, CaseIterable, Sendable {
     case nowPlaying, upcoming, trending, popular, topRated, genres
-    
+
     public func title() -> String {
         // `bundle: .module` is required: this type lives in the
         // MovieSwiftFluxCore package, whose localized strings are in the
@@ -29,7 +29,7 @@ public enum MoviesMenu: Int, CaseIterable, Sendable {
                           comment: "Movies menu / nav title: browse by genre")
         }
     }
-    
+
     public func endpoint() -> APIService.Endpoint {
         switch self {
         case .popular: return APIService.Endpoint.popular

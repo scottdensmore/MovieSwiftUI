@@ -15,7 +15,7 @@ public struct AppState: FluxState, Codable, Sendable {
         moviesState.movies[0] = sampleMovie
         peoplesState.peoples[0] = sampleCasts.first!
     }
-    
+
     #if DEBUG
     public init(moviesState: MoviesState, peoplesState: PeoplesState) {
         self.moviesState = moviesState

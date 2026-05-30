@@ -13,20 +13,20 @@ enum PeopleRowState {
     }
 }
 
-struct PeopleRow : ConnectedView {
+struct PeopleRow: ConnectedView {
     struct Props {
         let people: People?
         let isInFanClub: Bool
     }
-    
+
     let peopleId: Int
     var isSelected = false
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(people: PeopleRowState.people(for: peopleId, from: state),
               isInFanClub: state.peoplesState.fanClub.contains(peopleId))
     }
-    
+
     private var fanClubIcon: some View {
         Image(systemName: "star.circle")
             .imageScale(.large)
@@ -34,7 +34,7 @@ struct PeopleRow : ConnectedView {
             .transition(AnyTransition.scale
                 .combined(with: .opacity))
     }
-    
+
     func body(props: Props) -> some View {
         HStack {
             PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.people?.profile_path, size: .cast))

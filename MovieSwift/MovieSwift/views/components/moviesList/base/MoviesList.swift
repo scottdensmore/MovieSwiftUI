@@ -108,8 +108,7 @@ struct MoviesList: ConnectedView {
     enum SearchFilter: Int {
         case movies, peoples
     }
-    
-    
+
     // MARK: - binding
     @State private var searchFilter: Int = SearchFilter.movies.rawValue
     @State private var searchTextWrapper = MoviesSearchTextWrapper()
@@ -120,13 +119,13 @@ struct MoviesList: ConnectedView {
     @State private var selectedMovieId: Int?
     @FocusState private var isListFocused: Bool
     #endif
-    
+
     // MARK: - Public var
     let movies: [Int]
     let displaySearch: Bool
     var pageListener: MoviesPagesListener?
     @Binding var navigationRoute: MoviesListNavigationRoute?
-    
+
     // MARK: - Private var
     // MARK: - Computed Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
@@ -144,7 +143,7 @@ struct MoviesList: ConnectedView {
         }
         return Props(searchedMovies: nil, searchedKeywords: nil, searcherdPeoples: nil, recentSearches: [])
     }
-    
+
     // MARK: - Computed views
     private func moviesRows(props: Props) -> some View {
         let movieIds = isSearching ? props.searchedMovies ?? [] : movies
@@ -177,7 +176,7 @@ struct MoviesList: ConnectedView {
             #endif
         }
     }
-    
+
     private func movieSection(props: Props) -> some View {
         Group {
             if isSearching {
@@ -200,7 +199,7 @@ struct MoviesList: ConnectedView {
             }
         }
     }
-    
+
     private func peoplesSection(props: Props) -> some View {
         Section {
             if isSearching && props.searcherdPeoples == nil {
@@ -225,7 +224,7 @@ struct MoviesList: ConnectedView {
             }
         }
     }
-    
+
     private func keywordsSection(props: Props) -> some View {
         Section(header: Text("Keywords")) {
             ForEach(props.searchedKeywords ?? []) {keyword in
@@ -240,7 +239,7 @@ struct MoviesList: ConnectedView {
             }
         }
     }
-        
+
     private var searchField: some View {
         SearchField(searchTextWrapper: searchTextWrapper,
                     placeholder: "Search any movies or person",
@@ -248,14 +247,14 @@ struct MoviesList: ConnectedView {
                     focused: $isSearchFieldFocused)
             .scrollDismissesKeyboard(.interactively)
     }
-    
+
     private var searchFilterView: some View {
         Picker(selection: $searchFilter, label: Text("")) {
             Text("Movies").tag(SearchFilter.movies.rawValue)
             Text("People").tag(SearchFilter.peoples.rawValue)
         }.pickerStyle(.segmented)
     }
-    
+
     // MARK: - List content
     @ViewBuilder
     private func listContent(props: Props) -> some View {

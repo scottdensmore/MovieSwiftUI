@@ -25,7 +25,7 @@ struct MovieButtonsRow: ConnectedView {
     #if os(macOS)
     var focusedItem: FocusState<MovieDetailFocusTarget?>.Binding
     #endif
-    
+
     struct Props {
         let isInWishlist: Bool
         let isInSeenlist: Bool
@@ -33,14 +33,14 @@ struct MovieButtonsRow: ConnectedView {
         let onWishlistTap: () -> Void
         let onSeenlistTap: () -> Void
     }
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         let isInWishlist = state.moviesState.wishlist.contains(movieId)
         let isInSeenlist = state.moviesState.seenlist.contains(movieId)
         return Props(isInWishlist: isInWishlist,
                      isInSeenlist: isInSeenlist,
                      isInCustomList: state.moviesState.customLists.contains(where:
-                                                                               { (_, value) -> Bool in
+                                                                               { _, value -> Bool in
                                                                                    value.movies.contains(self.movieId)
                                                                                }),
                      onWishlistTap: {
@@ -64,7 +64,7 @@ struct MovieButtonsRow: ConnectedView {
                         }
                      })
     }
-    
+
     func body(props: Props) -> some View {
         HStack(alignment: .center, spacing: 8) {
             #if os(macOS)
@@ -74,14 +74,14 @@ struct MovieButtonsRow: ConnectedView {
                            color: .pink,
                            isOn: props.isInWishlist,
                            action: props.onWishlistTap)
-            
+
             macButton(id: .seenlistButton,
                            text: props.isInSeenlist ? "Seen" : "Seenlist",
                            systemImageName: "eye",
                            color: .green,
                            isOn: props.isInSeenlist,
                            action: props.onSeenlistTap)
-            
+
             macButton(id: .customListButton,
                            text: "List",
                            systemImageName: "pin",
@@ -96,13 +96,13 @@ struct MovieButtonsRow: ConnectedView {
                            color: .pink,
                            isOn: props.isInWishlist,
                            action: props.onWishlistTap)
-            
+
             BorderedButton(text: props.isInSeenlist ? "Seen" : "Seenlist",
                            systemImageName: "eye",
                            color: .green,
                            isOn: props.isInSeenlist,
                            action: props.onSeenlistTap)
-            
+
             BorderedButton(text: "List",
                            systemImageName: "pin",
                            color: .steam_gold,

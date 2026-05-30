@@ -6,11 +6,11 @@ private struct BottomMenuAnimationState: Equatable {
 }
 
 struct BottomMenu<Content>: View where Content: View {
-    
+
     enum DragState {
         case inactive
         case dragging(translation: CGSize)
-        
+
         var translation: CGSize {
             switch self {
             case .inactive:
@@ -28,22 +28,22 @@ struct BottomMenu<Content>: View where Content: View {
             }
         }
     }
-    
+
     var isPresented: Binding<Bool>
     let content: () -> Content
     let onDismiss: () -> Void
     var defaultHeight: CGFloat = 150
-    
+
     @GestureState private var dragState = DragState.inactive
-    
+
     init(isPresented: Binding<Bool>,
          onDismiss: @escaping () -> Void,
-         @ViewBuilder content: @escaping () -> Content){
+         @ViewBuilder content: @escaping () -> Content) {
         self.content = content
         self.isPresented = isPresented
         self.onDismiss = onDismiss
     }
-    
+
     func currentYOffset(geometry: GeometryProxy) -> CGFloat {
         if isPresented.wrappedValue && dragState.isDragging {
             return geometry.frame(in: .local).maxY - defaultHeight + dragState.translation.height * 0.5
@@ -52,7 +52,7 @@ struct BottomMenu<Content>: View where Content: View {
         }
         return geometry.frame(in: .local).maxY + defaultHeight
     }
-    
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .center) {
@@ -63,7 +63,7 @@ struct BottomMenu<Content>: View where Content: View {
             .background(Color.steam_background)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .offset(x: 0, y: self.currentYOffset(geometry: geometry))
-                .gesture(DragGesture().updating(self.$dragState) { drag, state, transaction in
+                .gesture(DragGesture().updating(self.$dragState) { drag, state, _ in
                     state = .dragging(translation: drag.translation)
                 }.onEnded { drag in
                     if drag.predictedEndLocation.y > geometry.frame(in: .global).maxY {

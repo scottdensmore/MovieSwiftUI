@@ -6,14 +6,14 @@ import Combine
 // SearchField is intentionally excluded on those platforms.
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-public struct SearchField : View {
+public struct SearchField: View {
     @ObservedObject var searchTextWrapper: SearchTextObservable
     let placeholder: String
     @Binding var isSearching: Bool
     var dismissButtonTitle: String
     var dismissButtonCallback: (() -> Void)?
     var focused: FocusState<Bool>.Binding?
-    
+
     public init(searchTextWrapper: SearchTextObservable,
          placeholder: String,
          isSearching: Binding<Bool>,
@@ -27,7 +27,7 @@ public struct SearchField : View {
         self.dismissButtonCallback = dismissButtonCallback
         self.focused = focused
     }
-    
+
     public var body: some View {
         GeometryReader { reader in
             HStack(alignment: .center, spacing: 0) {
@@ -86,8 +86,7 @@ public struct SearchField : View {
                         isSearching: .constant(false))
             Section(header: SearchField(searchTextWrapper: withText,
                                         placeholder: "Search anything",
-                                        isSearching: .constant(false)))
-            {
+                                        isSearching: .constant(false))) {
                 SearchField(searchTextWrapper: withText,
                             placeholder: "Search anything",
                             isSearching: .constant(false))
@@ -100,8 +99,7 @@ public struct SearchField : View {
                         isSearching: .constant(false))
             Section(header: SearchField(searchTextWrapper: withText,
                                         placeholder: "Search anything",
-                                        isSearching: .constant(false)))
-            {
+                                        isSearching: .constant(false))) {
                 SearchField(searchTextWrapper: withText,
                             placeholder: "Search anything",
                             isSearching: .constant(false))
@@ -112,4 +110,3 @@ public struct SearchField : View {
         #endif
     }
 }
-

@@ -8,7 +8,7 @@ enum MoviesCrewListState {
     }
 }
 
-struct MoviesCrewList : ConnectedView {
+struct MoviesCrewList: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let movies: [Int]

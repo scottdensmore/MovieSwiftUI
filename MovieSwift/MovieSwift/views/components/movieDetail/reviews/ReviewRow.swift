@@ -1,7 +1,7 @@
 import SwiftUI
 import MovieSwiftFluxCore
 
-struct ReviewRow : View {
+struct ReviewRow: View {
     let review: Review
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

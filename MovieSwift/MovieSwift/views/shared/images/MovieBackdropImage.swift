@@ -1,22 +1,22 @@
 import SwiftUI
 import Backend
 
-struct MovieBackdropImage : View {
+struct MovieBackdropImage: View {
     enum DisplayMode {
         case background, normal
     }
-    
+
     var imageLoader: ImageLoader
     @State var isImageLoaded = false
     @State var displayMode: DisplayMode = .normal
-    
+
     var body: some View {
         ZStack {
             if let imageData = self.imageLoader.image {
                 DataImage(data: imageData, renderingMode: .original)
                     .frame(width: 280, height: displayMode == .normal ? 168 : 50)
                     .animation(.easeInOut, value: self.imageLoader.image != nil)
-                    .onAppear{
+                    .onAppear {
                         DispatchQueue.main.async {
                             self.isImageLoaded = true
                         }

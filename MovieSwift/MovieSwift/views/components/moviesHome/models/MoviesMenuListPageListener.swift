@@ -9,14 +9,14 @@ final class MoviesMenuListPageListener: MoviesPagesListener {
     }
     var shouldLoadPage: (() -> Bool)?
     var dispatchPage: ((MoviesMenu, Int) -> Void)?
-    
+
     override func loadPage() {
         guard shouldLoadPage?() == true else {
             return
         }
         dispatchPage?(menu, currentPage)
     }
-    
+
     init(menu: MoviesMenu,
          loadOnInit: Bool? = true,
          shouldLoadPage: (() -> Bool)? = nil,
@@ -24,9 +24,9 @@ final class MoviesMenuListPageListener: MoviesPagesListener {
         self.menu = menu
         self.shouldLoadPage = shouldLoadPage
         self.dispatchPage = dispatchPage
-        
+
         super.init()
-        
+
         if loadOnInit == true {
             loadPage()
         }

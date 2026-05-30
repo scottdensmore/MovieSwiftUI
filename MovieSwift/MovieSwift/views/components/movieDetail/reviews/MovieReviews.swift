@@ -14,7 +14,7 @@ enum MovieReviewsState {
     }
 }
 
-struct MovieReviews : ConnectedView {
+struct MovieReviews: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let reviews: [Review]
@@ -32,7 +32,7 @@ struct MovieReviews : ConnectedView {
             ReviewRow(review: review)
         }
         .navigationTitle("Reviews")
-        .onAppear{
+        .onAppear {
             if MovieReviewsFetchPolicy.shouldFetchReviews(existingReviews: props.reviews) {
                 props.dispatch(MoviesActions.FetchMovieReviews(movie: self.movie))
             }

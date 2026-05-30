@@ -3,7 +3,7 @@ import Backend
 
 struct FullscreenMoviePosterImage: View {
     var imageLoader: ImageLoader
-    
+
     var body: some View {
         ZStack {
             if let imageData = self.imageLoader.image {
@@ -25,7 +25,7 @@ struct FullscreenMoviePosterImage: View {
                                    height: geometry.frame(in: .global).height)
                     }
                 }.edgesIgnoringSafeArea(.all)
-  
+
             }
         }
     }

@@ -86,6 +86,40 @@ PRIVACY_POLICY_URL = https:/$()/yoursite.com/privacy
 
 After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift`, `MovieSwiftMac`, or `MovieSwiftTV`.
 
+## Lint & Format
+
+The repo carries a `.swiftlint.yml` and `.swiftformat` at the root. CI runs
+`swiftlint --strict` on every PR (see `.github/workflows/lint.yml`); the
+formatter is local-only.
+
+Install both via Homebrew (the `setup.sh` script does this automatically if
+brew is available):
+
+```bash
+brew bundle install
+```
+
+Then:
+
+```bash
+./scripts/lint.sh              # CI-style strict lint (fails on any violation)
+./scripts/lint.sh --fix        # auto-apply correctable rules, then re-lint
+./scripts/lint.sh --warn-only  # advisory mode
+
+./scripts/format.sh            # rewrite files per .swiftformat
+./scripts/format.sh --check    # dry-run: exit non-zero if any file would change
+```
+
+The SwiftFormat config preserves existing attribute / parameter / collection
+layout — running `./scripts/format.sh` once on a large untouched tree will
+still produce a wide diff (158 files at the time the tooling was added);
+prefer targeted runs (`swiftformat path/to/file.swift`) when fixing the
+file you're already editing.
+
+Inline rule overrides use the standard SwiftLint comment syntax
+(`// swiftlint:disable:next <rule>` or `// swiftlint:disable <rule>` /
+`// swiftlint:enable <rule>` for a region).
+
 ## Testing and Coverage
 
 ### Run package tests locally

@@ -71,7 +71,7 @@ extension ActionSheet {
             return .cancel()
         }
     }
-    
+
     static func seenListButton(isInSeenlist: Bool, movie: Int, dispatch: @escaping DispatchFunction, onTrigger: (() -> Void)?) -> Alert.Button {
         let action = ActionSheetMovieListAction.seenlist(movie: movie, isInSeenlist: isInSeenlist)
         switch action {
@@ -87,7 +87,7 @@ extension ActionSheet {
             return .cancel()
         }
     }
-    
+
     static func customListsButttons(customLists: [CustomList], movie: Int, dispatch: @escaping DispatchFunction, onTrigger: (() -> Void)?) -> [Alert.Button] {
         var buttons: [Alert.Button] = []
         for list in customLists {
@@ -107,7 +107,7 @@ extension ActionSheet {
         }
         return buttons
     }
-    
+
     static func sortActionSheet(onAction: @escaping ((MoviesSort?) -> Void)) -> ActionSheet {
         let byAddedDate: Alert.Button = .default(Text("Sort by added date")) {
             onAction(.byAddedDate)
@@ -121,12 +121,12 @@ extension ActionSheet {
         let byPopularity: Alert.Button = .default(Text("Sort by popularity")) {
             onAction(.byPopularity)
         }
-        
+
         return ActionSheet(title: Text("Sort movies by"),
                            message: nil,
                            buttons: [byAddedDate, byReleaseDate, byScore, byPopularity, Alert.Button.cancel({
                             onAction(nil)
-                           })])
+                           }), ])
     }
 }
 #endif

@@ -1,7 +1,7 @@
 import SwiftUI
 import Backend
 
-struct PeopleImage : View {
+struct PeopleImage: View {
     var imageLoader: ImageLoader
 
     var body: some View {
@@ -21,8 +21,7 @@ struct PeopleImage : View {
     }
 }
 
-
-struct BigPeopleImage : View {
+struct BigPeopleImage: View {
     var imageLoader: ImageLoader
 
     var body: some View {

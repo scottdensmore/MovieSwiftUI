@@ -89,7 +89,7 @@ enum DiscoverFilterFormActionPlan {
     }
 }
 
-struct DiscoverFilterForm : ConnectedView {
+struct DiscoverFilterForm: ConnectedView {
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
     struct Props {
@@ -100,7 +100,7 @@ struct DiscoverFilterForm : ConnectedView {
     }
 
     @Environment(\.presentationMode) var presentationMode
-    
+
     let datesText = ["Random",
                      "1950-1959",
                      "1960-1969",
@@ -108,9 +108,9 @@ struct DiscoverFilterForm : ConnectedView {
                      "1980-1989",
                      "1990-1999",
                      "2000-2009",
-                     "2010-2019"]
+                     "2010-2019", ]
     let datesInt = [0, 1950, 1960, 1970, 1980, 1990, 2000, 2010]
-    
+
     @State var selectedDate: Int = 0
     @State var selectedGenre: Int = 0
     @State var selectedCountry: Int = 0
@@ -121,19 +121,17 @@ struct DiscoverFilterForm : ConnectedView {
               genres: state.moviesState.genres,
               savedFilters: state.moviesState.savedDiscoverFilters)
     }
-    
+
     var countries: [String] {
-        get {
-            var countries: [String] = ["Random"]
-            for code in NSLocale.isoCountryCodes {
-                let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
-                let name = NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id)!
-                countries.append(name)
-            }
-            return countries
+        var countries: [String] = ["Random"]
+        for code in NSLocale.isoCountryCodes {
+            let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
+            let name = NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id)!
+            countries.append(name)
         }
+        return countries
     }
-    
+
     private func syncSelections(currentFilter: DiscoverFilter?, genres: [Genre]) {
         self.selectedDate = DiscoverFilterFormState.selectedDate(currentFilter: currentFilter,
                                                                  datesInt: self.datesInt)
@@ -176,7 +174,7 @@ struct DiscoverFilterForm : ConnectedView {
             .accessibilityIdentifier("discoverFilter.countryPicker")
         })
     }
-    
+
     private func buttonsSection(props: Props) -> some View {
         Group {
             Section {
@@ -203,7 +201,7 @@ struct DiscoverFilterForm : ConnectedView {
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
                 .accessibilityIdentifier("discoverFilter.saveButton")
-                
+
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
                 }, label: {
@@ -214,7 +212,7 @@ struct DiscoverFilterForm : ConnectedView {
                 })
                 .accessibilityIdentifier("discoverFilter.cancelButton")
             }
-            
+
             Section {
                 Button(action: {
                     self.selectedCountry = 0
@@ -235,7 +233,7 @@ struct DiscoverFilterForm : ConnectedView {
             }
         }
     }
-    
+
     private func savedFiltersSection(props: Props) -> some View {
         Group {
             if !props.savedFilters.isEmpty {
@@ -282,7 +280,7 @@ struct DiscoverFilterForm : ConnectedView {
             }
         }
     }
-    
+
     func body(props: Props) -> some View {
         return NavigationStack {
             Form {
