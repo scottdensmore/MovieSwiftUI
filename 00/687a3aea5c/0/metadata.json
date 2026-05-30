@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "00687a3aea5c",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-05-30T05:32:59.329694Z",
+  "branch": "chore/lint-format-setup",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".swiftlint.yml",
+    "Brewfile",
+    "scripts/lint.sh"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-7[1m]",
+  "turn_id": "f35ade45cbc9",
+  "token_usage": {
+    "input_tokens": 8536,
+    "cache_creation_tokens": 30416153,
+    "cache_read_tokens": 2563706838,
+    "output_tokens": 3642209,
+    "api_call_count": 5924
+  },
+  "session_metrics": {
+    "turn_count": 58
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
