@@ -62,31 +62,62 @@ assertion before the visual fix lands.
 
 ## Lint & format before every commit
 
-Run the project's linter and (for files you touched) the formatter
-before staging changes. CI runs `swiftlint --strict` on every PR
-(`.github/workflows/lint.yml`) — catching violations locally avoids
-a forced fixup commit + extra CI cycle.
+Run the project's linter and formatter before staging changes. CI
+runs `./scripts/lint.sh` on every PR (`.github/workflows/lint.yml`),
+which executes `swiftlint lint --strict` — so the canonical way to
+match CI locally is `./scripts/lint.sh` (not bare `swiftlint`).
+Catching violations locally avoids a forced fixup commit + extra CI
+cycle.
 
 Before `git commit`:
 
 ```bash
-# Format only the files you touched. Targeted runs avoid reflowing
-# unrelated parts of the tree.
+# Format the files you touched, or run `./scripts/format.sh` to
+# format the whole `MovieSwift/` tree — `.swiftformat` is
+# preserve-heavy (`--wraparguments preserve`, `--wrapcollections
+# preserve`, etc.) precisely so tree-wide runs don't reflow
+# unrelated files.
 swiftformat path/to/ChangedFile.swift path/to/OtherChanged.swift
 
-# Lint the whole repo (fast, ~5s). `--fix` auto-applies correctable
-# rules (whitespace, colon spacing, trailing commas, brace position).
+# Lint the whole repo. `--fix` auto-applies SwiftLint's correctable
+# rules (trailing whitespace, colon/comma spacing, redundant void
+# return, trailing newline) and THEN re-runs `swiftlint lint --strict`
+# to surface anything autocorrect couldn't fix — same exit semantics
+# as CI.
 ./scripts/lint.sh --fix
 ```
 
-Either of the above can also be run as the bare repo-root tools
-(`swiftlint --fix` / `swiftformat MovieSwift`); the scripts just
-wire in the standard flags and exit-code semantics.
+The scripts do more than just wire in flags, and there is a parallel
+wrapper for SwiftFormat:
 
-If a rule fires on code that's intentionally exempted (font factory
-names, Redux switches, etc.), use an inline
-`// swiftlint:disable:next <rule>` annotation with a one-line
-reason rather than relaxing the rule in `.swiftlint.yml`.
+```bash
+./scripts/format.sh           # rewrite every file under MovieSwift/ in place
+./scripts/format.sh --check   # lint-only; non-zero exit if anything would change
+./scripts/lint.sh --fix       # swiftlint --fix, THEN swiftlint lint --strict
+```
+
+Running bare `swiftlint --fix` only applies auto-corrections; it does
+**not** re-lint, so non-auto-correctable violations — the exact
+failures CI's strict pass will catch — go undetected locally.
+`./scripts/lint.sh --fix` performs that second verification pass for
+you. `format.sh` is a thin wrapper around `swiftformat MovieSwift`
+that adds the `--check` mode and an install-guard.
+
+### Exemptions: two-tier policy
+
+Codebase-wide patterns (SwiftUI multi-trailing-closure builders,
+long view bodies, TMDB snake_case field names, reducer-pattern
+cyclomatic complexity) are already relaxed in `.swiftlint.yml` —
+see the header comment there for the rationale on each tuned
+threshold. Don't add new global relaxations without a similar note.
+
+For one-off outliers (font-name factories that legitimately need
+long identifier strings, the TMDB-schema struct name kept for
+backwards compatibility, the single `MoviesReducer` switch that
+exceeds even the project's already-raised `cyclomatic_complexity`
+threshold), use an inline `// swiftlint:disable:next <rule>`
+annotation with a one-line reason so the exception is documented at
+the offending site.
 
 ## No file-header boilerplate
 
