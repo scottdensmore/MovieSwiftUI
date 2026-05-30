@@ -7,18 +7,18 @@ public struct People: Codable, Identifiable, Sendable {
     public var character: String?
     public var department: String?
     public let profile_path: String?
-        
+
     public let known_for_department: String?
     public var known_for: [KnownFor]?
     public let also_known_as: [String]?
-    
+
     public let birthDay: String?
     public let deathDay: String?
     public let place_of_birth: String?
-    
+
     public let biography: String?
     public let popularity: Double?
-    
+
     public var images: [ImageData]?
 
     public init(
@@ -52,7 +52,7 @@ public struct People: Codable, Identifiable, Sendable {
         self.popularity = popularity
         self.images = images
     }
-    
+
     public struct KnownFor: Codable, Identifiable, Sendable {
         public let id: Int
         public let original_title: String?
@@ -75,7 +75,7 @@ public extension People {
         guard let knownFor = known_for else {
             return nil
         }
-        let names = knownFor.filter{ $0.original_title != nil}.map{ $0.original_title! }
+        let names = knownFor.filter { $0.original_title != nil}.map { $0.original_title! }
         return names.joined(separator: ", ")
     }
 }

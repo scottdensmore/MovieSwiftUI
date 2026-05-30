@@ -167,6 +167,12 @@ final class PeopleActionsTests {
         }
     }
 
+    /// Failure path coverage for every "fetch + dispatch SetX" action in
+    /// the suite. On a network failure, the AsyncAction's data action
+    /// (`SetDetail`, `SetImages`, `SetPeopleCredits`, `SetMovieCasts`,
+    /// `SetSearch`) must NOT be dispatched. The corresponding success
+    /// tests live as individual `@Test` methods further below because
+    /// each verifies action-specific fields.
     @Test(arguments: FailureFetchKind.allCases)
     private func fetchActionDoesNotDispatchDataActionOnFailure(kind: FailureFetchKind) async {
         let session = MockNetworkSession()
@@ -211,9 +217,6 @@ final class PeopleActionsTests {
         #expect(requestURL.path.contains("/person/5"))
     }
 
-    // Failure path now covered by
-    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchDetail)`.
-
     // MARK: - FetchImages
 
     @Test func fetchImagesDispatchesSetImagesOnSuccess() async throws {
@@ -240,9 +243,6 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.images.first?.file_path == "/img.jpg")
     }
 
-    // Failure path now covered by
-    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchImages)`.
-
     // MARK: - FetchPeopleCredits
 
     @Test func fetchPeopleCreditsDispatchesSetPeopleCreditsOnSuccess() async throws {
@@ -268,9 +268,6 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.response.cast?.first?.id == 10)
         #expect(dispatchedAction?.response.crew?.first?.id == 20)
     }
-
-    // Failure path now covered by
-    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchPeopleCredits)`.
 
     // MARK: - FetchMovieCasts
 
@@ -302,9 +299,6 @@ final class PeopleActionsTests {
         #expect(requestURL.path.contains("/movie/99/credits"))
     }
 
-    // Failure path now covered by
-    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchMovieCasts)`.
-
     // MARK: - FetchSearch
 
     @Test func fetchSearchDispatchesSetSearchOnSuccess() async throws {
@@ -328,9 +322,6 @@ final class PeopleActionsTests {
         #expect(dispatchedAction?.page == 1)
         #expect(dispatchedAction?.response.results.first?.name == "Bob")
     }
-
-    // Failure path now covered by
-    // `fetchActionDoesNotDispatchDataActionOnFailure(kind: .fetchSearch)`.
 
     // MARK: - FetchPopular
 

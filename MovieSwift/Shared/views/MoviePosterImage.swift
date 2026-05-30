@@ -4,7 +4,7 @@ import Backend
 struct MoviePosterImage: View {
     var imageLoader: ImageLoader
     let posterSize: PosterStyle.Size
-    
+
     var body: some View {
         if let imageData = imageLoader.image {
             DataImage(data: imageData, renderingMode: .original)

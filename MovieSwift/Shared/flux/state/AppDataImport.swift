@@ -25,6 +25,7 @@ nonisolated enum AppDataImport {
                               comment: "Error shown when an Import my data picked file fails to decode (corrupt JSON or wrong shape). The interpolated value is the underlying system error.")
             case .unsupportedFormatVersion(let found, let supported):
                 return String(localized: "Export file format version \(found) isn't supported by this version of MovieSwift (supported: \(supported.lowerBound)–\(supported.upperBound)).",
+                              // swiftlint:disable:next line_length
                               comment: "Error shown when an Import my data picked file uses a format version produced by a newer build of MovieSwift than the one running. \\(found), \\(supported.lowerBound), \\(supported.upperBound) are integer format-version numbers.")
             }
         }
@@ -134,20 +135,14 @@ nonisolated enum AppDataImport {
 
         // Reverse caches — only fill in entries the current state
         // doesn't already have.
-        for (id, movie) in imported.moviesState.movies {
-            if state.moviesState.movies[id] == nil {
-                state.moviesState.movies[id] = movie
-            }
+        for (id, movie) in imported.moviesState.movies where state.moviesState.movies[id] == nil {
+            state.moviesState.movies[id] = movie
         }
-        for (id, meta) in imported.moviesState.moviesUserMeta {
-            if state.moviesState.moviesUserMeta[id] == nil {
-                state.moviesState.moviesUserMeta[id] = meta
-            }
+        for (id, meta) in imported.moviesState.moviesUserMeta where state.moviesState.moviesUserMeta[id] == nil {
+            state.moviesState.moviesUserMeta[id] = meta
         }
-        for (id, person) in imported.peoplesState.peoples {
-            if state.peoplesState.peoples[id] == nil {
-                state.peoplesState.peoples[id] = person
-            }
+        for (id, person) in imported.peoplesState.peoples where state.peoplesState.peoples[id] == nil {
+            state.peoplesState.peoples[id] = person
         }
 
         // Saved discover filters — append any that don't already

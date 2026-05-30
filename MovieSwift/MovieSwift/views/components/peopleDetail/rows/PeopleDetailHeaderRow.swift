@@ -11,7 +11,7 @@ enum PeopleDetailHeaderState {
     }
 }
 
-struct PeopleDetailHeaderRow : View {
+struct PeopleDetailHeaderRow: View {
     let people: People
 
     var body: some View {

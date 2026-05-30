@@ -9,14 +9,14 @@ let package = Package(
         .iOS("26.0"),
         .macOS("26.0"),
         .tvOS("26.0"),
-        .watchOS("26.0")
+        .watchOS("26.0"),
     ],
     products: [
         .library(name: "Backend", targets: ["Backend"]),
     ],
     targets: [
         .target(name: "Backend", dependencies: []),
-        .testTarget(name: "BackendTests", dependencies: ["Backend"])
+        .testTarget(name: "BackendTests", dependencies: ["Backend"]),
     ],
     swiftLanguageModes: [
         .v6

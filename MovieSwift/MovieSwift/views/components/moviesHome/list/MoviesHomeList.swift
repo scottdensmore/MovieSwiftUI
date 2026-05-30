@@ -49,7 +49,6 @@ struct MoviesHomeList: ConnectedView {
     }
 }
 
-
 #Preview {
     NavigationStack {
         MoviesHomeList(menu: .constant(.popular),

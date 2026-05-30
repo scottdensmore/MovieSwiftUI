@@ -2,12 +2,12 @@ import SwiftUI
 import Backend
 import MovieSwiftFluxCore
 
-struct CustomListHeaderRow : View {
+struct CustomListHeaderRow: View {
     @Binding var sorting: MoviesSort
-    
+
     let list: CustomList
     let coverBackdropMovie: Movie?
-    
+
     private var headerText: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(list.name)
@@ -19,7 +19,7 @@ struct CustomListHeaderRow : View {
         }
         .padding()
     }
-    
+
     var body: some View {
         Group {
             if coverBackdropMovie != nil {

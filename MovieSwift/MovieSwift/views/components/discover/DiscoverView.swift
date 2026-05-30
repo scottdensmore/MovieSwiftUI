@@ -95,7 +95,7 @@ enum DiscoverUndoState {
 struct DiscoverView: ConnectedView {
     @EnvironmentObject private var store: Store<AppState>
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
-    
+
     // MARK: - Props
     struct Props {
         let movies: [Int]
@@ -106,23 +106,23 @@ struct DiscoverView: ConnectedView {
         let loadingFailure: MoviesListLoadFailure?
         let dispatch: DispatchFunction
     }
-    
+
     // MARK: - State vars
     @State private var draggedViewState = DraggableCover.DragState.inactive
-    @State private var previousMovie: Int? = nil
-    @State private var presentedMovie: Movie? = nil
+    @State private var previousMovie: Int?
+    @State private var presentedMovie: Movie?
     @State private var isFilterFormPresented = false
-    @State private var willEndPosition: CGSize? = nil
+    @State private var willEndPosition: CGSize?
     #if os(iOS)
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .soft)
     #endif
-    
+
     #if os(macOS)
     private let bottomSafeInsetFix: CGFloat = 100
     #else
     private let bottomSafeInsetFix: CGFloat = 20
     #endif
-    
+
     // MARK: - Map State to Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         var posters: [Int: String] = [:]
@@ -144,24 +144,24 @@ struct DiscoverView: ConnectedView {
                      loadingFailure: loadingFailure,
                      dispatch: dispatch)
     }
-    
+
     // MARK: - Functions
     private func scaleResistance() -> Double {
         Double(abs(willEndPosition?.width ?? draggedViewState.translation.width) / 6800)
     }
-    
+
     private func dragResistance() -> CGFloat {
         abs(willEndPosition?.width ?? draggedViewState.translation.width) / 12
     }
-    
+
     private func leftZoneResistance() -> CGFloat {
         -draggedViewState.translation.width / 1000
     }
-    
+
     private func rightZoneResistance() -> CGFloat {
         draggedViewState.translation.width / 1000
     }
-    
+
     private func draggableCoverEndGestureHandler(props: Props, handler: DraggableCover.EndState) {
         performDiscoverAction(decision: DiscoverSwipeDecision.from(handler: handler), props: props)
     }
@@ -188,7 +188,7 @@ struct DiscoverView: ConnectedView {
         willEndPosition = nil
         fetchRandomMovies(props: props, force: false, filter: props.filter)
     }
-    
+
     private func fetchRandomMovies(props: Props, force: Bool, filter: DiscoverFilter?) {
         if DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: props.movies.count,
                                                        force: force,
@@ -230,7 +230,7 @@ struct DiscoverView: ConnectedView {
         .opacity(opacity)
         .animation(.spring(), value: self.draggedViewState.translation)
     }
-    
+
     // MARK: Body views
     private func filterView(props: Props) -> some View {
         return BorderedButton(text: props.filter?.toText(genres: props.genres) ?? "Loading...",
@@ -241,7 +241,7 @@ struct DiscoverView: ConnectedView {
         }
         .accessibilityIdentifier("discover.filterButton")
     }
-    
+
     private func actionsButtons(props: Props) -> some View {
         ZStack(alignment: .center) {
             if props.currentMovie != nil {
@@ -254,7 +254,7 @@ struct DiscoverView: ConnectedView {
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .offset(x: 0, y: -15)
                     .animation(.easeInOut, value: self.draggedViewState.isDragging)
-                
+
                 primaryActionButton(systemImage: "heart.fill",
                                     color: .pink,
                                     decision: .wishlist,
@@ -272,8 +272,7 @@ struct DiscoverView: ConnectedView {
                                     xOffset: 70,
                                     yOffset: 0,
                                     props: props)
-                
-                
+
                 Button(action: {
                     #if os(iOS)
                     self.hapticFeedback.impactOccurred(intensity: 0.5)
@@ -298,7 +297,7 @@ struct DiscoverView: ConnectedView {
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
                     .animation(.spring(), value: self.draggedViewState.isDragging)
-                
+
                 Button(action: {
                     props.dispatch(MoviesActions.ResetRandomDiscover())
                     self.fetchRandomMovies(props: props, force: true, filter: nil)
@@ -360,7 +359,7 @@ struct DiscoverView: ConnectedView {
                                                             isDragging: self.draggedViewState.isActive))
         }
     }
-    
+
     private func swipeHintView(props: Props) -> some View {
         Group {
             if props.currentMovie != nil {
@@ -378,7 +377,7 @@ struct DiscoverView: ConnectedView {
             }
         }
     }
-    
+
     private func draggableMovies(props: Props) -> some View {
         // Stack depth = position in the reversed queue. The first
         // item is the front-of-stack draggable card; everything else
@@ -419,7 +418,7 @@ struct DiscoverView: ConnectedView {
             }
         }
     }
-    
+
     @ViewBuilder
     private func presentMovieDetails<Content: View>(_ content: Content) -> some View {
         #if os(macOS)
@@ -446,7 +445,7 @@ struct DiscoverView: ConnectedView {
             })
         #endif
     }
-    
+
     @ViewBuilder
     func body(props: Props) -> some View {
         #if os(macOS)

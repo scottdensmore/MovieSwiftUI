@@ -1,7 +1,7 @@
 import SwiftUI
 import MovieSwiftFluxCore
 
-struct MovieOverview : View {
+struct MovieOverview: View {
     let movie: Movie
     @State var isOverviewExpanded: Bool = false
 

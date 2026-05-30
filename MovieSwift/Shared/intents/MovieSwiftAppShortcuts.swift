@@ -23,7 +23,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             intent: OpenMovieSwiftIntent(),
             phrases: [
                 "Open \(.applicationName)",
-                "Launch \(.applicationName)"
+                "Launch \(.applicationName)",
             ],
             shortTitle: "Open MovieSwift",
             systemImageName: "film.stack"
@@ -33,7 +33,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Open my wishlist in \(.applicationName)",
                 "Show my wishlist in \(.applicationName)",
-                "Open \(.applicationName) wishlist"
+                "Open \(.applicationName) wishlist",
             ],
             shortTitle: "Wishlist",
             systemImageName: "heart.circle"
@@ -43,7 +43,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Discover movies in \(.applicationName)",
                 "Open Discover in \(.applicationName)",
-                "Find movies in \(.applicationName)"
+                "Find movies in \(.applicationName)",
             ],
             shortTitle: "Discover",
             systemImageName: "square.stack"
@@ -52,7 +52,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             intent: OpenFanClubIntent(),
             phrases: [
                 "Open Fan Club in \(.applicationName)",
-                "Show my Fan Club in \(.applicationName)"
+                "Show my Fan Club in \(.applicationName)",
             ],
             shortTitle: "Fan Club",
             systemImageName: "star.circle.fill"
@@ -61,7 +61,7 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             intent: OpenPopularMoviesIntent(),
             phrases: [
                 "Browse popular movies in \(.applicationName)",
-                "Show popular movies in \(.applicationName)"
+                "Show popular movies in \(.applicationName)",
             ],
             shortTitle: "Popular",
             systemImageName: "film.fill"

@@ -3,7 +3,7 @@ import SwiftUI
 struct PosterStyle: ViewModifier {
     enum Size {
         case small, medium, big, tv
-        
+
         func width() -> CGFloat {
             switch self {
             case .small: return 53
@@ -21,10 +21,10 @@ struct PosterStyle: ViewModifier {
             }
         }
     }
-    
+
     let loaded: Bool
     let size: Size
-    
+
     func body(content: Content) -> some View {
         return content
             .frame(width: size.width(), height: size.height())

@@ -40,7 +40,7 @@ final class APIKeyProviderTests {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider("user-key"),
-            StubAPIKeyProvider("bundled-key")
+            StubAPIKeyProvider("bundled-key"),
         ])
         #expect(layered.apiKey() == "user-key")
     }
@@ -49,7 +49,7 @@ final class APIKeyProviderTests {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
             StubAPIKeyProvider(nil),
-            StubAPIKeyProvider("bundled-key")
+            StubAPIKeyProvider("bundled-key"),
         ])
         #expect(layered.apiKey() == "bundled-key")
     }
@@ -57,7 +57,7 @@ final class APIKeyProviderTests {
     @Test func layeredProviderReturnsNilWhenAllProvidersAreEmpty() {
         let layered = LayeredAPIKeyProvider(providers: [
             StubAPIKeyProvider(nil),
-            StubAPIKeyProvider(nil)
+            StubAPIKeyProvider(nil),
         ])
         #expect(layered.apiKey() == nil)
     }

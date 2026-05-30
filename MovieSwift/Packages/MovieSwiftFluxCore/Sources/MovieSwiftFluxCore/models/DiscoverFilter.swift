@@ -28,7 +28,7 @@ public struct DiscoverFilter: Codable, Sendable {
     public var hasExplicitConstraints: Bool {
         startYear != nil || endYear != nil || genre != nil || region != nil
     }
-    
+
     static public func randomFilter() -> DiscoverFilter {
         return DiscoverFilter(year: randomYear(),
                               startYear: nil,
@@ -37,24 +37,24 @@ public struct DiscoverFilter: Codable, Sendable {
                               genre: nil,
                               region: nil)
     }
-    
+
     static public func randomYear() -> Int {
         let calendar = Calendar.current
         return Int.random(in: 1950..<calendar.component(.year, from: Date()))
     }
-    
+
     static public func randomSort() -> String {
         let sortBy = ["popularity.desc",
                       "popularity.asc",
                       "vote_average.asc",
-                      "vote_average.desc"]
+                      "vote_average.desc", ]
         return sortBy[Int.random(in: 0..<sortBy.count)]
     }
-    
+
     static public func randomPage() -> Int {
         return Int.random(in: 1..<20)
     }
-    
+
     public func toParams() -> [String: String] {
         toParams(page: DiscoverFilter.randomPage())
     }
@@ -103,7 +103,7 @@ public struct DiscoverFilter: Codable, Sendable {
     /// and capping at a small number means we never wander into the tail
     /// where TMDB's index is sparse.
     public static let randomPageCeiling: Int = 19
-    
+
     public func toText(genres: [Genre]) -> String {
         var parts: [String] = []
         if let startYear = startYear, let endYear = endYear {
@@ -114,7 +114,7 @@ public struct DiscoverFilter: Codable, Sendable {
                                 comment: "Discover filter description shown when no specific year range is set"))
         }
         if let genre = genre,
-            let stateGenre = genres.first(where: { (realGenre) -> Bool in
+            let stateGenre = genres.first(where: { realGenre -> Bool in
                 realGenre.id == genre
             }) {
             parts.append(stateGenre.name)

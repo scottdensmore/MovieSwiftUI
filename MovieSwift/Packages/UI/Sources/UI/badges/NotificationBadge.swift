@@ -1,22 +1,22 @@
 import SwiftUI
 
-public struct NotificationBadge : View {
+public struct NotificationBadge: View {
     public let text: String
     public let color: Color
     @Binding public var show: Bool
-    
+
     public init(text: String, color: Color, show: Binding<Bool>) {
         self.text = text
         self.color = color
         self._show = show
     }
-    
+
     var animation: Animation {
         Animation
             .spring()
             .speed(2)
     }
-    
+
     public var body: some View {
         Text(text)
             .foregroundStyle(.white)

@@ -16,9 +16,9 @@ extension View {
     }
 }
 
-struct DiscoverCoverImage : View {
+struct DiscoverCoverImage: View {
     var imageLoader: ImageLoader
-        
+
     var body: some View {
         if let imageData = imageLoader.image {
             DataImage(data: imageData, renderingMode: .original)
@@ -34,4 +34,3 @@ struct DiscoverCoverImage : View {
         }
     }
 }
-

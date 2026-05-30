@@ -2,10 +2,10 @@ import SwiftUI
 import Backend
 import MovieSwiftFluxCore
 
-struct CustomListRow : View {
+struct CustomListRow: View {
     let list: CustomList
     let coverMovie: Movie?
-    
+
     var body: some View {
         HStack(spacing: 12) {
             SmallMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverMovie?.poster_path,
@@ -24,10 +24,10 @@ struct CustomListRow : View {
     }
 }
 
-struct SmallMoviePosterImage : View {
+struct SmallMoviePosterImage: View {
     var imageLoader: ImageLoader
     @State var isImageLoaded = false
-    
+
     var body: some View {
         ZStack {
             if let imageData = self.imageLoader.image {
@@ -37,7 +37,7 @@ struct SmallMoviePosterImage : View {
                     .opacity(isImageLoaded ? 1 : 0.1)
                     .shadow(radius: 2)
                     .animation(.easeInOut, value: self.isImageLoaded)
-                    .onAppear{
+                    .onAppear {
                         self.isImageLoaded = true
                 }
             } else {

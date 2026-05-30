@@ -9,12 +9,12 @@ enum PeopleDetailMovieRowState {
     }
 }
 
-struct PeopleDetailMovieRow : View {
+struct PeopleDetailMovieRow: View {
     let movie: Movie
     let role: String
-    
+
     let onMovieContextMenu: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
@@ -38,7 +38,7 @@ struct PeopleDetailMovieRow : View {
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
         .accessibilityElement(children: .combine)
-        .contextMenu{ MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }
+        .contextMenu { MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }
     }
 }
 

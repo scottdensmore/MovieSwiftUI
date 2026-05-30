@@ -4,7 +4,7 @@ import Backend
 import UI
 import MovieSwiftFluxCore
 
-fileprivate let formatter: DateFormatter = {
+private let formatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateStyle = .medium
     return formatter
@@ -14,15 +14,15 @@ struct MovieRow: ConnectedView {
     struct Props {
         let movie: Movie
     }
-    
+
     // MARK: - Init
     let movieId: Int
     var displayListImage = true
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(movie: state.moviesState.movies[movieId] ?? Movie.placeholder(id: movieId))
     }
-    
+
     func body(props: Props) -> some View {
         HStack {
             ZStack(alignment: .topLeading) {
@@ -54,7 +54,7 @@ struct MovieRow: ConnectedView {
         }
         .padding(.top, 8)
         .padding(.bottom, 8)
-        .contextMenu{ MovieContextMenu(movieId: self.movieId) }
+        .contextMenu { MovieContextMenu(movieId: self.movieId) }
         .redacted(reason: movieId == 0 ? .placeholder : [])
     }
 }

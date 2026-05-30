@@ -333,11 +333,11 @@ struct MovieDetail: ConnectedView {
         let detailFailure: MoviesListLoadFailure?
         let dispatch: DispatchFunction
     }
-    
+
     let movieId: Int
     @EnvironmentObject private var store: Store<AppState>
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
-    
+
     // MARK: View States
     @State var isAddSheetPresented = false
     @State var isCreateListFormPresented = false
@@ -385,17 +385,17 @@ struct MovieDetail: ConnectedView {
     @FocusState private var focusedDetailItem: MovieDetailFocusTarget?
     @State private var visibleRowIds: Set<String> = []
     #endif
-        
+
     // MARK: Computed Props
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         var recommended: [Movie]?
         var similar: [Movie]?
-        
+
         if let recommendedIds = state.moviesState.recommended[movieId] {
-            recommended = recommendedIds.compactMap{ state.moviesState.movies[$0] }
+            recommended = recommendedIds.compactMap { state.moviesState.movies[$0] }
         }
         if let simillarIds = state.moviesState.similar[movieId] {
-            similar = simillarIds.compactMap{ state.moviesState.movies[$0] }
+            similar = simillarIds.compactMap { state.moviesState.movies[$0] }
         }
         let detailFailure: MoviesListLoadFailure?
         if case .failed(let f) = state.moviesState.loadingStates[.movieDetail(movieId)] {
@@ -422,7 +422,7 @@ struct MovieDetail: ConnectedView {
                      detailFailure: detailFailure,
                      dispatch: dispatch)
     }
-    
+
     // MARK: - Fetch
     func fetchMovieDetails(props: Props) {
         for slice in MovieDetailFetchPolicy.slicesToFetch(hasMovieDetail: props.hasMovieDetail,
@@ -456,7 +456,7 @@ struct MovieDetail: ConnectedView {
             self.isAddedToListBadgePresented = false
         }
     }
-    
+
     func onAddButton() {
         isAddSheetPresented.toggle()
     }
@@ -571,7 +571,6 @@ struct MovieDetail: ConnectedView {
         return backdrops.map { .backdrop($0.file_path) }
     }
 
-
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -644,11 +643,11 @@ struct MovieDetail: ConnectedView {
 
     // Kept as a method for backwards-compat but not used as a navigation destination —
     // using a method there caused MovieDetail.body to be invalidated in a loop.
-    
+
     // MARK: - Computed views
-    
+
     // MARK: - Body
-    
+
     func peopleRow(role: String, people: People?) -> some View {
         Group {
             if people != nil {
@@ -691,7 +690,7 @@ struct MovieDetail: ConnectedView {
             }
         }
     }
-    
+
     func peopleRows(props: Props) -> some View {
         Group {
             peopleRow(role: "Director", people: primaryPeopleCredit(props: props))
@@ -1082,7 +1081,7 @@ struct MovieDetail: ConnectedView {
         .accessibilityLabel("Add to list")
     }
     #endif
-    
+
     func body(props: Props) -> some View {
         _ = props.movie?.images?.posters ?? []
 
@@ -1250,8 +1249,7 @@ struct MovieDetail: ConnectedView {
         }
         #endif
     }
-    
-    
+
 }
 
 // MARK: - People list destination view

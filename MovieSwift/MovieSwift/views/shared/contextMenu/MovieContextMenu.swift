@@ -12,13 +12,13 @@ struct MovieContextMenu: ConnectedView {
         let onAddToSeenList: () -> Void
         let onAddToCustomList: (Int) -> Void
     }
-    
+
     let movieId: Int
-    
+
     var onAction: (() -> Void)?
-    
+
     private func customListsView(props: Props) -> some View {
-        ForEach(props.customLists.compactMap{ $0.value }, id: \.id) { list in
+        ForEach(props.customLists.compactMap { $0.value }, id: \.id) { list in
             let isIn = list.movies.contains(self.movieId)
             let label = isIn ? "Remove from \(list.name)" : "Add to \(list.name)"
             Button(action: {
@@ -70,7 +70,7 @@ struct MovieContextMenu: ConnectedView {
             customListsView(props: props)
         }
     }
-    
+
 }
 
 // MARK: - State to props
@@ -91,7 +91,7 @@ extension MovieContextMenu {
             self.onAddToCustomList(list: list, isIn: isIn, dispatch: dispatch)
         })
     }
-    
+
 }
 
 // MARK: - Actions
@@ -103,7 +103,7 @@ extension MovieContextMenu {
             dispatch(MoviesActions.AddToWishlist(movie: movieId))
         }
     }
-    
+
     private func onAddToSeenlist(isIn: Bool, dispatch: DispatchFunction) {
         if isIn {
             dispatch(MoviesActions.RemoveFromSeenList(movie: movieId))
@@ -111,7 +111,7 @@ extension MovieContextMenu {
             dispatch(MoviesActions.AddToSeenList(movie: movieId))
         }
     }
-    
+
     private func onAddToCustomList(list: Int, isIn: Bool, dispatch: DispatchFunction) {
         if isIn {
             dispatch(MoviesActions.RemoveMovieFromCustomList(list: list, movie: movieId))
@@ -119,7 +119,7 @@ extension MovieContextMenu {
             dispatch(MoviesActions.AddMovieToCustomList(list: list, movie: movieId))
         }
     }
-    
+
 }
 
 #Preview {

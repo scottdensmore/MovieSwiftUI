@@ -49,7 +49,7 @@ enum CustomListFormPresentation {
     }
 }
 
-struct CustomListForm : ConnectedView {
+struct CustomListForm: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let customLists: [Int: CustomList]
@@ -59,12 +59,12 @@ struct CustomListForm : ConnectedView {
     }
 
     @Environment(\.presentationMode) var presentationMode
-    
+
     @State private var searchTextWrapper = CustomListFormSearchWrapper()
     @State private var isSearching = false
     @State var listName: String = ""
     @State var listMovieCover: Int?
-    
+
     let editingListId: Int?
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
@@ -77,7 +77,7 @@ struct CustomListForm : ConnectedView {
               coverMovie: CustomListFormPresentation.coverMovie(coverId: listMovieCover,
                                                                 movies: state.moviesState.movies))
     }
-    
+
     private var topSection: some View {
         Section(header: Text("List information"),
                 content: {
@@ -88,7 +88,7 @@ struct CustomListForm : ConnectedView {
                     }
         })
     }
-    
+
     private func coverSection(props: Props) -> some View {
         Section(header: Text("List cover")) {
             if listMovieCover == nil {
@@ -107,15 +107,15 @@ struct CustomListForm : ConnectedView {
                     Text("Remove cover").foregroundStyle(.red)
                 })
             }
-            
+
             if !searchTextWrapper.searchText.isEmpty {
                 movieSearchSection(props: props)
             }
         }
     }
-    
+
     private func movieSearchSection(props: Props) -> some View {
-        Section() {
+        Section {
             ScrollView(.horizontal) {
                 HStack(spacing: 16) {
                     ForEach(props.searchedMovies) { movie in
@@ -132,7 +132,7 @@ struct CustomListForm : ConnectedView {
             .listRowInsets(EdgeInsets())
         }
     }
-    
+
     private func buttonsSection(props: Props) -> some View {
         Section {
             Button(action: {
@@ -161,7 +161,7 @@ struct CustomListForm : ConnectedView {
             .accessibilityIdentifier("customListForm.cancelButton")
         }
     }
-    
+
     func body(props: Props) -> some View {
         NavigationStack {
             Form {
@@ -171,7 +171,7 @@ struct CustomListForm : ConnectedView {
             }
             .navigationTitle("New list")
         }
-        .onAppear() {
+        .onAppear {
             searchTextWrapper.bindDispatchSearches { text, page in
                 props.dispatch(MoviesActions.FetchSearch(query: text, page: page))
             }

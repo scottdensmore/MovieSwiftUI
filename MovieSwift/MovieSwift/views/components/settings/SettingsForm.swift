@@ -51,7 +51,7 @@ enum SettingsFormCacheResetPolicy {
     }
 }
 
-struct SettingsForm : ConnectedView {
+struct SettingsForm: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let debugMoviesCount: Int
@@ -98,7 +98,7 @@ struct SettingsForm : ConnectedView {
     @State private var isOnboardingResetConfirmationPresented = false
     var embedInNavigationStack = true
     var showNavigationTitle = true
-    var onClose: (() -> Void)? = nil
+    var onClose: (() -> Void)?
     @EnvironmentObject private var store: Store<AppState>
     @Environment(\.dismiss) private var dismiss
     @Environment(\.archivedStateSizeDescription) private var archivedStateSizeDescription
@@ -111,21 +111,19 @@ struct SettingsForm : ConnectedView {
     private var isModalPresentation: Bool {
         onClose != nil
     }
-    
+
     private var regions: [RegionOption] {
-        get {
-            var regions: [RegionOption] = []
-            for code in NSLocale.isoCountryCodes {
-                let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
-                if let name = NSLocale(localeIdentifier: "en_US")
-                    .displayName(forKey: NSLocale.Key.identifier, value: id) {
-                    regions.append(RegionOption(code: code, name: name))
-                }
+        var regions: [RegionOption] = []
+        for code in NSLocale.isoCountryCodes {
+            let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
+            if let name = NSLocale(localeIdentifier: "en_US")
+                .displayName(forKey: NSLocale.Key.identifier, value: id) {
+                regions.append(RegionOption(code: code, name: name))
             }
-            return regions.sorted { $0.name < $1.name }
         }
+        return regions.sorted { $0.name < $1.name }
     }
-    
+
     func debugInfoView(title: String, info: String) -> some View {
         HStack {
             Text(title)
@@ -465,6 +463,7 @@ struct SettingsForm : ConnectedView {
                 .accessibilityIdentifier("settings.tmdb.getKeyLink")
             })
             Section(header: Text("App data"),
+                    // swiftlint:disable:next line_length
                     footer: Text("Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting any previous backup), and Restore merges the latest iCloud backup back into your library. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate."),
                     content: {
                 Button(role: .destructive) {
@@ -688,6 +687,7 @@ struct SettingsForm : ConnectedView {
 
     private var tmdbAPIKeySection: some View {
         sectionCard(title: "TMDB API key",
+                    // swiftlint:disable:next line_length
                     footer: "MovieSwift uses the TMDB API for everything you see. The bundled key is shared by every install — paste your own key from your TMDB account to use your own quota and avoid shared rate limits.") {
             apiKeyStatusRow
             rowDivider
@@ -699,6 +699,7 @@ struct SettingsForm : ConnectedView {
 
     private var appDataSection: some View {
         sectionCard(title: "App data",
+                    // swiftlint:disable:next line_length
                     footer: "Export and Import work with a local JSON file you choose yourself. Backup uploads the same envelope to iCloud Drive (overwriting the latest version), and Restore merges the latest iCloud backup back into your library. Show previous backups lets you pick from older versions iCloud Drive has retained — useful if you accidentally backed up empty state. Your existing data is preserved on Restore — Clear cached data first if you want a clean slate.") {
             clearCachedDataRow
             rowDivider
@@ -1088,6 +1089,7 @@ struct SettingsForm : ConnectedView {
     // MARK: - TMDB API key rows
 
     private var apiKeyStatusRow: some View {
+        // swiftlint:disable:next large_tuple
         let (icon, iconColor, label, labelColor): (String, Color, String, Color) = {
             switch currentAPIKeySource {
             case .userProvided:
@@ -1208,7 +1210,7 @@ struct SettingsForm : ConnectedView {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
     }
-    
+
     @ViewBuilder
     private func screen(props: Props) -> some View {
         if showNavigationTitle {
@@ -1238,7 +1240,7 @@ struct SettingsForm : ConnectedView {
             formContent(props: props)
         }
     }
-    
+
     func body(props: Props) -> some View {
         Group {
             if embedInNavigationStack {

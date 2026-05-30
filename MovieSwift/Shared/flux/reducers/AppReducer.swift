@@ -53,6 +53,10 @@ nonisolated enum AppStateCacheReset {
     }
 }
 
+// `nonisolated`: this is the SwiftUIFlux store's reducer, a pure
+// (State, Action) -> State function. It must stay off the main actor so it
+// satisfies the nonisolated `Reducer` type the Store initializer expects.
+
 /// App-shell wrapper around `MovieSwiftFluxCore.appStateReducer` that adds two
 /// app-only actions:
 ///   - `AppActions.ClearCachedData`: drops every cached TMDB movie/person except
@@ -60,9 +64,6 @@ nonisolated enum AppStateCacheReset {
 ///   - `AppActions.ImportAppData`: merges a previously-exported state envelope.
 /// Both depend on app-target types (`AppDataImport`, `AppDataExportEnvelope`)
 /// that aren't available inside the package.
-// `nonisolated`: this is the SwiftUIFlux store's reducer, a pure
-// (State, Action) -> State function. It must stay off the main actor so it
-// satisfies the nonisolated `Reducer` type the Store initializer expects.
 nonisolated func appReducerWithImports(state: AppState, action: Action) -> AppState {
     if action is AppActions.ClearCachedData {
         return AppStateCacheReset.persistentSnapshot(from: state)

@@ -7,9 +7,9 @@ struct MoviesHomeGridMoviesRow: ConnectedView {
     struct Props {
         let movies: [Movie]
     }
-    
+
     let movies: [Int]
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         var movies: [Movie] = []
         for id in self.movies {
@@ -19,7 +19,7 @@ struct MoviesHomeGridMoviesRow: ConnectedView {
         }
         return Props(movies: movies)
     }
-    
+
     func body(props: Props) -> some View {
         ScrollView(.horizontal, showsIndicators: true) {
             LazyHStack(spacing: 16) {
@@ -29,7 +29,7 @@ struct MoviesHomeGridMoviesRow: ConnectedView {
                             MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.poster_path,
                                                                                             size: .medium),
                                              posterSize: .medium)
-                                .contextMenu{ MovieContextMenu(movieId: movie.id) }
+                                .contextMenu { MovieContextMenu(movieId: movie.id) }
                             ListImage(movieId: movie.id)
                         }
                     }

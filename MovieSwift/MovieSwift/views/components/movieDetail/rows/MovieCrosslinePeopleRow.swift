@@ -27,7 +27,7 @@ enum MovieCrosslinePeopleState {
     }
 }
 
-struct MovieCrosslinePeopleRow : View {
+struct MovieCrosslinePeopleRow: View {
     let title: String
     let peoples: [People]
     let onSelectPeople: (Int) -> Void
@@ -135,7 +135,7 @@ struct PeopleListItem: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(presentation.name)
         .accessibilityValue(presentation.subtitle ?? "")
-        .contextMenu{ PeopleContextMenu(people: people.id) }
+        .contextMenu { PeopleContextMenu(people: people.id) }
     }
 }
 
@@ -194,7 +194,7 @@ struct PeopleRowItem: View {
             }
         }
         .frame(width: 100)
-        .contextMenu{ PeopleContextMenu(people: people.id) }
+        .contextMenu { PeopleContextMenu(people: people.id) }
     }
 }
 

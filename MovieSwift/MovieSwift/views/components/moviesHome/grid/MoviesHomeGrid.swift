@@ -58,8 +58,8 @@ struct MoviesHomeGrid: ConnectedView {
                    navigationRoute: navigationRoute)
             .navigationTitle(menu.title())
     }
-            
-    private func moviesRow(menu: MoviesMenu, props: Props) -> some View{
+
+    private func moviesRow(menu: MoviesMenu, props: Props) -> some View {
         VStack(alignment: .leading) {
             HStack {
                 Text(menu.title())
@@ -86,13 +86,13 @@ struct MoviesHomeGrid: ConnectedView {
             }
         }.listRowInsets(EdgeInsets())
     }
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(dispatch: dispatch,
               movies: MoviesHomeGridState.movies(from: state),
               genres: MoviesHomeGridState.genres(from: state))
     }
-    
+
     func body(props: Props) -> some View {
         VStack(spacing: 0) {
             List {

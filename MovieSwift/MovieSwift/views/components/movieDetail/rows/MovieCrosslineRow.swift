@@ -22,7 +22,7 @@ enum MovieCrosslineState {
     }
 }
 
-struct MovieCrosslineRow : View {
+struct MovieCrosslineRow: View {
     let title: String
     let movies: [Movie]
     let onSelectMovie: (Int) -> Void

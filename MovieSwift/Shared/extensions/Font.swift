@@ -1,6 +1,12 @@
 import Foundation
 import SwiftUI
 
+// Font factory function names mirror the proper-noun font names
+// ("AmericanCaptain", "FjallaOne", "FHACondFrenchNC") for traceability
+// against the font assets in the bundle, so the usual Swift lowercase-
+// function-name rule doesn't apply.
+// swiftlint:disable identifier_name
+
 extension Font {
     /// Custom-font factories accept an optional `relativeTo:` so the
     /// resulting font scales with the user's Dynamic Type setting.
@@ -24,6 +30,8 @@ extension Font {
         return Font.custom("FjallaOne-Regular", size: size, relativeTo: style)
     }
 }
+
+// swiftlint:enable identifier_name
 
 struct TitleFont: ViewModifier {
     let size: CGFloat

@@ -36,7 +36,7 @@ struct CarouselImageView: View {
     }
 }
 
-struct ImagesCarouselView : View {
+struct ImagesCarouselView: View {
     let posters: [ImageData]
     @Binding var selectedPoster: ImageData?
 
@@ -323,6 +323,6 @@ struct ImagesCarouselView : View {
                                        ImageData(aspect_ratio: 0.666666666666667,
                                                   file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                   height: 720,
-                                                  width: 1280)],
+                                                  width: 1280), ],
                              selectedPoster: .constant(nil))
 }

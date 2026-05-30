@@ -12,7 +12,7 @@ enum MyListsPresentation {
     }
 }
 
-struct MyLists : ConnectedView {
+struct MyLists: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let customLists: [CustomList]
@@ -20,7 +20,7 @@ struct MyLists : ConnectedView {
         let seenlist: [Int]
         let movieLookup: [Int: Movie]
     }
-    
+
     // MARK: - Vars
     var embedInNavigationStack = true
     var showNavigationTitle = true
@@ -37,7 +37,7 @@ struct MyLists : ConnectedView {
     @State private var highlightedItemId: Int?
     @FocusState private var isListFocused: Bool
     #endif
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(dispatch: dispatch,
               customLists: MyListsPresentation.customLists(from: state.moviesState.customLists),
@@ -49,9 +49,9 @@ struct MyLists : ConnectedView {
                                                          state: state),
               movieLookup: state.moviesState.movies)
     }
-    
+
     // MARK: - Dynamic views
-    
+
     private func customListsSection(props: Props) -> some View {
         Section(header: Text("Custom Lists")) {
             Button(action: {
@@ -80,13 +80,13 @@ struct MyLists : ConnectedView {
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
-            .onDelete { (index) in
+            .onDelete { index in
                 let list = props.customLists[index.first!]
                 props.dispatch(MoviesActions.RemoveCustomList(list: list.id))
             }
         }
     }
-    
+
     private func wishlistSection(props: Props) -> some View {
         Section(header: Text("\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")) {
             ForEach(props.wishlist, id: \.self) {id in
@@ -107,7 +107,7 @@ struct MyLists : ConnectedView {
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
-            .onDelete { (index) in
+            .onDelete { index in
                 let movie = props.wishlist[index.first!]
                 props.dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
 
@@ -135,13 +135,13 @@ struct MyLists : ConnectedView {
                 .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
-            .onDelete { (index) in
+            .onDelete { index in
                 let movie = props.seenlist[index.first!]
                 props.dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
             }
         }
     }
-    
+
     @ViewBuilder
     private func listView(props: Props) -> some View {
         #if os(macOS)
@@ -476,7 +476,7 @@ struct MyLists : ConnectedView {
         return .handled
     }
     #endif
-    
+
     @ViewBuilder
     private func screen(props: Props) -> some View {
         if showNavigationTitle {
@@ -485,7 +485,7 @@ struct MyLists : ConnectedView {
             listView(props: props)
         }
     }
-    
+
     func body(props: Props) -> some View {
         Group {
             if embedInNavigationStack {

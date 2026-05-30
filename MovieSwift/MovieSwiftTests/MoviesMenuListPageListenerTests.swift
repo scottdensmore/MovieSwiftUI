@@ -12,6 +12,9 @@ import MovieSwiftFluxCore
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: exercises `MoviesMenuListPageListener`, a main-actor
+// pagination listener, so the test methods must run on the main actor.
+
 /// Unit tests for the pagination trigger that drives the home-list
 /// "scroll to bottom → load next page" journey. The UI journey itself
 /// is hard to drive deterministically without a network mock — but the
@@ -25,8 +28,6 @@ import MovieSwiftFluxCore
 /// `testMoviesReducerSetMovieMenuListPageTwoAppendsList`) so the
 /// data layer for pagination is covered end-to-end across the two
 /// suites.
-// `@MainActor`: exercises `MoviesMenuListPageListener`, a main-actor
-// pagination listener, so the test methods must run on the main actor.
 @Suite @MainActor
 struct MoviesMenuListPageListenerTests {
 

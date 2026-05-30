@@ -43,7 +43,7 @@ public struct PeoplesState: FluxState, Codable, Sendable {
     public var imagesLoaded: Set<Int> = Set()
     public var creditsLoaded: Set<Int> = Set()
     public var movieCreditsLoaded: Set<Int> = Set()
-    
+
     /// [PeopleId: [MovieId:  Character]]
     public var casts: [Int: [Int: String]] = [:]
     /// [PeopleId: [MovieId:  Character]]
@@ -52,9 +52,9 @@ public struct PeoplesState: FluxState, Codable, Sendable {
     public var movieCastOrder: [Int: [Int]] = [:]
     /// [MovieId: [PeopleId]]
     public var movieCrewOrder: [Int: [Int]] = [:]
-    
+
     public var fanClub: Set<Int> = Set()
-    
+
     public enum CodingKeys: String, CodingKey {
         case peoples
         case fanClub

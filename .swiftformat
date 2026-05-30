@@ -1,0 +1,80 @@
+# SwiftFormat configuration for MovieSwiftUI.
+# Reference: https://github.com/nicklockwood/SwiftFormat/blob/main/Rules.md
+#
+# Optimized to preserve existing style: 4-space indent, K&R braces,
+# DocC comments, no Xcode-template file headers. Designed to be safe
+# to run with `./scripts/format.sh` without rewriting attribute /
+# parameter layout the team already prefers.
+
+# --- Swift version --------------------------------------------------------
+--swiftversion 6.0
+
+# --- What NOT to touch ----------------------------------------------------
+# `.swiftformat` is treated as repo-root config; the format script targets
+# `MovieSwift`, so `.build` and `DerivedData` are naturally outside scope.
+# Skip asset catalogs and preview content explicitly anyway.
+--exclude .build,DerivedData,**/Assets.xcassets,**/Preview Content
+
+# --- Layout ---------------------------------------------------------------
+--indent 4
+--tabwidth 4
+--smarttabs enabled
+--maxwidth 140
+--linebreaks lf
+--trimwhitespace always
+--ranges spaced
+--operatorfunc spaced
+
+# Preserve existing argument/parameter/return layout. The codebase uses a
+# mix of styles depending on context (long Movie constructors fold over
+# many lines, short SwiftUI initializers stay on one). Re-flowing them
+# would churn a huge diff for negligible gain.
+--wraparguments preserve
+--wrapparameters preserve
+--wrapcollections preserve
+--wrapreturntype preserve
+--wrapconditions preserve
+--closingparen balanced
+--commas inline
+
+# --- Braces & spacing -----------------------------------------------------
+--allman false
+--elseposition same-line
+--guardelse same-line
+--emptybraces no-space
+
+# --- Attribute placement --------------------------------------------------
+# Preserve attribute placement; Swift Testing's `@Test func name()` and
+# SwiftUI's `@Observable final class X` look fine inline, and pre-line
+# `@MainActor` / `@Suite` decorators are kept where the author wrote
+# them.
+--funcattributes preserve
+--typeattributes preserve
+--varattributes preserve
+
+# --- Self & access --------------------------------------------------------
+--patternlet hoist
+--self remove
+--selfrequired
+--stripunusedargs closure-only
+--importgrouping testable-bottom
+--marktypes always
+--markextensions if-not-empty
+
+# --- File headers ---------------------------------------------------------
+# Project policy (CLAUDE.md): new .swift files must NOT include the Xcode
+# template header block. Empty `--header` strips any existing block on
+# format.
+--header strip
+
+# --- Disabled rules -------------------------------------------------------
+# `wrapMultilineStatementBraces` would reflow K&R-style braces in some
+# multi-line statements. `redundantReturn` removes `return` in single-
+# expression bodies — the codebase mixes both styles intentionally
+# (explicit `return` in trailing-closure builders for readability).
+# `blankLinesAroundMark` adds blank lines around `// MARK:` comments,
+# which the existing code rarely uses.
+--disable wrapMultilineStatementBraces,blankLinesAroundMark,redundantReturn
+
+# --- Enabled opt-in rules -------------------------------------------------
+--enable isEmpty,sortImports,wrapEnumCases,markTypes

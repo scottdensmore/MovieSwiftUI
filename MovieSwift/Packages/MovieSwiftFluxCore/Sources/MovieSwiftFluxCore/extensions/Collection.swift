@@ -2,7 +2,7 @@ import Foundation
 
 public enum MoviesSort {
     case byReleaseDate, byAddedDate, byScore, byPopularity
-    
+
     public func title() -> String {
         // `bundle: .module`: localized strings live in the
         // MovieSwiftFluxCore package's own catalog, not the app bundle.
@@ -21,7 +21,7 @@ public enum MoviesSort {
                           comment: "Sort option: order movies by popularity")
         }
     }
-    
+
     public func sortByAPI() -> String {
         switch self {
         case .byReleaseDate:

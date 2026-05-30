@@ -1,10 +1,10 @@
 import SwiftUI
 import Backend
 
-struct BigMoviePosterImage : View {
+struct BigMoviePosterImage: View {
     var imageLoader: ImageLoader
     @State var isImageLoaded = false
-    
+
     var body: some View {
         ZStack(alignment: .center) {
             if let imageData = self.imageLoader.image {
@@ -12,7 +12,7 @@ struct BigMoviePosterImage : View {
                     .posterStyle(loaded: true, size: .big)
                     .scaleEffect(self.isImageLoaded ? 1 : 0.6)
                     .animation(.spring(), value: self.isImageLoaded)
-                    .onAppear{
+                    .onAppear {
                         self.isImageLoaded = true
                 }
             } else {

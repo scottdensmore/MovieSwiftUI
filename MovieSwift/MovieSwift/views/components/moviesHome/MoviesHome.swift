@@ -19,7 +19,7 @@ enum MoviesHomeState {
     }
 }
 
-struct MoviesHome : ConnectedView {
+struct MoviesHome: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
     }
@@ -28,7 +28,7 @@ struct MoviesHome : ConnectedView {
 
     enum HomeMode {
         case list, grid
-        
+
         func icon() -> String {
             switch self {
             case .list: return "rectangle.3.offgrid.fill"
@@ -57,7 +57,7 @@ struct MoviesHome : ConnectedView {
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(dispatch: dispatch)
     }
-        
+
     private var settingButton: some View {
         Button(action: {
             self.isSettingPresented = true
@@ -87,7 +87,7 @@ struct MoviesHome : ConnectedView {
         .accessibilityLabel("Toggle layout")
         .accessibilityIdentifier("moviesHome.toggleLayoutButton")
     }
-    
+
     @ViewBuilder
     private var homeAsList: some View {
         TabView(selection: $selectedMenu.menu) {
@@ -108,7 +108,7 @@ struct MoviesHome : ConnectedView {
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
         #endif
     }
-    
+
     private var homeAsGrid: some View {
         MoviesHomeGrid(navigationRoute: $navigationRoute,
                        isRunningUISmokeTests: isRunningUISmokeTests)
@@ -122,7 +122,7 @@ struct MoviesHome : ConnectedView {
             props.dispatch(MoviesActions.FetchMoviesMenuList(list: menu, page: page))
         }
     }
-        
+
     func body(props: Props) -> some View {
         NavigationStack {
             Group {

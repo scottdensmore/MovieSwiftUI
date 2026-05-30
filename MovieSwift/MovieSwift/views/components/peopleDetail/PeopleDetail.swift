@@ -79,7 +79,7 @@ enum PeopleDetailState {
 enum PeopleDetailMovieGrouping {
     static func group(credits: [Int: String], movies: [Int: Movie]) -> [String: [PeopleDetail.MovieRole]] {
         var years: [String: [PeopleDetail.MovieRole]] = [:]
-        for (_, value) in credits.enumerated() {
+        for value in credits {
             if let movie = movies[value.key] {
                 if movie.release_date != nil && movie.release_date?.isEmpty == false {
                     let year = String(movie.release_date!.prefix(4))
@@ -144,13 +144,13 @@ struct PeopleDetail: ConnectedView {
         /// failure matters most because without it the page is empty.
         let detailFailure: MoviesListLoadFailure?
     }
-    
+
     struct MovieRole: Identifiable {
         var id: Int { movie.id }
         let movie: Movie
         let role: String
     }
-    
+
     let peopleId: Int
 
     @State var selectedPoster: ImageData?
@@ -162,7 +162,7 @@ struct PeopleDetail: ConnectedView {
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focusedDetailItem: PeopleDetailFocusTarget?
     #endif
-    
+
     private func fetchPeopleData(props: Props) {
         if PeopleDetailFetchPolicy.shouldFetchDetail(isRunningUISmokeTests: isRunningUISmokeTests,
                                                      hasLoadedDetail: props.hasLoadedDetail) {
@@ -185,8 +185,8 @@ struct PeopleDetail: ConnectedView {
     private func movieAccessibilityIdentifier(_ id: Int) -> String {
         "peopleDetail.movie.\(id)"
     }
-    
-    //MARK: - Views
+
+    // MARK: - Views
     private func toggleScoreUpdate() {
         withAnimation {
             self.isFanScoreUpdated = true
@@ -197,7 +197,7 @@ struct PeopleDetail: ConnectedView {
             }
         }
     }
-    
+
     @ViewBuilder
     private func moviesSection(props: Props, year: String) -> some View {
         // ForEach iterates sortedYears(from: movieByYears) so every
@@ -246,7 +246,7 @@ struct PeopleDetail: ConnectedView {
         }
         #endif
     }
-    
+
     private func barbuttons(props: Props) -> some View {
         Button(action: {
             props.isInFanClub.wrappedValue.toggle()
@@ -266,7 +266,7 @@ struct PeopleDetail: ConnectedView {
                             ? "Remove from fan club"
                             : "Add to fan club")
     }
-    
+
     private func scoreUpdateView(props: Props) -> some View {
         Group {
             if isFanScoreUpdated {
@@ -287,7 +287,7 @@ struct PeopleDetail: ConnectedView {
             }
         }
     }
-    
+
     private func imagesCarouselView(props: Props) -> some View {
         ImagesCarouselView(posters: props.people.images ?? [],
                            selectedPoster: $selectedPoster)
@@ -296,7 +296,7 @@ struct PeopleDetail: ConnectedView {
             .opacity(selectedPoster != nil ? 1 : 0)
             .animation(.spring(), value: selectedPoster != nil)
     }
-    
+
     func body(props: Props) -> some View {
         platformBody(props: props)
             .animation(.spring(), value: isFanScoreUpdated)
@@ -524,12 +524,12 @@ extension PeopleDetail {
     private func sortedYears(props: Props) -> [String] {
         PeopleDetailState.sortedYears(from: props.movieByYears)
     }
-    
+
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         let credits = PeopleDetailCreditsState.mergedCredits(cast: state.peoplesState.casts[peopleId] ?? [:],
                                                              crew: state.peoplesState.crews[peopleId] ?? [:])
         let years = PeopleDetailMovieGrouping.group(credits: credits, movies: state.moviesState.movies)
-        
+
         let isInFanClub = Binding<Bool>(
             get: { state.peoplesState.fanClub.contains(self.peopleId) },
             set: {
@@ -540,19 +540,19 @@ extension PeopleDetail {
                 }
         }
         )
-        
+
         var movieScore: Int = 0
         if isInFanClub.wrappedValue {
-            let roles = years.map{ $0.value }.flatMap{ $0 }.map{ $0.id }
+            let roles = years.map { $0.value }.flatMap { $0 }.map { $0.id }
             let rolesCount = roles.count
             let userMovies = roles.filter { movie -> Bool in
                             state.moviesState.seenlist.contains(movie) ||
                             state.moviesState.wishlist.contains(movie) ||
-                                state.moviesState.customLists.contains{ $1.movies.contains(movie) }
+                                state.moviesState.customLists.contains { $1.movies.contains(movie) }
                         }
-            movieScore = userMovies.count > 0 ? Int((Float(userMovies.count) / Float(rolesCount)) * 100) : 0
+            movieScore = !userMovies.isEmpty ? Int((Float(userMovies.count) / Float(rolesCount)) * 100) : 0
         }
-        
+
         let detailFailure: MoviesListLoadFailure?
         if case .failed(let f) = state.moviesState.loadingStates[.personDetail(peopleId)] {
             detailFailure = f
@@ -570,7 +570,7 @@ extension PeopleDetail {
                      detailFailure: detailFailure)
 
     }
-    
+
 }
 
 #Preview {

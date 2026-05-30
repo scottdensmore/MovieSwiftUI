@@ -7,7 +7,7 @@ private let sampleCustomList = CustomList(id: 0,
                                           cover: 0,
                                           movies: [0])
 private let sampleDiscoverGenres = [Genre(id: -1, name: "Random"),
-                                    Genre(id: 35, name: "Comedy")]
+                                    Genre(id: 35, name: "Comedy"), ]
 private let sampleDiscoverFilter = DiscoverFilter(year: 1955,
                                                   startYear: 1950,
                                                   endYear: 1959,
@@ -34,9 +34,9 @@ public func makePreviewSampleState() -> AppState {
                             customLists: [0: sampleCustomList],
                             genres: sampleDiscoverGenres),
              peoplesState: PeoplesState(peoples: [samplePrimaryCast.id: samplePrimaryCast,
-                                                  sampleDirector.id: sampleDirector],
+                                                  sampleDirector.id: sampleDirector, ],
                                         peoplesMovies: [0: Set([samplePrimaryCast.id,
-                                                                sampleDirector.id])],
+                                                                sampleDirector.id, ]), ],
                                         search: [:],
                                         casts: [samplePrimaryCast.id: [0: "Character 1"]],
                                         crews: [sampleDirector.id: [0: "Director 1"]],
@@ -56,9 +56,9 @@ public func makeUISmokeTestState() -> AppState {
     smokeTestDirector.department = "Directing"
 
     var peoplesState = PeoplesState(peoples: [smokeTestPrimaryCast.id: smokeTestPrimaryCast,
-                                              smokeTestDirector.id: smokeTestDirector],
+                                              smokeTestDirector.id: smokeTestDirector, ],
                                     peoplesMovies: [0: Set([smokeTestPrimaryCast.id,
-                                                            smokeTestDirector.id])],
+                                                            smokeTestDirector.id, ]), ],
                                     search: [:],
                                     casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
                                     crews: [smokeTestDirector.id: [0: "Director 1"]],

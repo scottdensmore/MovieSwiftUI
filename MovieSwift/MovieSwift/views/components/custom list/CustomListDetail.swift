@@ -65,7 +65,7 @@ enum CustomListDetailState {
     }
 }
 
-struct CustomListDetail : ConnectedView {
+struct CustomListDetail: ConnectedView {
     struct Props {
         let dispatch: DispatchFunction
         let list: CustomList?
@@ -100,7 +100,7 @@ struct CustomListDetail : ConnectedView {
                                                                           searchResults: state.moviesState.search),
                      movieLookup: state.moviesState.movies)
     }
-    
+
     private func navbarButtons(props: Props) -> some View {
         Group {
             if isSearching {
@@ -161,8 +161,7 @@ struct CustomListDetail : ConnectedView {
             }
         }
     }
-    
-    
+
     func body(props: Props) -> some View {
         List {
             if let list = props.list {
@@ -233,7 +232,7 @@ struct CustomListDetail : ConnectedView {
             } else {
                 Text("List not found")
             }
-            
+
         }
             #if os(macOS)
             .navigationDestination(item: $selectedMovieId) { id in

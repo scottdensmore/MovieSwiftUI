@@ -128,12 +128,12 @@ import Testing
         #expect(renamed.customLists[4]?.name == "Weeknight")
         #expect(renamed.customLists[4]?.cover == 7)
 
-        let recoved = moviesStateReducer(
+        let recovered = moviesStateReducer(
             state: renamed,
             action: MoviesActions.EditCustomList(list: 4, title: nil, cover: 11)
         )
-        #expect(recoved.customLists[4]?.name == "Weeknight")
-        #expect(recoved.customLists[4]?.cover == 11)
+        #expect(recovered.customLists[4]?.name == "Weeknight")
+        #expect(recovered.customLists[4]?.cover == 11)
     }
 
     @Test func peopleReducerSetDetailPreservesExistingMetadataFields() {
@@ -248,6 +248,8 @@ import Testing
 
     // MARK: - MoviesReducer: SetSearch
 
+    // Same page-1-replaces / page-N-appends shape as SetMovieMenuList above,
+    // keyed on `MoviesState.search[query]` instead.
     @Test(arguments: [
         (page: 1, query: "old", existing: [999], incoming: [1], expected: [1]),
         (page: 2, query: "q", existing: [1], incoming: [2], expected: [1, 2]),
@@ -350,6 +352,7 @@ import Testing
 
     // MARK: - MoviesReducer: Genre / Crew / Keyword movies
 
+    // Same pagination shape, keyed on `MoviesState.withGenre[id]`.
     @Test(arguments: [
         (page: 1, existing: [999], incoming: [1], expected: [1]),
         (page: 2, existing: [1], incoming: [2], expected: [1, 2]),
@@ -377,6 +380,7 @@ import Testing
         #expect(reduced.withCrew[15] == [10])
     }
 
+    // Same pagination shape, keyed on `MoviesState.withKeywords[id]`.
     @Test(arguments: [
         (page: 1, existing: [999], incoming: [1], expected: [1]),
         (page: 2, existing: [1], incoming: [2], expected: [1, 2]),
@@ -475,21 +479,24 @@ import Testing
 
     // MARK: - PeopleReducer: Search
 
+    // Same page-1-replaces / page-N-appends shape as the movie-search
+    // pagination above, but keyed on `PeoplesState.search[query]` and
+    // backed by `People` fixtures.
     @Test(arguments: [
-        (page: 1, query: "old", existing: [999], incoming: [(1, "A")], expected: [1]),
-        (page: 2, query: "q", existing: [1], incoming: [(2, "B")], expected: [1, 2]),
+        (page: 1, query: "old", existing: [999], incoming: [(id: 1, name: "A")], expected: [1]),
+        (page: 2, query: "q", existing: [1], incoming: [(id: 2, name: "B")], expected: [1, 2]),
     ])
     func peopleReducerSetSearchPaginates(
         page: Int,
         query: String,
         existing: [Int],
-        incoming: [(Int, String)],
+        incoming: [(id: Int, name: String)],
         expected: [Int]
     ) {
         var state = PeoplesState()
         state.search[query] = existing
 
-        let results = incoming.map { makePeople(id: $0.0, name: $0.1) }
+        let results = incoming.map { makePeople(id: $0.id, name: $0.name) }
         let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: query, page: page, response: response))
 
@@ -504,21 +511,21 @@ import Testing
     // also exercises `appendUnique` (incoming id 2 already present in
     // `existing` must not duplicate).
     @Test(arguments: [
-        (page: 1, existing: [999], existingLoading: true, incoming: [(1, "A")], expected: [1]),
-        (page: 2, existing: [1, 2], existingLoading: false, incoming: [(2, "B"), (3, "C")], expected: [1, 2, 3]),
+        (page: 1, existing: [999], existingLoading: true, incoming: [(id: 1, name: "A")], expected: [1]),
+        (page: 2, existing: [1, 2], existingLoading: false, incoming: [(id: 2, name: "B"), (id: 3, name: "C")], expected: [1, 2, 3]),
     ])
     func peopleReducerSetPopularPaginates(
         page: Int,
         existing: [Int],
         existingLoading: Bool,
-        incoming: [(Int, String)],
+        incoming: [(id: Int, name: String)],
         expected: [Int]
     ) {
         var state = PeoplesState()
         state.popular = existing
         state.popularLoading = existingLoading
 
-        let results = incoming.map { makePeople(id: $0.0, name: $0.1) }
+        let results = incoming.map { makePeople(id: $0.id, name: $0.name) }
         let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: page, response: response))
 

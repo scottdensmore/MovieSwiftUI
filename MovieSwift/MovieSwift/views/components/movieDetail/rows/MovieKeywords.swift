@@ -2,7 +2,7 @@ import SwiftUI
 import UI
 import MovieSwiftFluxCore
 
-struct MovieKeywords : View {
+struct MovieKeywords: View {
     let keywords: [Keyword]
     #if os(macOS)
     let onSelectKeyword: (Keyword) -> Void

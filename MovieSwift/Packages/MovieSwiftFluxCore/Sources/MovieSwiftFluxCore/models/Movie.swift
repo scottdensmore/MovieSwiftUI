@@ -4,7 +4,7 @@ import Backend
 
 public struct Movie: Codable, Identifiable, Sendable {
     public let id: Int
-    
+
     public let original_title: String
     public let title: String
 
@@ -52,38 +52,38 @@ public struct Movie: Codable, Identifiable, Sendable {
     public var userTitle: String {
         return AppUserDefaults.alwaysOriginalTitle ? original_title : title
     }
-    
+
     public let overview: String
     public let poster_path: String?
     public let backdrop_path: String?
     public let popularity: Float
     public let vote_average: Float
     public let vote_count: Int
-    
+
     public let release_date: String?
     public var releaseDate: Date? {
         return release_date != nil ? Movie.dateFormatter.date(from: release_date!) : Date()
     }
-    
+
     static public let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyy-MM-dd"
         return formatter
     }()
-    
+
     public let genres: [Genre]?
     public let runtime: Int?
     public let status: String?
     public let video: Bool
-    
+
     public var keywords: Keywords?
     public var images: MovieImages?
-    
+
     public var production_countries: [productionCountry]?
-    
+
     public var character: String?
     public var department: String?
-    
+
     public struct Keywords: Codable, Sendable {
         public let keywords: [Keyword]?
 
@@ -93,7 +93,7 @@ public struct Movie: Codable, Identifiable, Sendable {
             self.keywords = keywords
         }
     }
-    
+
     public struct MovieImages: Codable, Sendable {
         public let posters: [ImageData]?
         public let backdrops: [ImageData]?
@@ -106,7 +106,11 @@ public struct Movie: Codable, Identifiable, Sendable {
             self.backdrops = backdrops
         }
     }
-    
+
+    // Follow-up: rename to `ProductionCountry` (Swift convention). It's
+    // a public API type used across the app + tests; renaming is a wide
+    // touch best done in its own PR.
+    // swiftlint:disable:next type_name
     public struct productionCountry: Codable, Identifiable, Sendable {
 
         public init(

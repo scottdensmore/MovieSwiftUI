@@ -15,6 +15,9 @@ import AppKit
 @testable import MovieSwift
 #endif
 
+// `@MainActor`: `ErrorDiagnostic.text(for:)` is main-actor-isolated under
+// the Swift 6 mode (its device-model default reads `UIDevice.current`).
+
 /// `ErrorDiagnostic.text(for:)` is a pure function — all inputs are
 /// injected, so the output is deterministic per call. These tests pin
 /// every input and assert on the exact string so future edits to the
@@ -25,8 +28,6 @@ import AppKit
 /// app shows an unrecoverable error banner — its readability and the
 /// fact it never carries the TMDB API key are both behavioural
 /// contracts worth holding the line on.
-// `@MainActor`: `ErrorDiagnostic.text(for:)` is main-actor-isolated under
-// the Swift 6 mode (its device-model default reads `UIDevice.current`).
 @Suite @MainActor
 struct ErrorDiagnosticTests {
 
@@ -117,7 +118,7 @@ struct ErrorDiagnosticTests {
     @Test func diagnosticIncludesAllFailureKindsDistinctly() {
         let kinds: [MoviesListLoadFailure.Kind] = [
             .offline, .rateLimited(retryAfterSeconds: 30), .missingAPIKey, .unauthorized,
-            .forbidden, .server, .decode, .other
+            .forbidden, .server, .decode, .other,
         ]
         var rendered: Set<String> = []
         for kind in kinds {

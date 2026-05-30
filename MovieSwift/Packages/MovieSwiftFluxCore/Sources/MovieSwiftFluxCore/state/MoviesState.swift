@@ -72,38 +72,38 @@ public struct MoviesState: FluxState, Codable, Sendable {
     /// `MoviesActions.SetLoadingState` here.
     public var loadingStates: [LoadingKey: MoviesListLoadingState] = [:]
     public var detailed: Set<Int> = Set()
-    
+
     public var recommended: [Int: [Int]] = [:]
     public var similar: [Int: [Int ]] = [:]
     public var recommendedLoaded: Set<Int> = Set()
     public var similarLoaded: Set<Int> = Set()
-    
+
     public var search: [String: [Int]] = [:]
     public var searchKeywords: [String: [Keyword]] = [:]
     public var recentSearches: Set<String> = Set()
-    
+
     public var moviesUserMeta: [Int: MovieUserMeta] = [:]
-    
+
     public var discover: [Int] = []
     public var discoverFilter: DiscoverFilter?
     public var savedDiscoverFilters: [DiscoverFilter] = []
-    
+
     public var wishlist: Set<Int> = Set()
     public var seenlist: Set<Int> = Set()
-    
+
     public var videos: [Int: [Video]] = [:]
     public var videosLoaded: Set<Int> = Set()
-    
+
     public var withGenre: [Int: [Int]] = [:]
     public var withKeywords: [Int: [Int]] = [:]
     public var withCrew: [Int: [Int]] = [:]
     public var reviews: [Int: [Review]] = [:]
     public var reviewsLoaded: Set<Int> = Set()
-    
+
     public var customLists: [Int: CustomList] = [:]
-    
+
     public var genres: [Genre] = []
-    
+
     public enum CodingKeys: String, CodingKey {
         case movies, wishlist, seenlist, customLists, moviesUserMeta, savedDiscoverFilters, discoverFilter
         case detailed, recommendedLoaded, similarLoaded, videosLoaded, reviewsLoaded
