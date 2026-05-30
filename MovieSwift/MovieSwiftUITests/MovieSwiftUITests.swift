@@ -3,9 +3,9 @@ import MovieSwiftFluxCore
 
 // `@MainActor`: XCUIApplication / XCUIElement are main-actor-isolated
 // under the Swift 6 mode, and the test target is nonisolated by default,
-// so pinning the case to the main actor lets every element query and
-// `waitForExpectations` call resolve without sending the non-Sendable
-// XCTestCase across actors.
+// so pinning the case to the main actor lets element queries and
+// `await fulfillment(of:)` calls resolve without sending the
+// non-Sendable XCTestCase across actors.
 @MainActor
 final class MovieSwiftUITests: XCTestCase {
     private static let primaryDestinations = ["Movies", "Discover", "Fan Club", "My Lists"]
@@ -240,7 +240,7 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(settingsButton.isHittable)
     }
 
-    func testMoviesSettingsSavePersistsOriginalTitlePreference() {
+    func testMoviesSettingsSavePersistsOriginalTitlePreference() async {
         let app = launchApp()
         openTab("Movies", in: app)
 
@@ -258,8 +258,8 @@ final class MovieSwiftUITests: XCTestCase {
 
         let expectedValue = initialValue == "1" ? "0" : "1"
         let updatedValuePredicate = NSPredicate(format: "value == %@", expectedValue)
-        expectation(for: updatedValuePredicate, evaluatedWith: originalTitleToggle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let toggleUpdated = expectation(for: updatedValuePredicate, evaluatedWith: originalTitleToggle)
+        await fulfillment(of: [toggleUpdated], timeout: uiWaitTimeout)
 
         let saveButton = button("settings.saveButton", in: app)
         XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
@@ -601,7 +601,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// confirmation appears — this one drives the destructive button to
     /// catch regressions in the dispatch/archive path triggered by
     /// `SettingsFormCacheResetPolicy.clearCachedData`.
-    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() {
+    func testSettingsClearCachedDataConfirmsAndReturnsToSettings() async {
         let app = launchApp()
         openTab("Movies", in: app)
 
@@ -624,8 +624,8 @@ final class MovieSwiftUITests: XCTestCase {
 
         // Dialog dismisses.
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: uiWaitTimeout)
 
         // The Settings modal is still open and re-tappable — proves the
         // dispatch + archive completed without crashing the modal.
@@ -637,7 +637,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// Settings → Show onboarding again: verifies the destructive
     /// confirmation dialog appears with both Cancel and Show onboarding
     /// buttons, and that tapping Cancel dismisses without side effect.
-    func testSettingsResetOnboardingCancelDismissesWithoutEffect() {
+    func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
         let app = launchApp()
         openTab("Movies", in: app)
 
@@ -665,8 +665,8 @@ final class MovieSwiftUITests: XCTestCase {
         cancel.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: uiWaitTimeout)
 
         XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
         XCTAssertTrue(resetButton.isHittable,
@@ -679,7 +679,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// without crashing + the row staying hittable proves the
     /// confirmation handler ran. `OnboardingFlowTests` covers what
     /// happens at the next launch given that flag.
-    func testSettingsResetOnboardingConfirmDismissesDialog() {
+    func testSettingsResetOnboardingConfirmDismissesDialog() async {
         let app = launchApp()
         openTab("Movies", in: app)
 
@@ -699,8 +699,8 @@ final class MovieSwiftUITests: XCTestCase {
         confirmButton.tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: confirmTitle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let dialogGone = expectation(for: absent, evaluatedWith: confirmTitle)
+        await fulfillment(of: [dialogGone], timeout: uiWaitTimeout)
 
         XCTAssertTrue(resetButton.waitForExistence(timeout: uiWaitTimeout))
     }
@@ -875,7 +875,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// asserts the form appears — this one drives the form to its
     /// dispatch (`MoviesActions.AddCustomList`) and proves the row
     /// renders afterwards.
-    func testMyListsCreateCustomListAppearsInListAfterSave() {
+    func testMyListsCreateCustomListAppearsInListAfterSave() async {
         let app = launchApp()
         openTab("My Lists", in: app)
 
@@ -906,8 +906,8 @@ final class MovieSwiftUITests: XCTestCase {
         // Form dismisses.
         let newListTitle = app.navigationBars["New list"]
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: newListTitle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let formDismissed = expectation(for: absent, evaluatedWith: newListTitle)
+        await fulfillment(of: [formDismissed], timeout: uiWaitTimeout)
 
         // The new list shows up in My Lists.
         XCTAssertTrue(app.staticTexts["UI-TEST-NEW-LIST"].waitForExistence(timeout: uiWaitTimeout),
@@ -919,7 +919,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// the same set of custom lists it started with — the smoke-test
     /// fixture has exactly one ("TestName") so a stray "UI-TEST-CANCELLED"
     /// must NOT appear.
-    func testMyListsCreateCustomListCancelDismissesWithoutSaving() {
+    func testMyListsCreateCustomListCancelDismissesWithoutSaving() async {
         let app = launchApp()
         openTab("My Lists", in: app)
 
@@ -943,8 +943,8 @@ final class MovieSwiftUITests: XCTestCase {
 
         let newListTitle = app.navigationBars["New list"]
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: newListTitle)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let formDismissed = expectation(for: absent, evaluatedWith: newListTitle)
+        await fulfillment(of: [formDismissed], timeout: uiWaitTimeout)
 
         // Nothing got saved. The fixture's "TestName" is still there
         // (and reachable via the same tappable-element path the existing
@@ -1213,7 +1213,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// and friends. What this UI test adds is the production binding
     /// from `Picker → Save button → policy → dispatch loop`, end to
     /// end, on a real iOS simulator.
-    func testSettingsRegionPickerSaveDispatchesAndDismisses() {
+    func testSettingsRegionPickerSaveDispatchesAndDismisses() async {
         // Pin the persisted region to "US" via NSUserDefaults launch-arg
         // override (`-key value`). Without this, a previous run of this
         // test would have left `user_region = AL` in the simulator's
@@ -1270,8 +1270,8 @@ final class MovieSwiftUITests: XCTestCase {
         let saveButton = button("settings.saveButton", in: app)
         XCTAssertTrue(saveButton.waitForExistence(timeout: uiWaitTimeout))
         let hittable = NSPredicate(format: "isHittable == YES")
-        expectation(for: hittable, evaluatedWith: saveButton, handler: nil)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let saveHittable = expectation(for: hittable, evaluatedWith: saveButton, handler: nil)
+        await fulfillment(of: [saveHittable], timeout: uiWaitTimeout)
         saveButton.tap()
 
         // Modal dismisses → the moviesHome Settings button becomes
@@ -1333,7 +1333,7 @@ final class MovieSwiftUITests: XCTestCase {
     ///   3. Tapping one dismisses the sheet cleanly, proving the
     ///      `selectedMoviesSort` state update path runs without
     ///      crashing or leaving the sheet stuck.
-    func testMyListsSortMenuShowsAllSortOptionsAndDismisses() {
+    func testMyListsSortMenuShowsAllSortOptionsAndDismisses() async {
         let app = launchApp()
         openTab("My Lists", in: app)
 
@@ -1375,8 +1375,8 @@ final class MovieSwiftUITests: XCTestCase {
         app.buttons["Sort by ratings"].tap()
 
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: sortByAddedDate, handler: nil)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let sheetDismissed = expectation(for: absent, evaluatedWith: sortByAddedDate, handler: nil)
+        await fulfillment(of: [sheetDismissed], timeout: uiWaitTimeout)
 
         // The toolbar Sort button is still there and re-tappable —
         // proves the screen didn't pop or get stuck behind a stray sheet.
@@ -1470,7 +1470,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// Cancel returns to the non-searching state: typing a query
     /// produces the Cancel button (existing tests cover that); tapping
     /// it should clear the field and hide the results.
-    func testMoviesSearchCancelClearsSearchAndHidesResults() {
+    func testMoviesSearchCancelClearsSearchAndHidesResults() async {
         let app = launchApp()
         openTab("Movies", in: app)
 
@@ -1490,8 +1490,8 @@ final class MovieSwiftUITests: XCTestCase {
         // false). The Cancel button itself disappears (only visible
         // when the field has text).
         let absent = NSPredicate(format: "exists == NO")
-        expectation(for: absent, evaluatedWith: cancelButton)
-        waitForExpectations(timeout: uiWaitTimeout)
+        let cancelHidden = expectation(for: absent, evaluatedWith: cancelButton)
+        await fulfillment(of: [cancelHidden], timeout: uiWaitTimeout)
     }
 
     // MARK: - Onboarding layout
