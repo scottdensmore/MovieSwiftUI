@@ -1,5 +1,38 @@
 # MovieSwiftUI — Project Guidelines
 
+## Delivery workflow — every issue and feature follows this
+
+Each fix or feature goes through the same pipeline. Do not push
+directly to `main`, and do not skip steps even for small changes.
+
+1. **Branch.** Cut a feature branch off the latest `main`
+   (`fix/…`, `feat/…`, `refactor/…`, `docs/…`, `chore/…`). Never
+   commit to `main` directly.
+2. **TDD.** Build the change test-first per the red → green →
+   refactor cycle below. The test and the code it satisfies land in
+   the **same commit**.
+3. **Lint & format.** Run `./scripts/format.sh` (or `swiftformat`
+   on touched files) and `./scripts/lint.sh --fix` before staging —
+   see "Lint & format before every commit".
+4. **Open a PR.** Push the branch and open a pull request with `gh`
+   (always the GitHub CLI, never the web UI). The PR description
+   states what changed, why, and how it was tested.
+5. **Green CI.** Wait for every required check to pass
+   (`swiftlint`, the Analyze/CodeQL jobs, and the
+   ios/ios-ipad/mac/tvos/package test suites). Never merge a PR with
+   pending or failing required checks.
+6. **Code review.** Address review feedback — including automated
+   reviewers (e.g. Copilot). For each inline comment you act on,
+   push the fix, reply on the thread noting what changed, and
+   resolve the thread. Re-run CI after any fixup commit.
+7. **Merge & clean up.** Once CI is green and all conversations are
+   resolved, merge with `gh pr merge --merge --delete-branch`, then
+   return to `main`, `git pull --ff-only`, and delete the local
+   branch.
+
+One PR per logical unit of work. Keep unrelated changes on separate
+branches/PRs so each diff reviews cleanly.
+
 ## Test-Driven Development (TDD) — write the test first
 
 Every behaviour change ships with a test, and the test is written
