@@ -1,5 +1,49 @@
 # MovieSwiftUI — Project Guidelines
 
+## Delivery workflow — every issue and feature follows this
+
+Each fix or feature goes through the same pipeline. Do not push
+directly to `main`, and do not skip steps even for small changes.
+
+1. **Branch.** Cut a feature branch off the latest `main`
+   (`fix/…`, `feat/…`, `refactor/…`, `docs/…`, `chore/…`). Never
+   commit to `main` directly.
+2. **TDD.** Build the change test-first per the red → green →
+   refactor cycle below. The test and the code it satisfies land in
+   the **same commit**.
+3. **Lint & format.** Run `./scripts/format.sh` (or `swiftformat`
+   on touched files) and `./scripts/lint.sh --fix` before staging —
+   see "Lint & format before every commit".
+4. **Pre-PR review with the `code-reviewer` subagent.** Before
+   opening the PR, run the `code-reviewer` subagent
+   (`.claude/agents/code-reviewer.md`) over the pending diff. Address
+   every **must-fix** finding (and reasonable should-fix ones) before
+   pushing. This is a required step, not optional — it catches
+   correctness bugs, missing tests, and lint/readability issues while
+   they're still cheap to fix.
+5. **Open a PR.** Push the branch and open a pull request with `gh`
+   (always the GitHub CLI, never the web UI). The PR description
+   states what changed, why, and how it was tested.
+6. **Green CI is the merge gate.** The branch-protection–required
+   checks are the `package-tests`, `ios-tests`, `ios-tests-ipad`,
+   `mac-tests`, and `tvos-tests` suites — all must pass. The
+   `SwiftLint` and CodeQL/Analyze scans also run on every PR and
+   should be green before merging. Never merge with a pending or
+   failing required check. **A pending Copilot review (or any other
+   automated reviewer) is not part of the gate — do not wait on it.**
+7. **Address review feedback as it lands.** If Copilot or a human
+   comments before you merge, act on the valid points: push the fix,
+   reply on the thread noting what changed, resolve the thread, and
+   let CI re-run. Automated feedback that arrives after a green merge
+   is handled as a follow-up — it never blocks the merge.
+8. **Merge & clean up.** This is the only step that merges. Once the
+   required CI checks are green, merge with
+   `gh pr merge --merge --delete-branch`, then return to `main`,
+   `git pull --ff-only`, and delete the local branch.
+
+One PR per logical unit of work. Keep unrelated changes on separate
+branches/PRs so each diff reviews cleanly.
+
 ## Test-Driven Development (TDD) — write the test first
 
 Every behaviour change ships with a test, and the test is written
