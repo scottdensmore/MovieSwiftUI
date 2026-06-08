@@ -7,11 +7,14 @@
 #   scripts/lint.sh    → swiftlint
 #   scripts/format.sh  → swiftformat
 #
-# Note: formulas are not version-pinned, and CI installs its own copies
-# via `brew install` (see .github/workflows/lint.yml). Dev and CI may
-# drift if Homebrew ships a new release between runs; if lint behavior
-# differs between local and CI, run `brew upgrade swiftlint swiftformat`
-# locally to catch up.
+# CI pins SwiftLint to an exact version (SWIFTLINT_VERSION in
+# .github/workflows/lint.yml — currently 0.63.3) because lint behavior
+# can change between patch releases (e.g. 0.63.3 stopped flagging static
+# `URL(string: "literal")!` under force_unwrapping). Homebrew tracks the
+# latest, so to match CI keep your local SwiftLint on that same version:
+# `brew upgrade swiftlint` (or pin via the GitHub release if Homebrew has
+# moved ahead). If lint passes locally but fails CI, check
+# `swiftlint version` against the pinned value first.
 
 brew "swiftlint"
 brew "swiftformat"

@@ -23,11 +23,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install swiftlint via Homebrew so the CI version matches what
-      # devs get from `brew bundle install` locally. Brew is preinstalled
-      # on the macos-26 runner.
+      # Pin SwiftLint to an exact version so CI and local runs agree.
+      # `brew install swiftlint` is unpinned and the runner image can lag
+      # behind Homebrew's current formula (it shipped 0.63.2 while devs
+      # had 0.63.3) — and 0.63.3 changed force_unwrapping to stop flagging
+      # static `URL(string: "literal")!`, so an unpinned runner produced
+      # "passes locally, fails CI" drift. Download the exact release
+      # binary instead. Keep SWIFTLINT_VERSION in sync with the Brewfile.
       - name: Install SwiftLint
-        run: brew install swiftlint
+        env:
+          SWIFTLINT_VERSION: 0.63.3
+        run: |
+          curl -fsSL -o /tmp/swiftlint.zip \
+            "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip"
+          unzip -o -q /tmp/swiftlint.zip -d /tmp/swiftlint
+          echo "/tmp/swiftlint" >> "$GITHUB_PATH"
 
       - name: SwiftLint version
         run: swiftlint version
