@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "67e5f8afc09b",
+  "strategy": "manual-commit",
+  "branch": "chore/enable-force-unwrapping-lint",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".swiftlint.yml",
+    "MovieSwift/MovieSwift/views/components/custom list/CustomListDetail.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverFilterForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/fan club/FanClubHome.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/MoviesCrewList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/rows/PeopleRow.swift",
+    "MovieSwift/MovieSwift/views/components/myLists/MyLists.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailHeaderRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/MovieSwiftTests/AppDataExportTests.swift",
+    "MovieSwift/MovieSwiftTests/CrashReportStoreTests.swift",
+    "MovieSwift/MovieSwiftTests/ErrorDiagnosticTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/APIService.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/ImageService.swift",
+    "MovieSwift/Packages/Backend/Tests/BackendTests/APIServiceTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/Movie.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/People.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/PeopleReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppStateFixtures.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/67/e5f8afc09b/0/metadata.json",
+      "transcript": "/67/e5f8afc09b/0/full.jsonl",
+      "content_hash": "/67/e5f8afc09b/0/content_hash.txt",
+      "prompt": "/67/e5f8afc09b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 39014,
+    "cache_creation_tokens": 32456192,
+    "cache_read_tokens": 2628123822,
+    "output_tokens": 3765995,
+    "api_call_count": 6065
+  }
+}
