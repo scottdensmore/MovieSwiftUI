@@ -81,7 +81,8 @@ struct MyLists: ConnectedView {
                 #endif
             }
             .onDelete { index in
-                let list = props.customLists[index.first!]
+                guard let first = index.first else { return }
+                let list = props.customLists[first]
                 props.dispatch(MoviesActions.RemoveCustomList(list: list.id))
             }
         }
@@ -108,9 +109,9 @@ struct MyLists: ConnectedView {
                 #endif
             }
             .onDelete { index in
-                let movie = props.wishlist[index.first!]
+                guard let first = index.first else { return }
+                let movie = props.wishlist[first]
                 props.dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
-
             }
         }
     }
@@ -136,7 +137,8 @@ struct MyLists: ConnectedView {
                 #endif
             }
             .onDelete { index in
-                let movie = props.seenlist[index.first!]
+                guard let first = index.first else { return }
+                let movie = props.seenlist[first]
                 props.dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
             }
         }

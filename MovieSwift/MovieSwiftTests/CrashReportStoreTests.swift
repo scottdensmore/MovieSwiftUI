@@ -42,8 +42,12 @@ final class CrashReportStoreTests {
         components.second = 7
 
         var calendar = Calendar(identifier: .gregorian)
+        // Test fixture: "UTC" is a valid TimeZone identifier.
+        // swiftlint:disable:next force_unwrapping
         let utc = TimeZone(identifier: "UTC")!
         calendar.timeZone = utc
+        // Test fixture: DateComponents are fully specified above with a valid gregorian calendar.
+        // swiftlint:disable:next force_unwrapping
         let date = calendar.date(from: components)!
 
         let name = CrashReportStore.filename(for: .diagnostic,
@@ -193,8 +197,12 @@ final class CrashReportStoreTests {
         components.second = 27
 
         var calendar = Calendar(identifier: .gregorian)
+        // Test fixture: "UTC" is a valid TimeZone identifier.
+        // swiftlint:disable:next force_unwrapping
         let utc = TimeZone(identifier: "UTC")!
         calendar.timeZone = utc
+        // Test fixture: DateComponents are fully specified above with a valid gregorian calendar.
+        // swiftlint:disable:next force_unwrapping
         let date = calendar.date(from: components)!
 
         for kind: CrashReportKind in [.metric, .diagnostic] {

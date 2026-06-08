@@ -108,5 +108,7 @@ struct PeopleDetailImagesRow: View {
 }
 
 #Preview {
+    // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
+    // swiftlint:disable:next force_unwrapping
     PeopleDetailImagesRow(images: sampleCasts.first!.images ?? [], selectedPoster: .constant(nil))
 }

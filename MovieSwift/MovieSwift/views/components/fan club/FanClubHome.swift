@@ -316,7 +316,8 @@ struct FanClubHome: ConnectedView {
                     ForEach(props.peoples, id: \.self) { people in
                         peopleNavigationLink(people: people)
                     }.onDelete(perform: { index in
-                        props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[index.first!]))
+                        guard let first = index.first else { return }
+                        props.dispatch(PeopleActions.RemoveFromFanClub(people: props.peoples[first]))
                     })
                 }
 

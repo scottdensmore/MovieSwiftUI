@@ -81,8 +81,8 @@ enum PeopleDetailMovieGrouping {
         var years: [String: [PeopleDetail.MovieRole]] = [:]
         for value in credits {
             if let movie = movies[value.key] {
-                if movie.release_date != nil && movie.release_date?.isEmpty == false {
-                    let year = String(movie.release_date!.prefix(4))
+                if let releaseDate = movie.release_date, !releaseDate.isEmpty {
+                    let year = String(releaseDate.prefix(4))
                     if years[year] == nil {
                         years[year] = []
                     }
@@ -575,6 +575,8 @@ extension PeopleDetail {
 
 #Preview {
     NavigationStack {
+        // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
+        // swiftlint:disable:next force_unwrapping
         PeopleDetail(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
     }
 }

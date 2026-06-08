@@ -24,8 +24,9 @@ enum DiscoverFilterFormState {
         var region: String?
 
         if selectedDate > 0 {
-            startDate = datesInt[selectedDate]
-            endDate = startDate! + 9
+            let start = datesInt[selectedDate]
+            startDate = start
+            endDate = start + 9
         }
         if selectedGenre > 0 {
             genre = genres[selectedGenre].id
@@ -126,8 +127,9 @@ struct DiscoverFilterForm: ConnectedView {
         var countries: [String] = ["Random"]
         for code in NSLocale.isoCountryCodes {
             let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
-            let name = NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id)!
-            countries.append(name)
+            if let name = NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id) {
+                countries.append(name)
+            }
         }
         return countries
     }

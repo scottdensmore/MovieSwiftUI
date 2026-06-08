@@ -170,9 +170,13 @@ import MovieSwiftFluxCore
         components.minute = 30
 
         let calendar = Calendar(identifier: .gregorian)
+        // Test fixture: "UTC" is a valid TimeZone identifier.
+        // swiftlint:disable:next force_unwrapping
         let timeZone = TimeZone(identifier: "UTC")!
         var calendarWithZone = calendar
         calendarWithZone.timeZone = timeZone
+        // Test fixture: DateComponents are fully specified above with a valid gregorian calendar.
+        // swiftlint:disable:next force_unwrapping
         let date = calendarWithZone.date(from: components)!
 
         let filename = AppDataExport.suggestedFilename(for: date,

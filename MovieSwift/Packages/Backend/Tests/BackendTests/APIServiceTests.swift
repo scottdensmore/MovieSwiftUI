@@ -27,9 +27,13 @@ import Foundation
             // Default to a 200 so tests that only set `nextData` exercise
             // the success/decode path (mirrors the old "nil response →
             // skip status check" behaviour).
+            // Test stub: request.url is set by the SUT, and a 200 status with
+            // valid args always yields a non-nil HTTPURLResponse.
+            // swiftlint:disable force_unwrapping
             let response = nextResponse
                 ?? HTTPURLResponse(url: request.url!, statusCode: 200,
                                    httpVersion: "HTTP/1.1", headerFields: nil)!
+            // swiftlint:enable force_unwrapping
             return (nextData, response)
         }
     }
@@ -318,7 +322,8 @@ import Foundation
         let _: Result<Payload, APIService.APIError> = await get(service, endpoint: .popular)
 
         let request = try #require(session.lastRequest)
-        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let requestURL = try #require(request.url)
+        let components = try #require(URLComponents(url: requestURL, resolvingAgainstBaseURL: false))
         let query = (components.queryItems ?? []).reduce(into: [String: String]()) { acc, item in
             acc[item.name] = item.value
         }
@@ -340,7 +345,8 @@ import Foundation
         let request = try #require(session.lastRequest)
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer v4-token",
                 "Bearer auth should send the key in the Authorization header")
-        let components = try #require(URLComponents(url: request.url!, resolvingAgainstBaseURL: false))
+        let requestURL = try #require(request.url)
+        let components = try #require(URLComponents(url: requestURL, resolvingAgainstBaseURL: false))
         let queryNames = (components.queryItems ?? []).map(\.name)
         #expect(!queryNames.contains("api_key"),
                 "Bearer auth should NOT also pass the key as a query parameter")

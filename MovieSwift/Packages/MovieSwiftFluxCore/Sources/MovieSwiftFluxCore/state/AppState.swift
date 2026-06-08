@@ -13,6 +13,8 @@ public struct AppState: FluxState, Codable, Sendable {
 
     mutating public func ensurePlaceholderData() {
         moviesState.movies[0] = sampleMovie
+        // sampleCasts is a non-empty compile-time constant fixture.
+        // swiftlint:disable:next force_unwrapping
         peoplesState.peoples[0] = sampleCasts.first!
     }
 

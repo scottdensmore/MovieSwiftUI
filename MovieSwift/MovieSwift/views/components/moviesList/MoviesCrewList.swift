@@ -39,6 +39,8 @@ struct MoviesCrewList: ConnectedView {
 }
 
 #Preview {
+    // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
+    // swiftlint:disable:next force_unwrapping
     MoviesCrewList(crew: sampleCasts.first!)
         .environmentObject(sampleStore)
 }

@@ -7,7 +7,10 @@ enum PeopleDetailHeaderState {
 
     static func knownForText(for people: People) -> String {
         let text = people.knownForText?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return text?.isEmpty == false ? text! : missingKnownForText
+        if let text, !text.isEmpty {
+            return text
+        }
+        return missingKnownForText
     }
 }
 
@@ -43,5 +46,7 @@ struct PeopleDetailHeaderRow: View {
 }
 
 #Preview {
+    // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
+    // swiftlint:disable:next force_unwrapping
     PeopleDetailHeaderRow(people: sampleCasts.first!)
 }

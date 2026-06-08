@@ -83,14 +83,16 @@ public func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesS
         state.casts[action.people] = [:]
         state.crews[action.people] = [:]
         if let cast = action.response.cast {
-            for meta in cast where meta.character != nil {
-                state.casts[action.people]![meta.id] = meta.character!
+            for meta in cast {
+                guard let character = meta.character else { continue }
+                state.casts[action.people, default: [:]][meta.id] = character
             }
         }
 
         if let crew = action.response.crew {
-            for meta in crew where meta.department != nil {
-                state.crews[action.people]![meta.id] = meta.department!
+            for meta in crew {
+                guard let department = meta.department else { continue }
+                state.crews[action.people, default: [:]][meta.id] = department
             }
         }
         state.creditsLoaded.insert(action.people)

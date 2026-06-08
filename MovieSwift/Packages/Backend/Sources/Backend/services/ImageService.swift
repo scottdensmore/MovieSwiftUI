@@ -12,6 +12,8 @@ public final class ImageService: Sendable {
         case original = "https://image.tmdb.org/t/p/original/"
 
         public func path(poster: String) -> URL {
+            // `rawValue` is a hardcoded valid https URL literal from the Size enum.
+            // swiftlint:disable:next force_unwrapping
             return URL(string: rawValue)!.appendingPathComponent(poster)
         }
     }

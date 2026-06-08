@@ -185,8 +185,8 @@ struct CustomListDetail: ConnectedView {
                             Text("No results")
                         } else if props.searchedMovies == nil {
                             Text("Searching...")
-                        } else {
-                            ForEach(props.searchedMovies!, id: \.self) { movie in
+                        } else if let searchedMovies = props.searchedMovies {
+                            ForEach(searchedMovies, id: \.self) { movie in
                                 HStack {
                                     MovieRow(movieId: movie, displayListImage: false)
                                     Spacer(minLength: 0)
@@ -268,6 +268,8 @@ struct CustomListDetail: ConnectedView {
 
 #Preview {
     NavigationStack {
+        // #Preview-only sample fixture; sampleStore customLists is non-empty by construction.
+        // swiftlint:disable:next force_unwrapping
         CustomListDetail(listId: sampleStore.state.moviesState.customLists.first!.key)
             .environmentObject(sampleStore)
     }

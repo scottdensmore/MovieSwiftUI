@@ -15,6 +15,8 @@ private let sampleDiscoverFilter = DiscoverFilter(year: 1955,
                                                   genre: 35,
                                                   region: "US")
 private let sampleMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
+// sampleCasts is a non-empty compile-time constant fixture.
+// swiftlint:disable:next force_unwrapping
 private let samplePrimaryCast = sampleCasts.first!
 private let sampleSecondaryCast = sampleCasts[1]
 private let sampleDirector: People = {
@@ -51,6 +53,8 @@ public func makeUISmokeTestState() -> AppState {
                                    cover: 0,
                                    movies: [0])
     let smokeTestMoviesMenuState = Dictionary(uniqueKeysWithValues: MoviesMenu.allCases.map { ($0, [0]) })
+    // sampleCasts is a non-empty compile-time constant fixture.
+    // swiftlint:disable:next force_unwrapping
     let smokeTestPrimaryCast = sampleCasts.first!
     var smokeTestDirector = sampleCasts[1]
     smokeTestDirector.department = "Directing"
