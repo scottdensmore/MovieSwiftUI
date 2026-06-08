@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "b0ea583af662",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-08T04:42:33.456436Z",
+  "branch": "chore/enable-force-unwrapping-lint",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/lint.yml",
+    "Brewfile"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "49118064b210",
+  "token_usage": {
+    "input_tokens": 42320,
+    "cache_creation_tokens": 32498884,
+    "cache_read_tokens": 2642431067,
+    "output_tokens": 3795893,
+    "api_call_count": 6089
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-08T04:42:32.747814Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 13,
+    "human_modified": 9,
+    "human_removed": 0,
+    "total_committed": 13,
+    "total_lines_changed": 22,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

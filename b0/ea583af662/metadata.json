@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "b0ea583af662",
+  "strategy": "manual-commit",
+  "branch": "chore/enable-force-unwrapping-lint",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/lint.yml",
+    "Brewfile"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b0/ea583af662/0/metadata.json",
+      "transcript": "/b0/ea583af662/0/full.jsonl",
+      "content_hash": "/b0/ea583af662/0/content_hash.txt",
+      "prompt": "/b0/ea583af662/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 42320,
+    "cache_creation_tokens": 32498884,
+    "cache_read_tokens": 2642431067,
+    "output_tokens": 3795893,
+    "api_call_count": 6089
+  }
+}
