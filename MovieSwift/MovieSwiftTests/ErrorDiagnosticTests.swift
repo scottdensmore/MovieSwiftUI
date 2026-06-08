@@ -53,6 +53,8 @@ struct ErrorDiagnosticTests {
         components.minute = 0
         components.second = 0
         components.timeZone = TimeZone(identifier: "UTC")
+        // Test fixture: DateComponents are fully specified above with a valid gregorian calendar.
+        // swiftlint:disable:next force_unwrapping
         return Calendar(identifier: .gregorian).date(from: components)!
     }
 

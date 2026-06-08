@@ -291,6 +291,9 @@ public struct APIService {
         }
 
         let queryURL = baseURL.appendingPathComponent(endpoint.path())
+        // `queryURL` is built from the constant valid https `baseURL` via
+        // `appendingPathComponent`, so `URLComponents` init cannot return nil.
+        // swiftlint:disable:next force_unwrapping
         var components = URLComponents(url: queryURL, resolvingAgainstBaseURL: true)!
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "language", value: Locale.preferredLanguages[0])

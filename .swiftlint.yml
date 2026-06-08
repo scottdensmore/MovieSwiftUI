@@ -34,11 +34,12 @@ opt_in_rules:
   - toggle_bool
   - unneeded_parentheses_in_closure_argument
   - yoda_condition
-  # Not enabled yet: `force_unwrapping`. ~50 existing `!` sites
-  # (static-URL construction, test JSON round-trips, reducer/state
-  # fixtures) would need to be audited or annotated first. Tracked
-  # as a follow-up — turn the rule on after the baseline cleanup
-  # PR lands.
+  # `force_unwrapping` catches new `!` force-unwraps. The few remaining
+  # legitimate sites (static-URL construction, #Preview sample
+  # fixtures, and test fixtures with known-good literal inputs) carry
+  # an inline `// swiftlint:disable:next force_unwrapping` annotation
+  # with a one-line reason at the offending site.
+  - force_unwrapping
 
 disabled_rules:
   # SwiftUI ViewBuilders and presentation modifiers (.sheet, .alert,

@@ -244,8 +244,8 @@ struct DiscoverView: ConnectedView {
 
     private func actionsButtons(props: Props) -> some View {
         ZStack(alignment: .center) {
-            if props.currentMovie != nil {
-                Text(props.currentMovie!.userTitle)
+            if let currentMovie = props.currentMovie {
+                Text(currentMovie.userTitle)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                     .font(.FjallaOne(size: 18))
@@ -277,7 +277,7 @@ struct DiscoverView: ConnectedView {
                     #if os(iOS)
                     self.hapticFeedback.impactOccurred(intensity: 0.5)
                     #endif
-                    self.previousMovie = props.currentMovie!.id
+                    self.previousMovie = currentMovie.id
                     props.dispatch(MoviesActions.PopRandromDiscover())
                     self.fetchRandomMovies(props: props, force: false, filter: props.filter)
                 }, label: {

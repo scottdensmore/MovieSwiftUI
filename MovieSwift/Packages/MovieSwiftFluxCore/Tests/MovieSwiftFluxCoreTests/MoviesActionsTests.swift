@@ -66,9 +66,13 @@ final class MoviesActionsTests {
             if let error { throw error }
             // Default to 200 when a test only sets data (matches the prior
             // "nil response → skip status check → decode" behaviour).
+            // Test stub: request.url is set by the SUT, and a 200 status with
+            // valid args always yields a non-nil HTTPURLResponse.
+            // swiftlint:disable force_unwrapping
             let resolvedResponse = response
                 ?? HTTPURLResponse(url: request.url!, statusCode: 200,
                                    httpVersion: "HTTP/1.1", headerFields: nil)!
+            // swiftlint:enable force_unwrapping
             return (data ?? Data(), resolvedResponse)
         }
     }
@@ -813,7 +817,8 @@ final class MoviesActionsTests {
 
         // Verify the two requests asked for different pages.
         let pages = session.allRequests.compactMap { request -> String? in
-            URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?
+            guard let url = request.url else { return nil }
+            return URLComponents(url: url, resolvingAgainstBaseURL: false)?
                 .queryItems?.first(where: { $0.name == "page" })?.value
         }
         #expect(pages == ["1", "3"],

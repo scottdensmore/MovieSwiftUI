@@ -650,38 +650,38 @@ struct MovieDetail: ConnectedView {
 
     func peopleRow(role: String, people: People?) -> some View {
         Group {
-            if people != nil {
-                let accessibilityId = "movieDetail.topPerson.\(people!.id)"
+            if let people {
+                let accessibilityId = "movieDetail.topPerson.\(people.id)"
                 #if os(macOS)
-                MacFocusableLink(id: .topPerson(people!.id), focusedId: $focusedDetailItem) {
-                    selectPeople(people!.id)
+                MacFocusableLink(id: .topPerson(people.id), focusedId: $focusedDetailItem) {
+                    selectPeople(people.id)
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
-                        Text(people!.name).font(.body).foregroundStyle(.secondary)
+                        Text(people.name).font(.body).foregroundStyle(.secondary)
                     }
                     .padding(.leading)
                     .padding(.trailing, 10)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(role): \(people!.name)")
+                    .accessibilityLabel("\(role): \(people.name)")
                     .accessibilityIdentifier(accessibilityId)
                 }
                 #else
                 Button(action: {
-                    selectPeople(people!.id)
+                    selectPeople(people.id)
                 }) {
                     HStack(alignment: .center, spacing: 0) {
                         Text(role + ": ").font(.callout)
-                        Text(people!.name).font(.body).foregroundStyle(.secondary)
+                        Text(people.name).font(.body).foregroundStyle(.secondary)
                     }
                     .padding(.leading)
                     .padding(.trailing, 10)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(role): \(people!.name)")
+                    .accessibilityLabel("\(role): \(people.name)")
                     .accessibilityIdentifier(accessibilityId)
                 }
                 .buttonStyle(.plain)

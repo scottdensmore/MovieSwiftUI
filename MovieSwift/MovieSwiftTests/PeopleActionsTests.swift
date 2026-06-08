@@ -35,9 +35,13 @@ final class PeopleActionsTests {
         func data(for request: URLRequest) async throws -> (Data, URLResponse) {
             lastRequest = request
             if let nextError { throw nextError }
+            // Test stub: request.url is set by the SUT, and a 200 status with
+            // valid args always yields a non-nil HTTPURLResponse.
+            // swiftlint:disable force_unwrapping
             let response = nextResponse
                 ?? HTTPURLResponse(url: request.url!, statusCode: 200,
                                    httpVersion: "HTTP/1.1", headerFields: nil)!
+            // swiftlint:enable force_unwrapping
             return (nextData ?? Data(), response)
         }
     }
