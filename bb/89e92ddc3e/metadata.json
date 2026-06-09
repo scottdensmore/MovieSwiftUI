@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "bb89e92ddc3e",
+  "strategy": "manual-commit",
+  "branch": "refactor/decompose-movie-detail",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/bb/89e92ddc3e/0/metadata.json",
+      "transcript": "/bb/89e92ddc3e/0/full.jsonl",
+      "content_hash": "/bb/89e92ddc3e/0/content_hash.txt",
+      "prompt": "/bb/89e92ddc3e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 51216,
+    "cache_creation_tokens": 33275767,
+    "cache_read_tokens": 2698996916,
+    "output_tokens": 3891413,
+    "api_call_count": 6172
+  }
+}

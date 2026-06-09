@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "bb89e92ddc3e",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-09T01:30:28.958776Z",
+  "branch": "refactor/decompose-movie-detail",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "091806bab6bc",
+  "token_usage": {
+    "input_tokens": 51216,
+    "cache_creation_tokens": 33275767,
+    "cache_read_tokens": 2698996916,
+    "output_tokens": 3891413,
+    "api_call_count": 6172
+  },
+  "session_metrics": {
+    "turn_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-09T01:30:28.214524Z",
+    "agent_lines": 23,
+    "agent_removed": 302,
+    "human_added": 303,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 327,
+    "total_lines_changed": 629,
+    "agent_percentage": 51.669316375198726,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
