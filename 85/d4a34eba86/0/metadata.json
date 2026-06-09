@@ -1,0 +1,86 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "85d4a34eba86",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-09T03:07:21.701155Z",
+  "branch": "feat/trailer-playback",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieVideosRow.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailTests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppStateFixtures.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "aca5ae946c5f",
+  "token_usage": {
+    "input_tokens": 63411,
+    "cache_creation_tokens": 33410514,
+    "cache_read_tokens": 2759392175,
+    "output_tokens": 3977151,
+    "api_call_count": 6244
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "aca5ae946c5f",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 17
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-09T03:07:20.936614Z",
+    "agent_lines": 196,
+    "agent_removed": 0,
+    "human_added": 22,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 219,
+    "total_lines_changed": 219,
+    "agent_percentage": 89.49771689497716,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

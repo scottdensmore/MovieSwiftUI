@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "85d4a34eba86",
+  "strategy": "manual-commit",
+  "branch": "feat/trailer-playback",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieVideosRow.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailTests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppStateFixtures.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/85/d4a34eba86/0/metadata.json",
+      "transcript": "/85/d4a34eba86/0/full.jsonl",
+      "content_hash": "/85/d4a34eba86/0/content_hash.txt",
+      "prompt": "/85/d4a34eba86/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 63411,
+    "cache_creation_tokens": 33410514,
+    "cache_read_tokens": 2759392175,
+    "output_tokens": 3977151,
+    "api_call_count": 6244
+  }
+}
