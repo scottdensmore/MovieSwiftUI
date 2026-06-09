@@ -1563,7 +1563,7 @@ struct MovieSwiftTests {
 
     @Test func movieInfoStateBuildsPresentation() {
         var movie = sampleMovie
-        movie.production_countries = [Movie.productionCountry(name: "France")]
+        movie.production_countries = [Movie.ProductionCountry(name: "France")]
 
         let presentation = MovieInfoState.presentation(for: movie)
 
