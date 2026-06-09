@@ -33,6 +33,7 @@
 		28501674A2B5CFB4D78C143A /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000007 /* AppRuntime.swift */; };
 		28B1B67B191FF6C4B8B62349 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000006 /* AppEnvironment.swift */; };
 		2908D79F1645B8F720DF3EFF /* MovieDetailStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000006 /* MovieDetailStateTests.swift */; };
+		333F5B6ABA8944F22E9B34C8 /* SettingsFormLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B38D2AE12D557747E842FA /* SettingsFormLogic.swift */; };
 		3405076D9141D40F95B75502 /* MovieSwiftMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF297CD02D518F8E279CD952 /* MovieSwiftMacApp.swift */; };
 		3706D2A89BE345EF755A78EF /* MoviesHomeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B2560B22AAD1D5009F4413 /* MoviesHomeList.swift */; };
 		39514678BDFCB1D526F3E6E5 /* MoviesHomeGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697033D8234F856000AF5A47 /* MoviesHomeGrid.swift */; };
@@ -169,6 +170,7 @@
 		89BD705A6730D3395BE2F915 /* MoviesSelectedMenuStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69BFDBCB22E663A100A52CF3 /* MoviesSelectedMenuStore.swift */; };
 		8B356F9C8A2AA586E523DFE8 /* DraggableCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61E522BA245100CBEEC7 /* DraggableCover.swift */; };
 		8D1651D4F4E0961EB809C984 /* MovieReviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697C5C2422B6434A00BAE7B5 /* MovieReviews.swift */; };
+		910FBCA20ED1A3B8C06AB804 /* SettingsFormLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B38D2AE12D557747E842FA /* SettingsFormLogic.swift */; };
 		916D8E5B338A55D79472F5C2 /* OutlineRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695DA7D022C558B1003096B9 /* OutlineRow.swift */; };
 		9222B9E63D4C17996BBDACB5 /* MyLists.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6915D63A22AD80EC00DF0C5F /* MyLists.swift */; };
 		9393EB67F9DE01079BF8D9C7 /* MoviesHomeGridMoviesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697033DE234F898100AF5A47 /* MoviesHomeGridMoviesRow.swift */; };
@@ -467,6 +469,7 @@
 		69B1CE5722E1FB3500D6682C /* MovieSwift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MovieSwift-Bridging-Header.h"; sourceTree = "<group>"; };
 		69B2560422A9BDD5009F4413 /* MovieRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieRow.swift; sourceTree = "<group>"; };
 		69B2560B22AAD1D5009F4413 /* MoviesHomeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesHomeList.swift; sourceTree = "<group>"; };
+		69B38D2AE12D557747E842FA /* SettingsFormLogic.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsFormLogic.swift; sourceTree = "<group>"; };
 		69B8655222E0BB0200D2C975 /* MovieContextMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MovieContextMenu.swift; sourceTree = "<group>"; };
 		69B8BECC24A324D000906B59 /* MovieGridRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieGridRow.swift; sourceTree = "<group>"; };
 		69BFDBCA22E663A100A52CF3 /* MoviesMenuListPageListener.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoviesMenuListPageListener.swift; sourceTree = "<group>"; };
@@ -935,6 +938,7 @@
 			children = (
 				697E531D22C2627B003A7C01 /* SettingsForm.swift */,
 				A1B2C40200000000000000F1 /* UserDataDocument.swift */,
+				69B38D2AE12D557747E842FA /* SettingsFormLogic.swift */,
 			);
 			path = settings;
 			sourceTree = "<group>";
@@ -1680,6 +1684,7 @@
 				77A509FB5578D7781568B4C5 /* MovieDetailStateLogic.swift in Sources */,
 				DE8A28E1D3D1C5ED319328EB /* MovieDetailFocus.swift in Sources */,
 				B5C83CB3B0649FE17ADC9A45 /* MovieDetailViewModifiers.swift in Sources */,
+				910FBCA20ED1A3B8C06AB804 /* SettingsFormLogic.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1820,6 +1825,7 @@
 				BF16311765393EFBC3DF83FE /* MovieDetailStateLogic.swift in Sources */,
 				A4F66907B3D5DC6AF399C3D6 /* MovieDetailFocus.swift in Sources */,
 				0BD53887054FC50E4486B669 /* MovieDetailViewModifiers.swift in Sources */,
+				333F5B6ABA8944F22E9B34C8 /* SettingsFormLogic.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
