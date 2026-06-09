@@ -21,6 +21,7 @@ nonisolated enum MovieDetailFocusTarget: Hashable {
     case recommendedSeeAll
     case poster(String)
     case backdrop(String)
+    case video(String)
 }
 
 /// Maps a focus target to the scroll-anchor id of the row it lives in.
@@ -43,6 +44,7 @@ enum MovieDetailFocusRow {
         case .recommendedMovie, .recommendedSeeAll: return "row.recommended"
         case .poster:                               return "row.posters"
         case .backdrop:                             return "row.backdrops"
+        case .video:                                return "row.videos"
         }
     }
 }

@@ -86,6 +86,11 @@ public func makeUISmokeTestState() -> AppState {
     // reads from `moviesState.search[query]` which is already populated
     // here, so the journey doesn't depend on the network.
     let smokeTestSearchSeed: [String: [Int]] = ["uitestsearch": [0]]
+    let smokeTestTrailer = Video(id: "smokeTrailer",
+                                 name: "Official Trailer",
+                                 site: "YouTube",
+                                 key: "smokeTrailerKey",
+                                 type: "Trailer")
 
     return AppState(moviesState:
                         MoviesState(movies: [0: sampleMovie],
@@ -97,6 +102,8 @@ public func makeUISmokeTestState() -> AppState {
                                     discoverFilter: sampleDiscoverFilter,
                                     wishlist: Set([0]),
                                     seenlist: Set([0]),
+                                    videos: [0: [smokeTestTrailer]],
+                                    videosLoaded: Set([0]),
                                     customLists: [0: smokeTestList],
                                     genres: sampleDiscoverGenres),
                     peoplesState: peoplesState)

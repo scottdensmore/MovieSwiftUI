@@ -268,6 +268,10 @@ struct MovieDetail: ConnectedView {
         return backdrops.map { .backdrop($0.file_path) }
     }
 
+    private func videoTargets(props: Props) -> [MovieDetailFocusTarget] {
+        MovieVideosState.presentations(from: props.videos ?? []).map { .video($0.id) }
+    }
+
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -279,6 +283,8 @@ struct MovieDetail: ConnectedView {
         if let review = reviewTarget(props: props) { groups.append([review]) }
         if let person = topPersonTarget(props: props) { groups.append([person]) }
         if let readMore = readMoreTarget(props: props) { groups.append([readMore]) }
+        let videos = videoTargets(props: props)
+        if !videos.isEmpty { groups.append(videos) }
         let keywords = keywordTargets(props: props)
         if !keywords.isEmpty { groups.append(keywords) }
         let cast = castTargets(props: props)
@@ -473,6 +479,14 @@ struct MovieDetail: ConnectedView {
 
     @ViewBuilder
     func bottomContent(props: Props) -> some View {
+        if let videos = props.videos, !MovieVideosState.presentations(from: videos).isEmpty {
+            #if os(macOS)
+            MovieVideosRow(videos: videos, focusedItem: $focusedDetailItem)
+                .trackedDetailRow("row.videos", visibleRowIds: $visibleRowIds)
+            #else
+            MovieVideosRow(videos: videos)
+            #endif
+        }
         if let movie = props.movie,
            movie.keywords?.keywords?.isEmpty == false,
            let keywords = movie.keywords?.keywords {
@@ -942,6 +956,9 @@ struct MovieDetail: ConnectedView {
             restoreDetailFocus(props: props)
         }
         .onChange(of: props.credits?.count) { _, _ in
+            restoreDetailFocus(props: props)
+        }
+        .onChange(of: props.videos?.count) { _, _ in
             restoreDetailFocus(props: props)
         }
         #endif

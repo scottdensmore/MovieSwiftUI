@@ -576,6 +576,38 @@ struct MovieDetailTests {
         #expect(presentations.map(\.path) == ["/backdrop-a.jpg", "/backdrop-b.jpg"])
     }
 
+    @Test func movieVideosStateKeepsYouTubeTrailersFirst() {
+        let videos = [
+            Video(id: "1", name: "Teaser", site: "YouTube", key: "teaserKey", type: "Teaser"),
+            Video(id: "2", name: "Official Trailer", site: "YouTube", key: "trailerKey", type: "Trailer"),
+            Video(id: "3", name: "Vimeo Trailer", site: "Vimeo", key: "vimeoKey", type: "Trailer"),
+            Video(id: "4", name: "Behind the scenes", site: "YouTube", key: "clipKey", type: "Featurette"),
+        ]
+
+        let presentations = MovieVideosState.presentations(from: videos)
+
+        // Non-YouTube sources are dropped; Trailer is ordered before Teaser
+        // before other types, preserving original order within a type.
+        #expect(presentations.map(\.id) == ["2", "1", "4"])
+        #expect(presentations.first?.name == "Official Trailer")
+        #expect(presentations.first?.youtubeURL == URL(string: "https://www.youtube.com/watch?v=trailerKey"))
+        #expect(presentations.first?.thumbnailURL == URL(string: "https://img.youtube.com/vi/trailerKey/hqdefault.jpg"))
+        #expect(presentations.first?.accessibilityId == "movieDetail.video.2")
+    }
+
+    @Test func movieVideosStateReturnsEmptyForEmptyInput() {
+        #expect(MovieVideosState.presentations(from: []).isEmpty)
+    }
+
+    @Test func movieVideosStateFiltersOutAllNonYouTubeVideos() {
+        let videos = [
+            Video(id: "1", name: "Vimeo Trailer", site: "Vimeo", key: "v1", type: "Trailer"),
+            Video(id: "2", name: "Dailymotion Clip", site: "Dailymotion", key: "d1", type: "Clip"),
+        ]
+
+        #expect(MovieVideosState.presentations(from: videos).isEmpty)
+    }
+
     @Test func movieGenrePageActionBuildsFetchGenreAction() {
         let genre = Genre(id: 9, name: "Adventure")
         let action = MovieGenrePageAction.fetch(genre: genre, page: 3, sort: .byScore)
