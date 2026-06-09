@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "0ee1a3fab796",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-09T00:26:37.329437Z",
+  "branch": "refactor/rename-production-country",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/MovieSwiftTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/Movie.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d2052a869d80",
+  "token_usage": {
+    "input_tokens": 44220,
+    "cache_creation_tokens": 33148513,
+    "cache_read_tokens": 2652492947,
+    "output_tokens": 3808313,
+    "api_call_count": 6106
+  },
+  "session_metrics": {
+    "turn_count": 8
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-09T00:26:36.592342Z",
+    "agent_lines": 4,
+    "agent_removed": 8,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4,
+    "total_lines_changed": 12,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

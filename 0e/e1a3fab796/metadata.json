@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "0ee1a3fab796",
+  "strategy": "manual-commit",
+  "branch": "refactor/rename-production-country",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/MovieSwiftTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/Movie.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0e/e1a3fab796/0/metadata.json",
+      "transcript": "/0e/e1a3fab796/0/full.jsonl",
+      "content_hash": "/0e/e1a3fab796/0/content_hash.txt",
+      "prompt": "/0e/e1a3fab796/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 44220,
+    "cache_creation_tokens": 33148513,
+    "cache_read_tokens": 2652492947,
+    "output_tokens": 3808313,
+    "api_call_count": 6106
+  }
+}
