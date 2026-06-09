@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "133ba83983ff",
+  "strategy": "manual-commit",
+  "branch": "feat/trailer-playback",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/13/3ba83983ff/0/metadata.json",
+      "transcript": "/13/3ba83983ff/0/full.jsonl",
+      "content_hash": "/13/3ba83983ff/0/content_hash.txt",
+      "prompt": "/13/3ba83983ff/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 70220,
+    "cache_creation_tokens": 33457976,
+    "cache_read_tokens": 2783480054,
+    "output_tokens": 4008260,
+    "api_call_count": 6270
+  }
+}
