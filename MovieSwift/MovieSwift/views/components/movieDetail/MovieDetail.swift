@@ -268,6 +268,10 @@ struct MovieDetail: ConnectedView {
         return backdrops.map { .backdrop($0.file_path) }
     }
 
+    private func videoTargets(props: Props) -> [MovieDetailFocusTarget] {
+        MovieVideosState.presentations(from: props.videos ?? []).map { .video($0.id) }
+    }
+
     /// Groups of focus targets, in Tab order. Each group is a horizontal row
     /// of related items (genres, action buttons, keywords, cast, crew etc).
     /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
@@ -289,6 +293,8 @@ struct MovieDetail: ConnectedView {
         if !similar.isEmpty { groups.append(similar) }
         let recommended = recommendedTargets(props: props)
         if !recommended.isEmpty { groups.append(recommended) }
+        let videos = videoTargets(props: props)
+        if !videos.isEmpty { groups.append(videos) }
         let posters = posterTargets(props: props)
         if !posters.isEmpty { groups.append(posters) }
         let backdrops = backdropTargets(props: props)
@@ -577,6 +583,17 @@ struct MovieDetail: ConnectedView {
                                   presentCrosslineMoviesList(title: "Recommended Movies",
                                                              movies: props.recommended ?? [])
                               })
+            #endif
+        }
+        // Videos sit with the other media (after the Recommended carousel,
+        // before posters/backdrops). Guard on the *filtered* presentations
+        // so a movie with only non-YouTube videos shows no row.
+        if let videos = props.videos, !MovieVideosState.presentations(from: videos).isEmpty {
+            #if os(macOS)
+            MovieVideosRow(videos: videos, focusedItem: $focusedDetailItem)
+                .trackedDetailRow("row.videos", visibleRowIds: $visibleRowIds)
+            #else
+            MovieVideosRow(videos: videos)
             #endif
         }
         if let movie = props.movie,
@@ -942,6 +959,9 @@ struct MovieDetail: ConnectedView {
             restoreDetailFocus(props: props)
         }
         .onChange(of: props.credits?.count) { _, _ in
+            restoreDetailFocus(props: props)
+        }
+        .onChange(of: props.videos?.count) { _, _ in
             restoreDetailFocus(props: props)
         }
         #endif

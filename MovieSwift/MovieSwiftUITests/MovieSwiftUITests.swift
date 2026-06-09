@@ -111,6 +111,26 @@ final class MovieSwiftUITests: XCTestCase {
         return false
     }
 
+    /// Swipes until `element` is both present and hittable. Unlike
+    /// `scrollUntilElementExists`, this keeps scrolling past first
+    /// appearance until the element is actually interactable (not parked
+    /// at the bottom edge), stopping the moment it is so it doesn't
+    /// overshoot off the top.
+    private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication, maxSwipes: Int = 12) -> Bool {
+        if element.waitForExistence(timeout: 1), element.isHittable {
+            return true
+        }
+
+        for _ in 0..<maxSwipes {
+            app.swipeUp()
+            if element.exists, element.isHittable {
+                return true
+            }
+        }
+
+        return element.exists && element.isHittable
+    }
+
     private func logHierarchyIfMissing(_ app: XCUIApplication, element: XCUIElement, named name: String) {
         if shouldLogHierarchyOnFailure && !element.exists {
             print("Missing element: \(name)")
@@ -1465,6 +1485,20 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(identifiedElement("peopleDetail.knownFor", in: app)
                         .waitForExistence(timeout: uiWaitTimeout),
                       "Tapping a cast-row person should push into PeopleDetail")
+    }
+
+    /// The Trailers row (`MovieVideosRow`) renders YouTube trailer cards
+    /// from `moviesState.videos`. The smoke fixture seeds exactly one
+    /// trailer for movie 0 (`smokeTestTrailer`, id `movieDetail.video.smokeTrailer`).
+    /// The card deep-links to YouTube, so we assert it scrolls into view
+    /// and is hittable rather than tapping it (which would leave the app).
+    func testMovieDetailShowsPlayableTrailer() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        let trailer = identifiedElement("movieDetail.video.smokeTrailer", in: app)
+        XCTAssertTrue(scrollUntilHittable(trailer, in: app, maxSwipes: 12),
+                      "Videos row should scroll into view with the seeded trailer card, tappable to launch playback")
     }
 
     /// Cancel returns to the non-searching state: typing a query
