@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "a245ab0c584e",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-09T01:59:14.089498Z",
+  "branch": "refactor/extract-settingsform-logic",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "a65def7e6d1b",
+  "token_usage": {
+    "input_tokens": 55899,
+    "cache_creation_tokens": 33301861,
+    "cache_read_tokens": 2709912310,
+    "output_tokens": 3907410,
+    "api_call_count": 6186
+  },
+  "session_metrics": {
+    "turn_count": 14
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-09T01:59:13.288105Z",
+    "agent_lines": 6,
+    "agent_removed": 47,
+    "human_added": 51,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 57,
+    "total_lines_changed": 104,
+    "agent_percentage": 50.96153846153846,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

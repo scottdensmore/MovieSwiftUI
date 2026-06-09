@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.6.2",
+  "checkpoint_id": "a245ab0c584e",
+  "strategy": "manual-commit",
+  "branch": "refactor/extract-settingsform-logic",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a2/45ab0c584e/0/metadata.json",
+      "transcript": "/a2/45ab0c584e/0/full.jsonl",
+      "content_hash": "/a2/45ab0c584e/0/content_hash.txt",
+      "prompt": "/a2/45ab0c584e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 55899,
+    "cache_creation_tokens": 33301861,
+    "cache_read_tokens": 2709912310,
+    "output_tokens": 3907410,
+    "api_call_count": 6186
+  }
+}
