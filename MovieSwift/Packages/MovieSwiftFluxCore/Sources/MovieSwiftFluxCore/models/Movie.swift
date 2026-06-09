@@ -25,7 +25,7 @@ public struct Movie: Codable, Identifiable, Sendable {
         video: Bool,
         keywords: Keywords? = nil,
         images: MovieImages? = nil,
-        production_countries: [productionCountry]? = nil,
+        production_countries: [ProductionCountry]? = nil,
         character: String? = nil,
         department: String? = nil
     ) {
@@ -80,7 +80,7 @@ public struct Movie: Codable, Identifiable, Sendable {
     public var keywords: Keywords?
     public var images: MovieImages?
 
-    public var production_countries: [productionCountry]?
+    public var production_countries: [ProductionCountry]?
 
     public var character: String?
     public var department: String?
@@ -108,11 +108,7 @@ public struct Movie: Codable, Identifiable, Sendable {
         }
     }
 
-    // Follow-up: rename to `ProductionCountry` (Swift convention). It's
-    // a public API type used across the app + tests; renaming is a wide
-    // touch best done in its own PR.
-    // swiftlint:disable:next type_name
-    public struct productionCountry: Codable, Identifiable, Sendable {
+    public struct ProductionCountry: Codable, Identifiable, Sendable {
 
         public init(
             name: String
