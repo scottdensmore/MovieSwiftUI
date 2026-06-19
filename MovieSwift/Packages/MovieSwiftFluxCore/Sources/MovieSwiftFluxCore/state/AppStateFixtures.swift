@@ -108,4 +108,18 @@ public func makeUISmokeTestState() -> AppState {
                                     genres: sampleDiscoverGenres),
                     peoplesState: peoplesState)
 }
+
+/// Deterministic state for the Settings import UI-test journey: the smoke
+/// fixture plus a distinctive custom list (id 99, "Imported List") that the
+/// smoke state doesn't contain. Exported and then imported back into the
+/// smoke state, it yields exactly one added custom list — which the UI test
+/// asserts surfaces in My Lists after the merge.
+public func makeUITestImportFixtureState() -> AppState {
+    var state = makeUISmokeTestState()
+    state.moviesState.customLists[99] = CustomList(id: 99,
+                                                   name: "Imported List",
+                                                   cover: 0,
+                                                   movies: [0])
+    return state
+}
 #endif

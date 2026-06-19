@@ -697,6 +697,46 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "After clearing, the Clear button should still be hittable in the open Settings pane")
     }
 
+    /// Import data journey (Tier 2 — most data-destructive surface).
+    /// `.fileImporter` presents a system open panel XCUITest can't operate,
+    /// so the app exposes a DEBUG-only seam (`UI_TEST_IMPORT_SEED=1`) that
+    /// synthesises a deterministic export file in its own sandbox container
+    /// and feeds it through the real decode → preview → confirm → merge
+    /// path. The seeded file adds a custom list ("Imported List", id 99)
+    /// absent from the smoke fixture, so a successful merge must surface
+    /// that list in My Lists.
+    func testSettingsImportPreviewsAndMergesData() {
+        let app = launchApp(selectMenu: "Settings", environment: ["UI_TEST_IMPORT_SEED": "1"])
+
+        let importButton = app.identifiedButton("settings.importDataButton")
+        XCTAssertTrue(importButton.waitForExistence(timeout: timeout))
+        importButton.tap()
+
+        // The preview confirmation ("Import data?") summarising the merge.
+        let confirmButton = app.identifiedButton("settings.import.confirmButton")
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout),
+                      "Importing should show the 'Import data?' preview confirmation")
+        confirmButton.tap()
+
+        // Success alert confirms the merge was applied.
+        let successOk = app.identifiedButton("settings.import.successOkButton")
+        XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
+                      "Confirming the import should show the success alert")
+        successOk.tap()
+
+        // The merge actually happened: the imported list is now in My Lists.
+        app.identifiedElement("sidebar.My Lists").tap()
+        let customListsSegment = app.identifiedElement("myLists.section.Custom Lists")
+        XCTAssertTrue(customListsSegment.waitForExistence(timeout: timeout))
+        customListsSegment.tap()
+
+        let importedRow = app.identifiedElement("myLists.customList.99")
+        XCTAssertTrue(importedRow.waitForExistence(timeout: timeout),
+                      "The imported custom list should appear in My Lists after the merge")
+        XCTAssertEqual(importedRow.label, "Imported List",
+                       "The merged row should carry the imported list's name")
+    }
+
     /// Show onboarding again → Cancel: confirms the destructive dialog
     /// shows both options and Cancel dismisses without side effect.
     func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
