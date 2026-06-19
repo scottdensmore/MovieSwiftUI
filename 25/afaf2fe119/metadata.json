@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "25afaf2fe119",
+  "strategy": "manual-commit",
+  "branch": "test/settings-export-ui",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/25/afaf2fe119/0/metadata.json",
+      "transcript": "/25/afaf2fe119/0/full.jsonl",
+      "content_hash": "/25/afaf2fe119/0/content_hash.txt",
+      "prompt": "/25/afaf2fe119/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 134710,
+    "cache_creation_tokens": 35287068,
+    "cache_read_tokens": 2866711738,
+    "output_tokens": 4224515,
+    "api_call_count": 6527
+  }
+}
