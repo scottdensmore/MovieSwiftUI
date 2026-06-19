@@ -320,23 +320,25 @@ final class MovieSwiftMacUITests: XCTestCase {
         }
     }
 
-    func testMyListsCustomListExists() throws {
-        // macOS MyLists' Custom Lists segment switches successfully (the
-        // create button appears with the expected identifier), but the
-        // CustomListRow's `Text(list.name)` content does not surface in
-        // the accessibility tree as a queryable staticText or button
-        // label — likely because `customListsRows` wraps the row in
-        // `.onTapGesture` instead of a Button, and SwiftUI's macOS
-        // accessibility merging hides the inner Text. The functional
-        // coverage of "custom list is reachable from My Lists" is
-        // already provided by the iOS equivalent
-        // (`testMyListsCustomListOpensDetailScreen`) which uses
-        // `tappableElement("TestName")` and works on iOS Form.
-        //
-        // Tracked as a follow-up to add `.accessibilityElement(children: .combine)`
-        // + `.accessibilityIdentifier("myLists.customList.<id>")` to
-        // CustomListRow on macOS so this test can re-enable.
-        throw XCTSkip("macOS CustomListRow doesn't expose its inner Text content via the accessibility tree; needs an explicit identifier on the row. Tracked separately.")
+    func testMyListsCustomListExists() {
+        // The macOS custom-list row now surfaces a stable
+        // `myLists.customList.<id>` accessibility element (via an
+        // `accessibilityRepresentation` Button, rendered in an eager
+        // VStack so the row acquires accessibility identity), so the
+        // seeded custom list (id 0, "TestName") is queryable from the
+        // Custom Lists segment.
+        let app = launchApp(selectMenu: "My Lists")
+
+        let customListsSegment = app.identifiedElement("myLists.section.Custom Lists")
+        XCTAssertTrue(customListsSegment.waitForExistence(timeout: timeout),
+                      "My Lists should expose a Custom Lists segment")
+        customListsSegment.tap()
+
+        let customListRow = app.identifiedElement("myLists.customList.0")
+        XCTAssertTrue(customListRow.waitForExistence(timeout: timeout),
+                      "Custom Lists segment should render the seeded custom list row")
+        XCTAssertEqual(customListRow.label, "TestName",
+                       "The row should carry the seeded list's name as its accessibility label")
     }
 
     // MARK: - My Lists: Sort menu (Tier 3.4)
@@ -424,14 +426,34 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
     }
 
-    func testDiscoverDismissCanBeUndone() throws {
-        // macOS DiscoverView's `macOSBody` uses `discoverActionsRow` for
-        // the bottom action buttons (Like / Info / Skip / Seenlist) and
-        // does NOT render an undo button — the `discover.undoButton`
-        // identifier only exists in the iOS-layout `actionsButtons`.
-        // Skip on macOS until parity is added; the iOS counterpart of
-        // this test exercises the undo flow.
-        throw XCTSkip("macOS DiscoverView doesn't currently render discover.undoButton; tracked as a UI-parity gap.")
+    func testDiscoverDismissCanBeUndone() {
+        // The smoke fixture seeds a single discover card (movie 0). Skipping
+        // it clears the deck, and the empty state now offers an undo button
+        // (parity with iOS) that restores the dismissed movie.
+        let app = launchApp(selectMenu: "Discover")
+
+        let title = app.identifiedElement("discover.currentMovieTitle")
+        XCTAssertTrue(title.waitForExistence(timeout: timeout),
+                      "Discover should show the seeded current movie title")
+
+        let dismissButton = app.identifiedButton("discover.dismissButton")
+        XCTAssertTrue(dismissButton.waitForExistence(timeout: timeout))
+        dismissButton.tap()
+
+        // Dismissing the only seeded card must actually clear the deck —
+        // the undo button appearing proves the empty state was reached, and
+        // the title must be gone before we undo (otherwise the test would
+        // pass even if the dismiss did nothing).
+        let undoButton = app.identifiedButton("discover.undoButton")
+        XCTAssertTrue(undoButton.waitForExistence(timeout: timeout),
+                      "Dismissing the last card should reveal the undo button")
+        XCTAssertFalse(title.exists,
+                       "The dismissed movie's title should be gone before undo")
+        undoButton.tap()
+
+        let restoredTitle = app.identifiedElement("discover.currentMovieTitle")
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: timeout),
+                      "Undo should restore the dismissed movie")
     }
 
     func testDiscoverFilterShowsPickerControls() {
