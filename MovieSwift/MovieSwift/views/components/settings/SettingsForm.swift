@@ -23,6 +23,12 @@ struct SettingsForm: ConnectedView {
     @State private var exportDocument: UserDataDocument?
     @State private var exportSuggestedFilename: String = AppDataExport.suggestedFilename(for: Date())
     @State private var exportErrorMessage: String?
+    #if DEBUG
+    // UI-test seam: holds the summary of the round-tripped export so an
+    // XCUITest can assert the export captured real user data (the system
+    // save panel can't be operated from a test). Nil outside the seam.
+    @State private var uiTestExportVerification: String?
+    #endif
     @State private var isImportPickerPresented = false
     @State private var pendingImportEnvelope: AppDataExportEnvelope?
     @State private var pendingImportCounts: AppDataImport.Counts?
@@ -126,6 +132,12 @@ struct SettingsForm: ConnectedView {
         let now = Date()
         do {
             let data = try AppDataExport.data(from: store.state, exportDate: now)
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["UI_TEST_EXPORT_VERIFY"] == "1" {
+                verifyExportRoundTripForUITest(data: data)
+                return
+            }
+            #endif
             exportDocument = UserDataDocument(data: data)
             exportSuggestedFilename = AppDataExport.suggestedFilename(for: now)
             isExportPresented = true
@@ -133,6 +145,28 @@ struct SettingsForm: ConnectedView {
             exportErrorMessage = "Couldn't build the export file: \(error.localizedDescription)"
         }
     }
+
+    #if DEBUG
+    // UI-test seam: `.fileExporter` presents a system save panel XCUITest
+    // can't operate, so instead write the produced file into the app's own
+    // sandbox container, read it back, and surface the round-tripped custom
+    // list names. The test asserts the export captured real user data (the
+    // seeded "TestName" list) rather than just that the button didn't crash.
+    private func verifyExportRoundTripForUITest(data: Data) {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("uitest-export.json")
+        do {
+            try data.write(to: url, options: .atomic)
+            let reread = try Data(contentsOf: url)
+            let envelope = try AppDataImport.decodeEnvelope(from: reread)
+            let names = envelope.snapshot.moviesState.customLists.values
+                .map(\.name).sorted().joined(separator: "|")
+            uiTestExportVerification = "lists=\(envelope.snapshot.moviesState.customLists.count);names=\(names)"
+        } catch {
+            uiTestExportVerification = "error=\(error.localizedDescription)"
+        }
+    }
+    #endif
 
     private func handleExportResult(_ result: Result<URL, Error>) {
         // Drop the in-memory document either way — the user has either
@@ -693,6 +727,9 @@ struct SettingsForm: ConnectedView {
             clearCachedDataRow
             rowDivider
             exportDataRow
+            #if DEBUG
+            exportVerifyProbe
+            #endif
             rowDivider
             importDataRow
             rowDivider
@@ -968,6 +1005,24 @@ struct SettingsForm: ConnectedView {
         .buttonStyle(.plain)
         .accessibilityIdentifier("settings.exportDataButton")
     }
+
+    #if DEBUG
+    // UI-test-only probe: appears once the export round-trip seam has run,
+    // carrying its result string so the test can assert on it. EmptyView
+    // (no layout impact) until then, and compiled out of release builds.
+    // Only wired into the macOS App data card (where the export UI test
+    // runs); `uiTestExportVerification` is only ever set under the seam's
+    // env var, so it never renders in an ordinary DEBUG launch.
+    @ViewBuilder
+    private var exportVerifyProbe: some View {
+        if let result = uiTestExportVerification {
+            Text(result)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("settings.export.verifyResult")
+        }
+    }
+    #endif
 
     private var importDataRow: some View {
         Button {
