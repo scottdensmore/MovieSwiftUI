@@ -53,6 +53,7 @@ public struct SearchField: View {
                         Text(self.dismissButtonTitle).foregroundStyle(.pink)
                     })
                     .buttonStyle(.borderless)
+                    .accessibilityIdentifier("searchField.cancelButton")
                     .animation(.easeInOut, value: self.searchTextWrapper.searchText.isEmpty)
                 }
             }
