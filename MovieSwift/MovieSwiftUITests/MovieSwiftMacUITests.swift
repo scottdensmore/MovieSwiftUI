@@ -341,6 +341,34 @@ final class MovieSwiftMacUITests: XCTestCase {
                        "The row should carry the seeded list's name as its accessibility label")
     }
 
+    func testMyListsWishlistMovieRowExists() {
+        // Parity with the custom-list rows: the macOS movie rows (Wishlist /
+        // Seenlist) are gesture-driven (single tap = highlight, double tap =
+        // open), so without an `accessibilityRepresentation` Button they get
+        // merged away and aren't queryable. The smoke fixture seeds movie 0
+        // into the wishlist, and Wishlist is the default segment, so the
+        // `myLists.movie.0` row should surface as a stable element.
+        let app = launchApp(selectMenu: "My Lists")
+
+        let wishlistSegment = app.identifiedElement("myLists.section.Wishlist")
+        XCTAssertTrue(wishlistSegment.waitForExistence(timeout: timeout),
+                      "My Lists should expose a Wishlist segment")
+        // Wishlist is the default macOS section, but tap it explicitly so the
+        // test doesn't silently depend on that default (mirrors
+        // testMyListsCustomListExists).
+        wishlistSegment.tap()
+
+        let movieRow = app.identifiedElement("myLists.movie.0")
+        XCTAssertTrue(movieRow.waitForExistence(timeout: timeout),
+                      "Wishlist segment should render the seeded movie row as a queryable element")
+        // The accessibility Button is labelled with the movie's userTitle, not
+        // the "Movie <id>" fallback — the smoke fixture seeds movie 0 with a
+        // title starting "Test movie". Asserting the label proves the row
+        // resolved its metadata rather than degrading to the fallback.
+        XCTAssertTrue(movieRow.label.hasPrefix("Test movie"),
+                      "Row label should be the seeded movie's title, not the 'Movie 0' fallback")
+    }
+
     // MARK: - My Lists: Sort menu (Tier 3.4)
 
     /// macOS My Lists exposes the Sort toolbar entry as an inline

@@ -396,7 +396,20 @@ struct MyLists: ConnectedView {
                     .onTapGesture(count: 2) {
                         selectedMovie = MovieNav(id: id)
                     }
-                    .accessibilityIdentifier("myLists.movie.\(id)")
+                    // Same parity fix as the custom-list rows: the row is
+                    // gesture-driven (single = highlight, double = open) rather
+                    // than a Button, so on macOS its accessibility gets merged
+                    // away and isn't queryable. Replace it with a real Button so
+                    // it surfaces as a stable, labelled element (findable as
+                    // `myLists.movie.<id>` in UI tests) while keeping the
+                    // gesture-based visual behaviour. VoiceOver activation goes
+                    // straight to the detail, matching the sighted double-tap.
+                    .accessibilityRepresentation {
+                        Button(props.movieLookup[id]?.userTitle ?? "Movie \(id)") {
+                            selectedMovie = MovieNav(id: id)
+                        }
+                        .accessibilityIdentifier("myLists.movie.\(id)")
+                    }
             }
         }
     }
