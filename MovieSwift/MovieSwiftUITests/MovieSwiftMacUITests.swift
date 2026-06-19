@@ -365,6 +365,41 @@ final class MovieSwiftMacUITests: XCTestCase {
         await fulfillment(of: [gone], timeout: timeout)
     }
 
+    /// Search-cancel parity. Builds on the seeded people-search: typing
+    /// replaces the popular list with the director-only result (primary cast
+    /// id 0 drops out); tapping the SearchField's Cancel button must clear the
+    /// query and restore the popular list (id 0 returns). The Cancel button
+    /// renders on macOS too (it's gated only on non-empty text).
+    func testFanClubSearchCancelRestoresPopular() async {
+        let app = launchApp(selectMenu: "Fan Club")
+
+        let searchField = app.textFields["Search actors"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: timeout),
+                      "Fan Club should expose the actor search field")
+        searchField.click()
+        searchField.typeText("uitestsearch")
+
+        // Search active: the popular-only primary cast (id 0) drops out.
+        let popularOnly = app.identifiedElement("fanClub.person.0")
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: popularOnly)
+        await fulfillment(of: [gone], timeout: timeout)
+
+        // Cancel clears the query and restores the popular list. Query the
+        // SearchField's Cancel button by its stable id (not the "Cancel"
+        // label) so it can't match a stray Cancel elsewhere.
+        let cancelButton = app.identifiedButton("searchField.cancelButton")
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: timeout),
+                      "A non-empty search should surface the Cancel button")
+        cancelButton.tap()
+
+        // The popular list is restored: the popular-only person returns…
+        XCTAssertTrue(app.identifiedElement("fanClub.person.0").waitForExistence(timeout: timeout),
+                      "Cancelling the search should restore the popular list")
+        // …and the director (in both popular and the search result) remains.
+        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+                      "The popular list should still contain the director after cancel")
+    }
+
     func testFanClubShowsRetryOnFailure() {
         let app = launchApp(
             selectMenu: "Fan Club",
@@ -639,6 +674,47 @@ final class MovieSwiftMacUITests: XCTestCase {
         let restoredTitle = app.identifiedElement("discover.currentMovieTitle")
         XCTAssertTrue(restoredTitle.waitForExistence(timeout: timeout),
                       "Undo should restore the dismissed movie")
+    }
+
+    /// Shared body for the Discover "<action> then undo" parity tests
+    /// (wishlist / seenlist mirror the dismiss-undo case). The fixture seeds a
+    /// single card, so tapping the action button empties the deck and surfaces
+    /// the undo button (`performDiscoverAction` sets `previousMovie`), which
+    /// restores the movie.
+    private func assertDiscoverActionCanBeUndone(buttonIdentifier: String) {
+        let app = launchApp(selectMenu: "Discover")
+
+        let title = app.identifiedElement("discover.currentMovieTitle")
+        XCTAssertTrue(title.waitForExistence(timeout: timeout),
+                      "Discover should show the seeded current movie title")
+
+        let originalTitle = title.label
+
+        let actionButton = app.identifiedButton(buttonIdentifier)
+        XCTAssertTrue(actionButton.waitForExistence(timeout: timeout),
+                      "Discover should expose '\(buttonIdentifier)' on the seeded card")
+        actionButton.tap()
+
+        let undoButton = app.identifiedButton("discover.undoButton")
+        XCTAssertTrue(undoButton.waitForExistence(timeout: timeout),
+                      "\(buttonIdentifier) on the last card should reveal the undo button")
+        XCTAssertFalse(title.exists,
+                       "The acted-on movie's title should be gone before undo")
+        undoButton.tap()
+
+        let restoredTitle = app.identifiedElement("discover.currentMovieTitle")
+        XCTAssertTrue(restoredTitle.waitForExistence(timeout: timeout),
+                      "Undo should restore the movie")
+        XCTAssertEqual(restoredTitle.label, originalTitle,
+                       "Undo should restore the same movie that was acted on")
+    }
+
+    func testDiscoverWishlistButtonCanBeUndone() {
+        assertDiscoverActionCanBeUndone(buttonIdentifier: "discover.wishlistButton")
+    }
+
+    func testDiscoverSeenlistButtonCanBeUndone() {
+        assertDiscoverActionCanBeUndone(buttonIdentifier: "discover.seenlistButton")
     }
 
     func testDiscoverFilterShowsPickerControls() {
