@@ -8,6 +8,7 @@ public struct MoviesActions {
 
     // MARK: - Requests
 
+    /// Fetches one page of a home-menu list (Popular/Top-rated/Upcoming/…) and dispatches SetMovieMenuList with the results.
     public struct FetchMoviesMenuList: AsyncAction {
         public let list: MoviesMenu
         public let page: Int
@@ -37,6 +38,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches a movie's full detail (with appended keywords and images) and dispatches SetDetail.
     public struct FetchDetail: AsyncAction {
         public let movie: Int
 
@@ -62,6 +64,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches the movies recommended for a given movie and dispatches SetRecommended.
     public struct FetchRecommended: AsyncAction {
         public let movie: Int
 
@@ -83,6 +86,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches the movies similar to a given movie and dispatches SetSimilar.
     public struct FetchSimilar: AsyncAction {
         public let movie: Int
 
@@ -104,6 +108,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches a movie's trailers/videos and dispatches SetVideos.
     public struct FetchVideos: AsyncAction {
         public let movie: Int
 
@@ -125,6 +130,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches one page of movie search results for a query and dispatches SetSearch.
     public struct FetchSearch: AsyncAction {
         public let query: String
         public let page: Int
@@ -151,6 +157,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches keyword suggestions matching a query and dispatches SetSearchKeyword.
     public struct FetchSearchKeyword: AsyncAction {
         public let query: String
 
@@ -172,6 +179,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches one page of movies for a genre (via /discover, with the given sort) and dispatches SetMovieForGenre.
     public struct FetchMoviesGenre: AsyncAction {
         public let genre: Genre
         public let page: Int
@@ -205,6 +213,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches a movie's reviews and dispatches SetMovieReviews.
     public struct FetchMovieReviews: AsyncAction {
         public let movie: Int
 
@@ -226,6 +235,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches movies a given crew/person worked on (via /discover with_people) and dispatches SetMovieWithCrew.
     public struct FetchMovieWithCrew: AsyncAction {
         public let crew: Int
 
@@ -247,6 +257,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches one page of movies tagged with a keyword (via /discover with_keywords) and dispatches SetMovieWithKeyword.
     public struct FetchMovieWithKeywords: AsyncAction {
         public let keyword: Int
         public let page: Int
@@ -274,6 +285,8 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches a random page of /discover results for a filter — probes page 1 to learn
+    /// total_pages, picks a random in-range page, then dispatches SetRandomDiscover.
     public struct FetchRandomDiscover: AsyncAction {
         public var filter: DiscoverFilter?
 
@@ -381,6 +394,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Fetches the full TMDB genre list and dispatches SetGenres.
     public struct FetchGenres: AsyncAction {
 
         public init() {}
@@ -395,6 +409,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a home-menu list page into moviesState.moviesList (replacing on page 1, appending otherwise) and upserts the movies into moviesState.movies (via `+=`, which overwrites existing entries — unlike the skip-if-present merge other Set actions use).
     public struct SetMovieMenuList: Action {
         public let page: Int
         public let list: MoviesMenu
@@ -464,6 +479,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a fetched movie's full detail into moviesState.movies and marks it in moviesState.detailed.
     public struct SetDetail: Action {
         public let movie: Int
         public let response: Movie
@@ -476,6 +492,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
+    /// Stores a movie's recommended ids into moviesState.recommended, marks it recommendedLoaded, and merges the movies.
     public struct SetRecommended: Action {
         public let movie: Int
         public let response: PaginatedResponse<Movie>
@@ -488,6 +505,7 @@ public struct MoviesActions {
             self.response = response
         }
     }
+    /// Stores a movie's similar ids into moviesState.similar, marks it similarLoaded, and merges the movies.
     public struct SetSimilar: Action {
         public let movie: Int
         public let response: PaginatedResponse<Movie>
@@ -501,6 +519,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a movie's videos into moviesState.videos and marks it videosLoaded.
     public struct SetVideos: Action {
         public let movie: Int
         public let response: PaginatedResponse<Video>
@@ -527,6 +546,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a search-results page into moviesState.search (replacing on page 1, appending otherwise) and merges the movies.
     public struct SetSearch: Action {
         public let query: String
         public let page: Int
@@ -543,6 +563,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores the genre list into moviesState.genres, prepending a synthetic "Random" genre (id -1).
     public struct SetGenres: Action {
         public let genres: [Genre]
 
@@ -553,6 +574,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores keyword search results into moviesState.searchKeywords for the query.
     public struct SetSearchKeyword: Action {
         public let query: String
         public let response: PaginatedResponse<Keyword>
@@ -566,6 +588,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Adds a movie to moviesState.wishlist (removing it from seenlist) and stamps its user-meta addedToList date.
     public struct AddToWishlist: Action {
         public let movie: Int
 
@@ -576,6 +599,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Removes a movie from moviesState.wishlist.
     public struct RemoveFromWishlist: Action {
         public let movie: Int
 
@@ -586,6 +610,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Adds a movie to moviesState.seenlist (removing it from wishlist) and stamps its user-meta addedToList date.
     public struct AddToSeenList: Action {
         public let movie: Int
 
@@ -596,6 +621,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Removes a movie from moviesState.seenlist.
     public struct RemoveFromSeenList: Action {
         public let movie: Int
 
@@ -606,6 +632,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a genre's movie-ids page into moviesState.withGenre (replacing on page 1, appending otherwise) and merges the movies.
     public struct SetMovieForGenre: Action {
         public let genre: Genre
         public let page: Int
@@ -622,6 +649,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a crew/person's movie ids into moviesState.withCrew and merges the movies.
     public struct SetMovieWithCrew: Action {
         public let crew: Int
         public let response: PaginatedResponse<Movie>
@@ -635,6 +663,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Stores a keyword's movie-ids page into moviesState.withKeywords (replacing on page 1, appending otherwise) and merges the movies.
     public struct SetMovieWithKeyword: Action {
         public let keyword: Int
         public let page: Int
@@ -651,12 +680,14 @@ public struct MoviesActions {
         }
     }
 
+    /// Clears the random-discover deck — empties moviesState.discover and resets discoverFilter to nil.
     public struct ResetRandomDiscover: Action {
 
         public init() {}
 
     }
 
+    /// Seeds/prepends fetched ids into the moviesState.discover deck (only while it holds fewer than 10), merges the movies, and stores the active discoverFilter.
     public struct SetRandomDiscover: Action {
         public let filter: DiscoverFilter
         public let response: PaginatedResponse<Movie>
@@ -670,6 +701,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Sets the active moviesState.discoverFilter without fetching.
     public struct SetActiveDiscoverFilter: Action {
         public let filter: DiscoverFilter
 
@@ -680,6 +712,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Pushes a movie id onto the end of the moviesState.discover deck.
     public struct PushRandomDiscover: Action {
         public let movie: Int
 
@@ -690,12 +723,14 @@ public struct MoviesActions {
         }
     }
 
+    /// Pops the last movie id off the moviesState.discover deck. (Name keeps the legacy "Randrom" spelling for compatibility.)
     public struct PopRandromDiscover: Action {
 
         public init() {}
 
     }
 
+    /// Stores a movie's reviews into moviesState.reviews and marks it reviewsLoaded.
     public struct SetMovieReviews: Action {
         public let movie: Int
         public let response: PaginatedResponse<Review>
@@ -709,6 +744,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Inserts a new custom list into moviesState.customLists keyed by its id.
     public struct AddCustomList: Action {
         public let list: CustomList
 
@@ -719,6 +755,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Updates a custom list's title and/or cover in moviesState.customLists (each change applied only when its value is non-nil).
     public struct EditCustomList: Action {
         public let list: Int
         public let title: String?
@@ -735,6 +772,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Adds a single movie to a custom list's movies set in moviesState.customLists.
     public struct AddMovieToCustomList: Action {
         public let list: Int
         public let movie: Int
@@ -748,6 +786,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Adds several movies to a custom list's movies set in moviesState.customLists.
     public struct AddMoviesToCustomList: Action {
         public let list: Int
         public let movies: [Int]
@@ -761,6 +800,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Removes a single movie from a custom list's movies set in moviesState.customLists.
     public struct RemoveMovieFromCustomList: Action {
         public let list: Int
         public let movie: Int
@@ -774,6 +814,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Deletes a custom list from moviesState.customLists.
     public struct RemoveCustomList: Action {
         public let list: Int
 
@@ -784,6 +825,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Appends a discover filter to moviesState.savedDiscoverFilters.
     public struct SaveDiscoverFilter: Action {
         public let filter: DiscoverFilter
 
@@ -794,6 +836,7 @@ public struct MoviesActions {
         }
     }
 
+    /// Clears all entries from moviesState.savedDiscoverFilters.
     public struct ClearSavedDiscoverFilters: Action {
         public init() {}
     }
