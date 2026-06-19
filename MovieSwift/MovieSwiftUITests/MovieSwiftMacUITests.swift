@@ -737,6 +737,37 @@ final class MovieSwiftMacUITests: XCTestCase {
                        "The merged row should carry the imported list's name")
     }
 
+    /// Export data journey (Tier 2 — companion to the import test).
+    /// `.fileExporter`'s system save panel can't be operated by XCUITest, so
+    /// the app exposes a DEBUG round-trip seam (`UI_TEST_EXPORT_VERIFY=1`):
+    /// it writes the export into its own sandbox container, reads it back,
+    /// and surfaces the decoded custom-list names. A real export must capture
+    /// the seeded "TestName" custom list — proving the button exports actual
+    /// user data, not just that it didn't crash. Export *data* correctness is
+    /// already covered by `AppDataExportTests`; this test's scope is the
+    /// button → produces-valid-user-data wiring.
+    func testSettingsExportCapturesUserData() {
+        let app = launchApp(selectMenu: "Settings", environment: ["UI_TEST_EXPORT_VERIFY": "1"])
+
+        let exportButton = app.identifiedButton("settings.exportDataButton")
+        XCTAssertTrue(exportButton.waitForExistence(timeout: timeout))
+        exportButton.tap()
+
+        let result = app.identifiedElement("settings.export.verifyResult")
+        XCTAssertTrue(result.waitForExistence(timeout: timeout),
+                      "Exporting should surface the round-trip verification result")
+
+        // macOS surfaces a `Text`'s content inconsistently as the element's
+        // label or value (the same reason `testMyListsShowsContent` checks
+        // both), so accept either. Assert the export round-tripped the seeded
+        // user list and exactly that one list.
+        let probe = result.label + " " + ((result.value as? String) ?? "")
+        XCTAssertTrue(probe.contains("TestName"),
+                      "Export should round-trip the seeded user data; got: \(probe)")
+        XCTAssertTrue(probe.contains("lists=1"),
+                      "Export should capture exactly the one seeded custom list; got: \(probe)")
+    }
+
     /// Show onboarding again → Cancel: confirms the destructive dialog
     /// shows both options and Cancel dismisses without side effect.
     func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
