@@ -1366,6 +1366,7 @@ struct SettingsForm: ConnectedView {
                ),
                presenting: backupSuccessDate) { _ in
             Button("OK", role: .cancel) { backupSuccessDate = nil }
+                .accessibilityIdentifier("settings.backup.successOkButton")
         } message: { date in
             Text(backupSuccessMessage(date))
         }

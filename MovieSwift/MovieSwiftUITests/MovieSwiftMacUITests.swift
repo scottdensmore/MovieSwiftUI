@@ -768,6 +768,110 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "Export should capture exactly the one seeded custom list; got: \(probe)")
     }
 
+    // MARK: - Settings: iCloud backup / restore (Tier 2)
+    //
+    // Real iCloud Drive isn't available in headless CI, so the app exposes a
+    // DEBUG seam (`UI_TEST_ICLOUD_FAKE=<token>`) that redirects the iCloud
+    // container to a real local directory in its own sandbox container. The
+    // genuine write / read / version / last-date logic runs end-to-end against
+    // real files, so these journeys are exercised without touching iCloud.
+    //
+    // Each test passes a fresh UUID token (see `icloudFakeEnvironment()`) so
+    // every run gets an isolated, empty container — no stale backup leaks
+    // between runs.
+    //
+    // NOTE: on a developer machine signed into iCloud these tests would also
+    // pass *without* the seam (via the real iCloud container) — so the seam
+    // can't be shown red locally. It's required for CI determinism (headless
+    // runners have no iCloud account → `iCloudUnavailable`) and to avoid
+    // writing test backups into a developer's real iCloud Drive.
+
+    /// Fresh per-run fake-container token, so each test is isolated.
+    private func icloudFakeEnvironment() -> [String: String] {
+        ["UI_TEST_ICLOUD_FAKE": UUID().uuidString]
+    }
+
+    /// Backing up writes the rolling backup to the (faked) iCloud container
+    /// and surfaces the success alert.
+    func testSettingsBackupToICloudShowsSuccess() {
+        let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
+
+        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
+        backupButton.tap()
+
+        let successOk = app.identifiedButton("settings.backup.successOkButton")
+        XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
+                      "Backing up should write the backup file and show the success alert")
+        successOk.tap()
+    }
+
+    /// After a backup exists, Restore reuses the import preview → confirm →
+    /// success path. This covers the UI journey; the merge semantics
+    /// themselves are unit-tested (`AppDataImportTests`) — restoring a
+    /// just-made backup of the current state is a 0-change merge by design.
+    func testSettingsRestoreFromICloudPreviewsAndCompletes() {
+        let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
+
+        // Back up first so a backup exists and Restore becomes enabled.
+        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
+        backupButton.tap()
+        let backupOk = app.identifiedButton("settings.backup.successOkButton")
+        XCTAssertTrue(backupOk.waitForExistence(timeout: timeout))
+        backupOk.tap()
+
+        let restoreButton = app.identifiedButton("settings.restoreFromICloudButton")
+        XCTAssertTrue(restoreButton.waitForExistence(timeout: timeout))
+        XCTAssertTrue(restoreButton.isEnabled,
+                      "Restore should enable once a backup exists")
+        restoreButton.tap()
+
+        let confirmButton = app.identifiedButton("settings.import.confirmButton")
+        XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout),
+                      "Restoring should show the import preview confirmation")
+        confirmButton.tap()
+
+        let successOk = app.identifiedButton("settings.import.successOkButton")
+        XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
+                      "Confirming the restore should show the import success alert")
+        successOk.tap()
+    }
+
+    /// "Show previous backups" lists the retained versions (at least the
+    /// current one) so the user can restore an older backup.
+    func testSettingsShowPreviousICloudBackupsListsAVersion() {
+        let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
+
+        // A backup must exist before the "Show previous backups" row appears.
+        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
+        backupButton.tap()
+        let backupOk = app.identifiedButton("settings.backup.successOkButton")
+        XCTAssertTrue(backupOk.waitForExistence(timeout: timeout))
+        backupOk.tap()
+
+        let showPrevious = app.identifiedButton("settings.showPreviousBackupsButton")
+        XCTAssertTrue(showPrevious.waitForExistence(timeout: timeout),
+                      "Show previous backups should appear once a backup exists")
+        showPrevious.tap()
+
+        // The restore-row identifier is `previousBackupsSheet.restore.<id>`
+        // where `<id>` is the NSFileVersion's URL string — unpredictable, so
+        // match by prefix rather than an exact identifier.
+        let restoreRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "previousBackupsSheet.restore."))
+            .firstMatch
+        XCTAssertTrue(restoreRow.waitForExistence(timeout: timeout),
+                      "The previous-backups sheet should list at least the latest version")
+
+        let closeButton = app.identifiedButton("previousBackupsSheet.closeButton")
+        XCTAssertTrue(closeButton.waitForExistence(timeout: timeout))
+        closeButton.tap()
+        XCTAssertFalse(restoreRow.waitForExistence(timeout: 2),
+                       "Closing should dismiss the previous-backups sheet")
+    }
+
     /// Show onboarding again → Cancel: confirms the destructive dialog
     /// shows both options and Cancel dismisses without side effect.
     func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
