@@ -1008,17 +1008,26 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(toggledButton.waitForExistence(timeout: uiWaitTimeout))
     }
 
-    func testMovieDetailAddToListButtonExists() {
+    func testMovieDetailAddToListShowsListOptions() {
         let app = launchApp()
+        // `openFirstMovieDetail` already asserts the add-to-list button exists.
         let addToListButton = openFirstMovieDetail(in: app)
-
-        XCTAssertTrue(addToListButton.exists)
         addToListButton.tap()
 
-        // After tapping add to list, a sheet should appear with custom list options
-        let sheetContent = app.sheets.firstMatch
-        // Even if no custom lists exist, the sheet should appear
-        XCTAssertTrue(sheetContent.waitForExistence(timeout: uiWaitTimeout) || true)
+        // Tapping add-to-list presents the "Add or remove from your lists"
+        // confirmation dialog. Assert it actually appears with its expected,
+        // fixture-driven options — the previous `… || true` check could never
+        // fail. "Create list" is always present, and the seeded custom list
+        // ("TestName") shows as an add/remove option.
+        let createListButton = app.buttons["Create list"]
+        XCTAssertTrue(createListButton.waitForExistence(timeout: uiWaitTimeout),
+                      "Tapping add-to-list should present the list-options dialog")
+        // The dialog renders its buttons atomically, so once the anchor button
+        // exists the seeded-list option does too — no separate wait needed.
+        let seededListOption = app.buttons
+            .matching(NSPredicate(format: "label CONTAINS %@", "TestName")).firstMatch
+        XCTAssertTrue(seededListOption.exists,
+                      "The dialog should include the seeded custom list 'TestName'")
     }
 
     func testMovieDetailGenreChipNavigatesToGenreList() {
