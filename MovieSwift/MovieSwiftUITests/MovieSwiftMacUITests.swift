@@ -448,6 +448,84 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "Row label should be the seeded movie's title, not the 'Movie 0' fallback")
     }
 
+    // MARK: - My Lists: create custom list (parity with iOS)
+    //
+    // iOS covers the full create-custom-list journey (form → type → save →
+    // row appears, and cancel → no row). macOS lagged. The CustomListForm is
+    // shared (`customListForm.nameField` / `.createButton` / `.cancelButton`)
+    // and macOS presents it as a sheet from the Custom Lists segment's create
+    // button. The new row exposes its name via the accessibilityRepresentation
+    // Button label (see `customListsRows`), so we assert against that label
+    // since the reducer-assigned id isn't predictable.
+
+    func testMyListsCreateCustomListAppearsInListAfterSave() async {
+        let app = launchApp(selectMenu: "My Lists")
+
+        // The create button lives on the Custom Lists segment.
+        let segment = app.identifiedElement("myLists.section.Custom Lists")
+        XCTAssertTrue(segment.waitForExistence(timeout: timeout))
+        segment.tap()
+
+        let createButton = app.identifiedButton("myLists.createCustomListButton")
+        XCTAssertTrue(createButton.waitForExistence(timeout: timeout))
+        createButton.tap()
+
+        let nameField = app.identifiedElement("customListForm.nameField")
+        XCTAssertTrue(nameField.waitForExistence(timeout: timeout),
+                      "Tapping create should present the new-list form")
+        nameField.click()
+        nameField.typeText("UI-TEST-NEW-LIST-MAC")
+
+        let formCreate = app.identifiedButton("customListForm.createButton")
+        XCTAssertTrue(formCreate.waitForExistence(timeout: timeout))
+        formCreate.tap()
+
+        // The form sheet dismisses…
+        let fieldGone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: nameField)
+        await fulfillment(of: [fieldGone], timeout: timeout)
+
+        // …and the saved list appears as a row. The row surfaces as a Button
+        // whose label is the list name (accessibilityRepresentation in
+        // `customListsRows`); the reducer-assigned id isn't predictable, so we
+        // match by label rather than the `myLists.customList.<id>` identifier.
+        XCTAssertTrue(app.buttons["UI-TEST-NEW-LIST-MAC"].waitForExistence(timeout: timeout),
+                      "After saving, the new list should appear in the Custom Lists segment")
+    }
+
+    /// The smoke fixture seeds exactly one custom list ("TestName"), so the
+    /// negative assertion below is meaningful — a stray "UI-TEST-CANCELLED-MAC"
+    /// would only appear if Cancel wrongly dispatched AddCustomList.
+    func testMyListsCreateCustomListCancelDismissesWithoutSaving() async {
+        let app = launchApp(selectMenu: "My Lists")
+
+        let segment = app.identifiedElement("myLists.section.Custom Lists")
+        XCTAssertTrue(segment.waitForExistence(timeout: timeout))
+        segment.tap()
+
+        let createButton = app.identifiedButton("myLists.createCustomListButton")
+        XCTAssertTrue(createButton.waitForExistence(timeout: timeout))
+        createButton.tap()
+
+        let nameField = app.identifiedElement("customListForm.nameField")
+        XCTAssertTrue(nameField.waitForExistence(timeout: timeout),
+                      "Tapping create should present the new-list form")
+        nameField.click()
+        nameField.typeText("UI-TEST-CANCELLED-MAC")
+
+        let cancelButton = app.identifiedButton("customListForm.cancelButton")
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: timeout))
+        cancelButton.tap()
+
+        // The form dismisses without dispatching AddCustomList…
+        let fieldGone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: nameField)
+        await fulfillment(of: [fieldGone], timeout: timeout)
+
+        // …so no row with the cancelled name should appear (short negative
+        // wait, matching the file's convention for absence checks).
+        XCTAssertFalse(app.buttons["UI-TEST-CANCELLED-MAC"].waitForExistence(timeout: 2),
+                       "Cancelling the form should not create a list")
+    }
+
     // MARK: - My Lists: Sort menu (Tier 3.4)
 
     /// macOS My Lists exposes the Sort toolbar entry as an inline
