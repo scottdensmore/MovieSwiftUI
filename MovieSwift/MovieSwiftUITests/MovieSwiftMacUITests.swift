@@ -40,6 +40,19 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "Expected sidebar item '\(title)' to exist")
     }
 
+    /// Waits for `element`'s accessibility label to become `label` — used to
+    /// assert a state-driven control (e.g. a toggle) flips after a tap. Emits
+    /// an explicit assertion after the wait so a timeout names the expected
+    /// label in the CI log (and, with `continueAfterFailure = false`, stops
+    /// the test at the right point).
+    private func waitForLabel(_ element: XCUIElement, toBe label: String) async {
+        let matched = expectation(for: NSPredicate(format: "label == %@", label),
+                                  evaluatedWith: element)
+        await fulfillment(of: [matched], timeout: timeout)
+        XCTAssertEqual(element.label, label,
+                       "Expected element '\(element.identifier)' to have label '\(label)'")
+    }
+
     @discardableResult
     private func openFirstMovieDetail(in app: XCUIApplication) -> XCUIElement {
         // Popular is the default selection — no sidebar tap needed
@@ -284,6 +297,37 @@ final class MovieSwiftMacUITests: XCTestCase {
         personRow.doubleClick()
 
         XCTAssertTrue(app.identifiedElement("peopleDetail.knownFor").waitForExistence(timeout: timeout))
+    }
+
+    /// Follow / unfollow toggle (Tier 2). Fan Club rows carry no follow
+    /// control of their own — following happens on PeopleDetail's toolbar
+    /// star button, whose accessibility label flips between "Add to fan club"
+    /// and "Remove from fan club" as `fanClub` membership changes. The smoke
+    /// fixture seeds popular people but an empty fan club, so a person opens
+    /// in the "Add" state; tapping must flip it and tapping again must revert,
+    /// proving the AddToFanClub / RemoveFromFanClub dispatch round-trips.
+    func testFanClubFollowAndUnfollowTogglesState() async {
+        let app = launchApp(selectMenu: "Fan Club")
+
+        let personRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
+            .firstMatch
+        XCTAssertTrue(personRow.waitForExistence(timeout: timeout))
+        personRow.doubleClick()
+
+        let toggle = app.identifiedButton("peopleDetail.fanClubButton")
+        XCTAssertTrue(toggle.waitForExistence(timeout: timeout),
+                      "PeopleDetail should expose the fan-club toggle button")
+        // A person not yet followed should show the add affordance.
+        await waitForLabel(toggle, toBe: "Add to fan club")
+
+        // Follow → the label must flip to the remove affordance.
+        toggle.tap()
+        await waitForLabel(toggle, toBe: "Remove from fan club")
+
+        // Unfollow → the label must flip back.
+        toggle.tap()
+        await waitForLabel(toggle, toBe: "Add to fan club")
     }
 
     func testFanClubShowsRetryOnFailure() {
