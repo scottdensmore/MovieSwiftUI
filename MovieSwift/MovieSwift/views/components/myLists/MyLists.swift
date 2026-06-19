@@ -283,7 +283,14 @@ struct MyLists: ConnectedView {
 
             ScrollViewReader { scrollProxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
+                    // Eager VStack rather than LazyVStack: on macOS a
+                    // LazyVStack's lazily-created rows don't acquire an
+                    // accessibility identity even once they're laid out
+                    // on-screen, so list rows become unreachable by VoiceOver
+                    // and unqueryable in UI tests. My Lists holds user-curated
+                    // collections (dozens of items, not thousands), so eager
+                    // rendering costs little and restores row accessibility.
+                    VStack(alignment: .leading, spacing: 0) {
                         currentSectionContent(props: props)
                     }
                     .padding(.horizontal, 4)
@@ -433,6 +440,20 @@ struct MyLists: ConnectedView {
                     }
                     .onTapGesture(count: 2) {
                         selectedCustomList = CustomListNav(id: list.id)
+                    }
+                    // The row is driven by `.onTapGesture` (single = highlight,
+                    // double = open), not a Button, so on macOS its accessibility
+                    // gets merged away and isn't queryable. Replace the row's
+                    // accessibility with a real Button so it surfaces as a stable,
+                    // labelled element (findable as `myLists.customList.<id>` in
+                    // UI tests) while keeping the gesture-based visual behaviour.
+                    // VoiceOver activation intentionally navigates straight to the
+                    // detail (no highlight step), matching the sighted double-tap.
+                    .accessibilityRepresentation {
+                        Button(list.name) {
+                            selectedCustomList = CustomListNav(id: list.id)
+                        }
+                        .accessibilityIdentifier("myLists.customList.\(list.id)")
                     }
             }
         }

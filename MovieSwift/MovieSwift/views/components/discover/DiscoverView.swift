@@ -564,6 +564,13 @@ struct DiscoverView: ConnectedView {
                         MoviesListErrorBanner(failure: failure) {
                             props.dispatch(MoviesActions.FetchRandomDiscover(filter: props.filter))
                         }
+                    } else if DiscoverUndoState.canUndo(previousMovie: previousMovie, isDragging: false) {
+                        // The last card was just dismissed — offer to undo
+                        // (parity with iOS, where undo stays available after
+                        // the current movie is cleared). Gate on the same
+                        // `DiscoverUndoState` policy the iOS path uses; the
+                        // empty state has no drag in progress.
+                        macUndoButton(props: props)
                     } else {
                         ProgressView()
                         Text("Loading random movies…")
@@ -646,6 +653,19 @@ struct DiscoverView: ConnectedView {
                 performDiscoverAction(decision: .seenlist, props: props)
             }
         }
+    }
+
+    private func macUndoButton(props: Props) -> some View {
+        Button {
+            guard let previousMovie else { return }
+            props.dispatch(MoviesActions.PushRandomDiscover(movie: previousMovie))
+            self.previousMovie = nil
+        } label: {
+            Label("Undo last dismiss", systemImage: "gobackward")
+                .foregroundStyle(Color.steam_blue)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("discover.undoButton")
     }
 
     private func resetButton(props: Props) -> some View {
