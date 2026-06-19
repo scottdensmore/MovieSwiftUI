@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "bd4135663334",
+  "strategy": "manual-commit",
+  "branch": "test/fan-club-people-search",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppStateFixtures.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/bd/4135663334/0/metadata.json",
+      "transcript": "/bd/4135663334/0/full.jsonl",
+      "content_hash": "/bd/4135663334/0/content_hash.txt",
+      "prompt": "/bd/4135663334/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 157834,
+    "cache_creation_tokens": 35853212,
+    "cache_read_tokens": 2905032901,
+    "output_tokens": 4317444,
+    "api_call_count": 6604
+  }
+}
