@@ -151,6 +151,25 @@ import MovieSwiftFluxCore
         #expect(!(counts.hasAnyChanges))
     }
 
+    // MARK: - UI-test fixture
+
+    /// Guards the fixture the Settings import UI test depends on: exporting
+    /// `makeUITestImportFixtureState()` and merging it into the smoke state
+    /// must add exactly the one custom list (id 99, "Imported List") the UI
+    /// test then asserts appears in My Lists. Keeps the fixture honest
+    /// without needing the full UI suite to catch a regression.
+    @Test func uiTestImportFixtureAddsExactlyOneCustomListAbsentFromSmokeState() throws {
+        let fixture = makeUITestImportFixtureState()
+        #expect(fixture.moviesState.customLists[99]?.name == "Imported List")
+
+        let data = try AppDataExport.data(from: fixture)
+        let decoded = try AppDataImport.decodeEnvelope(from: data)
+        #expect(decoded.snapshot.moviesState.customLists[99]?.name == "Imported List")
+
+        let counts = AppDataImport.previewCounts(for: decoded, against: makeUISmokeTestState())
+        #expect(counts.customListsAdded == 1)
+    }
+
     // MARK: - Merge semantics
 
     @Test func mergeUnionsWishlistSeenlistAndFanClub() {

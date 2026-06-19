@@ -148,6 +148,42 @@ struct SettingsForm: ConnectedView {
         }
     }
 
+    private func startImport() {
+        #if DEBUG
+        // UI-test seam: `.fileImporter` presents a system open panel that
+        // XCUITest can't operate. When the harness sets `UI_TEST_IMPORT_SEED`
+        // we synthesise a deterministic export file inside the app's own
+        // sandbox container and feed it through the real import path, so the
+        // decode → preview → confirm → merge journey is end-to-end testable.
+        if ProcessInfo.processInfo.environment["UI_TEST_IMPORT_SEED"] == "1" {
+            seedAndImportUITestFixture()
+            return
+        }
+        #endif
+        isImportPickerPresented = true
+    }
+
+    #if DEBUG
+    private func seedAndImportUITestFixture() {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("uitest-import.json")
+        do {
+            let data = try AppDataExport.data(from: makeUITestImportFixtureState(),
+                                              exportDate: Date())
+            // Atomic so a mid-write process kill on a slow CI run can't leave a
+            // partial file that the next launch decodes as garbage.
+            try data.write(to: url, options: .atomic)
+        } catch {
+            importErrorMessage = "UI-test import seed failed: \(error.localizedDescription)"
+            return
+        }
+        // A plain temp URL, not security-scoped: `handleImportSelection` calls
+        // `startAccessingSecurityScopedResource()`, which returns false here and
+        // its `defer` skips the matching stop — so this path is already handled.
+        handleImportSelection(.success([url]))
+    }
+    #endif
+
     private func handleImportSelection(_ result: Result<[URL], Error>) {
         switch result {
         case .failure(let error):
@@ -434,7 +470,7 @@ struct SettingsForm: ConnectedView {
                 .accessibilityIdentifier("settings.exportDataButton")
 
                 Button {
-                    isImportPickerPresented = true
+                    startImport()
                 } label: {
                     Label("Import my data", systemImage: "square.and.arrow.down")
                 }
@@ -935,7 +971,7 @@ struct SettingsForm: ConnectedView {
 
     private var importDataRow: some View {
         Button {
-            isImportPickerPresented = true
+            startImport()
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "square.and.arrow.down")
@@ -1264,6 +1300,7 @@ struct SettingsForm: ConnectedView {
                ),
                presenting: importSuccessCounts) { _ in
             Button("OK", role: .cancel) { importSuccessCounts = nil }
+                .accessibilityIdentifier("settings.import.successOkButton")
         } message: { counts in
             Text(importSuccessMessage(counts))
         }
