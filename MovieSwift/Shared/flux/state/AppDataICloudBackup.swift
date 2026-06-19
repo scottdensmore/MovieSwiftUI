@@ -68,7 +68,27 @@ nonisolated enum AppDataICloudBackup {
     /// available (no signed-in iCloud account, the user disabled
     /// iCloud Drive for the app, or the container isn't provisioned).
     static func resolvedICloudContainer(fileManager: FileManager = .default) -> URL? {
-        fileManager.url(forUbiquityContainerIdentifier: nil)
+        #if DEBUG
+        // UI-test seam: real iCloud Drive isn't available in headless CI, so
+        // when the harness sets `UI_TEST_ICLOUD_FAKE` redirect the container to
+        // a real local directory inside the app's own sandbox container. The
+        // genuine write/read/version/last-date logic then runs end-to-end
+        // against real files (NSFileVersion works on local files too) without
+        // touching iCloud — and without polluting a developer's real iCloud
+        // Drive when the tests run on a signed-in machine. The env var's value
+        // is a per-run token (a UUID the test generates) so each run gets a
+        // fresh, isolated container and no stale backup leaks across runs; it
+        // only suffixes a path inside the app's own (writable) sandbox temp, so
+        // it stays sandbox-safe. No effect in production — unset there.
+        let token = ProcessInfo.processInfo.environment["UI_TEST_ICLOUD_FAKE"] ?? ""
+        if !token.isEmpty {
+            let url = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                .appendingPathComponent("uitest-icloud-container-\(token)", isDirectory: true)
+            try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
+            return url
+        }
+        #endif
+        return fileManager.url(forUbiquityContainerIdentifier: nil)
     }
 
     /// Production helper that resolves the iCloud container then
