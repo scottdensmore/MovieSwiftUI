@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "38c95cf11180",
+  "strategy": "manual-commit",
+  "branch": "test/macos-parity-journeys",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/38/c95cf11180/0/metadata.json",
+      "transcript": "/38/c95cf11180/0/full.jsonl",
+      "content_hash": "/38/c95cf11180/0/content_hash.txt",
+      "prompt": "/38/c95cf11180/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 160173,
+    "cache_creation_tokens": 35896936,
+    "cache_read_tokens": 2917679578,
+    "output_tokens": 4344328,
+    "api_call_count": 6625
+  }
+}
