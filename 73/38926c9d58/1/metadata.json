@@ -1,0 +1,58 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "7338926c9d58",
+  "session_id": "cf4d666e-6b48-4888-87ac-5046a29f09b9",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-19T23:57:48.008026Z",
+  "branch": "refactor/movie-detail-focus-model",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "8c80188e4e0e",
+  "token_usage": {
+    "input_tokens": 22596,
+    "cache_creation_tokens": 213652,
+    "cache_read_tokens": 6073136,
+    "output_tokens": 34036,
+    "api_call_count": 67
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-19T23:57:47.996648Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 62,
+    "human_removed": 86,
+    "total_committed": 0,
+    "total_lines_changed": 148,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 196,
+      "user_lines_removed": 130,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift": 19,
+        "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift": 133,
+        "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift": 44
+      },
+      "user_removed_per_file": {
+        "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift": 128,
+        "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift": 2
+      }
+    }
+  ]
+}

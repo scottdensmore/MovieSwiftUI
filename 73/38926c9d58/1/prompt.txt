@@ -1,0 +1,15 @@
+<task-notification>
+<task-id>bp99lvj64</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/cf4d666e-6b48-4888-87ac-5046a29f09b9/tasks/bp99lvj64.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll until CI checks finish" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+yep do it
+
+---
+
+what is the workflow of this project
