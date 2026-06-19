@@ -14,18 +14,20 @@ struct MovieDetailStateTests {
 
     private func makeMovie(id: Int,
                            keywords: Movie.Keywords? = nil,
-                           images: Movie.MovieImages? = nil) -> Movie {
+                           images: Movie.MovieImages? = nil,
+                           genres: [Genre]? = nil,
+                           overview: String = "Overview") -> Movie {
         Movie(id: id,
               original_title: "Movie \(id)",
               title: "Movie \(id)",
-              overview: "Overview",
+              overview: overview,
               poster_path: nil,
               backdrop_path: nil,
               popularity: 0,
               vote_average: 0,
               vote_count: 0,
               release_date: nil,
-              genres: nil,
+              genres: genres,
               runtime: nil,
               status: nil,
               video: false,
@@ -464,4 +466,76 @@ struct MovieDetailStateTests {
                     "Unexpected scroll id for \(target)")
         }
     }
+
+    #if !os(tvOS)
+    // MARK: - MovieDetailFocusModel (detail-view focus-target assembly)
+
+    /// With no movie or relations, the focus sequence is just the always-present
+    /// action group, and focus defaults to its first button.
+    @Test func focusModelWithNoRelationsHasOnlyTheActionGroup() {
+        let model = MovieDetailFocusModel(movie: nil, characters: nil, credits: nil,
+                                          similar: nil, recommended: nil, videos: nil,
+                                          reviewsCount: nil, topPersonId: nil)
+        #expect(model.focusGroups == [[.wishlistButton, .seenlistButton, .customListButton]])
+        #expect(model.availableTopTargets == [.wishlistButton, .seenlistButton, .customListButton])
+        #expect(model.preferredFocusTarget == .wishlistButton)
+    }
+
+    /// The single-item groups appear in the right Tab order (genres → actions →
+    /// review → top person → read-more), and a present genre is preferred for
+    /// initial focus. (`makeMovie` hardcodes a non-empty overview, so
+    /// `readMoreButton` is part of the expected sequence here.)
+    @Test func focusModelOrdersScalarGroupsAndPrefersFirstGenre() {
+        let movie = makeMovie(id: 1, genres: [Genre(id: 35, name: "Comedy")])
+        let model = MovieDetailFocusModel(movie: movie, characters: nil, credits: nil,
+                                          similar: nil, recommended: nil, videos: nil,
+                                          reviewsCount: 3, topPersonId: 9)
+        #expect(model.focusGroups == [
+            [.genre(35)],
+            [.wishlistButton, .seenlistButton, .customListButton],
+            [.reviewLink],
+            [.topPerson(9)],
+            [.readMoreButton],
+        ])
+        #expect(model.preferredFocusTarget == .genre(35))
+    }
+
+    /// Cast and crew groups append a trailing "see all" target, and with no
+    /// genres focus defaults to the first action button.
+    @Test func focusModelAppendsSeeAllToCastAndCrewGroups() {
+        let model = MovieDetailFocusModel(movie: nil,
+                                          characters: [makePeople(id: 0)],
+                                          credits: [makePeople(id: 1)],
+                                          similar: nil, recommended: nil, videos: nil,
+                                          reviewsCount: nil, topPersonId: nil)
+        #expect(model.castTargets == [.castPerson(0), .castSeeAll])
+        #expect(model.crewTargets == [.crewPerson(1), .crewSeeAll])
+        #expect(model.preferredFocusTarget == .wishlistButton)
+    }
+
+    /// A movie with a blank overview omits the read-more target entirely.
+    @Test func focusModelOmitsReadMoreButtonWhenOverviewIsEmpty() {
+        let movie = makeMovie(id: 1, overview: "")
+        let model = MovieDetailFocusModel(movie: movie, characters: nil, credits: nil,
+                                          similar: nil, recommended: nil, videos: nil,
+                                          reviewsCount: nil, topPersonId: nil)
+        #expect(model.readMoreTarget == nil)
+        #expect(!model.availableTopTargets.contains(.readMoreButton))
+    }
+
+    /// Poster and backdrop image rows map to per-image focus targets keyed by
+    /// file path.
+    @Test func focusModelIncludesPosterAndBackdropTargets() {
+        let images = Movie.MovieImages(
+            posters: [ImageData(aspect_ratio: 0.7, file_path: "/p.jpg", height: 1000, width: 700)],
+            backdrops: [ImageData(aspect_ratio: 1.7, file_path: "/b.jpg", height: 1200, width: 1800)]
+        )
+        let model = MovieDetailFocusModel(movie: makeMovie(id: 1, images: images),
+                                          characters: nil, credits: nil,
+                                          similar: nil, recommended: nil, videos: nil,
+                                          reviewsCount: nil, topPersonId: nil)
+        #expect(model.posterTargets == [.poster("/p.jpg")])
+        #expect(model.backdropTargets == [.backdrop("/b.jpg")])
+    }
+    #endif
 }

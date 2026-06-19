@@ -186,128 +186,18 @@ struct MovieDetail: ConnectedView {
     }
 
     #if os(macOS)
-    private func genreTargets(props: Props) -> [MovieDetailFocusTarget] {
-        (props.movie?.genres ?? []).map { .genre($0.id) }
-    }
-
-    private var actionTargets: [MovieDetailFocusTarget] {
-        [.wishlistButton, .seenlistButton, .customListButton]
-    }
-
-    private func reviewTarget(props: Props) -> MovieDetailFocusTarget? {
-        guard props.reviewsCount ?? 0 > 0 else {
-            return nil
-        }
-        return .reviewLink
-    }
-
-    private func topPersonTarget(props: Props) -> MovieDetailFocusTarget? {
-        primaryPeopleCredit(props: props).map { .topPerson($0.id) }
-    }
-
-    private func supplementalTargets(props: Props) -> [MovieDetailFocusTarget] {
-        [reviewTarget(props: props), topPersonTarget(props: props)].compactMap { $0 }
-    }
-
-    private func readMoreTarget(props: Props) -> MovieDetailFocusTarget? {
-        guard let movie = props.movie, !movie.overview.isEmpty else {
-            return nil
-        }
-        return .readMoreButton
-    }
-
-    private func keywordTargets(props: Props) -> [MovieDetailFocusTarget] {
-        (props.movie?.keywords?.keywords ?? []).map { .keyword($0.id) }
-    }
-
-    private func castTargets(props: Props) -> [MovieDetailFocusTarget] {
-        guard let characters = props.characters, !characters.isEmpty else {
-            return []
-        }
-        var targets: [MovieDetailFocusTarget] = characters.map { .castPerson($0.id) }
-        targets.append(.castSeeAll)
-        return targets
-    }
-
-    private func crewTargets(props: Props) -> [MovieDetailFocusTarget] {
-        guard let credits = props.credits, !credits.isEmpty else {
-            return []
-        }
-        var targets: [MovieDetailFocusTarget] = credits.map { .crewPerson($0.id) }
-        targets.append(.crewSeeAll)
-        return targets
-    }
-
-    private func similarTargets(props: Props) -> [MovieDetailFocusTarget] {
-        guard let similar = props.similar, !similar.isEmpty else {
-            return []
-        }
-        var targets: [MovieDetailFocusTarget] = similar.map { .similarMovie($0.id) }
-        targets.append(.similarSeeAll)
-        return targets
-    }
-
-    private func recommendedTargets(props: Props) -> [MovieDetailFocusTarget] {
-        guard let recommended = props.recommended, !recommended.isEmpty else {
-            return []
-        }
-        var targets: [MovieDetailFocusTarget] = recommended.map { .recommendedMovie($0.id) }
-        targets.append(.recommendedSeeAll)
-        return targets
-    }
-
-    private func posterTargets(props: Props) -> [MovieDetailFocusTarget] {
-        let posters = props.movie?.images?.posters ?? []
-        guard !posters.isEmpty else { return [] }
-        return posters.map { .poster($0.file_path) }
-    }
-
-    private func backdropTargets(props: Props) -> [MovieDetailFocusTarget] {
-        let backdrops = props.movie?.images?.backdrops ?? []
-        guard !backdrops.isEmpty else { return [] }
-        return backdrops.map { .backdrop($0.file_path) }
-    }
-
-    private func videoTargets(props: Props) -> [MovieDetailFocusTarget] {
-        MovieVideosState.presentations(from: props.videos ?? []).map { .video($0.id) }
-    }
-
-    /// Groups of focus targets, in Tab order. Each group is a horizontal row
-    /// of related items (genres, action buttons, keywords, cast, crew etc).
-    /// Tab / Shift+Tab moves between groups; Left/Right arrows move within.
-    private func focusGroups(props: Props) -> [[MovieDetailFocusTarget]] {
-        var groups: [[MovieDetailFocusTarget]] = []
-        let genres = genreTargets(props: props)
-        if !genres.isEmpty { groups.append(genres) }
-        groups.append(actionTargets)
-        if let review = reviewTarget(props: props) { groups.append([review]) }
-        if let person = topPersonTarget(props: props) { groups.append([person]) }
-        if let readMore = readMoreTarget(props: props) { groups.append([readMore]) }
-        let keywords = keywordTargets(props: props)
-        if !keywords.isEmpty { groups.append(keywords) }
-        let cast = castTargets(props: props)
-        if !cast.isEmpty { groups.append(cast) }
-        let crew = crewTargets(props: props)
-        if !crew.isEmpty { groups.append(crew) }
-        let similar = similarTargets(props: props)
-        if !similar.isEmpty { groups.append(similar) }
-        let recommended = recommendedTargets(props: props)
-        if !recommended.isEmpty { groups.append(recommended) }
-        let videos = videoTargets(props: props)
-        if !videos.isEmpty { groups.append(videos) }
-        let posters = posterTargets(props: props)
-        if !posters.isEmpty { groups.append(posters) }
-        let backdrops = backdropTargets(props: props)
-        if !backdrops.isEmpty { groups.append(backdrops) }
-        return groups
-    }
-
-    private func availableTopTargets(props: Props) -> [MovieDetailFocusTarget] {
-        focusGroups(props: props).flatMap { $0 }
-    }
-
-    private func preferredFocusTarget(props: Props) -> MovieDetailFocusTarget? {
-        genreTargets(props: props).first ?? actionTargets.first
+    /// Builds the pure focus model from the current props. All Tab-order /
+    /// target logic lives in `MovieDetailFocusModel` (see MovieDetailFocus.swift);
+    /// the view keeps only the `@FocusState` glue below.
+    private func focusModel(props: Props) -> MovieDetailFocusModel {
+        MovieDetailFocusModel(movie: props.movie,
+                              characters: props.characters,
+                              credits: props.credits,
+                              similar: props.similar,
+                              recommended: props.recommended,
+                              videos: props.videos,
+                              reviewsCount: props.reviewsCount,
+                              topPersonId: primaryPeopleCredit(props: props)?.id)
     }
 
     private func restoreDetailFocus(props: Props, force: Bool = false) {
@@ -315,7 +205,8 @@ struct MovieDetail: ConnectedView {
             return
         }
 
-        let availableTargets = availableTopTargets(props: props)
+        let model = focusModel(props: props)
+        let availableTargets = model.availableTopTargets
         guard !availableTargets.isEmpty else {
             focusedDetailItem = nil
             return
@@ -330,13 +221,13 @@ struct MovieDetail: ConnectedView {
         // immediately-preceding `focusedDetailItem == nil` check —
         // restructured to make the guard explicit.
         if force {
-            focusedDetailItem = preferredFocusTarget(props: props)
+            focusedDetailItem = model.preferredFocusTarget
         } else if let focused = focusedDetailItem {
             if !availableTargets.contains(focused) {
-                focusedDetailItem = preferredFocusTarget(props: props)
+                focusedDetailItem = model.preferredFocusTarget
             }
         } else {
-            focusedDetailItem = preferredFocusTarget(props: props)
+            focusedDetailItem = model.preferredFocusTarget
         }
     }
     #endif
@@ -687,7 +578,7 @@ struct MovieDetail: ConnectedView {
     /// default Tab traversal can't walk into the focusable items inside a
     /// group (e.g. individual crew members after the last heading).
     private func moveTabFocus(props: Props, forward: Bool) -> KeyPress.Result {
-        let groups = focusGroups(props: props)
+        let groups = focusModel(props: props).focusGroups
         guard !groups.isEmpty else { return .ignored }
         if let next = MovieDetailFocusNavigation.nextGroupStart(from: focusedDetailItem,
                                                                 in: groups,
@@ -703,7 +594,7 @@ struct MovieDetail: ConnectedView {
     /// still scroll or handle it naturally.
     private func moveArrowFocus(props: Props, forward: Bool) -> KeyPress.Result {
         guard let current = focusedDetailItem else { return .ignored }
-        let groups = focusGroups(props: props)
+        let groups = focusModel(props: props).focusGroups
         if let next = MovieDetailFocusNavigation.adjacentInGroup(from: current,
                                                                  in: groups,
                                                                  forward: forward) {
