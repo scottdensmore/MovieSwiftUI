@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "f37daa545616",
+  "strategy": "manual-commit",
+  "branch": "test/settings-icloud-ui",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/Shared/flux/state/AppDataICloudBackup.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f3/7daa545616/0/metadata.json",
+      "transcript": "/f3/7daa545616/0/full.jsonl",
+      "content_hash": "/f3/7daa545616/0/content_hash.txt",
+      "prompt": "/f3/7daa545616/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 141217,
+    "cache_creation_tokens": 35753812,
+    "cache_read_tokens": 2878383400,
+    "output_tokens": 4261499,
+    "api_call_count": 6554
+  }
+}
