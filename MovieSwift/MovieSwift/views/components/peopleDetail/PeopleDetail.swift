@@ -265,6 +265,7 @@ struct PeopleDetail: ConnectedView {
         .accessibilityLabel(props.isInFanClub.wrappedValue
                             ? "Remove from fan club"
                             : "Add to fan club")
+        .accessibilityIdentifier("peopleDetail.fanClubButton")
     }
 
     private func scoreUpdateView(props: Props) -> some View {
