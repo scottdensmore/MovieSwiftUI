@@ -1,0 +1,74 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "7338926c9d58",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-19T23:57:47.384608Z",
+  "branch": "refactor/movie-detail-focus-model",
+  "checkpoints_count": 37,
+  "save_step_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "76d1491be034",
+  "token_usage": {
+    "input_tokens": 197471,
+    "cache_creation_tokens": 36835404,
+    "cache_read_tokens": 3023722420,
+    "output_tokens": 4501120,
+    "api_call_count": 6769
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "76d1491be034",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 37
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-19T23:57:46.579762Z",
+    "agent_lines": 178,
+    "agent_removed": 130,
+    "human_added": 44,
+    "human_modified": 18,
+    "human_removed": 0,
+    "total_committed": 240,
+    "total_lines_changed": 370,
+    "agent_percentage": 83.24324324324324,
+    "metric_version": 2
+  }
+}
