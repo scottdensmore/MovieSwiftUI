@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.7.5",
+  "checkpoint_id": "44c231fc26a7",
+  "strategy": "manual-commit",
+  "branch": "chore/add-verifier-subagent",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "CLAUDE.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/44/c231fc26a7/0/metadata.json",
+      "transcript": "/44/c231fc26a7/0/full.jsonl",
+      "content_hash": "/44/c231fc26a7/0/content_hash.txt",
+      "prompt": "/44/c231fc26a7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 118146,
+    "cache_creation_tokens": 34880589,
+    "cache_read_tokens": 2838460584,
+    "output_tokens": 4147188,
+    "api_call_count": 6447
+  }
+}
