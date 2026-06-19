@@ -63,7 +63,11 @@ public func makeUISmokeTestState() -> AppState {
                                               smokeTestDirector.id: smokeTestDirector, ],
                                     peoplesMovies: [0: Set([smokeTestPrimaryCast.id,
                                                             smokeTestDirector.id, ]), ],
-                                    search: [:],
+                                    // People-search seed for the Fan Club search UI test: typing
+                                    // "uitestsearch" resolves to the director only, so the results
+                                    // list replaces the popular list (which also contains the
+                                    // primary cast) — letting the test prove search results render.
+                                    search: ["uitestsearch": [smokeTestDirector.id]],
                                     casts: [smokeTestPrimaryCast.id: [0: "Character 1"]],
                                     crews: [smokeTestDirector.id: [0: "Director 1"]],
                                     movieCastOrder: [0: [smokeTestPrimaryCast.id]],

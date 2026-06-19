@@ -330,6 +330,41 @@ final class MovieSwiftMacUITests: XCTestCase {
         await waitForLabel(toggle, toBe: "Add to fan club")
     }
 
+    /// People-search journey (Tier 2). The smoke fixture seeds popular people
+    /// (primary cast id 0 + director id 1) and a people-search result mapping
+    /// "uitestsearch" → [director id 1]. Typing the query must replace the
+    /// popular list with the search results: the director row stays, and the
+    /// primary-cast row (popular-only) drops out — proving the view rendered
+    /// search results, not popular. Drives the field by its placeholder (the
+    /// same pattern as the movies-search test) so no extra identifier is
+    /// needed; the row identifiers (`fanClub.person.<id>`) already exist.
+    func testFanClubSearchReplacesPopularWithResults() async {
+        let app = launchApp(selectMenu: "Fan Club")
+
+        // Popular initially lists both seeded people.
+        XCTAssertTrue(app.identifiedElement("fanClub.person.0").waitForExistence(timeout: timeout),
+                      "Popular list should show the primary-cast row (id 0) before any search")
+        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+                      "Popular list should show the director row (id 1) before any search")
+
+        let searchField = app.textFields["Search actors"]
+        XCTAssertTrue(searchField.waitForExistence(timeout: timeout),
+                      "Fan Club should expose the actor search field")
+        // Focus the field before typing, mirroring the movies-search test.
+        searchField.click()
+        searchField.typeText("uitestsearch")
+
+        // The seeded result (director, id 1) renders. `FanClubHome.map` reads
+        // `peoplesState.search[query]` synchronously once `isSearching` flips,
+        // so the pre-seeded result shows without waiting on any debounce.
+        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+                      "Typing a seeded query should show the matching actor")
+        // …and the popular-only person (id 0) is replaced by the results.
+        let popularOnly = app.identifiedElement("fanClub.person.0")
+        let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: popularOnly)
+        await fulfillment(of: [gone], timeout: timeout)
+    }
+
     func testFanClubShowsRetryOnFailure() {
         let app = launchApp(
             selectMenu: "Fan Club",
