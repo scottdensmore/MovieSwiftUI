@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "4aba9146f56c",
+  "strategy": "manual-commit",
+  "branch": "refactor/codingkeys-imagedata",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetailFocus.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieBackdropsRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MoviePostersRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/MovieSwift/views/shared/images/ImagesCarouselView.swift",
+    "MovieSwift/MovieSwiftTests/AppDataRoundTripTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleAndFanClubTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/Image.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/APIPayloadContractTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ModelUtilityTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4a/ba9146f56c/0/metadata.json",
+      "transcript": "/4a/ba9146f56c/0/full.jsonl",
+      "content_hash": "/4a/ba9146f56c/0/content_hash.txt",
+      "prompt": "/4a/ba9146f56c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 253756,
+    "cache_creation_tokens": 37217382,
+    "cache_read_tokens": 3113211903,
+    "output_tokens": 4714175,
+    "api_call_count": 6980
+  }
+}
