@@ -8,7 +8,7 @@ struct CustomListRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            SmallMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverMovie?.poster_path,
+            SmallMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverMovie?.posterPath,
                                                                                  size: .medium))
             VStack(alignment: .leading, spacing: 4) {
                 Text(list.name).font(.headline).fontWeight(.bold)

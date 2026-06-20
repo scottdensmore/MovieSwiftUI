@@ -6,7 +6,7 @@ struct CustomListCoverRow: View {
     let movie: Movie
 
     var body: some View {
-        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.backdrop_path ?? movie.poster_path,
+        MovieBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: movie.backdropPath ?? movie.posterPath,
                                                                           size: .medium))
     }
 }

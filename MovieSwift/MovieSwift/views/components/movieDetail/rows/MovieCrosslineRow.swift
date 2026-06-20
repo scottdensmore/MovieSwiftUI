@@ -17,8 +17,8 @@ enum MovieCrosslineState {
 
     static func presentation(for movie: Movie) -> MovieCrosslineItemPresentation {
         MovieCrosslineItemPresentation(title: movie.userTitle,
-                                       posterPath: movie.poster_path,
-                                       popularityScore: Int(movie.vote_average * 10))
+                                       posterPath: movie.posterPath,
+                                       popularityScore: Int(movie.voteAverage * 10))
     }
 }
 

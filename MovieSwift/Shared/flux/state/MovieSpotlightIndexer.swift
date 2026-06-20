@@ -151,7 +151,7 @@ final class SpotlightStoreObserver {
         }
         // TMDB's release_date is "yyyy-MM-dd". Surface as a content
         // creation date when present so the system can sort by it.
-        if let release = movie.release_date,
+        if let release = movie.releaseDateString,
            !release.isEmpty,
            let date = SpotlightStoreObserver.releaseDateFormatter.date(from: release) {
             attributes.contentCreationDate = date

@@ -24,7 +24,7 @@ struct CustomListHeaderRow: View {
         Group {
             if coverBackdropMovie != nil {
                 ZStack(alignment: .bottomLeading) {
-                    MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverBackdropMovie?.backdrop_path ?? coverBackdropMovie?.poster_path,
+                    MovieTopBackdropImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: coverBackdropMovie?.backdropPath ?? coverBackdropMovie?.posterPath,
                                                                                          size: .original),
                                           height: 200)
                     headerText

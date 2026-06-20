@@ -61,8 +61,8 @@ public extension Sequence where Iterator.Element == Int {
             }
         case .byScore:
             return ids.sorted {
-                let lhs = state.moviesState.movies[$0]?.vote_average ?? -Float.greatestFiniteMagnitude
-                let rhs = state.moviesState.movies[$1]?.vote_average ?? -Float.greatestFiniteMagnitude
+                let lhs = state.moviesState.movies[$0]?.voteAverage ?? -Float.greatestFiniteMagnitude
+                let rhs = state.moviesState.movies[$1]?.voteAverage ?? -Float.greatestFiniteMagnitude
                 return lhs > rhs
             }
         }
@@ -71,7 +71,7 @@ public extension Sequence where Iterator.Element == Int {
 
 private enum MovieSortValues {
     static func releaseDate(for movie: Movie) -> Date? {
-        guard let releaseDate = movie.release_date else {
+        guard let releaseDate = movie.releaseDateString else {
             return nil
         }
         return Movie.dateFormatter.date(from: releaseDate)

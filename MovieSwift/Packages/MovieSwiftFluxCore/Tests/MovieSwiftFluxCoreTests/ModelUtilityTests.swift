@@ -254,6 +254,49 @@ import Backend
         #expect(nested.keys.contains("originalTitle") == false)
     }
 
+    /// `Movie` exposes camelCase Swift properties but its TMDB/JSON keys —
+    /// and the keys persisted in user backups — stay snake_case via
+    /// `CodingKeys`. The raw `release_date` string is stored as
+    /// `releaseDateString` (the camelCase `releaseDate` name is taken by the
+    /// computed `Date`); it still encodes under the `release_date` key.
+    @Test func movieRoundTripsSnakeCaseWireKeys() throws {
+        let json = #"""
+        {"id":1,"original_title":"Orig","title":"Title","overview":"Over",\#
+        "poster_path":"/p.jpg","backdrop_path":"/b.jpg","popularity":5.5,\#
+        "vote_average":8.1,"vote_count":100,"release_date":"1972-03-14",\#
+        "video":false,"production_countries":[{"name":"USA"}]}
+        """#
+        let decoded = try JSONDecoder().decode(Movie.self, from: Data(json.utf8))
+
+        #expect(decoded.originalTitle == "Orig")
+        #expect(decoded.posterPath == "/p.jpg")
+        #expect(decoded.backdropPath == "/b.jpg")
+        #expect(decoded.voteAverage == Float(8.1))
+        #expect(decoded.voteCount == 100)
+        #expect(decoded.releaseDateString == "1972-03-14")
+        #expect(decoded.productionCountries?.first?.name == "USA")
+        // The computed `releaseDate: Date?` still parses the raw string.
+        #expect(decoded.releaseDate != nil)
+
+        let object = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(decoded)) as? [String: Any])
+        #expect(object["original_title"] as? String == "Orig")
+        #expect(object["poster_path"] as? String == "/p.jpg")
+        #expect(object["backdrop_path"] as? String == "/b.jpg")
+        #expect(object["vote_average"] as? Double == 8.1)
+        #expect(object["vote_count"] as? Int == 100)
+        #expect(object["release_date"] as? String == "1972-03-14")
+        #expect((object["production_countries"] as? [[String: Any]])?.first?["name"] as? String == "USA")
+        #expect(object.keys.contains("originalTitle") == false)
+        #expect(object.keys.contains("posterPath") == false)
+        #expect(object.keys.contains("backdropPath") == false)
+        #expect(object.keys.contains("voteAverage") == false)
+        #expect(object.keys.contains("voteCount") == false)
+        #expect(object.keys.contains("productionCountries") == false)
+        #expect(object.keys.contains("releaseDateString") == false)
+        // `releaseDate` is a computed property and must never be encoded.
+        #expect(object.keys.contains("releaseDate") == false)
+    }
+
     @Test func discoverFilterRandomHelpersStayInExpectedDomain() {
         let year = DiscoverFilter.randomYear()
         let currentYear = Calendar.current.component(.year, from: Date())
@@ -282,22 +325,22 @@ import Backend
     ) -> Movie {
         Movie(
             id: id,
-            original_title: originalTitle,
+            originalTitle: originalTitle,
             title: title,
             overview: "Overview",
-            poster_path: nil,
-            backdrop_path: nil,
+            posterPath: nil,
+            backdropPath: nil,
             popularity: popularity,
-            vote_average: voteAverage,
-            vote_count: 1,
-            release_date: releaseDate,
+            voteAverage: voteAverage,
+            voteCount: 1,
+            releaseDateString: releaseDate,
             genres: nil,
             runtime: nil,
             status: nil,
             video: false,
             keywords: nil,
             images: nil,
-            production_countries: nil,
+            productionCountries: nil,
             character: nil,
             department: nil
         )
