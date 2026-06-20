@@ -29,7 +29,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     ) -> XCUIApplication {
         var env = environment
         if let menu {
-            env["UI_TEST_SELECT_MENU"] = menu
+            env[UITestEnv.Variable.selectMenu] = menu
         }
         return .launchForTesting(environment: env)
     }
@@ -403,7 +403,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testFanClubShowsRetryOnFailure() {
         let app = launchApp(
             selectMenu: "Fan Club",
-            environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"]
+            environment: [UITestEnv.Variable.fanClubFailure: "1"]
         )
 
         XCTAssertTrue(app.identifiedElement("fanClub.errorState").waitForExistence(timeout: timeout))
@@ -939,7 +939,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// absent from the smoke fixture, so a successful merge must surface
     /// that list in My Lists.
     func testSettingsImportPreviewsAndMergesData() {
-        let app = launchApp(selectMenu: "Settings", environment: ["UI_TEST_IMPORT_SEED": "1"])
+        let app = launchApp(selectMenu: "Settings", environment: [UITestEnv.Variable.importSeed: "1"])
 
         let importButton = app.identifiedButton("settings.importDataButton")
         XCTAssertTrue(importButton.waitForExistence(timeout: timeout))
@@ -980,7 +980,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// already covered by `AppDataExportTests`; this test's scope is the
     /// button → produces-valid-user-data wiring.
     func testSettingsExportCapturesUserData() {
-        let app = launchApp(selectMenu: "Settings", environment: ["UI_TEST_EXPORT_VERIFY": "1"])
+        let app = launchApp(selectMenu: "Settings", environment: [UITestEnv.Variable.exportVerify: "1"])
 
         let exportButton = app.identifiedButton("settings.exportDataButton")
         XCTAssertTrue(exportButton.waitForExistence(timeout: timeout))
@@ -1021,7 +1021,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     /// Fresh per-run fake-container token, so each test is isolated.
     private func icloudFakeEnvironment() -> [String: String] {
-        ["UI_TEST_ICLOUD_FAKE": UUID().uuidString]
+        [UITestEnv.Variable.iCloudFake: UUID().uuidString]
     }
 
     /// Backing up writes the rolling backup to the (faked) iCloud container
@@ -1165,7 +1165,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// the `myLists.section.Wishlist` segment tab button, which is
     /// unique to that screen.
     func testAppIntentRoutesToMyLists() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "wishlist"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "wishlist"])
 
         let wishlistSegment = app.identifiedElement("myLists.section.Wishlist")
         XCTAssertTrue(wishlistSegment.waitForExistence(timeout: timeout),
@@ -1174,7 +1174,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     /// `OpenDiscoverIntent` analogue — Discover sidebar menu.
     func testAppIntentRoutesToDiscover() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "discover"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "discover"])
 
         let filterButton = app.buttons["discover.filterButton"]
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout),
@@ -1185,7 +1185,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// by any `fanClub.person.*` row from the smoke-test fixture's
     /// popular-people list.
     func testAppIntentRoutesToFanClub() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "fanClub"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "fanClub"])
 
         let anyFanClubPerson = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
@@ -1202,7 +1202,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     /// `.onContinueUserActivity` modifier uses in production and
     /// presents the MovieDetail sheet via `spotlightMovieId`.
     func testSpotlightDeepLinkOpensMovieDetailSheet() {
-        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.movieswift.movie.0"])
+        let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.movieswift.movie.0"])
 
         let addToListButton = app.identifiedElement("movieDetail.addToListButton")
         XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout),
@@ -1211,7 +1211,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
     /// Identifiers with the wrong prefix MUST be ignored.
     func testSpotlightDeepLinkIgnoresUnknownIdentifier() {
-        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.other.app.42"])
+        let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.other.app.42"])
 
         // The default sidebar (Popular) loads normally.
         XCTAssertTrue(app.identifiedElement("sidebar.Popular").waitForExistence(timeout: timeout))

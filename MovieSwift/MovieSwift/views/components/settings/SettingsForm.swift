@@ -133,7 +133,7 @@ struct SettingsForm: ConnectedView {
         do {
             let data = try AppDataExport.data(from: store.state, exportDate: now)
             #if DEBUG
-            if ProcessInfo.processInfo.environment["UI_TEST_EXPORT_VERIFY"] == "1" {
+            if ProcessInfo.processInfo.environment[UITestEnv.Variable.exportVerify] == "1" {
                 verifyExportRoundTripForUITest(data: data)
                 return
             }
@@ -189,7 +189,7 @@ struct SettingsForm: ConnectedView {
         // we synthesise a deterministic export file inside the app's own
         // sandbox container and feed it through the real import path, so the
         // decode → preview → confirm → merge journey is end-to-end testable.
-        if ProcessInfo.processInfo.environment["UI_TEST_IMPORT_SEED"] == "1" {
+        if ProcessInfo.processInfo.environment[UITestEnv.Variable.importSeed] == "1" {
             seedAndImportUITestFixture()
             return
         }

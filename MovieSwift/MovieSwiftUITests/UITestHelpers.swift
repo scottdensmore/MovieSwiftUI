@@ -1,13 +1,14 @@
 //  Shared UI test utilities used across iOS, macOS, and tvOS UI test targets.
 
 import XCTest
+import MovieSwiftFluxCore
 
 // MARK: - Common Constants
 
 enum UITestConstants {
     static let uiWaitTimeout: TimeInterval = 15
-    static let smokeTestArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
-    static let smokeTestEnvironment = ["UI_SMOKE_TESTS": "1"]
+    static let smokeTestArguments = ["-ApplePersistenceIgnoreState", "YES", UITestEnv.Argument.smokeTests]
+    static let smokeTestEnvironment = [UITestEnv.Variable.smokeTests: "1"]
 }
 
 // MARK: - App Launch

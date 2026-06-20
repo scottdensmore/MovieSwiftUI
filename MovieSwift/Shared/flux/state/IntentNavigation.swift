@@ -17,6 +17,7 @@
 //  AppIntent and the view both reach for `.shared`.
 
 import Foundation
+import MovieSwiftFluxCore
 import Observation
 
 // `@MainActor`: this is an @Observable store whose `pendingDestination`
@@ -73,7 +74,7 @@ final class IntentNavigationStore {
     /// without invoking the AppIntent runtime, which can't be driven
     /// from XCUITest.
     static func handleUITestEnvironment(_ environment: [String: String] = ProcessInfo.processInfo.environment) {
-        guard let raw = environment["UI_TEST_INTENT_DESTINATION"] else { return }
+        guard let raw = environment[UITestEnv.Variable.intentDestination] else { return }
         let destination: Destination?
         switch raw {
         case "popularMovies": destination = .popularMovies

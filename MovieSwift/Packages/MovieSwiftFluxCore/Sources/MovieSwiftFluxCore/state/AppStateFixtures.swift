@@ -1,7 +1,7 @@
 import Foundation
 
 #if DEBUG
-private let uiSmokeTestFanClubFailureKey = "UI_SMOKE_TEST_FAN_CLUB_FAILURE"
+private let uiSmokeTestFanClubFailureKey = UITestEnv.Variable.fanClubFailure
 private let sampleCustomList = CustomList(id: 0,
                                           name: "TestName",
                                           cover: 0,

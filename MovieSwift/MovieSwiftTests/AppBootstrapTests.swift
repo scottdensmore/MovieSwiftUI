@@ -23,7 +23,7 @@ struct AppBootstrapTests {
     }
 
     @Test func appLaunchModeDetectsUISmokeTestsFromArguments() {
-        let mode = AppLaunchMode.from(arguments: ["--ui-smoke-tests"], environment: [:])
+        let mode = AppLaunchMode.from(arguments: [UITestEnv.Argument.smokeTests], environment: [:])
         #if DEBUG
         #expect(mode == .uiSmokeTests)
         #else
@@ -32,7 +32,7 @@ struct AppBootstrapTests {
     }
 
     @Test func appLaunchModeDetectsUISmokeTestsFromEnvironment() {
-        let mode = AppLaunchMode.from(arguments: [], environment: ["UI_SMOKE_TESTS": "1"])
+        let mode = AppLaunchMode.from(arguments: [], environment: [UITestEnv.Variable.smokeTests: "1"])
         #if DEBUG
         #expect(mode == .uiSmokeTests)
         #else
@@ -51,7 +51,7 @@ struct AppBootstrapTests {
 
     @Test func appLaunchModePreviewTakesPriorityOverSmokeTests() {
         let mode = AppLaunchMode.from(
-            arguments: ["--ui-smoke-tests"],
+            arguments: [UITestEnv.Argument.smokeTests],
             environment: ["XCODE_RUNNING_FOR_PREVIEWS": "1"]
         )
         #if DEBUG
