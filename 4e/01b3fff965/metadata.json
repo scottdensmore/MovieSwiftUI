@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "4e01b3fff965",
+  "strategy": "manual-commit",
+  "branch": "feat/movie-action-intents",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/home/HomeView.swift",
+    "MovieSwift/MovieSwiftTests/IntentActionStoreTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/MovieEntitySource.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MovieEntitySourceTests.swift",
+    "MovieSwift/Shared/flux/state/IntentAction.swift",
+    "MovieSwift/Shared/intents/MovieEntity.swift",
+    "MovieSwift/Shared/intents/MovieSwiftAppIntents.swift",
+    "MovieSwift/Shared/intents/MovieSwiftAppShortcuts.swift",
+    "MovieSwift/Shared/views/SplitView.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4e/01b3fff965/0/metadata.json",
+      "transcript": "/4e/01b3fff965/0/full.jsonl",
+      "content_hash": "/4e/01b3fff965/0/content_hash.txt",
+      "prompt": "/4e/01b3fff965/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 361493,
+    "cache_creation_tokens": 38251729,
+    "cache_read_tokens": 3361920031,
+    "output_tokens": 5130745,
+    "api_call_count": 7384
+  }
+}

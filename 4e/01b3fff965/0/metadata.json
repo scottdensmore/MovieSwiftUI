@@ -1,0 +1,90 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "4e01b3fff965",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-20T23:04:14.100216Z",
+  "branch": "feat/movie-action-intents",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/home/HomeView.swift",
+    "MovieSwift/MovieSwiftTests/IntentActionStoreTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/MovieEntitySource.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MovieEntitySourceTests.swift",
+    "MovieSwift/Shared/flux/state/IntentAction.swift",
+    "MovieSwift/Shared/intents/MovieEntity.swift",
+    "MovieSwift/Shared/intents/MovieSwiftAppIntents.swift",
+    "MovieSwift/Shared/intents/MovieSwiftAppShortcuts.swift",
+    "MovieSwift/Shared/views/SplitView.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "80333210d542",
+  "token_usage": {
+    "input_tokens": 361493,
+    "cache_creation_tokens": 38251729,
+    "cache_read_tokens": 3361920031,
+    "output_tokens": 5130745,
+    "api_call_count": 7384
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "80333210d542",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 55
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-20T23:04:13.097617Z",
+    "agent_lines": 301,
+    "agent_removed": 0,
+    "human_added": 16,
+    "human_modified": 16,
+    "human_removed": 0,
+    "total_committed": 333,
+    "total_lines_changed": 333,
+    "agent_percentage": 90.39039039039038,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
