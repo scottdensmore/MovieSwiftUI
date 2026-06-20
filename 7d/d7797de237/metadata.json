@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "7dd7797de237",
+  "strategy": "manual-commit",
+  "branch": "refactor/codingkeys-paginated-response",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleAndFanClubTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/actions/MoviesActions.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/PaginatedResponse.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/APIPayloadContractTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ModelUtilityTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7d/d7797de237/0/metadata.json",
+      "transcript": "/7d/d7797de237/0/full.jsonl",
+      "content_hash": "/7d/d7797de237/0/content_hash.txt",
+      "prompt": "/7d/d7797de237/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 249398,
+    "cache_creation_tokens": 37175306,
+    "cache_read_tokens": 3106918323,
+    "output_tokens": 4693678,
+    "api_call_count": 6955
+  }
+}
