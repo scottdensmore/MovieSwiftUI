@@ -96,3 +96,46 @@ struct OpenPopularMoviesIntent: AppIntent {
         return .result()
     }
 }
+
+/// "Add <Movie> to Watchlist" — parameterised over a `MovieEntity` the user
+/// picks (from their saved movies). Posts the action to `IntentActionStore`;
+/// the app applies it through the live store on its next layout so the change
+/// persists normally.
+struct AddToWatchlistIntent: AppIntent {
+    static let title: LocalizedStringResource = "Add Movie to Watchlist"
+
+    static let description = IntentDescription(
+        "Adds a movie to your MovieSwift wishlist.",
+        categoryName: "Lists"
+    )
+
+    static let openAppWhenRun: Bool = true
+
+    @Parameter(title: "Movie")
+    var movie: MovieEntity
+
+    func perform() async throws -> some IntentResult {
+        await IntentActionStore.shared.request(.addToWishlist(movie: movie.id))
+        return .result()
+    }
+}
+
+/// "Mark <Movie> as Seen" — parameterised companion to `AddToWatchlistIntent`.
+struct MarkAsSeenIntent: AppIntent {
+    static let title: LocalizedStringResource = "Mark Movie as Seen"
+
+    static let description = IntentDescription(
+        "Adds a movie to your MovieSwift seenlist.",
+        categoryName: "Lists"
+    )
+
+    static let openAppWhenRun: Bool = true
+
+    @Parameter(title: "Movie")
+    var movie: MovieEntity
+
+    func perform() async throws -> some IntentResult {
+        await IntentActionStore.shared.request(.markAsSeen(movie: movie.id))
+        return .result()
+    }
+}
