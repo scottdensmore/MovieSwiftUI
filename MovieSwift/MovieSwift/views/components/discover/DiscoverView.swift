@@ -239,7 +239,7 @@ struct DiscoverView: ConnectedView {
                               isOn: false) {
                                 self.isFilterFormPresented = true
         }
-        .accessibilityIdentifier("discover.filterButton")
+        .accessibilityIdentifier(AccessibilityID.Discover.filterButton)
     }
 
     private func actionsButtons(props: Props) -> some View {
@@ -250,7 +250,7 @@ struct DiscoverView: ConnectedView {
                     .multilineTextAlignment(.center)
                     .font(.FjallaOne(size: 18))
                     .lineLimit(2)
-                    .accessibilityIdentifier("discover.currentMovieTitle")
+                    .accessibilityIdentifier(AccessibilityID.Discover.currentMovieTitle)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .offset(x: 0, y: -15)
                     .animation(.easeInOut, value: self.draggedViewState.isDragging)
@@ -258,7 +258,7 @@ struct DiscoverView: ConnectedView {
                 primaryActionButton(systemImage: "heart.fill",
                                     color: .pink,
                                     decision: .wishlist,
-                                    accessibilityIdentifier: "discover.wishlistButton",
+                                    accessibilityIdentifier: AccessibilityID.Discover.wishlistButton,
                                     opacity: self.draggedViewState.isDragging ? 0.3 + Double(self.leftZoneResistance()) : 0.8,
                                     xOffset: -70,
                                     yOffset: 0,
@@ -267,7 +267,7 @@ struct DiscoverView: ConnectedView {
                 primaryActionButton(systemImage: "eye.fill",
                                     color: .green,
                                     decision: .seenlist,
-                                    accessibilityIdentifier: "discover.seenlistButton",
+                                    accessibilityIdentifier: AccessibilityID.Discover.seenlistButton,
                                     opacity: self.draggedViewState.isDragging ? 0.3 + Double(self.rightZoneResistance()) : 0.8,
                                     xOffset: 70,
                                     yOffset: 0,
@@ -292,7 +292,7 @@ struct DiscoverView: ConnectedView {
                     .contentShape(Rectangle())
                 })
                     .buttonStyle(PlainButtonStyle())
-                    .accessibilityIdentifier("discover.dismissButton")
+                    .accessibilityIdentifier(AccessibilityID.Discover.dismissButton)
                     .accessibilityLabel("Skip movie")
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
@@ -306,7 +306,7 @@ struct DiscoverView: ConnectedView {
                         .foregroundStyle(Color.steam_blue)
                 })
                     .frame(width: 50, height: 50)
-                    .accessibilityIdentifier("discover.resetButton")
+                    .accessibilityIdentifier(AccessibilityID.Discover.resetButton)
                     .accessibilityLabel("Reset discover")
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
@@ -319,14 +319,14 @@ struct DiscoverView: ConnectedView {
                         .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .font(.FjallaOne(size: 18))
-                        .accessibilityIdentifier("discover.emptyState")
+                        .accessibilityIdentifier(AccessibilityID.Discover.emptyState)
 
                     Text(presentation.message)
                         .foregroundStyle(.white.opacity(0.85))
                         .multilineTextAlignment(.center)
                         .font(.system(size: 14, weight: .medium))
                         .padding(.horizontal, 24)
-                        .accessibilityIdentifier("discover.emptyStateMessage")
+                        .accessibilityIdentifier(AccessibilityID.Discover.emptyStateMessage)
 
                     if presentation.showsRefill {
                         BorderedButton(text: "Refill discover",
@@ -338,7 +338,7 @@ struct DiscoverView: ConnectedView {
                                 self.fetchRandomMovies(props: props, force: plan.forceFetch, filter: plan.filter)
                             }
                         }
-                        .accessibilityIdentifier("discover.refillButton")
+                        .accessibilityIdentifier(AccessibilityID.Discover.refillButton)
                     }
                 }
             }
@@ -350,7 +350,7 @@ struct DiscoverView: ConnectedView {
             }, label: {
                 Image(systemName: "gobackward").foregroundStyle(Color.steam_blue)
             }) .frame(width: 50, height: 50)
-                .accessibilityIdentifier("discover.undoButton")
+                .accessibilityIdentifier(AccessibilityID.Discover.undoButton)
                 .offset(x: -60, y: 30)
                 .opacity(DiscoverUndoState.canUndo(previousMovie: self.previousMovie,
                                                    isDragging: self.draggedViewState.isActive) ? 1 : 0)
@@ -529,7 +529,7 @@ struct DiscoverView: ConnectedView {
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
-                            .accessibilityIdentifier("discover.currentMovieTitle")
+                            .accessibilityIdentifier(AccessibilityID.Discover.currentMovieTitle)
                         if !movie.overview.isEmpty {
                             Text(movie.overview)
                                 .font(.subheadline)
@@ -623,7 +623,7 @@ struct DiscoverView: ConnectedView {
                               title: "Wishlist",
                               hint: "←",
                               shortcut: .leftArrow,
-                              accessibilityIdentifier: "discover.wishlistButton") {
+                              accessibilityIdentifier: AccessibilityID.Discover.wishlistButton) {
                 performDiscoverAction(decision: .wishlist, props: props)
             }
             discoverKeyButton(systemImage: "info.circle.fill",
@@ -631,7 +631,7 @@ struct DiscoverView: ConnectedView {
                               title: "Info",
                               hint: "↩",
                               shortcut: .return,
-                              accessibilityIdentifier: "discover.infoButton") {
+                              accessibilityIdentifier: AccessibilityID.Discover.infoButton) {
                 presentedMovie = movie
             }
             discoverKeyButton(systemImage: "xmark",
@@ -639,7 +639,7 @@ struct DiscoverView: ConnectedView {
                               title: "Skip",
                               hint: "esc",
                               shortcut: .escape,
-                              accessibilityIdentifier: "discover.dismissButton") {
+                              accessibilityIdentifier: AccessibilityID.Discover.dismissButton) {
                 previousMovie = movie.id
                 props.dispatch(MoviesActions.PopRandromDiscover())
                 fetchRandomMovies(props: props, force: false, filter: props.filter)
@@ -649,7 +649,7 @@ struct DiscoverView: ConnectedView {
                               title: "Seenlist",
                               hint: "→",
                               shortcut: .rightArrow,
-                              accessibilityIdentifier: "discover.seenlistButton") {
+                              accessibilityIdentifier: AccessibilityID.Discover.seenlistButton) {
                 performDiscoverAction(decision: .seenlist, props: props)
             }
         }
@@ -665,7 +665,7 @@ struct DiscoverView: ConnectedView {
                 .foregroundStyle(Color.steam_blue)
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("discover.undoButton")
+        .accessibilityIdentifier(AccessibilityID.Discover.undoButton)
     }
 
     private func resetButton(props: Props) -> some View {
@@ -677,7 +677,7 @@ struct DiscoverView: ConnectedView {
                 .foregroundStyle(Color.steam_blue)
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("discover.resetButton")
+        .accessibilityIdentifier(AccessibilityID.Discover.resetButton)
         .accessibilityLabel("Reset discover")
     }
 

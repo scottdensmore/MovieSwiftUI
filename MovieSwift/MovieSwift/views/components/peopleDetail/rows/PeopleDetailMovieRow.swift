@@ -36,7 +36,7 @@ struct PeopleDetailMovieRow: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .accessibilityIdentifier("peopleDetail.movie.\(movie.id)")
+        .accessibilityIdentifier(AccessibilityID.PeopleDetail.movie(movie.id))
         .accessibilityElement(children: .combine)
         .contextMenu { MovieContextMenu(movieId: movie.id, onAction: onMovieContextMenu) }
     }

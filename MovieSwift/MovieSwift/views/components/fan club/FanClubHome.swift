@@ -63,7 +63,7 @@ enum FanClubPresentation {
         if popularLoading || !popularInitialLoadCompleted {
             return EmptyState(title: "Loading people",
                               message: "Fetching popular people for your Fan Club.",
-                              accessibilityIdentifier: "fanClub.loadingState",
+                              accessibilityIdentifier: AccessibilityID.FanClub.loadingState,
                               showsRetry: false,
                               systemImage: nil)
         }
@@ -71,14 +71,14 @@ enum FanClubPresentation {
         if popularLoadFailed {
             return EmptyState(title: "Could not load popular people",
                               message: "Check your connection and try again.",
-                              accessibilityIdentifier: "fanClub.errorState",
+                              accessibilityIdentifier: AccessibilityID.FanClub.errorState,
                               showsRetry: true,
                               systemImage: "exclamationmark.triangle")
         }
 
         return EmptyState(title: "No popular people right now",
                           message: "Try again later to find people to add to your Fan Club.",
-                          accessibilityIdentifier: "fanClub.emptyState",
+                          accessibilityIdentifier: AccessibilityID.FanClub.emptyState,
                           showsRetry: false,
                           systemImage: "person.2.slash")
     }
@@ -137,7 +137,7 @@ struct FanClubHome: ConnectedView {
             .frame(maxWidth: .infinity, alignment: .leading)
             .macFocusHighlight(isFocused: highlightedPeopleId == people)
             .id(people)
-            .accessibilityIdentifier("fanClub.person.\(people)")
+            .accessibilityIdentifier(AccessibilityID.FanClub.person(people))
             .onTapGesture {
                 highlightedPeopleId = people
                 isFanClubFocused = true
@@ -153,7 +153,7 @@ struct FanClubHome: ConnectedView {
                 .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(SoftSelectionButtonStyle())
-        .accessibilityIdentifier("fanClub.person.\(people)")
+        .accessibilityIdentifier(AccessibilityID.FanClub.person(people))
         #endif
     }
 
@@ -361,7 +361,7 @@ struct FanClubHome: ConnectedView {
                         Button("Retry") {
                             retryPopularLoad(props: props)
                         }
-                        .accessibilityIdentifier("fanClub.retryButton")
+                        .accessibilityIdentifier(AccessibilityID.FanClub.retryButton)
                     }
                 }
             } else {

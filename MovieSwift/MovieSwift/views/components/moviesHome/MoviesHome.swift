@@ -70,7 +70,7 @@ struct MoviesHome: ConnectedView {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Settings")
-        .accessibilityIdentifier("moviesHome.settingsButton")
+        .accessibilityIdentifier(AccessibilityID.MoviesHome.settingsButton)
     }
 
     private var swapHomeButton: some View {
@@ -85,7 +85,7 @@ struct MoviesHome: ConnectedView {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("Toggle layout")
-        .accessibilityIdentifier("moviesHome.toggleLayoutButton")
+        .accessibilityIdentifier(AccessibilityID.MoviesHome.toggleLayoutButton)
     }
 
     @ViewBuilder

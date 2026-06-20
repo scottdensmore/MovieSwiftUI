@@ -86,7 +86,7 @@ struct SplitView: View {
                             .focusable(false)
                             .id(menu)
                             .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("sidebar.\(menu.title)")
+                            .accessibilityIdentifier(AccessibilityID.Sidebar.item(menu.title))
                         }
                     }
                     .padding(.vertical, 4)

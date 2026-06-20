@@ -183,7 +183,7 @@ struct PeopleDetail: ConnectedView {
     }
 
     private func movieAccessibilityIdentifier(_ id: Int) -> String {
-        "peopleDetail.movie.\(id)"
+        AccessibilityID.PeopleDetail.movie(id)
     }
 
     // MARK: - Views
@@ -265,7 +265,7 @@ struct PeopleDetail: ConnectedView {
         .accessibilityLabel(props.isInFanClub.wrappedValue
                             ? "Remove from fan club"
                             : "Add to fan club")
-        .accessibilityIdentifier("peopleDetail.fanClubButton")
+        .accessibilityIdentifier(AccessibilityID.PeopleDetail.fanClubButton)
     }
 
     private func scoreUpdateView(props: Props) -> some View {

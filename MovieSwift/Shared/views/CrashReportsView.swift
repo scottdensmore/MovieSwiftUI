@@ -10,6 +10,7 @@
 //     selectable for copy + a ShareLink in the toolbar.
 
 import SwiftUI
+import MovieSwiftFluxCore
 
 struct CrashReportsSheet: View {
     let reports: [CrashReportStore.CrashReportFile]
@@ -24,7 +25,7 @@ struct CrashReportsSheet: View {
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.steam_blue)
-                    .accessibilityIdentifier("crashReportsSheet.closeButton")
+                    .accessibilityIdentifier(AccessibilityID.CrashReportsSheet.closeButton)
             }
             .padding(.horizontal, 18)
             .padding(.top, 18)
@@ -104,7 +105,7 @@ private struct CrashReportRow: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Share crash report")
-                .accessibilityIdentifier("crashReportsSheet.share.\(report.id)")
+                .accessibilityIdentifier(AccessibilityID.CrashReportsSheet.share(report.id))
                 #endif
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
@@ -115,7 +116,7 @@ private struct CrashReportRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("crashReportsSheet.row.\(report.id)")
+        .accessibilityIdentifier(AccessibilityID.CrashReportsSheet.row(report.id))
         .sheet(isPresented: $isDetailPresented) {
             CrashReportDetailView(report: report,
                                   onDismiss: { isDetailPresented = false })
@@ -174,12 +175,12 @@ private struct CrashReportDetailView: View {
                         .foregroundStyle(Color.steam_blue)
                 }
                 .buttonStyle(.plain)
-                .accessibilityIdentifier("crashReportDetail.shareButton")
+                .accessibilityIdentifier(AccessibilityID.CrashReportDetail.shareButton)
                 #endif
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.steam_blue)
-                    .accessibilityIdentifier("crashReportDetail.closeButton")
+                    .accessibilityIdentifier(AccessibilityID.CrashReportDetail.closeButton)
             }
             .padding(.horizontal, 18)
             .padding(.top, 18)

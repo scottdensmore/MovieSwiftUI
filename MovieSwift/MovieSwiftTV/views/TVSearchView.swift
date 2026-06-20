@@ -31,11 +31,11 @@ struct TVSearchView: ConnectedView {
                 ContentUnavailableView("Search for movies",
                                        systemImage: "magnifyingglass",
                                        description: Text("Find movies by title."))
-                    .accessibilityIdentifier("search.emptyState")
+                    .accessibilityIdentifier(AccessibilityID.Search.emptyState)
             } else if props.searchResults.isEmpty {
                 // System-standard "No Results for \"…\"" empty state.
                 ContentUnavailableView.search(text: searchText)
-                    .accessibilityIdentifier("search.noResults")
+                    .accessibilityIdentifier(AccessibilityID.Search.noResults)
             } else {
                 ScrollView {
                     LazyVGrid(columns: Self.gridColumns, spacing: 40) {
@@ -45,7 +45,7 @@ struct TVSearchView: ConnectedView {
                                     TVSearchCard(movie: movie)
                                 }
                                 .buttonStyle(.card)
-                                .accessibilityIdentifier("search.result.\(id)")
+                                .accessibilityIdentifier(AccessibilityID.Search.result(id))
                             }
                         }
                     }

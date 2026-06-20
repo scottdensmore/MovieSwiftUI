@@ -84,7 +84,7 @@ struct CustomListForm: ConnectedView {
                     HStack {
                         Text("Name:")
                         TextField("Name your list", text: $listName)
-                            .accessibilityIdentifier("customListForm.nameField")
+                            .accessibilityIdentifier(AccessibilityID.CustomListForm.nameField)
                     }
         })
     }
@@ -152,13 +152,13 @@ struct CustomListForm: ConnectedView {
             }, label: {
                 Text(self.editingListId != nil ? "Save changes" : "Create").foregroundStyle(.blue)
             })
-            .accessibilityIdentifier("customListForm.createButton")
+            .accessibilityIdentifier(AccessibilityID.CustomListForm.createButton)
             Button(action: {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
                 Text("Cancel").foregroundStyle(.red)
             })
-            .accessibilityIdentifier("customListForm.cancelButton")
+            .accessibilityIdentifier(AccessibilityID.CustomListForm.cancelButton)
         }
     }
 
