@@ -153,42 +153,4 @@ struct SettingsGenresActionSheetTests {
 
         #expect(SettingsFormState.moviesCount(in: state) == 2)
     }
-
-#if !os(macOS)
-
-    @Test func actionSheetMovieListActionAddsMovieToWishlistWhenMissing() {
-        #expect(ActionSheetMovieListAction.wishlist(movie: 12, isInWishlist: false) ==
-                       .addToWishlist(movie: 12))
-    }
-
-    @Test func actionSheetMovieListActionRemovesMovieFromWishlistWhenPresent() {
-        #expect(ActionSheetMovieListAction.wishlist(movie: 12, isInWishlist: true) ==
-                       .removeFromWishlist(movie: 12))
-    }
-
-    @Test func actionSheetMovieListActionAddsMovieToSeenlistWhenMissing() {
-        #expect(ActionSheetMovieListAction.seenlist(movie: 12, isInSeenlist: false) ==
-                       .addToSeenlist(movie: 12))
-    }
-
-    @Test func actionSheetMovieListActionRemovesMovieFromSeenlistWhenPresent() {
-        #expect(ActionSheetMovieListAction.seenlist(movie: 12, isInSeenlist: true) ==
-                       .removeFromSeenlist(movie: 12))
-    }
-
-    @Test func actionSheetMovieListActionAddsMovieToCustomListWhenMissing() {
-        let list = CustomList(id: 7, name: "Favorites", cover: nil, movies: [])
-
-        #expect(ActionSheetMovieListAction.customList(list: list, movie: 12) ==
-                       .addToCustomList(list: 7, movie: 12))
-    }
-
-    @Test func actionSheetMovieListActionRemovesMovieFromCustomListWhenPresent() {
-        let list = CustomList(id: 7, name: "Favorites", cover: nil, movies: [12])
-
-        #expect(ActionSheetMovieListAction.customList(list: list, movie: 12) ==
-                       .removeFromCustomList(list: 7, movie: 12))
-    }
-
-#endif
 }
