@@ -1,0 +1,81 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "a48119f8099b",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-20T21:07:45.326176Z",
+  "branch": "docs/swiftuiflux-removed",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "ROADMAP.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "5dcbc9cabf5b",
+  "token_usage": {
+    "input_tokens": 335649,
+    "cache_creation_tokens": 38067093,
+    "cache_read_tokens": 3261126397,
+    "output_tokens": 5014918,
+    "api_call_count": 7266
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "5dcbc9cabf5b",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 51
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-20T21:07:43.606251Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 3,
+    "human_modified": 4,
+    "human_removed": 0,
+    "total_committed": 3,
+    "total_lines_changed": 7,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
