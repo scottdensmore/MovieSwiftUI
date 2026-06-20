@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum DiscoverFilterFormFetchPolicy {
@@ -305,5 +304,5 @@ struct DiscoverFilterForm: ConnectedView {
 }
 
 #Preview {
-    DiscoverFilterForm().environmentObject(sampleStore)
+    DiscoverFilterForm().environment(sampleStore)
 }

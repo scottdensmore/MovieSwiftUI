@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import UI
 import MovieSwiftFluxCore
@@ -168,7 +167,7 @@ private struct MovieButtonsRowMacPreviewHost: View {
         MovieButtonsRow(movieId: 0,
                         showCustomListSheet: .constant(false),
                         focusedItem: $focusedItem)
-            .environmentObject(sampleStore)
+            .environment(sampleStore)
     }
 }
 #endif
@@ -177,6 +176,6 @@ private struct MovieButtonsRowMacPreviewHost: View {
     #if os(macOS)
     MovieButtonsRowMacPreviewHost()
     #else
-    MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environmentObject(sampleStore)
+    MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environment(sampleStore)
     #endif
 }

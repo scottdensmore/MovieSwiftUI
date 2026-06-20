@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum GenresListFetchPolicy {
@@ -287,5 +286,5 @@ struct GenresList: ConnectedView {
 
 #Preview {
     GenresList()
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

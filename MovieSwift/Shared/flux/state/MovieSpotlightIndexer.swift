@@ -14,8 +14,6 @@ import Foundation
 #if canImport(CoreSpotlight) && !os(tvOS)
 import CoreSpotlight
 #endif
-import SwiftUIFlux
-import Combine
 import MovieSwiftFluxCore
 
 /// Pure-logic helpers — exposed regardless of platform so unit tests
@@ -63,48 +61,49 @@ nonisolated enum MovieSpotlightIndexer {
 
 #if canImport(CoreSpotlight) && !os(tvOS)
 
-/// Runtime indexer that subscribes to the SwiftUIFlux store and
-/// keeps CSSearchableIndex in sync with the user's saved movies.
+/// Runtime indexer that observes the Flux store and keeps
+/// CSSearchableIndex in sync with the user's saved movies.
 final class SpotlightStoreObserver {
     static let shared = SpotlightStoreObserver()
 
     private var lastIndexedIds: Set<Int> = []
-    private var cancellable: AnyCancellable?
-    private var lastSnapshot: AppState?
     private var isObserving = false
 
     private init() {}
 
     /// Subscribe to the store so wishlist / seenlist / custom-list
     /// changes update Spotlight as they happen. Idempotent — calling
-    /// twice doesn't re-subscribe.
+    /// twice while already observing doesn't re-subscribe; calling it again
+    /// after `stopObserving()` re-subscribes.
     func startObserving(store: Store<AppState>) {
         guard !isObserving else { return }
         isObserving = true
 
         // Index whatever's already in state at subscription time.
         update(state: store.state)
+        arm(store: store)
+    }
 
-        // SwiftUIFlux's Store is an ObservableObject; objectWillChange
-        // fires *before* the mutation lands. `.receive(on:)` already
-        // reschedules delivery asynchronously onto the main queue — i.e.
-        // a later runloop tick, after the synchronous dispatch+reducer has
-        // finished — so by the time this sink runs `store.state` is the
-        // post-mutation value. (Previously there was an additional
-        // `DispatchQueue.main.async` here; it was a redundant second hop
-        // and, under the Swift 6 mode, sent the non-Sendable self/store
-        // across the boundary.)
-        cancellable = store.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self, weak store] _ in
-                guard let self, let store else { return }
+    /// Observe the store's `state` via `@Observable` tracking. `onChange`
+    /// fires *once*, at the start of the next write transaction. The
+    /// `Task { @MainActor }` defers our work past that transaction, so by the
+    /// time it runs `store.state` is the committed post-mutation value; we
+    /// then re-index and re-arm (one-shot tracking must be re-registered). The
+    /// `isObserving` guard makes `stopObserving()` a clean teardown — a
+    /// pending fire after teardown neither indexes nor re-arms.
+    private func arm(store: Store<AppState>) {
+        withObservationTracking {
+            _ = store.state
+        } onChange: { [weak self, weak store] in
+            Task { @MainActor in
+                guard let self, let store, self.isObserving else { return }
                 self.update(state: store.state)
+                self.arm(store: store)
             }
+        }
     }
 
     func stopObserving() {
-        cancellable?.cancel()
-        cancellable = nil
         isObserving = false
     }
 

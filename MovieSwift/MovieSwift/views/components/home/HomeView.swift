@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftUIFlux
 import AppIntents
 import Backend
 import CoreSpotlight
@@ -166,11 +165,11 @@ struct TabbarView: View {
 }
 
 #if DEBUG
-// `nonisolated(unsafe)`: SwiftUIFlux's `Store` is non-Sendable, but these
-// are DEBUG-only fixtures created once and consumed only from the main
-// thread (SwiftUI previews and the UI-smoke-test launch path).
-nonisolated(unsafe) let sampleStore = Store<AppState>(reducer: appReducerWithImports,
-                                  state: makePreviewSampleState())
-nonisolated(unsafe) let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
-                                       state: makeUISmokeTestState())
+// `@MainActor`: the `Store` is main-actor-isolated, so these DEBUG-only
+// fixtures (SwiftUI previews and the UI-smoke-test launch path) live on the
+// main actor where they're constructed and consumed.
+@MainActor let sampleStore = Store<AppState>(reducer: appReducerWithImports,
+                                             state: makePreviewSampleState())
+@MainActor let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
+                                                  state: makeUISmokeTestState())
 #endif

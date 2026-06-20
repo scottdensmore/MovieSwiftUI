@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MoviesHomeListState {
@@ -54,6 +53,6 @@ struct MoviesHomeList: ConnectedView {
         MoviesHomeList(menu: .constant(.popular),
                        navigationRoute: .constant(nil),
                        pageListener: MoviesMenuListPageListener(menu: .popular, loadOnInit: false))
-            .environmentObject(sampleStore)
+            .environment(sampleStore)
     }
 }

@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 struct ListImage: ConnectedView {
@@ -47,5 +46,5 @@ struct ListImage: ConnectedView {
 }
 
 #Preview {
-    ListImage(movieId: 0).environmentObject(sampleStore)
+    ListImage(movieId: 0).environment(sampleStore)
 }

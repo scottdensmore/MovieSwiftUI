@@ -1,9 +1,4 @@
 import Foundation
-// `@preconcurrency`: SwiftUIFlux is pinned at a pre-concurrency revision,
-// so its `Store` carries no Sendable annotations. The archive Timer below
-// captures the store to snapshot state on the main runloop; treat the
-// resulting Sendable diagnostics as warnings from this legacy module.
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 final class AppRuntime {
@@ -35,8 +30,12 @@ final class AppRuntime {
             return
         }
 
+        // The store is `@MainActor`-isolated and the timer fires on the main
+        // runloop it was scheduled on, so reading `store.state` is safe here.
         archiveTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
-            AppPersistence.archive(state: store.state)
+            MainActor.assumeIsolated {
+                AppPersistence.archive(state: store.state)
+            }
         }
     }
 

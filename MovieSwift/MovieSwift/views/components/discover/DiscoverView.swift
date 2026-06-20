@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import UI
 import MovieSwiftFluxCore
@@ -93,7 +92,7 @@ enum DiscoverUndoState {
 }
 
 struct DiscoverView: ConnectedView {
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
     // MARK: - Props
@@ -104,12 +103,12 @@ struct DiscoverView: ConnectedView {
         let filter: DiscoverFilter?
         let genres: [Genre]
         let loadingFailure: MoviesListLoadFailure?
+        let lastDiscarded: Int?
         let dispatch: DispatchFunction
     }
 
     // MARK: - State vars
     @State private var draggedViewState = DraggableCover.DragState.inactive
-    @State private var previousMovie: Int?
     @State private var presentedMovie: Movie?
     @State private var isFilterFormPresented = false
     @State private var willEndPosition: CGSize?
@@ -142,6 +141,7 @@ struct DiscoverView: ConnectedView {
                      filter: state.moviesState.discoverFilter,
                      genres: state.moviesState.genres,
                      loadingFailure: loadingFailure,
+                     lastDiscarded: state.moviesState.discoverLastDiscarded,
                      dispatch: dispatch)
     }
 
@@ -171,16 +171,12 @@ struct DiscoverView: ConnectedView {
                                                           currentMovieId: props.currentMovie?.id) else {
             return
         }
-        let currentMovieId: Int
         switch action {
         case let .wishlist(movieId):
-            currentMovieId = movieId
             props.dispatch(MoviesActions.AddToWishlist(movie: movieId))
         case let .seenlist(movieId):
-            currentMovieId = movieId
             props.dispatch(MoviesActions.AddToSeenList(movie: movieId))
         }
-        previousMovie = currentMovieId
         #if os(iOS)
         hapticFeedback.impactOccurred(intensity: 0.8)
         #endif
@@ -277,7 +273,6 @@ struct DiscoverView: ConnectedView {
                     #if os(iOS)
                     self.hapticFeedback.impactOccurred(intensity: 0.5)
                     #endif
-                    self.previousMovie = currentMovie.id
                     props.dispatch(MoviesActions.PopRandromDiscover())
                     self.fetchRandomMovies(props: props, force: false, filter: props.filter)
                 }, label: {
@@ -344,18 +339,17 @@ struct DiscoverView: ConnectedView {
             }
 
             Button(action: {
-                guard let previousMovie = self.previousMovie else { return }
-                props.dispatch(MoviesActions.PushRandomDiscover(movie: previousMovie))
-                self.previousMovie = nil
+                guard let lastDiscarded = props.lastDiscarded else { return }
+                props.dispatch(MoviesActions.PushRandomDiscover(movie: lastDiscarded))
             }, label: {
                 Image(systemName: "gobackward").foregroundStyle(Color.steam_blue)
             }) .frame(width: 50, height: 50)
                 .accessibilityIdentifier(AccessibilityID.Discover.undoButton)
                 .offset(x: -60, y: 30)
-                .opacity(DiscoverUndoState.canUndo(previousMovie: self.previousMovie,
+                .opacity(DiscoverUndoState.canUndo(previousMovie: props.lastDiscarded,
                                                    isDragging: self.draggedViewState.isActive) ? 1 : 0)
                 .animation(.spring(),
-                           value: DiscoverUndoState.canUndo(previousMovie: self.previousMovie,
+                           value: DiscoverUndoState.canUndo(previousMovie: props.lastDiscarded,
                                                             isDragging: self.draggedViewState.isActive))
         }
     }
@@ -429,7 +423,7 @@ struct DiscoverView: ConnectedView {
                 NavigationStack {
                     MovieDetail(movieId: movie.id)
                 }
-                .environmentObject(store)
+                .environment(store)
                 .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
                        minHeight: 760, idealHeight: 860, maxHeight: 980)
             }
@@ -441,7 +435,7 @@ struct DiscoverView: ConnectedView {
                 NavigationStack {
                     MovieDetail(movieId: movie.id)
                 }
-                    .environmentObject(store)
+                    .environment(store)
             })
         #endif
     }
@@ -458,7 +452,7 @@ struct DiscoverView: ConnectedView {
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).minY + reader.safeAreaInsets.top + 10)
                     .frame(height: 50)
-                    .sheet(isPresented: self.$isFilterFormPresented, content: { DiscoverFilterForm().environmentObject(store) })
+                    .sheet(isPresented: self.$isFilterFormPresented, content: { DiscoverFilterForm().environment(store) })
                 self.swipeHintView(props: props)
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).maxY - reader.safeAreaInsets.bottom - self.bottomSafeInsetFix - 85)
@@ -504,7 +498,7 @@ struct DiscoverView: ConnectedView {
                     HStack {
                         filterView(props: props)
                             .sheet(isPresented: $isFilterFormPresented) {
-                                DiscoverFilterForm().environmentObject(store)
+                                DiscoverFilterForm().environment(store)
                             }
                         Spacer()
                         resetButton(props: props)
@@ -550,7 +544,7 @@ struct DiscoverView: ConnectedView {
                     NavigationStack {
                         MovieDetail(movieId: movie.id)
                     }
-                    .environmentObject(store)
+                    .environment(store)
                     .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
                            minHeight: 760, idealHeight: 860, maxHeight: 980)
                 }
@@ -564,7 +558,7 @@ struct DiscoverView: ConnectedView {
                         MoviesListErrorBanner(failure: failure) {
                             props.dispatch(MoviesActions.FetchRandomDiscover(filter: props.filter))
                         }
-                    } else if DiscoverUndoState.canUndo(previousMovie: previousMovie, isDragging: false) {
+                    } else if DiscoverUndoState.canUndo(previousMovie: props.lastDiscarded, isDragging: false) {
                         // The last card was just dismissed — offer to undo
                         // (parity with iOS, where undo stays available after
                         // the current movie is cleared). Gate on the same
@@ -640,7 +634,6 @@ struct DiscoverView: ConnectedView {
                               hint: "esc",
                               shortcut: .escape,
                               accessibilityIdentifier: AccessibilityID.Discover.dismissButton) {
-                previousMovie = movie.id
                 props.dispatch(MoviesActions.PopRandromDiscover())
                 fetchRandomMovies(props: props, force: false, filter: props.filter)
             }
@@ -657,9 +650,8 @@ struct DiscoverView: ConnectedView {
 
     private func macUndoButton(props: Props) -> some View {
         Button {
-            guard let previousMovie else { return }
-            props.dispatch(MoviesActions.PushRandomDiscover(movie: previousMovie))
-            self.previousMovie = nil
+            guard let lastDiscarded = props.lastDiscarded else { return }
+            props.dispatch(MoviesActions.PushRandomDiscover(movie: lastDiscarded))
         } label: {
             Label("Undo last dismiss", systemImage: "gobackward")
                 .foregroundStyle(Color.steam_blue)
@@ -717,5 +709,5 @@ struct DiscoverView: ConnectedView {
 }
 
 #Preview {
-    DiscoverView().environmentObject(sampleStore)
+    DiscoverView().environment(sampleStore)
 }

@@ -261,8 +261,8 @@ public struct APIService {
     // `Task` can hand them to `callbackQueue` without forcing `@Sendable`
     // (and therefore `Sendable` captures) onto every caller. Keeping the
     // handler an ordinary closure is what lets the Redux action layer —
-    // built on the main-thread-bound, non-Sendable SwiftUIFlux
-    // `DispatchFunction` — call `GET` unchanged.
+    // built on the main-thread-bound `Flux.DispatchFunction` — call `GET`
+    // unchanged.
     //
     // `T: Sendable` constrains only the decoded model (every TMDB model
     // is an immutable value type that already conforms), which keeps the

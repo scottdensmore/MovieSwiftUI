@@ -1,3 +1,4 @@
+import Dispatch
 import Observation
 
 /// The single source of truth: holds the app's `state`, runs every dispatched
@@ -57,10 +58,20 @@ public final class Store<State: FluxState> {
     }
 
     /// Enqueue an action. Safe to call from any thread; the action is applied
-    /// on the main actor on the next runloop tick.
+    /// on the main actor on the next main-runloop turn.
+    ///
+    /// Uses `DispatchQueue.main.async` (not `Task { @MainActor }`) to match
+    /// the original library's exact scheduling: GCD delivers on the next
+    /// main-runloop turn in the default mode, which AppKit-hosted SwiftUI on
+    /// macOS relies on for the post-dispatch view update to land promptly
+    /// (the cooperative main-actor executor drains on a different cadence and
+    /// left some macOS UI updates pending). `assumeIsolated` is sound because
+    /// the block runs on the main queue, i.e. the main actor.
     nonisolated public func dispatch(_ action: Action) {
-        Task { @MainActor in
-            self.dispatchFunction(action)
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                self.dispatchFunction(action)
+            }
         }
     }
 

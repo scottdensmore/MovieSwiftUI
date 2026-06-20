@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 import Backend
 
 public struct PeopleActions {

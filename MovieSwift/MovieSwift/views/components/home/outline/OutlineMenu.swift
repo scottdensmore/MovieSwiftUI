@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum OutlineMoviesMenuListFetchPolicy {

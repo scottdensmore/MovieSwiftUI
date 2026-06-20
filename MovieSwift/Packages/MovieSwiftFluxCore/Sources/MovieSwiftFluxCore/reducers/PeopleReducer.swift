@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 
 public func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesState {
     var state = state

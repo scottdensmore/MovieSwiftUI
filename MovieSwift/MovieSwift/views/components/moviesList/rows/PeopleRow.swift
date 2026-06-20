@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import MovieSwiftFluxCore
 
@@ -69,5 +68,5 @@ struct PeopleRow: ConnectedView {
 #Preview {
     // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
     // swiftlint:disable:next force_unwrapping
-    PeopleRow(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
+    PeopleRow(peopleId: sampleCasts.first!.id).environment(sampleStore)
 }

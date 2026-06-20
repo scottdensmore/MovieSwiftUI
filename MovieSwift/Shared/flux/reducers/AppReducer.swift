@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum AppActions {
@@ -53,7 +52,7 @@ nonisolated enum AppStateCacheReset {
     }
 }
 
-// `nonisolated`: this is the SwiftUIFlux store's reducer, a pure
+// `nonisolated`: this is the Flux store's reducer, a pure
 // (State, Action) -> State function. It must stay off the main actor so it
 // satisfies the nonisolated `Reducer` type the Store initializer expects.
 

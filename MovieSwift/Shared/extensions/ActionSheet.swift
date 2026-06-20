@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import SwiftUIFlux
 import MovieSwiftFluxCore
 
 #if !os(macOS)

@@ -1,7 +1,6 @@
 import Testing
 import Foundation
 import Backend
-import SwiftUIFlux
 @testable import MovieSwiftFluxCore
 
 // `.serialized`: every test mutates the shared global `APIService.shared`,

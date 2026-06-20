@@ -14,20 +14,14 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Backend"),
-        // Pin to the post-0.5.1 master commit that updates Package.swift's
-        // swiftLanguageVersions to `.version("5")` instead of `.v5_1`. The
-        // tagged 0.5.1 release (Feb 2020) was never re-cut, so the fix
-        // lives only on master. Swift 6+ toolchains (macos-26 runner)
-        // reject `-swift-version 5.1` and the build fails without this pin.
-        .package(url: "https://github.com/Dimillian/SwiftUIFlux.git",
-                 revision: "05e3e07a752a513bc160bcc589004ebf1bc6c1dc"),
+        .package(path: "../Flux"),
     ],
     targets: [
         .target(
             name: "MovieSwiftFluxCore",
             dependencies: [
                 .product(name: "Backend", package: "Backend"),
-                .product(name: "SwiftUIFlux", package: "SwiftUIFlux"),
+                .product(name: "Flux", package: "Flux"),
             ],
             resources: [.process("Resources")]
         ),

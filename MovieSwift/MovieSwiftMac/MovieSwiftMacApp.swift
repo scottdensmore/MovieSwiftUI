@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftUIFlux
 import AppIntents
 import Backend
 import MovieSwiftFluxCore
@@ -86,8 +85,10 @@ struct MovieSwiftMacApp: App {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appReducerWithImports,
-                                  state: makePreviewSampleState())
-let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
-                                       state: makeUISmokeTestState())
+// `@MainActor`: the `Store` is main-actor-isolated; these DEBUG-only fixtures
+// are constructed and consumed on the main actor (previews / smoke launch).
+@MainActor let sampleStore = Store<AppState>(reducer: appReducerWithImports,
+                                             state: makePreviewSampleState())
+@MainActor let uiSmokeTestStore = Store<AppState>(reducer: appReducerWithImports,
+                                                  state: makeUISmokeTestState())
 #endif

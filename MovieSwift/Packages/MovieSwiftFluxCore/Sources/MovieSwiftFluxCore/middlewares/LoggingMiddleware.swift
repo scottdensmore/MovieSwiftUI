@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 
 public enum AppLoggingPolicy {
     static public func shouldEnableLogging(isRunningTests: Bool) -> Bool {
@@ -7,10 +7,10 @@ public enum AppLoggingPolicy {
     }
 }
 
-// `nonisolated(unsafe)`: `Middleware` is a SwiftUIFlux function type and
-// therefore not `Sendable`, but this is an immutable `let` created once
-// and only ever invoked by the Store on the main thread during dispatch.
-nonisolated(unsafe) public let loggingMiddleware: Middleware<AppState> = { _, _ in
+// `Flux.Middleware`'s outer closure is `@Sendable`, so this module-level
+// `let` is concurrency-safe with no annotation: it captures nothing and is
+// only invoked by the Store on the main actor during dispatch.
+public let loggingMiddleware: Middleware<AppState> = { _, _ in
     return { next in
         return { action in
             #if DEBUG

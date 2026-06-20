@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MovieGenrePageAction {
@@ -113,5 +112,5 @@ struct MoviesGenreList: ConnectedView {
 }
 
 #Preview {
-    MoviesGenreList(genre: Genre(id: 0, name: "test")).environmentObject(sampleStore)
+    MoviesGenreList(genre: Genre(id: 0, name: "test")).environment(sampleStore)
 }

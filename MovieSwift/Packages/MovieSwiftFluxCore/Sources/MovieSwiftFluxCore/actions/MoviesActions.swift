@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 import Backend
 
 public struct MoviesActions {
@@ -294,11 +294,11 @@ public struct MoviesActions {
         /// `total_pages`. Optional override so unit tests can pin the
         /// pick to a known value; `nil` (default) uses
         /// `Int.random(in: range)`.
-        public var randomSource: ((ClosedRange<Int>) -> Int)?
+        public var randomSource: (@Sendable (ClosedRange<Int>) -> Int)?
 
         public init(
             filter: DiscoverFilter? = nil,
-            randomSource: ((ClosedRange<Int>) -> Int)? = nil
+            randomSource: (@Sendable (ClosedRange<Int>) -> Int)? = nil
         ) {
             self.filter = filter
             self.randomSource = randomSource

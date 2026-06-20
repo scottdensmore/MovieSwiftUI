@@ -1,8 +1,8 @@
 import Foundation
-import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum AppStoreFactory {
+    @MainActor
     static func makeStore(launchMode: AppLaunchMode = AppLaunchMode.current(),
                           isLoggingEnabled: Bool = AppLoggingPolicy.shouldEnableLogging(
                             isRunningTests: ProcessInfo.processInfo.environment[AppRuntime.xctestConfigurationFilePathKey] != nil

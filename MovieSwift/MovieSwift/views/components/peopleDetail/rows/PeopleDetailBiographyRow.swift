@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftUIFlux
+import MovieSwiftFluxCore
 
 enum PeopleDetailBiographyState {
     static let deathLabel = "Day of death"
