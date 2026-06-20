@@ -351,8 +351,8 @@ struct PeopleAndFanClubTests {
     @Test func peopleStateReducerDedupesPopularPeopleAcrossPages() {
         let state = AppState().peoplesState
         let popularPage = PaginatedResponse(page: 2,
-                                            total_results: 3,
-                                            total_pages: 2,
+                                            totalResults: 3,
+                                            totalPages: 2,
                                             results: [People(id: 2,
                                                              name: "Second",
                                                              character: nil,
@@ -384,8 +384,8 @@ struct PeopleAndFanClubTests {
         let seeded = peoplesStateReducer(state: state,
                                          action: PeopleActions.SetPopular(page: 1,
                                                                          response: PaginatedResponse(page: 1,
-                                                                                                     total_results: 2,
-                                                                                                     total_pages: 2,
+                                                                                                     totalResults: 2,
+                                                                                                     totalPages: 2,
                                                                                                      results: [People(id: 1,
                                                                                                                       name: "First",
                                                                                                                       character: nil,

@@ -2,19 +2,29 @@ import Foundation
 
 public struct PaginatedResponse<T: Codable>: Codable {
     public let page: Int?
-    public let total_results: Int?
-    public let total_pages: Int?
+    public let totalResults: Int?
+    public let totalPages: Int?
     public let results: [T]
+
+    // Swift properties are camelCase; the TMDB JSON keys are snake_case.
+    // `CodingKeys` bridges the two so the decoded/encoded wire format is
+    // unchanged while call sites read idiomatically.
+    public enum CodingKeys: String, CodingKey {
+        case page
+        case totalResults = "total_results"
+        case totalPages = "total_pages"
+        case results
+    }
 
     public init(
         page: Int? = nil,
-        total_results: Int? = nil,
-        total_pages: Int? = nil,
+        totalResults: Int? = nil,
+        totalPages: Int? = nil,
         results: [T]
     ) {
         self.page = page
-        self.total_results = total_results
-        self.total_pages = total_pages
+        self.totalResults = totalResults
+        self.totalPages = totalPages
         self.results = results
     }
 }

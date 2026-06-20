@@ -184,7 +184,7 @@ final class MoviesActionsTests {
     @Test func fetchMoviesMenuListDispatchesSetMovieMenuListOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 20)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 20)])
         )
 
         APIService.shared = APIService(
@@ -406,7 +406,7 @@ final class MoviesActionsTests {
     @Test func fetchRecommendedDispatchesSetRecommendedOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 10)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 10)])
         )
 
         APIService.shared = APIService(
@@ -431,7 +431,7 @@ final class MoviesActionsTests {
     @Test func fetchSimilarDispatchesSetSimilarOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 11)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 11)])
         )
 
         APIService.shared = APIService(
@@ -457,7 +457,7 @@ final class MoviesActionsTests {
         let session = MockNetworkSession()
         let video = Video(id: "v1", name: "Trailer", site: "YouTube", key: "abc", type: "Trailer")
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [video])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [video])
         )
 
         APIService.shared = APIService(
@@ -482,7 +482,7 @@ final class MoviesActionsTests {
     @Test func fetchSearchDispatchesSetSearchOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 2, total_results: 1, total_pages: 2, results: [makeMovie(id: 30)])
+            PaginatedResponse(page: 2, totalResults: 1, totalPages: 2, results: [makeMovie(id: 30)])
         )
 
         APIService.shared = APIService(
@@ -509,7 +509,7 @@ final class MoviesActionsTests {
         let session = MockNetworkSession()
         let keyword = Keyword(id: 50, name: "neo-noir")
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [keyword])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [keyword])
         )
 
         APIService.shared = APIService(
@@ -534,7 +534,7 @@ final class MoviesActionsTests {
     @Test func fetchMoviesGenreDispatchesSetMovieForGenreOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 40)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 40)])
         )
 
         APIService.shared = APIService(
@@ -563,7 +563,7 @@ final class MoviesActionsTests {
         let session = MockNetworkSession()
         let review = Review(id: "r1", author: "Critic", content: "Great movie")
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [review])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [review])
         )
 
         APIService.shared = APIService(
@@ -588,7 +588,7 @@ final class MoviesActionsTests {
     @Test func fetchMovieWithCrewDispatchesSetMovieWithCrewOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 50)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 50)])
         )
 
         APIService.shared = APIService(
@@ -613,7 +613,7 @@ final class MoviesActionsTests {
     @Test func fetchMovieWithKeywordsDispatchesSetMovieWithKeywordOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 2, total_results: 1, total_pages: 2, results: [makeMovie(id: 60)])
+            PaginatedResponse(page: 2, totalResults: 1, totalPages: 2, results: [makeMovie(id: 60)])
         )
 
         APIService.shared = APIService(
@@ -640,7 +640,7 @@ final class MoviesActionsTests {
     @Test func fetchRandomDiscoverDispatchesSetRandomDiscoverOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 70)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 70)])
         )
 
         APIService.shared = APIService(
@@ -667,7 +667,7 @@ final class MoviesActionsTests {
     @Test func fetchRandomDiscoverUsesRandomFilterWhenNilProvided() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 80)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 80)])
         )
 
         APIService.shared = APIService(
@@ -744,7 +744,7 @@ final class MoviesActionsTests {
     @Test func fetchRandomDiscoverSinglePageProbeDispatchesWithoutSecondFetch() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makeMovie(id: 90)])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makeMovie(id: 90)])
         )
 
         APIService.shared = APIService(
@@ -780,10 +780,10 @@ final class MoviesActionsTests {
     @Test func fetchRandomDiscoverMultiPageProbeFiresSecondFetch() async throws {
         let session = MockNetworkSession()
         let probeData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 50, total_pages: 5, results: [makeMovie(id: 100)])
+            PaginatedResponse(page: 1, totalResults: 50, totalPages: 5, results: [makeMovie(id: 100)])
         )
         let phase2Data = try JSONEncoder().encode(
-            PaginatedResponse(page: 3, total_results: 50, total_pages: 5, results: [makeMovie(id: 200)])
+            PaginatedResponse(page: 3, totalResults: 50, totalPages: 5, results: [makeMovie(id: 200)])
         )
         session.responseQueue = [
             (probeData, nil, nil),

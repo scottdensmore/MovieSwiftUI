@@ -308,7 +308,7 @@ final class PeopleActionsTests {
     @Test func fetchSearchDispatchesSetSearchOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 10, name: "Bob")])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makePeople(id: 10, name: "Bob")])
         )
 
         APIService.shared = APIService(
@@ -332,7 +332,7 @@ final class PeopleActionsTests {
     @Test func fetchPopularDispatchesPopularRequestStartedThenSetPopularOnSuccess() async throws {
         let session = MockNetworkSession()
         session.nextData = try JSONEncoder().encode(
-            PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [makePeople(id: 20, name: "Star")])
+            PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [makePeople(id: 20, name: "Star")])
         )
 
         APIService.shared = APIService(
