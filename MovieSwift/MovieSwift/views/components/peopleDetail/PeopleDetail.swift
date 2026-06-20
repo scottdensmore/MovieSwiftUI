@@ -33,13 +33,13 @@ enum PeopleDetailState {
                                                        name: "Unknown person",
                                                        character: nil,
                                                        department: nil,
-                                                       profile_path: nil,
-                                                       known_for_department: nil,
-                                                       known_for: nil,
-                                                       also_known_as: nil,
+                                                       profilePath: nil,
+                                                       knownForDepartment: nil,
+                                                       knownFor: nil,
+                                                       alsoKnownAs: nil,
                                                        birthDay: nil,
                                                        deathDay: nil,
-                                                       place_of_birth: nil,
+                                                       placeOfBirth: nil,
                                                        biography: nil,
                                                        popularity: nil,
                                                        images: nil)
@@ -49,7 +49,7 @@ enum PeopleDetailState {
         let biography = people.biography?.trimmingCharacters(in: .whitespacesAndNewlines)
         return biography?.isEmpty == false ||
             people.birthDay != nil ||
-            people.place_of_birth != nil ||
+            people.placeOfBirth != nil ||
             people.deathDay != nil
     }
 
@@ -353,7 +353,7 @@ struct PeopleDetail: ConnectedView {
                         PeopleDetailBiographyRow(biography: props.people.biography,
                                                  birthDate: props.people.birthDay,
                                                  deathDate: props.people.deathDay,
-                                                 placeOfBirth: props.people.place_of_birth)
+                                                 placeOfBirth: props.people.placeOfBirth)
                     }
                     if props.isInFanClub.wrappedValue {
                         VStack {
@@ -398,7 +398,7 @@ struct PeopleDetail: ConnectedView {
                             PeopleDetailBiographyRow(biography: props.people.biography,
                                                      birthDate: props.people.birthDay,
                                                      deathDate: props.people.deathDay,
-                                                     placeOfBirth: props.people.place_of_birth,
+                                                     placeOfBirth: props.people.placeOfBirth,
                                                      focusedItem: $focusedDetailItem)
                         }
                         if props.isInFanClub.wrappedValue {

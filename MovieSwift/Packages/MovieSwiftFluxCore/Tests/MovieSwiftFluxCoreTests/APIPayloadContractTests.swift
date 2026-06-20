@@ -41,7 +41,7 @@ import Foundation
         #expect(payload.id == 205)
         #expect(payload.cast.first?.id == 301)
         #expect(payload.cast.first?.character == "Pilot")
-        #expect(payload.cast.first?.known_for?.first?.id == 9001)
+        #expect(payload.cast.first?.knownFor?.first?.id == 9001)
         #expect(payload.crew.first?.id == 302)
         #expect(payload.crew.first?.department == "Directing")
     }

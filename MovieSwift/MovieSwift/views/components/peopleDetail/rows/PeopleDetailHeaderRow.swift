@@ -21,7 +21,7 @@ struct PeopleDetailHeaderRow: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Spacer()
-                BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profile_path,
+                BigPeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: people.profilePath,
                                                                               size: .original))
                 Spacer()
             }
@@ -30,7 +30,7 @@ struct PeopleDetailHeaderRow: View {
                 Text("Known for")
                     .titleStyle()
                     .accessibilityIdentifier(AccessibilityID.PeopleDetail.knownFor)
-                if let department = people.known_for_department {
+                if let department = people.knownForDepartment {
                     Text(department)
                 }
                 Text(PeopleDetailHeaderState.knownForText(for: people))

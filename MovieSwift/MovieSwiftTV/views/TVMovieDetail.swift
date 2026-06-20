@@ -112,7 +112,7 @@ struct TVMovieDetail: ConnectedView {
                     ForEach(characters.prefix(10)) { person in
                         Button { } label: {
                             VStack {
-                                AsyncImage(url: person.profile_path.flatMap {
+                                AsyncImage(url: person.profilePath.flatMap {
                                     ImageService.Size.cast.path(poster: $0)
                                 }) { image in
                                     image.resizable().aspectRatio(contentMode: .fill)
