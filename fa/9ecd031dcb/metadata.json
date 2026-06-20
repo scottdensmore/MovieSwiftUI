@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "fa9ecd031dcb",
+  "strategy": "manual-commit",
+  "branch": "chore/remove-dead-actionsheet",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwiftTests/SettingsGenresActionSheetTests.swift",
+    "MovieSwift/Shared/extensions/ActionSheet.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/fa/9ecd031dcb/0/metadata.json",
+      "transcript": "/fa/9ecd031dcb/0/full.jsonl",
+      "content_hash": "/fa/9ecd031dcb/0/content_hash.txt",
+      "prompt": "/fa/9ecd031dcb/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 337882,
+    "cache_creation_tokens": 38095246,
+    "cache_read_tokens": 3275048135,
+    "output_tokens": 5028658,
+    "api_call_count": 7284
+  }
+}
