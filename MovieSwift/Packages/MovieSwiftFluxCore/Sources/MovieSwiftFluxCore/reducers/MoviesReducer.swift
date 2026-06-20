@@ -154,13 +154,17 @@ public func moviesStateReducer(state: MoviesState, action: Action) -> MoviesStat
         state.customLists[action.list] = nil
 
     case _ as  MoviesActions.PopRandromDiscover:
+        // Record the discarded movie so the Discover view can offer to undo.
+        state.discoverLastDiscarded = state.discover.last
         _ = state.discover.popLast()
     case let action as  MoviesActions.PushRandomDiscover:
         state.discover.append(action.movie)
+        state.discoverLastDiscarded = nil
 
     case _ as  MoviesActions.ResetRandomDiscover:
         state.discoverFilter = nil
         state.discover = []
+        state.discoverLastDiscarded = nil
 
     case let action as MoviesActions.SetGenres:
         state.genres = action.genres

@@ -420,26 +420,46 @@ import Testing
         let reduced = moviesStateReducer(state: state, action: MoviesActions.PopRandromDiscover())
 
         #expect(reduced.discover == [1, 2])
+        // Pop records the discarded movie so the Discover view can undo.
+        #expect(reduced.discoverLastDiscarded == 3)
     }
 
-    @Test func moviesReducerPushRandomDiscoverAppendsMovie() {
+    @Test func moviesReducerPushRandomDiscoverAppendsMovieAndClearsUndo() {
         var state = MoviesState()
         state.discover = [1, 2]
+        state.discoverLastDiscarded = 3
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.PushRandomDiscover(movie: 3))
 
         #expect(reduced.discover == [1, 2, 3])
+        // Undoing clears the pending-undo marker.
+        #expect(reduced.discoverLastDiscarded == nil)
     }
 
-    @Test func moviesReducerResetRandomDiscoverClearsFilterAndList() {
+    @Test func moviesReducerPopThenPushRoundTripsTheDiscardedMovie() throws {
         var state = MoviesState()
         state.discover = [1, 2, 3]
+
+        let popped = moviesStateReducer(state: state, action: MoviesActions.PopRandromDiscover())
+        #expect(popped.discover == [1, 2])
+        let discarded = try #require(popped.discoverLastDiscarded)
+
+        let restored = moviesStateReducer(state: popped, action: MoviesActions.PushRandomDiscover(movie: discarded))
+        #expect(restored.discover == [1, 2, 3])
+        #expect(restored.discoverLastDiscarded == nil)
+    }
+
+    @Test func moviesReducerResetRandomDiscoverClearsFilterListAndUndo() {
+        var state = MoviesState()
+        state.discover = [1, 2, 3]
+        state.discoverLastDiscarded = 3
         state.discoverFilter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.ResetRandomDiscover())
 
         #expect(reduced.discover.isEmpty)
         #expect(reduced.discoverFilter == nil)
+        #expect(reduced.discoverLastDiscarded == nil)
     }
 
     @Test func moviesReducerSaveDiscoverFilterAppendsFilter() {
