@@ -19,10 +19,10 @@ enum MovieCoverState {
             Genre(id: -index, name: "     ")
         }
 
-        return MovieCoverPresentation(backdropPath: movie.backdrop_path ?? movie.poster_path,
-                                      posterPath: movie.poster_path,
-                                      popularityScore: Int(movie.vote_average * 10),
-                                      ratingsText: "\(movie.vote_count) ratings",
+        return MovieCoverPresentation(backdropPath: movie.backdropPath ?? movie.posterPath,
+                                      posterPath: movie.posterPath,
+                                      popularityScore: Int(movie.voteAverage * 10),
+                                      ratingsText: "\(movie.voteCount) ratings",
                                       genres: movie.genres ?? placeholderGenres,
                                       areGenresPlaceholder: movie.genres == nil)
     }

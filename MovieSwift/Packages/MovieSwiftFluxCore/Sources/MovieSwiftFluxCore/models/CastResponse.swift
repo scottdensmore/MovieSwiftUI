@@ -22,12 +22,9 @@ public let sampleCasts = [People(id: 0,
                           department: nil,
                           profilePath: "/2daC5DeXqwkFND0xxutbnSVKN6c.jpg",
                           knownForDepartment: "Acting",
-                          // KnownFor labels are camelCase; `sampleMovie`'s
-                          // fields stay snake_case until the Movie model is
-                          // migrated in its own PR.
                           knownFor: [People.KnownFor(id: sampleMovie.id,
-                                                      originalTitle: sampleMovie.original_title,
-                                                      posterPath: sampleMovie.poster_path), ],
+                                                      originalTitle: sampleMovie.originalTitle,
+                                                      posterPath: sampleMovie.posterPath), ],
                           alsoKnownAs: nil, birthDay: nil,
                           deathDay: nil, placeOfBirth: nil,
                           biography: nil, popularity: nil, images: nil),

@@ -81,7 +81,7 @@ enum PeopleDetailMovieGrouping {
         var years: [String: [PeopleDetail.MovieRole]] = [:]
         for value in credits {
             if let movie = movies[value.key] {
-                if let releaseDate = movie.release_date, !releaseDate.isEmpty {
+                if let releaseDate = movie.releaseDateString, !releaseDate.isEmpty {
                     let year = String(releaseDate.prefix(4))
                     if years[year] == nil {
                         years[year] = []

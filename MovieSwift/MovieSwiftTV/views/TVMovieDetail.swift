@@ -59,7 +59,7 @@ struct TVMovieDetail: ConnectedView {
 
     private func headerSection(movie: Movie) -> some View {
         HStack(alignment: .top, spacing: 40) {
-            MoviePosterImage(imageLoader: ImageLoader(path: movie.poster_path, size: .medium),
+            MoviePosterImage(imageLoader: ImageLoader(path: movie.posterPath, size: .medium),
                             posterSize: PosterStyle.Size.tv)
 
             VStack(alignment: .leading, spacing: 16) {
@@ -67,14 +67,14 @@ struct TVMovieDetail: ConnectedView {
                     .font(.title)
                     .accessibilityIdentifier(AccessibilityID.MovieDetail.title)
                 HStack(spacing: 24) {
-                    if let date = movie.release_date {
+                    if let date = movie.releaseDateString {
                         Label(date, systemImage: "calendar")
                     }
                     if let runtime = movie.runtime {
                         Label("\(runtime) min", systemImage: "clock")
                     }
-                    if movie.vote_average > 0 {
-                        Label(String(format: "%.1f", movie.vote_average), systemImage: "star.fill")
+                    if movie.voteAverage > 0 {
+                        Label(String(format: "%.1f", movie.voteAverage), systemImage: "star.fill")
                             .foregroundStyle(.yellow)
                     }
                 }
@@ -147,7 +147,7 @@ struct TVMovieDetail: ConnectedView {
                             NavigationLink(value: id) {
                                 VStack(spacing: 8) {
                                     MoviePosterImage(
-                                        imageLoader: ImageLoader(path: movie.poster_path,
+                                        imageLoader: ImageLoader(path: movie.posterPath,
                                                                   size: .medium),
                                         posterSize: .medium)
                                     Text(movie.userTitle)

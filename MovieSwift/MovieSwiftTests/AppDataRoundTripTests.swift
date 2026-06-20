@@ -29,22 +29,22 @@ import MovieSwiftFluxCore
 
     private func makeMovie(id: Int) -> Movie {
         Movie(id: id,
-              original_title: "Movie \(id)",
+              originalTitle: "Movie \(id)",
               title: "Movie \(id)",
               overview: "Overview",
-              poster_path: nil,
-              backdrop_path: nil,
+              posterPath: nil,
+              backdropPath: nil,
               popularity: 0,
-              vote_average: 0,
-              vote_count: 0,
-              release_date: nil,
+              voteAverage: 0,
+              voteCount: 0,
+              releaseDateString: nil,
               genres: nil,
               runtime: nil,
               status: nil,
               video: false,
               keywords: nil,
               images: nil,
-              production_countries: nil,
+              productionCountries: nil,
               character: nil,
               department: nil)
     }
@@ -161,6 +161,56 @@ import MovieSwiftFluxCore
         #expect(importedImage.aspectRatio == Float(0.667))
         #expect(importedImage.height == 1500)
         #expect(importedImage.width == 1000)
+    }
+
+    /// A cached `Movie` record rides along in the export and keeps its
+    /// snake_case wire keys end-to-end. `Movie`'s Swift properties are
+    /// camelCase via `CodingKeys`; this proves the persisted bytes still use
+    /// the snake_case keys (so an old backup imports) and that all seven
+    /// renamed fields survive the full encode → decode → merge journey.
+    @Test func fullRoundTripPreservesMovieWireKeys() throws {
+        var phoneA = AppState()
+        phoneA.moviesState.movies[500] = Movie(id: 500,
+                                               originalTitle: "Orig",
+                                               title: "Title",
+                                               overview: "Over",
+                                               posterPath: "/p.jpg",
+                                               backdropPath: "/b.jpg",
+                                               popularity: 5.5,
+                                               voteAverage: 8.1,
+                                               voteCount: 100,
+                                               releaseDateString: "1972-03-14",
+                                               genres: nil,
+                                               runtime: nil,
+                                               status: nil,
+                                               video: false,
+                                               keywords: nil,
+                                               images: nil,
+                                               productionCountries: nil,
+                                               character: nil,
+                                               department: nil)
+        phoneA.moviesState.wishlist.insert(500)
+
+        let bytes = try AppDataExport.data(from: phoneA)
+
+        // The persisted bytes use snake_case wire keys, not the camelCase
+        // Swift property names — so an old backup keeps importing.
+        let raw = try #require(String(data: bytes, encoding: .utf8))
+        #expect(raw.contains("\"poster_path\""))
+        #expect(raw.contains("\"release_date\""))
+        #expect(raw.contains("\"vote_average\""))
+        #expect(raw.contains("\"posterPath\"") == false)
+
+        // And every renamed field survives the full decode → merge.
+        let envelope = try AppDataImport.decodeEnvelope(from: bytes)
+        let merged = AppDataImport.merge(envelope: envelope, into: AppState())
+        let imported = try #require(merged.moviesState.movies[500])
+        #expect(imported.originalTitle == "Orig")
+        #expect(imported.posterPath == "/p.jpg")
+        #expect(imported.backdropPath == "/b.jpg")
+        #expect(imported.voteAverage == Float(8.1))
+        #expect(imported.voteCount == 100)
+        #expect(imported.releaseDateString == "1972-03-14")
     }
 
     /// Phone B already has its own data; importing Phone A's export

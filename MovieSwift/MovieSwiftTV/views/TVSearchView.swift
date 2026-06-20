@@ -75,7 +75,7 @@ private struct TVSearchCard: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            MoviePosterImage(imageLoader: ImageLoader(path: movie.poster_path,
+            MoviePosterImage(imageLoader: ImageLoader(path: movie.posterPath,
                                                       size: .medium),
                             posterSize: PosterStyle.Size.tv)
             Text(movie.userTitle)

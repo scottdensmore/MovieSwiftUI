@@ -16,22 +16,22 @@ struct MovieDetailTests {
                            keywords: Movie.Keywords? = nil,
                            images: Movie.MovieImages? = nil) -> Movie {
         Movie(id: id,
-              original_title: "Movie \(id)",
+              originalTitle: "Movie \(id)",
               title: "Movie \(id)",
               overview: "Overview",
-              poster_path: nil,
-              backdrop_path: nil,
+              posterPath: nil,
+              backdropPath: nil,
               popularity: 0,
-              vote_average: 0,
-              vote_count: 0,
-              release_date: nil,
+              voteAverage: 0,
+              voteCount: 0,
+              releaseDateString: nil,
               genres: nil,
               runtime: nil,
               status: nil,
               video: false,
               keywords: keywords,
               images: images,
-              production_countries: nil,
+              productionCountries: nil,
               character: nil,
               department: nil)
     }
@@ -120,7 +120,7 @@ struct MovieDetailTests {
 
         #expect(props.movie.id == 42)
         #expect(props.movie.title == "Movie unavailable")
-        #expect(props.movie.poster_path == nil)
+        #expect(props.movie.posterPath == nil)
     }
 
     @Test func movieGridRowMapReturnsPlaceholderWhenMovieIsMissing() {
@@ -422,15 +422,15 @@ struct MovieDetailTests {
         let movies = [
             sampleMovie,
             Movie(id: 12,
-                  original_title: "Another Movie",
+                  originalTitle: "Another Movie",
                   title: "Another Movie",
                   overview: "",
-                  poster_path: nil,
-                  backdrop_path: nil,
+                  posterPath: nil,
+                  backdropPath: nil,
                   popularity: 0,
-                  vote_average: 0,
-                  vote_count: 0,
-                  release_date: nil,
+                  voteAverage: 0,
+                  voteCount: 0,
+                  releaseDateString: nil,
                   genres: nil,
                   runtime: nil,
                   status: nil,
@@ -444,8 +444,8 @@ struct MovieDetailTests {
         let presentation = MovieCrosslineState.presentation(for: sampleMovie)
 
         #expect(presentation.title == sampleMovie.userTitle)
-        #expect(presentation.posterPath == sampleMovie.poster_path)
-        #expect(presentation.popularityScore == Int(sampleMovie.vote_average * 10))
+        #expect(presentation.posterPath == sampleMovie.posterPath)
+        #expect(presentation.popularityScore == Int(sampleMovie.voteAverage * 10))
     }
 
     @Test func movieCrosslinePeopleStateBuildsSubtitleAndAccessibilityIdentifier() {
@@ -500,7 +500,7 @@ struct MovieDetailTests {
 
     @Test func movieInfoStateBuildsPresentation() {
         var movie = sampleMovie
-        movie.production_countries = [Movie.ProductionCountry(name: "France")]
+        movie.productionCountries = [Movie.ProductionCountry(name: "France")]
 
         let presentation = MovieInfoState.presentation(for: movie)
 
@@ -513,23 +513,23 @@ struct MovieDetailTests {
     @Test func movieCoverStateBuildsPresentationAndPlaceholderGenres() {
         let populatedPresentation = MovieCoverState.presentation(for: sampleMovie)
 
-        #expect(populatedPresentation.backdropPath == sampleMovie.backdrop_path)
-        #expect(populatedPresentation.posterPath == sampleMovie.poster_path)
-        #expect(populatedPresentation.popularityScore == Int(sampleMovie.vote_average * 10))
-        #expect(populatedPresentation.ratingsText == "\(sampleMovie.vote_count) ratings")
+        #expect(populatedPresentation.backdropPath == sampleMovie.backdropPath)
+        #expect(populatedPresentation.posterPath == sampleMovie.posterPath)
+        #expect(populatedPresentation.popularityScore == Int(sampleMovie.voteAverage * 10))
+        #expect(populatedPresentation.ratingsText == "\(sampleMovie.voteCount) ratings")
         #expect(populatedPresentation.genres.map(\.name) == sampleMovie.genres?.map(\.name))
         #expect(!(populatedPresentation.areGenresPlaceholder))
 
         let noGenresMovie = Movie(id: 14,
-                                  original_title: "Genreless",
+                                  originalTitle: "Genreless",
                                   title: "Genreless",
                                   overview: "",
-                                  poster_path: nil,
-                                  backdrop_path: nil,
+                                  posterPath: nil,
+                                  backdropPath: nil,
                                   popularity: 0,
-                                  vote_average: 7.2,
-                                  vote_count: 15,
-                                  release_date: nil,
+                                  voteAverage: 7.2,
+                                  voteCount: 15,
+                                  releaseDateString: nil,
                                   genres: nil,
                                   runtime: nil,
                                   status: nil,

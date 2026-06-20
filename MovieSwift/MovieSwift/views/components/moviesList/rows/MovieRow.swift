@@ -26,7 +26,7 @@ struct MovieRow: ConnectedView {
     func body(props: Props) -> some View {
         HStack {
             ZStack(alignment: .topLeading) {
-                MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.movie.poster_path,
+                MoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.movie.posterPath,
                                                                                 size: .medium),
                                  posterSize: .medium)
                 if displayListImage {
@@ -40,7 +40,7 @@ struct MovieRow: ConnectedView {
                     .foregroundStyle(Color.steam_gold)
                     .lineLimit(2)
                 HStack {
-                    PopularityBadge(score: Int(props.movie.vote_average * 10))
+                    PopularityBadge(score: Int(props.movie.voteAverage * 10))
                     Text(formatter.string(from: props.movie.releaseDate ?? Date()))
                         .font(.subheadline)
                         .foregroundStyle(.primary)

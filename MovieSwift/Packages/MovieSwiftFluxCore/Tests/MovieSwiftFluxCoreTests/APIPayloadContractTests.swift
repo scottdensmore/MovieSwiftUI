@@ -32,7 +32,7 @@ import Foundation
         #expect(payload.keywords?.keywords?.map(\.name) == ["space", "future"])
         #expect(payload.images?.posters?.first?.filePath == "/poster-a.jpg")
         #expect(payload.images?.backdrops?.first?.width == 1920)
-        #expect(payload.production_countries?.map(\.name) == ["United States of America", "Canada"])
+        #expect(payload.productionCountries?.map(\.name) == ["United States of America", "Canada"])
     }
 
     @Test func castResponsePayloadDecodesCastAndCrewMetadata() throws {

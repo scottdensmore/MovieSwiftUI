@@ -193,7 +193,7 @@ struct DraggableCover: View {
 
 // MARK: - Preview
 #Preview {
-    DraggableCover(posterPath: sampleMovie.poster_path,
+    DraggableCover(posterPath: sampleMovie.posterPath,
                    gestureViewState: .constant(.inactive),
                    onTapGesture: {
 

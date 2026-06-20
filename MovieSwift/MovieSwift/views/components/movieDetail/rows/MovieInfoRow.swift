@@ -11,7 +11,7 @@ struct MovieInfoPresentation {
 
 enum MovieInfoState {
     static func presentation(for movie: Movie) -> MovieInfoPresentation {
-        MovieInfoPresentation(yearText: movie.release_date.map { String($0.prefix(4)) },
+        MovieInfoPresentation(yearText: movie.releaseDateString.map { String($0.prefix(4)) },
                               runtimeText: movie.runtime.map {
                                   // Built as a String here (not a SwiftUI Text), so it must
                                   // be localized explicitly or "minutes" never translates.
@@ -19,7 +19,7 @@ enum MovieInfoState {
                                          comment: "Movie runtime shown in the detail info row; argument is the number of minutes")
                               },
                               statusText: movie.status.map { "• \($0)" },
-                              productionCountryText: movie.production_countries?.first?.name)
+                              productionCountryText: movie.productionCountries?.first?.name)
     }
 }
 

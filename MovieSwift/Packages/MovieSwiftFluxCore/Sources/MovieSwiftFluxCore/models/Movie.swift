@@ -5,65 +5,92 @@ import Backend
 public struct Movie: Codable, Identifiable, Sendable {
     public let id: Int
 
-    public let original_title: String
+    public let originalTitle: String
     public let title: String
+
+    // Swift properties are camelCase; the TMDB JSON keys (and the keys
+    // persisted in user backups) are snake_case. `CodingKeys` bridges the
+    // two so the decoded/encoded wire format is unchanged. The raw
+    // `release_date` string is stored as `releaseDateString` because the
+    // camelCase `releaseDate` name belongs to the computed `Date` below.
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case originalTitle = "original_title"
+        case title
+        case overview
+        case posterPath = "poster_path"
+        case backdropPath = "backdrop_path"
+        case popularity
+        case voteAverage = "vote_average"
+        case voteCount = "vote_count"
+        case releaseDateString = "release_date"
+        case genres
+        case runtime
+        case status
+        case video
+        case keywords
+        case images
+        case productionCountries = "production_countries"
+        case character
+        case department
+    }
 
     public init(
         id: Int,
-        original_title: String,
+        originalTitle: String,
         title: String,
         overview: String,
-        poster_path: String? = nil,
-        backdrop_path: String? = nil,
+        posterPath: String? = nil,
+        backdropPath: String? = nil,
         popularity: Float,
-        vote_average: Float,
-        vote_count: Int,
-        release_date: String? = nil,
+        voteAverage: Float,
+        voteCount: Int,
+        releaseDateString: String? = nil,
         genres: [Genre]? = nil,
         runtime: Int? = nil,
         status: String? = nil,
         video: Bool,
         keywords: Keywords? = nil,
         images: MovieImages? = nil,
-        production_countries: [ProductionCountry]? = nil,
+        productionCountries: [ProductionCountry]? = nil,
         character: String? = nil,
         department: String? = nil
     ) {
         self.id = id
-        self.original_title = original_title
+        self.originalTitle = originalTitle
         self.title = title
         self.overview = overview
-        self.poster_path = poster_path
-        self.backdrop_path = backdrop_path
+        self.posterPath = posterPath
+        self.backdropPath = backdropPath
         self.popularity = popularity
-        self.vote_average = vote_average
-        self.vote_count = vote_count
-        self.release_date = release_date
+        self.voteAverage = voteAverage
+        self.voteCount = voteCount
+        self.releaseDateString = releaseDateString
         self.genres = genres
         self.runtime = runtime
         self.status = status
         self.video = video
         self.keywords = keywords
         self.images = images
-        self.production_countries = production_countries
+        self.productionCountries = productionCountries
         self.character = character
         self.department = department
     }
     public var userTitle: String {
-        return AppUserDefaults.alwaysOriginalTitle ? original_title : title
+        return AppUserDefaults.alwaysOriginalTitle ? originalTitle : title
     }
 
     public let overview: String
-    public let poster_path: String?
-    public let backdrop_path: String?
+    public let posterPath: String?
+    public let backdropPath: String?
     public let popularity: Float
-    public let vote_average: Float
-    public let vote_count: Int
+    public let voteAverage: Float
+    public let voteCount: Int
 
-    public let release_date: String?
+    public let releaseDateString: String?
     public var releaseDate: Date? {
-        guard let release_date else { return Date() }
-        return Movie.dateFormatter.date(from: release_date)
+        guard let releaseDateString else { return Date() }
+        return Movie.dateFormatter.date(from: releaseDateString)
     }
 
     static public let dateFormatter: DateFormatter = {
@@ -80,7 +107,7 @@ public struct Movie: Codable, Identifiable, Sendable {
     public var keywords: Keywords?
     public var images: MovieImages?
 
-    public var production_countries: [ProductionCountry]?
+    public var productionCountries: [ProductionCountry]?
 
     public var character: String?
     public var department: String?
@@ -123,37 +150,37 @@ public struct Movie: Codable, Identifiable, Sendable {
 
     static public func placeholder(id: Int) -> Movie {
         Movie(id: id,
-              original_title: "Movie unavailable",
+              originalTitle: "Movie unavailable",
               title: "Movie unavailable",
               overview: "Details for this saved movie are not currently cached.",
-              poster_path: nil,
-              backdrop_path: nil,
+              posterPath: nil,
+              backdropPath: nil,
               popularity: 0,
-              vote_average: 0,
-              vote_count: 0,
-              release_date: nil,
+              voteAverage: 0,
+              voteCount: 0,
+              releaseDateString: nil,
               genres: nil,
               runtime: nil,
               status: nil,
               video: false,
               keywords: nil,
               images: nil,
-              production_countries: nil,
+              productionCountries: nil,
               character: nil,
               department: nil)
     }
 }
 
 public let sampleMovie = Movie(id: 0,
-                        original_title: "Test movie Test movie Test movie Test movie Test movie Test movie Test movie ",
+                        originalTitle: "Test movie Test movie Test movie Test movie Test movie Test movie Test movie ",
                         title: "Test movie Test movie Test movie Test movie Test movie Test movie Test movie  Test movie Test movie Test movie",
                         overview: "Test desc",
-                        poster_path: "/uC6TTUhPpQCmgldGyYveKRAu8JN.jpg",
-                        backdrop_path: "/nl79FQ8xWZkhL3rDr1v2RFFR6J0.jpg",
+                        posterPath: "/uC6TTUhPpQCmgldGyYveKRAu8JN.jpg",
+                        backdropPath: "/nl79FQ8xWZkhL3rDr1v2RFFR6J0.jpg",
                         popularity: 50.5,
-                        vote_average: 8.9,
-                        vote_count: 1000,
-                        release_date: "1972-03-14",
+                        voteAverage: 8.9,
+                        voteCount: 1000,
+                        releaseDateString: "1972-03-14",
                         genres: [Genre(id: 0, name: "test")],
                         runtime: 80,
                         status: "released",

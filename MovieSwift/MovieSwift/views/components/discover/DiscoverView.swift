@@ -128,7 +128,7 @@ struct DiscoverView: ConnectedView {
         var posters: [Int: String] = [:]
         let movies = state.moviesState.discover
         for movie in movies {
-            posters[movie] = state.moviesState.movies[movie]?.poster_path
+            posters[movie] = state.moviesState.movies[movie]?.posterPath
         }
         let loadingFailure: MoviesListLoadFailure?
         if case .failed(let f) = state.moviesState.loadingStates[.randomDiscover] {
@@ -474,11 +474,11 @@ struct DiscoverView: ConnectedView {
                 }
             }
         }
-        .background(FullscreenMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.currentMovie?.poster_path,
+        .background(FullscreenMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: props.currentMovie?.posterPath,
                                                                                               size: .original))
             .allowsHitTesting(false)
             .transition(.opacity)
-            .animation(.easeInOut, value: props.currentMovie?.poster_path))
+            .animation(.easeInOut, value: props.currentMovie?.posterPath))
         .onAppear {
             self.hapticFeedback.prepare()
             self.fetchRandomMovies(props: props, force: false, filter: props.filter)
@@ -492,11 +492,11 @@ struct DiscoverView: ConnectedView {
         ZStack {
             // Blurred poster backdrop
             FullscreenMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(
-                path: props.currentMovie?.poster_path,
+                path: props.currentMovie?.posterPath,
                 size: .original))
                 .allowsHitTesting(false)
                 .transition(.opacity)
-                .animation(.easeInOut, value: props.currentMovie?.poster_path)
+                .animation(.easeInOut, value: props.currentMovie?.posterPath)
                 .overlay(Color.black.opacity(0.55))
 
             if let movie = props.currentMovie {
