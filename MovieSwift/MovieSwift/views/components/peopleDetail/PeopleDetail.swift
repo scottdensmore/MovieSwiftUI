@@ -466,7 +466,7 @@ struct PeopleDetail: ConnectedView {
         }
         if PeopleDetailState.shouldShowImagesSection(for: props.people.images),
            let images = props.people.images, !images.isEmpty {
-            groups.append(images.map { .image($0.file_path) })
+            groups.append(images.map { .image($0.filePath) })
         }
         for year in sortedYears(props: props) {
             let metas = props.movieByYears[year] ?? []

@@ -240,8 +240,8 @@ struct PeopleAndFanClubTests {
 
     @Test func peopleStateReducerSetImagesCreatesPlaceholderWhenPersonIsMissing() {
         let state = AppState().peoplesState
-        let images = [ImageData(aspect_ratio: 1,
-                                file_path: "/profile.jpg",
+        let images = [ImageData(aspectRatio: 1,
+                                filePath: "/profile.jpg",
                                 height: 200,
                                 width: 100), ]
 
@@ -298,8 +298,8 @@ struct PeopleAndFanClubTests {
                                   place_of_birth: nil,
                                   biography: nil,
                                   popularity: nil,
-                                  images: [ImageData(aspect_ratio: 1,
-                                                     file_path: "/profile.jpg",
+                                  images: [ImageData(aspectRatio: 1,
+                                                     filePath: "/profile.jpg",
                                                      height: 200,
                                                      width: 100), ])
         state.casts[7] = [12: "Actor"]

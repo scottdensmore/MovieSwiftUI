@@ -4,21 +4,33 @@ import SwiftUI
 public struct ImageData: Codable, Identifiable, Sendable {
 
     public init(
-        aspect_ratio: Float,
-        file_path: String,
+        aspectRatio: Float,
+        filePath: String,
         height: Int,
         width: Int
     ) {
-        self.aspect_ratio = aspect_ratio
-        self.file_path = file_path
+        self.aspectRatio = aspectRatio
+        self.filePath = filePath
         self.height = height
         self.width = width
     }
-    public var id: String {
-        file_path
-    }
-    public let aspect_ratio: Float
-    public let file_path: String
+
+    public let aspectRatio: Float
+    public let filePath: String
     public let height: Int
     public let width: Int
+
+    // Swift properties are camelCase; the TMDB JSON keys (and the keys
+    // persisted in user backups) are snake_case. `CodingKeys` bridges the
+    // two so the decoded/encoded wire format is unchanged.
+    public enum CodingKeys: String, CodingKey {
+        case aspectRatio = "aspect_ratio"
+        case filePath = "file_path"
+        case height
+        case width
+    }
+
+    public var id: String {
+        filePath
+    }
 }

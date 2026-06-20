@@ -127,6 +127,42 @@ import MovieSwiftFluxCore
         #expect(counts.hasAnyChanges)
     }
 
+    /// A person's cached profile `images` ride along in the export and
+    /// survive the full encode → decode → merge journey. `ImageData`'s
+    /// Swift properties are camelCase but its persisted JSON keys are
+    /// snake_case (via `CodingKeys`); this proves a populated `[ImageData]`
+    /// round-trips through the real backup path, not just the model in
+    /// isolation — so an old backup keeps importing after the rename.
+    @Test func fullRoundTripPreservesPersonProfileImages() throws {
+        var phoneA = AppState()
+        let images = [ImageData(aspectRatio: 0.667, filePath: "/profile.jpg", height: 1500, width: 1000)]
+        phoneA.peoplesState.peoples[7] = People(id: 7,
+                                                name: "Person 7",
+                                                character: nil,
+                                                department: nil,
+                                                profile_path: nil,
+                                                known_for_department: nil,
+                                                known_for: nil,
+                                                also_known_as: nil,
+                                                birthDay: nil,
+                                                deathDay: nil,
+                                                place_of_birth: nil,
+                                                biography: nil,
+                                                popularity: nil,
+                                                images: images)
+        phoneA.peoplesState.fanClub.insert(7)
+
+        let bytes = try AppDataExport.data(from: phoneA)
+        let envelope = try AppDataImport.decodeEnvelope(from: bytes)
+        let merged = AppDataImport.merge(envelope: envelope, into: AppState())
+
+        let importedImage = try #require(merged.peoplesState.peoples[7]?.images?.first)
+        #expect(importedImage.filePath == "/profile.jpg")
+        #expect(importedImage.aspectRatio == Float(0.667))
+        #expect(importedImage.height == 1500)
+        #expect(importedImage.width == 1000)
+    }
+
     /// Phone B already has its own data; importing Phone A's export
     /// should UNION rather than overwrite. Catches regressions where the
     /// merge implementation accidentally replaces local state with the

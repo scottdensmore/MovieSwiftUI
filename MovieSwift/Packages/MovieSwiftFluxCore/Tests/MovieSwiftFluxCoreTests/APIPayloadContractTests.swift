@@ -30,7 +30,7 @@ import Foundation
         #expect(payload.status == "Released")
         #expect(payload.genres?.map(\.id) == [18, 12])
         #expect(payload.keywords?.keywords?.map(\.name) == ["space", "future"])
-        #expect(payload.images?.posters?.first?.file_path == "/poster-a.jpg")
+        #expect(payload.images?.posters?.first?.filePath == "/poster-a.jpg")
         #expect(payload.images?.backdrops?.first?.width == 1920)
         #expect(payload.production_countries?.map(\.name) == ["United States of America", "Canada"])
     }

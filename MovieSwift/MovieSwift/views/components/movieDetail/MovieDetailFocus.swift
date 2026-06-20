@@ -172,11 +172,11 @@ struct MovieDetailFocusModel {
     }
 
     var posterTargets: [MovieDetailFocusTarget] {
-        (movie?.images?.posters ?? []).map { .poster($0.file_path) }
+        (movie?.images?.posters ?? []).map { .poster($0.filePath) }
     }
 
     var backdropTargets: [MovieDetailFocusTarget] {
-        (movie?.images?.backdrops ?? []).map { .backdrop($0.file_path) }
+        (movie?.images?.backdrops ?? []).map { .backdrop($0.filePath) }
     }
 
     var videoTargets: [MovieDetailFocusTarget] {

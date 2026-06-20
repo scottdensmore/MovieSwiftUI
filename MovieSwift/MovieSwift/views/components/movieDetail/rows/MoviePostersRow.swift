@@ -6,11 +6,11 @@ struct MoviePosterPresentation: Identifiable {
     let image: ImageData
 
     var id: String {
-        image.file_path
+        image.filePath
     }
 
     var path: String {
-        image.file_path
+        image.filePath
     }
 }
 
@@ -98,8 +98,8 @@ struct MoviePostersRow: View {
 #if os(macOS)
 #Preview {
     @FocusState var item: MovieDetailFocusTarget?
-    return MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
-                                               file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+    return MoviePostersRow(posters: [ImageData(aspectRatio: 0.666666666666667,
+                                               filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                height: 720,
                                                width: 1280), ],
                            selectedPoster: .constant(nil),
@@ -107,8 +107,8 @@ struct MoviePostersRow: View {
 }
 #else
 #Preview {
-    MoviePostersRow(posters: [ImageData(aspect_ratio: 0.666666666666667,
-                                         file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+    MoviePostersRow(posters: [ImageData(aspectRatio: 0.666666666666667,
+                                         filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                          height: 720,
                                          width: 1280), ],
                     selectedPoster: .constant(nil))

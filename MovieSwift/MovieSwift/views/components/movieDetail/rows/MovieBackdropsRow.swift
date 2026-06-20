@@ -6,11 +6,11 @@ struct MovieBackdropPresentation: Identifiable {
     let image: ImageData
 
     var id: String {
-        image.file_path
+        image.filePath
     }
 
     var path: String {
-        image.file_path
+        image.filePath
     }
 }
 
@@ -85,8 +85,8 @@ struct MovieBackdropsRow: View {
 #if os(macOS)
 #Preview {
     @FocusState var item: MovieDetailFocusTarget?
-    return MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
-                                                   file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+    return MovieBackdropsRow(backdrops: [ImageData(aspectRatio: 1.7,
+                                                   filePath: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                                    height: 1200,
                                                    width: 1800), ],
                              focusedItem: $item,
@@ -94,8 +94,8 @@ struct MovieBackdropsRow: View {
 }
 #else
 #Preview {
-    MovieBackdropsRow(backdrops: [ImageData(aspect_ratio: 1.7,
-                                         file_path: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+    MovieBackdropsRow(backdrops: [ImageData(aspectRatio: 1.7,
+                                         filePath: "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
                                          height: 1200,
                                          width: 1800), ])
 }
