@@ -35,26 +35,26 @@ struct MoviesListingTests {
         state = moviesStateReducer(state: state,
                                    action: MoviesActions.SetRecommended(movie: 9,
                                                                         response: PaginatedResponse(page: 1,
-                                                                                                    total_results: 0,
-                                                                                                    total_pages: 1,
+                                                                                                    totalResults: 0,
+                                                                                                    totalPages: 1,
                                                                                                     results: [])))
         state = moviesStateReducer(state: state,
                                    action: MoviesActions.SetSimilar(movie: 9,
                                                                     response: PaginatedResponse(page: 1,
-                                                                                                total_results: 0,
-                                                                                                total_pages: 1,
+                                                                                                totalResults: 0,
+                                                                                                totalPages: 1,
                                                                                                 results: [])))
         state = moviesStateReducer(state: state,
                                    action: MoviesActions.SetVideos(movie: 9,
                                                                    response: PaginatedResponse(page: 1,
-                                                                                               total_results: 0,
-                                                                                               total_pages: 1,
+                                                                                               totalResults: 0,
+                                                                                               totalPages: 1,
                                                                                                results: [])))
         state = moviesStateReducer(state: state,
                                    action: MoviesActions.SetMovieReviews(movie: 9,
                                                                          response: PaginatedResponse(page: 1,
-                                                                                                     total_results: 0,
-                                                                                                     total_pages: 1,
+                                                                                                     totalResults: 0,
+                                                                                                     totalPages: 1,
                                                                                                      results: [])))
 
         #expect(state.detailed.contains(9))

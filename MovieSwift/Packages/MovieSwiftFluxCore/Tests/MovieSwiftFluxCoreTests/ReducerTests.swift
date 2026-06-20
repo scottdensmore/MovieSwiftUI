@@ -239,7 +239,7 @@ import Testing
 
     @Test func moviesReducerSetVideosStoresResultsAndMarksLoaded() {
         let video = Video(id: "v1", name: "Trailer", site: "YouTube", key: "abc", type: "Trailer")
-        let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [video])
+        let response = PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [video])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetVideos(movie: 7, response: response))
 
         #expect(reduced.videos[7]?.first?.key == "abc")
@@ -274,7 +274,7 @@ import Testing
 
     @Test func moviesReducerSetSearchKeywordStoresKeywords() {
         let keywords = [Keyword(id: 1, name: "neo-noir"), Keyword(id: 2, name: "heist")]
-        let response = PaginatedResponse(page: 1, total_results: 2, total_pages: 1, results: keywords)
+        let response = PaginatedResponse(page: 1, totalResults: 2, totalPages: 1, results: keywords)
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetSearchKeyword(query: "noir", response: response))
 
         #expect(reduced.searchKeywords["noir"]?.count == 2)
@@ -404,7 +404,7 @@ import Testing
 
     @Test func moviesReducerSetMovieReviewsStoresResultsAndMarksLoaded() {
         let review = Review(id: "r1", author: "Critic", content: "Great")
-        let response = PaginatedResponse(page: 1, total_results: 1, total_pages: 1, results: [review])
+        let response = PaginatedResponse(page: 1, totalResults: 1, totalPages: 1, results: [review])
         let reduced = moviesStateReducer(state: MoviesState(), action: MoviesActions.SetMovieReviews(movie: 8, response: response))
 
         #expect(reduced.reviews[8]?.first?.author == "Critic")
@@ -497,7 +497,7 @@ import Testing
         state.search[query] = existing
 
         let results = incoming.map { makePeople(id: $0.id, name: $0.name) }
-        let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
+        let response = PaginatedResponse(page: page, totalResults: results.count, totalPages: page, results: results)
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetSearch(query: query, page: page, response: response))
 
         #expect(reduced.search[query] == expected)
@@ -526,7 +526,7 @@ import Testing
         state.popularLoading = existingLoading
 
         let results = incoming.map { makePeople(id: $0.id, name: $0.name) }
-        let response = PaginatedResponse(page: page, total_results: results.count, total_pages: page, results: results)
+        let response = PaginatedResponse(page: page, totalResults: results.count, totalPages: page, results: results)
         let reduced = peoplesStateReducer(state: state, action: PeopleActions.SetPopular(page: page, response: response))
 
         #expect(reduced.popular == expected)
@@ -593,7 +593,7 @@ import Testing
     }
 
     private func paginated<T: Codable>(_ values: [T]) -> PaginatedResponse<T> {
-        PaginatedResponse(page: 1, total_results: values.count, total_pages: 1, results: values)
+        PaginatedResponse(page: 1, totalResults: values.count, totalPages: 1, results: values)
     }
 
     private func makeMovie(id: Int, character: String? = nil, department: String? = nil) -> Movie {

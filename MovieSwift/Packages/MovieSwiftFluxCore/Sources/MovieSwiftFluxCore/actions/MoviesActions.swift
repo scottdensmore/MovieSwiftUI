@@ -350,7 +350,7 @@ public struct MoviesActions {
                     dispatch(MoviesActions.SetLoadingState(key: key, state: .failed(failure)))
 
                 case .success(let probe):
-                    let probeTotalPages = probe.total_pages ?? 1
+                    let probeTotalPages = probe.totalPages ?? 1
                     let targetPage: Int
                     if let randomSource = self.randomSource {
                         targetPage = FetchRandomDiscover.resolveTargetPage(

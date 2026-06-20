@@ -16,8 +16,8 @@ import Foundation
         let payload = try decodeFixture("movie_menu_response", as: PaginatedResponse<Movie>.self)
 
         #expect(payload.page == 3)
-        #expect(payload.total_results == 10000)
-        #expect(payload.total_pages == 500)
+        #expect(payload.totalResults == 10000)
+        #expect(payload.totalPages == 500)
         #expect(payload.results.map(\.id) == [101, 102])
         #expect(payload.results.first?.title == "Movie 101")
     }

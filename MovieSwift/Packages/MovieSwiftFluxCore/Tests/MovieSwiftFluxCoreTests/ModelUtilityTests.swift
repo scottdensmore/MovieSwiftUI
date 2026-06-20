@@ -169,10 +169,25 @@ import Backend
         let decoded = try JSONDecoder().decode(PaginatedResponse<Genre>.self, from: data)
 
         #expect(decoded.page == 1)
-        #expect(decoded.total_results == 1)
-        #expect(decoded.total_pages == 1)
+        #expect(decoded.totalResults == 1)
+        #expect(decoded.totalPages == 1)
         #expect(decoded.results.first?.id == 7)
         #expect(decoded.results.first?.name == "Drama")
+    }
+
+    /// The Swift properties are camelCase but the TMDB/JSON wire keys must stay
+    /// snake_case (via `CodingKeys`) — encoding any other key set would break
+    /// API decoding and any persisted payload. Pin the encoded key names.
+    @Test func paginatedResponseEncodesSnakeCaseWireKeys() throws {
+        let response = PaginatedResponse(page: 1, totalResults: 5, totalPages: 2, results: [Genre(id: 7, name: "Drama")])
+
+        let data = try JSONEncoder().encode(response)
+        let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+
+        #expect(object["total_results"] as? Int == 5)
+        #expect(object["total_pages"] as? Int == 2)
+        #expect(object.keys.contains("totalResults") == false)
+        #expect(object.keys.contains("totalPages") == false)
     }
 
     @Test func discoverFilterRandomHelpersStayInExpectedDomain() {
