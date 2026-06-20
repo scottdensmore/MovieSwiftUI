@@ -245,7 +245,7 @@ struct MovieDetail: ConnectedView {
     func peopleRow(role: String, people: People?) -> some View {
         Group {
             if let people {
-                let accessibilityId = "movieDetail.topPerson.\(people.id)"
+                let accessibilityId = AccessibilityID.MovieDetail.topPerson(people.id)
                 #if os(macOS)
                 MacFocusableLink(id: .topPerson(people.id), focusedId: $focusedDetailItem) {
                     selectPeople(people.id)
@@ -303,7 +303,7 @@ struct MovieDetail: ConnectedView {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
-            .accessibilityIdentifier("movieDetail.topPersonShortcut")
+            .accessibilityIdentifier(AccessibilityID.MovieDetail.topPersonShortcut)
         }
         #endif
     }
@@ -637,7 +637,7 @@ struct MovieDetail: ConnectedView {
             Button(action: onAddButton) {
                 Image(systemName: "text.badge.plus").imageScale(.large)
             }
-            .accessibilityIdentifier("movieDetail.addToListButton")
+            .accessibilityIdentifier(AccessibilityID.MovieDetail.addToListButton)
             .accessibilityLabel("Add to list")
             #endif
         }
@@ -682,7 +682,7 @@ struct MovieDetail: ConnectedView {
         } label: {
             Image(systemName: "text.badge.plus").imageScale(.large)
         }
-        .accessibilityIdentifier("movieDetail.addToListButton")
+        .accessibilityIdentifier(AccessibilityID.MovieDetail.addToListButton)
         .accessibilityLabel("Add to list")
     }
     #endif

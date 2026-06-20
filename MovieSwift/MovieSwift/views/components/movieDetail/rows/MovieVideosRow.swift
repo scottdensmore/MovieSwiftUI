@@ -20,7 +20,7 @@ struct MovieVideoPresentation: Identifiable {
         URL(string: "https://img.youtube.com/vi/\(video.key)/hqdefault.jpg")
     }
 
-    var accessibilityId: String { "movieDetail.video.\(video.id)" }
+    var accessibilityId: String { AccessibilityID.MovieDetail.video(video.id) }
 }
 
 enum MovieVideosState {

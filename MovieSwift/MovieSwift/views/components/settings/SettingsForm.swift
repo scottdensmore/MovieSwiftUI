@@ -410,13 +410,13 @@ struct SettingsForm: ConnectedView {
                 Toggle("", isOn: $alwaysOriginalTitle)
                     .labelsHidden()
                     .allowsHitTesting(false)
-                    .accessibilityIdentifier("settings.alwaysOriginalTitleToggle")
+                    .accessibilityIdentifier(AccessibilityID.Settings.alwaysOriginalTitleToggle)
             }
             .padding(.vertical, 6)
             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
+        .accessibilityIdentifier(AccessibilityID.Settings.alwaysOriginalTitleRow)
     }
 
     @ViewBuilder
@@ -438,10 +438,10 @@ struct SettingsForm: ConnectedView {
                             ForEach(regions) { region in
                                 Text(region.name)
                                     .tag(region.code)
-                                    .accessibilityIdentifier("settings.regionPicker.option.\(region.code)")
+                                    .accessibilityIdentifier(AccessibilityID.Settings.regionPickerOption(region.code))
                             }
                     }
-                    .accessibilityIdentifier("settings.regionPicker")
+                    .accessibilityIdentifier(AccessibilityID.Settings.regionPicker)
             })
             Section(header: Text("TMDB API key"),
                     footer: Text("MovieSwift uses the TMDB API for everything you see. The bundled key is shared by every install — paste your own key from your TMDB account to use your own quota."),
@@ -455,13 +455,13 @@ struct SettingsForm: ConnectedView {
                     case .missing:      Text("No key configured").foregroundStyle(.red)
                     }
                 }
-                .accessibilityIdentifier("settings.tmdb.statusLabel")
+                .accessibilityIdentifier(AccessibilityID.Settings.tmdbStatusLabel)
 
                 SecureField("Paste your TMDB API key", text: $userAPIKeyDraft)
                     .focused($isUserAPIKeyFocused)
                     .submitLabel(.done)
                     .onSubmit { saveUserAPIKey() }
-                    .accessibilityIdentifier("settings.tmdb.apiKeyField")
+                    .accessibilityIdentifier(AccessibilityID.Settings.tmdbApiKeyField)
 
                 Button {
                     saveUserAPIKey()
@@ -469,7 +469,7 @@ struct SettingsForm: ConnectedView {
                     Label("Save key", systemImage: "checkmark.circle")
                 }
                 .disabled(!canSaveUserAPIKey)
-                .accessibilityIdentifier("settings.tmdb.saveButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.tmdbSaveButton)
 
                 if hasUserAPIKey {
                     Button(role: .destructive) {
@@ -477,13 +477,13 @@ struct SettingsForm: ConnectedView {
                     } label: {
                         Label("Clear key", systemImage: "xmark.circle")
                     }
-                    .accessibilityIdentifier("settings.tmdb.clearButton")
+                    .accessibilityIdentifier(AccessibilityID.Settings.tmdbClearButton)
                 }
 
                 Link(destination: URL(string: "https://www.themoviedb.org/settings/api")!) {
                     Label("Get a TMDB API key", systemImage: "arrow.up.right.square")
                 }
-                .accessibilityIdentifier("settings.tmdb.getKeyLink")
+                .accessibilityIdentifier(AccessibilityID.Settings.tmdbGetKeyLink)
             })
             Section(header: Text("App data"),
                     // swiftlint:disable:next line_length
@@ -494,21 +494,21 @@ struct SettingsForm: ConnectedView {
                 } label: {
                     Text("Clear cached data")
                 }
-                .accessibilityIdentifier("settings.clearCachedDataButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.clearCachedDataButton)
 
                 Button {
                     startExport()
                 } label: {
                     Label("Export my data", systemImage: "square.and.arrow.up")
                 }
-                .accessibilityIdentifier("settings.exportDataButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.exportDataButton)
 
                 Button {
                     startImport()
                 } label: {
                     Label("Import my data", systemImage: "square.and.arrow.down")
                 }
-                .accessibilityIdentifier("settings.importDataButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.importDataButton)
 
                 Button {
                     performICloudBackup()
@@ -523,7 +523,7 @@ struct SettingsForm: ConnectedView {
                         }
                     }
                 }
-                .accessibilityIdentifier("settings.backupToICloudButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.backupToICloudButton)
 
                 Button {
                     performICloudRestore()
@@ -531,7 +531,7 @@ struct SettingsForm: ConnectedView {
                     Label("Restore from iCloud", systemImage: "icloud.and.arrow.down")
                 }
                 .disabled(lastICloudBackupDate == nil)
-                .accessibilityIdentifier("settings.restoreFromICloudButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.restoreFromICloudButton)
             })
 
             Section(header: Text("Debug info")) {
@@ -547,14 +547,14 @@ struct SettingsForm: ConnectedView {
                 } label: {
                     Label("View crash reports…", systemImage: "doc.text.magnifyingglass")
                 }
-                .accessibilityIdentifier("settings.viewCrashReportsButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.viewCrashReportsButton)
 
                 Button {
                     isOnboardingResetConfirmationPresented = true
                 } label: {
                     Label("Show onboarding again", systemImage: "arrow.counterclockwise")
                 }
-                .accessibilityIdentifier("settings.resetOnboardingButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.resetOnboardingButton)
             }
             Section(header: Text("About"),
                     footer: Text("Movie and people data, posters, and biographies are provided by The Movie Database (TMDB). MovieSwift is an unofficial client.")) {
@@ -565,7 +565,7 @@ struct SettingsForm: ConnectedView {
                         .font(.callout.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-                .accessibilityIdentifier("settings.about.versionRow")
+                .accessibilityIdentifier(AccessibilityID.Settings.aboutVersionRow)
 
                 Link(destination: URL(string: "https://www.themoviedb.org")!) {
                     VStack(alignment: .leading, spacing: 3) {
@@ -576,14 +576,14 @@ struct SettingsForm: ConnectedView {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .accessibilityIdentifier("settings.about.tmdbAttributionLink")
+                .accessibilityIdentifier(AccessibilityID.Settings.aboutTmdbAttributionLink)
 
                 if let privacyURL = privacyPolicyURL {
                     Link(destination: privacyURL) {
                         Label("Privacy policy", systemImage: "lock.shield")
                             .foregroundStyle(Color.steam_blue)
                     }
-                    .accessibilityIdentifier("settings.about.privacyPolicyLink")
+                    .accessibilityIdentifier(AccessibilityID.Settings.aboutPrivacyPolicyLink)
                 }
             }
         }
@@ -782,7 +782,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.viewCrashReportsButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.viewCrashReportsButton)
     }
 
     // MARK: - About / TMDB attribution
@@ -843,7 +843,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.about.privacyPolicyLink")
+        .accessibilityIdentifier(AccessibilityID.Settings.aboutPrivacyPolicyLink)
     }
 
     private var appVersionRow: some View {
@@ -860,7 +860,7 @@ struct SettingsForm: ConnectedView {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .accessibilityIdentifier("settings.about.versionRow")
+        .accessibilityIdentifier(AccessibilityID.Settings.aboutVersionRow)
     }
 
     private var tmdbAttributionRow: some View {
@@ -888,7 +888,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.about.tmdbAttributionLink")
+        .accessibilityIdentifier(AccessibilityID.Settings.aboutTmdbAttributionLink)
     }
 
     private var resetOnboardingRow: some View {
@@ -909,7 +909,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.resetOnboardingButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.resetOnboardingButton)
     }
 
     // MARK: Rows
@@ -930,7 +930,7 @@ struct SettingsForm: ConnectedView {
             .labelsHidden()
             .pickerStyle(.menu)
             .tint(.steam_gold)
-            .accessibilityIdentifier("settings.regionPicker")
+            .accessibilityIdentifier(AccessibilityID.Settings.regionPicker)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -951,14 +951,14 @@ struct SettingsForm: ConnectedView {
                     .labelsHidden()
                     .allowsHitTesting(false)
                     .tint(.steam_gold)
-                    .accessibilityIdentifier("settings.alwaysOriginalTitleToggle")
+                    .accessibilityIdentifier(AccessibilityID.Settings.alwaysOriginalTitleToggle)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.alwaysOriginalTitleRow")
+        .accessibilityIdentifier(AccessibilityID.Settings.alwaysOriginalTitleRow)
     }
 
     private var clearCachedDataRow: some View {
@@ -979,7 +979,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.clearCachedDataButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.clearCachedDataButton)
     }
 
     private var exportDataRow: some View {
@@ -1003,7 +1003,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.exportDataButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.exportDataButton)
     }
 
     #if DEBUG
@@ -1019,7 +1019,7 @@ struct SettingsForm: ConnectedView {
             Text(result)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-                .accessibilityIdentifier("settings.export.verifyResult")
+                .accessibilityIdentifier(AccessibilityID.Settings.exportVerifyResult)
         }
     }
     #endif
@@ -1045,7 +1045,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.importDataButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.importDataButton)
     }
 
     private var backupToICloudRow: some View {
@@ -1071,7 +1071,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.backupToICloudButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.backupToICloudButton)
     }
 
     private var restoreFromICloudRow: some View {
@@ -1103,7 +1103,7 @@ struct SettingsForm: ConnectedView {
         }
         .buttonStyle(.plain)
         .disabled(!hasBackup)
-        .accessibilityIdentifier("settings.restoreFromICloudButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.restoreFromICloudButton)
     }
 
     private var showPreviousVersionsRow: some View {
@@ -1127,7 +1127,7 @@ struct SettingsForm: ConnectedView {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("settings.showPreviousBackupsButton")
+        .accessibilityIdentifier(AccessibilityID.Settings.showPreviousBackupsButton)
     }
 
     // MARK: - TMDB API key rows
@@ -1157,7 +1157,7 @@ struct SettingsForm: ConnectedView {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .accessibilityIdentifier("settings.tmdb.statusLabel")
+        .accessibilityIdentifier(AccessibilityID.Settings.tmdbStatusLabel)
     }
 
     private var apiKeyEntryRow: some View {
@@ -1171,7 +1171,7 @@ struct SettingsForm: ConnectedView {
                 .focused($isUserAPIKeyFocused)
                 .submitLabel(.done)
                 .onSubmit { saveUserAPIKey() }
-                .accessibilityIdentifier("settings.tmdb.apiKeyField")
+                .accessibilityIdentifier(AccessibilityID.Settings.tmdbApiKeyField)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -1184,7 +1184,7 @@ struct SettingsForm: ConnectedView {
                     .font(.callout)
                     .foregroundStyle(Color.steam_blue)
             }
-            .accessibilityIdentifier("settings.tmdb.getKeyLink")
+            .accessibilityIdentifier(AccessibilityID.Settings.tmdbGetKeyLink)
 
             Spacer()
 
@@ -1194,7 +1194,7 @@ struct SettingsForm: ConnectedView {
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(Color.steam_rust)
-                .accessibilityIdentifier("settings.tmdb.clearButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.tmdbClearButton)
             }
 
             Button {
@@ -1211,7 +1211,7 @@ struct SettingsForm: ConnectedView {
             }
             .buttonStyle(.plain)
             .disabled(!canSaveUserAPIKey)
-            .accessibilityIdentifier("settings.tmdb.saveButton")
+            .accessibilityIdentifier(AccessibilityID.Settings.tmdbSaveButton)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -1268,7 +1268,7 @@ struct SettingsForm: ConnectedView {
                         ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel", action: cancelAction)
                     .padding(.horizontal, 6)
-                                .accessibilityIdentifier("settings.cancelButton")
+                                .accessibilityIdentifier(AccessibilityID.Settings.cancelButton)
                         }
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Save") {
@@ -1276,7 +1276,7 @@ struct SettingsForm: ConnectedView {
                                 close()
                             }
                             .padding(.horizontal, 6)
-                            .accessibilityIdentifier("settings.saveButton")
+                            .accessibilityIdentifier(AccessibilityID.Settings.saveButton)
                         }
                     }
                 }
@@ -1333,7 +1333,7 @@ struct SettingsForm: ConnectedView {
                ),
                presenting: pendingImportCounts) { _ in
             Button("Import", action: { confirmImport(props: props) })
-                .accessibilityIdentifier("settings.import.confirmButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.importConfirmButton)
             Button("Cancel", role: .cancel, action: cancelPendingImport)
         } message: { counts in
             Text(importPreviewMessage(counts))
@@ -1355,7 +1355,7 @@ struct SettingsForm: ConnectedView {
                ),
                presenting: importSuccessCounts) { _ in
             Button("OK", role: .cancel) { importSuccessCounts = nil }
-                .accessibilityIdentifier("settings.import.successOkButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.importSuccessOkButton)
         } message: { counts in
             Text(importSuccessMessage(counts))
         }
@@ -1366,7 +1366,7 @@ struct SettingsForm: ConnectedView {
                ),
                presenting: backupSuccessDate) { _ in
             Button("OK", role: .cancel) { backupSuccessDate = nil }
-                .accessibilityIdentifier("settings.backup.successOkButton")
+                .accessibilityIdentifier(AccessibilityID.Settings.backupSuccessOkButton)
         } message: { date in
             Text(backupSuccessMessage(date))
         }
@@ -1424,7 +1424,7 @@ private struct PreviousICloudBackupsSheet: View {
                 Button("Close", action: onDismiss)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.steam_blue)
-                    .accessibilityIdentifier("previousBackupsSheet.closeButton")
+                    .accessibilityIdentifier(AccessibilityID.PreviousBackupsSheet.closeButton)
             }
             .padding(.horizontal, 18)
             .padding(.top, 18)
@@ -1500,7 +1500,7 @@ private struct PreviousICloudBackupsSheet: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(Capsule().fill(Color.steam_gold.opacity(0.25)))
-            .accessibilityIdentifier("previousBackupsSheet.restore.\(info.id)")
+            .accessibilityIdentifier(AccessibilityID.PreviousBackupsSheet.restore(info.id))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)

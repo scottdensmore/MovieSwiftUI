@@ -10,6 +10,7 @@
 
 import SwiftUI
 import Backend
+import MovieSwiftFluxCore
 
 struct OnboardingView: View {
     /// Called when the user completes (or successfully skips) the
@@ -152,7 +153,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
                 SecureField("Paste your TMDB API key (optional)", text: $userAPIKeyDraft)
                     .textFieldStyle(.roundedBorder)
-                    .accessibilityIdentifier("onboarding.apiKeyField")
+                    .accessibilityIdentifier(AccessibilityID.Onboarding.apiKeyField)
             }
             .padding(.top, 4)
 
@@ -161,7 +162,7 @@ struct OnboardingView: View {
                     .font(.callout)
                     .foregroundStyle(Color.steam_blue)
             }
-            .accessibilityIdentifier("onboarding.getKeyLink")
+            .accessibilityIdentifier(AccessibilityID.Onboarding.getKeyLink)
 
             apiKeyStatusFootnote
                 .padding(.top, 4)
@@ -206,7 +207,7 @@ struct OnboardingView: View {
             .pickerStyle(.menu)
             .tint(.steam_gold)
             .padding(.top, 4)
-            .accessibilityIdentifier("onboarding.regionPicker")
+            .accessibilityIdentifier(AccessibilityID.Onboarding.regionPicker)
 
             Spacer()
         }
@@ -240,7 +241,7 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.steam_blue)
-                .accessibilityIdentifier("onboarding.backButton")
+                .accessibilityIdentifier(AccessibilityID.Onboarding.backButton)
             }
             Spacer()
             Button(action: advance) {
@@ -256,7 +257,7 @@ struct OnboardingView: View {
             .buttonStyle(.plain)
             .disabled(!canAdvance)
             .keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier("onboarding.continueButton")
+            .accessibilityIdentifier(AccessibilityID.Onboarding.continueButton)
         }
     }
 

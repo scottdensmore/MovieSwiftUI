@@ -162,7 +162,7 @@ struct MoviesList: ConnectedView {
             // coordinator routes long-press to UIContextMenuInteraction
             // instead of the Button's own action handler.
             .contextMenu { MovieContextMenu(movieId: id) }
-            .accessibilityIdentifier("moviesList.movie.\(id)")
+            .accessibilityIdentifier(AccessibilityID.MoviesList.movie(id))
             #if os(macOS)
             .id(offset)
             .macFocusHighlight(isFocused: selectedMovieId == id || highlightedMovieId == id)

@@ -59,7 +59,7 @@ struct MyLists: ConnectedView {
             }) {
                 Text("Create custom list").foregroundStyle(Color.steam_blue)
             }
-            .accessibilityIdentifier("myLists.createCustomListButton")
+            .accessibilityIdentifier(AccessibilityID.MyLists.createCustomListButton)
             ForEach(props.customLists) { list in
                 #if os(macOS)
                 Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
@@ -179,7 +179,7 @@ struct MyLists: ConnectedView {
                         .frame(width: 25, height: 25)
                 })
                 .accessibilityLabel("Sort")
-                .accessibilityIdentifier("myLists.sortButton")
+                .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
             }
         }
         #endif
@@ -228,7 +228,7 @@ struct MyLists: ConnectedView {
         .focusable()
         .focused($focusedSection, equals: section)
         .focusEffectDisabled()
-        .accessibilityIdentifier("myLists.section.\(section.title)")
+        .accessibilityIdentifier(AccessibilityID.MyLists.section(section.title))
         // Tab from any section tab moves focus into the movies / lists
         // below; arrow keys still navigate between the three tabs.
         .onKeyPress(.tab, phases: .down) { press in
@@ -341,7 +341,7 @@ struct MyLists: ConnectedView {
                         .frame(width: 22, height: 22)
                 }
                 .accessibilityLabel("Sort")
-                .accessibilityIdentifier("myLists.sortButton")
+                .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
             }
         }
     }
@@ -408,7 +408,7 @@ struct MyLists: ConnectedView {
                         Button(props.movieLookup[id]?.userTitle ?? "Movie \(id)") {
                             selectedMovie = MovieNav(id: id)
                         }
-                        .accessibilityIdentifier("myLists.movie.\(id)")
+                        .accessibilityIdentifier(AccessibilityID.MyLists.movie(id))
                     }
             }
         }
@@ -433,7 +433,7 @@ struct MyLists: ConnectedView {
             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("myLists.createCustomListButton")
+        .accessibilityIdentifier(AccessibilityID.MyLists.createCustomListButton)
 
         if props.customLists.isEmpty {
             Text("No custom lists yet. Create one to group movies however you like.")
@@ -466,7 +466,7 @@ struct MyLists: ConnectedView {
                         Button(list.name) {
                             selectedCustomList = CustomListNav(id: list.id)
                         }
-                        .accessibilityIdentifier("myLists.customList.\(list.id)")
+                        .accessibilityIdentifier(AccessibilityID.MyLists.customList(list.id))
                     }
             }
         }

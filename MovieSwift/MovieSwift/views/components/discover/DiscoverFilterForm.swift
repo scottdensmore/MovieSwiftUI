@@ -157,7 +157,7 @@ struct DiscoverFilterForm: ConnectedView {
                         Text(self.datesText[index]).tag(index)
                     }
             }
-            .accessibilityIdentifier("discoverFilter.eraPicker")
+            .accessibilityIdentifier(AccessibilityID.DiscoverFilter.eraPicker)
 
             if !genres.isEmpty {
                 Picker("Genre", selection: $selectedGenre) {
@@ -165,7 +165,7 @@ struct DiscoverFilterForm: ConnectedView {
                             Text(genres[index].name).tag(index)
                         }
                 }
-                .accessibilityIdentifier("discoverFilter.genrePicker")
+                .accessibilityIdentifier(AccessibilityID.DiscoverFilter.genrePicker)
             }
 
             Picker("Country of origin", selection: $selectedCountry) {
@@ -173,7 +173,7 @@ struct DiscoverFilterForm: ConnectedView {
                         Text(self.countries[index]).tag(index)
                     }
             }
-            .accessibilityIdentifier("discoverFilter.countryPicker")
+            .accessibilityIdentifier(AccessibilityID.DiscoverFilter.countryPicker)
         })
     }
 
@@ -202,7 +202,7 @@ struct DiscoverFilterForm: ConnectedView {
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
-                .accessibilityIdentifier("discoverFilter.saveButton")
+                .accessibilityIdentifier(AccessibilityID.DiscoverFilter.saveButton)
 
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
@@ -212,7 +212,7 @@ struct DiscoverFilterForm: ConnectedView {
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
-                .accessibilityIdentifier("discoverFilter.cancelButton")
+                .accessibilityIdentifier(AccessibilityID.DiscoverFilter.cancelButton)
             }
 
             Section {
@@ -231,7 +231,7 @@ struct DiscoverFilterForm: ConnectedView {
                         .padding(.vertical, 6)
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 })
-                .accessibilityIdentifier("discoverFilter.resetButton")
+                .accessibilityIdentifier(AccessibilityID.DiscoverFilter.resetButton)
             }
         }
     }
@@ -263,7 +263,7 @@ struct DiscoverFilterForm: ConnectedView {
                             .padding(.vertical, 6)
                             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         })
-                        .accessibilityIdentifier("discoverFilter.savedFilter.\(index)")
+                        .accessibilityIdentifier(AccessibilityID.DiscoverFilter.savedFilter(index))
                         .buttonStyle(PlainButtonStyle())
                     }
                     Button(action: {
@@ -277,7 +277,7 @@ struct DiscoverFilterForm: ConnectedView {
                         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .foregroundStyle(.red)
                     })
-                    .accessibilityIdentifier("discoverFilter.deleteSavedFiltersButton")
+                    .accessibilityIdentifier(AccessibilityID.DiscoverFilter.deleteSavedFiltersButton)
                 })
             }
         }

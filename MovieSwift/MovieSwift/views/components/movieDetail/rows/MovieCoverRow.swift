@@ -28,7 +28,7 @@ enum MovieCoverState {
     }
 
     static func accessibilityIdentifier(for genre: Genre) -> String {
-        "movieDetail.genre.\(genre.id)"
+        AccessibilityID.MovieDetail.genre(genre.id)
     }
 }
 

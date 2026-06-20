@@ -35,7 +35,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     private func waitForSidebarItem(_ title: String, in app: XCUIApplication) {
-        let sidebarItem = app.identifiedElement("sidebar.\(title)")
+        let sidebarItem = app.identifiedElement(AccessibilityID.Sidebar.item(title))
         XCTAssertTrue(sidebarItem.waitForExistence(timeout: timeout),
                       "Expected sidebar item '\(title)' to exist")
     }
@@ -56,12 +56,12 @@ final class MovieSwiftMacUITests: XCTestCase {
     @discardableResult
     private func openFirstMovieDetail(in app: XCUIApplication) -> XCUIElement {
         // Popular is the default selection — no sidebar tap needed
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
         firstMovie.tap()
 
-        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
-        logHierarchyOnMissing(app, element: addToListButton, named: "movieDetail.addToListButton")
+        let addToListButton = app.identifiedElement(AccessibilityID.MovieDetail.addToListButton)
+        logHierarchyOnMissing(app, element: addToListButton, named: AccessibilityID.MovieDetail.addToListButton)
         XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout))
         return addToListButton
     }
@@ -76,7 +76,7 @@ final class MovieSwiftMacUITests: XCTestCase {
                             "My Lists", "Settings", ]
         for item in sidebarItems {
             XCTAssertTrue(
-                app.identifiedElement("sidebar.\(item)").waitForExistence(timeout: timeout),
+                app.identifiedElement(AccessibilityID.Sidebar.item(item)).waitForExistence(timeout: timeout),
                 "Expected sidebar item '\(item)' to exist"
             )
         }
@@ -85,14 +85,14 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testPopularTabShowsMovies() {
         let app = launchApp(selectMenu: "Popular")
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
     func testTopRatedTabShowsMovies() {
         let app = launchApp(selectMenu: "Top rated")
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -107,7 +107,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let genreChip = app.identifiedButton("movieDetail.genre.0")
+        let genreChip = app.identifiedButton(AccessibilityID.MovieDetail.genre(0))
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
     }
 
@@ -115,17 +115,17 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let topPersonLink = app.identifiedElement("movieDetail.topPersonShortcut")
-        logHierarchyOnMissing(app, element: topPersonLink, named: "movieDetail.topPersonShortcut")
+        let topPersonLink = app.identifiedElement(AccessibilityID.MovieDetail.topPersonShortcut)
+        logHierarchyOnMissing(app, element: topPersonLink, named: AccessibilityID.MovieDetail.topPersonShortcut)
         XCTAssertTrue(topPersonLink.waitForExistence(timeout: timeout))
         topPersonLink.tap()
 
-        XCTAssertTrue(app.identifiedElement("peopleDetail.knownFor").waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.PeopleDetail.knownFor).waitForExistence(timeout: timeout))
 
         let backButton = app.buttons["BackButton"]
         if backButton.waitForExistence(timeout: 2) {
             backButton.tap()
-            XCTAssertTrue(app.identifiedElement("movieDetail.addToListButton").waitForExistence(timeout: timeout))
+            XCTAssertTrue(app.identifiedElement(AccessibilityID.MovieDetail.addToListButton).waitForExistence(timeout: timeout))
         }
     }
 
@@ -177,7 +177,7 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "MovieDetail should be visible after tapping the first movie")
 
         // Switch sidebar to Top rated.
-        let topRated = app.identifiedElement("sidebar.Top rated")
+        let topRated = app.identifiedElement(AccessibilityID.Sidebar.item("Top rated"))
         XCTAssertTrue(topRated.waitForExistence(timeout: timeout))
         topRated.tap()
 
@@ -187,7 +187,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         let detailDismissed = expectation(for: detailGone, evaluatedWith: addToListButton)
         await fulfillment(of: [detailDismissed], timeout: timeout)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
                       "Expected the new menu's movies list to be visible at the root")
     }
@@ -200,7 +200,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let genreChip = app.identifiedButton("movieDetail.genre.0")
+        let genreChip = app.identifiedButton(AccessibilityID.MovieDetail.genre(0))
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
     }
 
@@ -270,7 +270,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         let detailGone = expectation(for: absent, evaluatedWith: addToListButton)
         await fulfillment(of: [detailGone], timeout: timeout)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
                       "After Escape, the movies list should be visible at the root")
     }
@@ -296,7 +296,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // double-click rather than a single tap.
         personRow.doubleClick()
 
-        XCTAssertTrue(app.identifiedElement("peopleDetail.knownFor").waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.PeopleDetail.knownFor).waitForExistence(timeout: timeout))
     }
 
     /// Follow / unfollow toggle (Tier 2). Fan Club rows carry no follow
@@ -315,7 +315,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(personRow.waitForExistence(timeout: timeout))
         personRow.doubleClick()
 
-        let toggle = app.identifiedButton("peopleDetail.fanClubButton")
+        let toggle = app.identifiedButton(AccessibilityID.PeopleDetail.fanClubButton)
         XCTAssertTrue(toggle.waitForExistence(timeout: timeout),
                       "PeopleDetail should expose the fan-club toggle button")
         // A person not yet followed should show the add affordance.
@@ -342,9 +342,9 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp(selectMenu: "Fan Club")
 
         // Popular initially lists both seeded people.
-        XCTAssertTrue(app.identifiedElement("fanClub.person.0").waitForExistence(timeout: timeout),
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.person(0)).waitForExistence(timeout: timeout),
                       "Popular list should show the primary-cast row (id 0) before any search")
-        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.person(1)).waitForExistence(timeout: timeout),
                       "Popular list should show the director row (id 1) before any search")
 
         let searchField = app.textFields["Search actors"]
@@ -357,10 +357,10 @@ final class MovieSwiftMacUITests: XCTestCase {
         // The seeded result (director, id 1) renders. `FanClubHome.map` reads
         // `peoplesState.search[query]` synchronously once `isSearching` flips,
         // so the pre-seeded result shows without waiting on any debounce.
-        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.person(1)).waitForExistence(timeout: timeout),
                       "Typing a seeded query should show the matching actor")
         // …and the popular-only person (id 0) is replaced by the results.
-        let popularOnly = app.identifiedElement("fanClub.person.0")
+        let popularOnly = app.identifiedElement(AccessibilityID.FanClub.person(0))
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: popularOnly)
         await fulfillment(of: [gone], timeout: timeout)
     }
@@ -380,7 +380,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         searchField.typeText("uitestsearch")
 
         // Search active: the popular-only primary cast (id 0) drops out.
-        let popularOnly = app.identifiedElement("fanClub.person.0")
+        let popularOnly = app.identifiedElement(AccessibilityID.FanClub.person(0))
         let gone = expectation(for: NSPredicate(format: "exists == NO"), evaluatedWith: popularOnly)
         await fulfillment(of: [gone], timeout: timeout)
 
@@ -393,10 +393,10 @@ final class MovieSwiftMacUITests: XCTestCase {
         cancelButton.tap()
 
         // The popular list is restored: the popular-only person returns…
-        XCTAssertTrue(app.identifiedElement("fanClub.person.0").waitForExistence(timeout: timeout),
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.person(0)).waitForExistence(timeout: timeout),
                       "Cancelling the search should restore the popular list")
         // …and the director (in both popular and the search result) remains.
-        XCTAssertTrue(app.identifiedElement("fanClub.person.1").waitForExistence(timeout: timeout),
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.person(1)).waitForExistence(timeout: timeout),
                       "The popular list should still contain the director after cancel")
     }
 
@@ -406,8 +406,8 @@ final class MovieSwiftMacUITests: XCTestCase {
             environment: [UITestEnv.Variable.fanClubFailure: "1"]
         )
 
-        XCTAssertTrue(app.identifiedElement("fanClub.errorState").waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.identifiedButton("fanClub.retryButton").waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.FanClub.errorState).waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedButton(AccessibilityID.FanClub.retryButton).waitForExistence(timeout: timeout))
     }
 
     // MARK: - My Lists
@@ -421,7 +421,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // Match against either to keep the test resilient to that
         // SwiftUI quirk. We also accept the "myLists.section.Wishlist"
         // segment tab button as proof the My Lists view is up.
-        let wishlistTab = app.identifiedElement("myLists.section.Wishlist")
+        let wishlistTab = app.identifiedElement(AccessibilityID.MyLists.section("Wishlist"))
         let wishlistHeader = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@",
                                   "movies in wishlist", "movies in wishlist"))
@@ -443,12 +443,12 @@ final class MovieSwiftMacUITests: XCTestCase {
         // Custom Lists segment.
         let app = launchApp(selectMenu: "My Lists")
 
-        let customListsSegment = app.identifiedElement("myLists.section.Custom Lists")
+        let customListsSegment = app.identifiedElement(AccessibilityID.MyLists.section("Custom Lists"))
         XCTAssertTrue(customListsSegment.waitForExistence(timeout: timeout),
                       "My Lists should expose a Custom Lists segment")
         customListsSegment.tap()
 
-        let customListRow = app.identifiedElement("myLists.customList.0")
+        let customListRow = app.identifiedElement(AccessibilityID.MyLists.customList(0))
         XCTAssertTrue(customListRow.waitForExistence(timeout: timeout),
                       "Custom Lists segment should render the seeded custom list row")
         XCTAssertEqual(customListRow.label, "TestName",
@@ -464,7 +464,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // `myLists.movie.0` row should surface as a stable element.
         let app = launchApp(selectMenu: "My Lists")
 
-        let wishlistSegment = app.identifiedElement("myLists.section.Wishlist")
+        let wishlistSegment = app.identifiedElement(AccessibilityID.MyLists.section("Wishlist"))
         XCTAssertTrue(wishlistSegment.waitForExistence(timeout: timeout),
                       "My Lists should expose a Wishlist segment")
         // Wishlist is the default macOS section, but tap it explicitly so the
@@ -472,7 +472,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         // testMyListsCustomListExists).
         wishlistSegment.tap()
 
-        let movieRow = app.identifiedElement("myLists.movie.0")
+        let movieRow = app.identifiedElement(AccessibilityID.MyLists.movie(0))
         XCTAssertTrue(movieRow.waitForExistence(timeout: timeout),
                       "Wishlist segment should render the seeded movie row as a queryable element")
         // The accessibility Button is labelled with the movie's userTitle, not
@@ -497,21 +497,21 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp(selectMenu: "My Lists")
 
         // The create button lives on the Custom Lists segment.
-        let segment = app.identifiedElement("myLists.section.Custom Lists")
+        let segment = app.identifiedElement(AccessibilityID.MyLists.section("Custom Lists"))
         XCTAssertTrue(segment.waitForExistence(timeout: timeout))
         segment.tap()
 
-        let createButton = app.identifiedButton("myLists.createCustomListButton")
+        let createButton = app.identifiedButton(AccessibilityID.MyLists.createCustomListButton)
         XCTAssertTrue(createButton.waitForExistence(timeout: timeout))
         createButton.tap()
 
-        let nameField = app.identifiedElement("customListForm.nameField")
+        let nameField = app.identifiedElement(AccessibilityID.CustomListForm.nameField)
         XCTAssertTrue(nameField.waitForExistence(timeout: timeout),
                       "Tapping create should present the new-list form")
         nameField.click()
         nameField.typeText("UI-TEST-NEW-LIST-MAC")
 
-        let formCreate = app.identifiedButton("customListForm.createButton")
+        let formCreate = app.identifiedButton(AccessibilityID.CustomListForm.createButton)
         XCTAssertTrue(formCreate.waitForExistence(timeout: timeout))
         formCreate.tap()
 
@@ -533,21 +533,21 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testMyListsCreateCustomListCancelDismissesWithoutSaving() async {
         let app = launchApp(selectMenu: "My Lists")
 
-        let segment = app.identifiedElement("myLists.section.Custom Lists")
+        let segment = app.identifiedElement(AccessibilityID.MyLists.section("Custom Lists"))
         XCTAssertTrue(segment.waitForExistence(timeout: timeout))
         segment.tap()
 
-        let createButton = app.identifiedButton("myLists.createCustomListButton")
+        let createButton = app.identifiedButton(AccessibilityID.MyLists.createCustomListButton)
         XCTAssertTrue(createButton.waitForExistence(timeout: timeout))
         createButton.tap()
 
-        let nameField = app.identifiedElement("customListForm.nameField")
+        let nameField = app.identifiedElement(AccessibilityID.CustomListForm.nameField)
         XCTAssertTrue(nameField.waitForExistence(timeout: timeout),
                       "Tapping create should present the new-list form")
         nameField.click()
         nameField.typeText("UI-TEST-CANCELLED-MAC")
 
-        let cancelButton = app.identifiedButton("customListForm.cancelButton")
+        let cancelButton = app.identifiedButton(AccessibilityID.CustomListForm.cancelButton)
         XCTAssertTrue(cancelButton.waitForExistence(timeout: timeout))
         cancelButton.tap()
 
@@ -578,10 +578,10 @@ final class MovieSwiftMacUITests: XCTestCase {
         // element type. The broader `identifiedElement` descendant query
         // works regardless of which XCUIElement.ElementType the toolbar
         // chose.
-        let sortButton = app.identifiedElement("myLists.sortButton")
+        let sortButton = app.identifiedElement(AccessibilityID.MyLists.sortButton)
         XCTAssertTrue(sortButton.waitForExistence(timeout: timeout),
                       "My Lists toolbar should expose a Sort button")
-        logHierarchyOnMissing(app, element: sortButton, named: "myLists.sortButton")
+        logHierarchyOnMissing(app, element: sortButton, named: AccessibilityID.MyLists.sortButton)
         sortButton.tap()
 
         // The macOS Menu surface lifts each Button into an NSMenu item
@@ -619,18 +619,18 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let crosslineCell = app.identifiedElement("movieDetail.crossline.movie.0")
+        let crosslineCell = app.identifiedElement(AccessibilityID.MovieDetail.crosslineMovie(0))
         XCTAssertTrue(crosslineCell.waitForExistence(timeout: timeout),
                       "MovieDetail should render a Similar/Recommended cell for movie 0")
         crosslineCell.rightClick()
 
-        let removeWishlist = app.menuItems["movieContextMenu.wishlistToggle"]
+        let removeWishlist = app.menuItems[AccessibilityID.MovieContextMenu.wishlistToggle]
         XCTAssertTrue(removeWishlist.waitForExistence(timeout: timeout),
                       "Right-click should reveal the wishlist toggle in MovieContextMenu")
         XCTAssertEqual(removeWishlist.title, "Remove from wishlist",
                        "Toggle should read 'Remove from …' because movie 0 is seeded into wishlist")
 
-        let removeSeenlist = app.menuItems["movieContextMenu.seenlistToggle"]
+        let removeSeenlist = app.menuItems[AccessibilityID.MovieContextMenu.seenlistToggle]
         XCTAssertTrue(removeSeenlist.exists,
                       "Menu should also offer the seenlist toggle")
         XCTAssertEqual(removeSeenlist.title, "Remove from seenlist",
@@ -642,7 +642,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testDiscoverShowsContent() {
         let app = launchApp(selectMenu: "Discover")
 
-        let filterButton = app.identifiedButton("discover.filterButton")
+        let filterButton = app.identifiedButton(AccessibilityID.Discover.filterButton)
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
     }
 
@@ -652,11 +652,11 @@ final class MovieSwiftMacUITests: XCTestCase {
         // (parity with iOS) that restores the dismissed movie.
         let app = launchApp(selectMenu: "Discover")
 
-        let title = app.identifiedElement("discover.currentMovieTitle")
+        let title = app.identifiedElement(AccessibilityID.Discover.currentMovieTitle)
         XCTAssertTrue(title.waitForExistence(timeout: timeout),
                       "Discover should show the seeded current movie title")
 
-        let dismissButton = app.identifiedButton("discover.dismissButton")
+        let dismissButton = app.identifiedButton(AccessibilityID.Discover.dismissButton)
         XCTAssertTrue(dismissButton.waitForExistence(timeout: timeout))
         dismissButton.tap()
 
@@ -664,14 +664,14 @@ final class MovieSwiftMacUITests: XCTestCase {
         // the undo button appearing proves the empty state was reached, and
         // the title must be gone before we undo (otherwise the test would
         // pass even if the dismiss did nothing).
-        let undoButton = app.identifiedButton("discover.undoButton")
+        let undoButton = app.identifiedButton(AccessibilityID.Discover.undoButton)
         XCTAssertTrue(undoButton.waitForExistence(timeout: timeout),
                       "Dismissing the last card should reveal the undo button")
         XCTAssertFalse(title.exists,
                        "The dismissed movie's title should be gone before undo")
         undoButton.tap()
 
-        let restoredTitle = app.identifiedElement("discover.currentMovieTitle")
+        let restoredTitle = app.identifiedElement(AccessibilityID.Discover.currentMovieTitle)
         XCTAssertTrue(restoredTitle.waitForExistence(timeout: timeout),
                       "Undo should restore the dismissed movie")
     }
@@ -684,7 +684,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     private func assertDiscoverActionCanBeUndone(buttonIdentifier: String) {
         let app = launchApp(selectMenu: "Discover")
 
-        let title = app.identifiedElement("discover.currentMovieTitle")
+        let title = app.identifiedElement(AccessibilityID.Discover.currentMovieTitle)
         XCTAssertTrue(title.waitForExistence(timeout: timeout),
                       "Discover should show the seeded current movie title")
 
@@ -695,14 +695,14 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "Discover should expose '\(buttonIdentifier)' on the seeded card")
         actionButton.tap()
 
-        let undoButton = app.identifiedButton("discover.undoButton")
+        let undoButton = app.identifiedButton(AccessibilityID.Discover.undoButton)
         XCTAssertTrue(undoButton.waitForExistence(timeout: timeout),
                       "\(buttonIdentifier) on the last card should reveal the undo button")
         XCTAssertFalse(title.exists,
                        "The acted-on movie's title should be gone before undo")
         undoButton.tap()
 
-        let restoredTitle = app.identifiedElement("discover.currentMovieTitle")
+        let restoredTitle = app.identifiedElement(AccessibilityID.Discover.currentMovieTitle)
         XCTAssertTrue(restoredTitle.waitForExistence(timeout: timeout),
                       "Undo should restore the movie")
         XCTAssertEqual(restoredTitle.label, originalTitle,
@@ -710,23 +710,23 @@ final class MovieSwiftMacUITests: XCTestCase {
     }
 
     func testDiscoverWishlistButtonCanBeUndone() {
-        assertDiscoverActionCanBeUndone(buttonIdentifier: "discover.wishlistButton")
+        assertDiscoverActionCanBeUndone(buttonIdentifier: AccessibilityID.Discover.wishlistButton)
     }
 
     func testDiscoverSeenlistButtonCanBeUndone() {
-        assertDiscoverActionCanBeUndone(buttonIdentifier: "discover.seenlistButton")
+        assertDiscoverActionCanBeUndone(buttonIdentifier: AccessibilityID.Discover.seenlistButton)
     }
 
     func testDiscoverFilterShowsPickerControls() {
         let app = launchApp(selectMenu: "Discover")
 
-        let filterButton = app.identifiedButton("discover.filterButton")
+        let filterButton = app.identifiedButton(AccessibilityID.Discover.filterButton)
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout))
         filterButton.tap()
 
-        XCTAssertTrue(app.identifiedElement("discoverFilter.eraPicker").waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.identifiedElement("discoverFilter.genrePicker").waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.identifiedElement("discoverFilter.countryPicker").waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.DiscoverFilter.eraPicker).waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.DiscoverFilter.genrePicker).waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.DiscoverFilter.countryPicker).waitForExistence(timeout: timeout))
     }
 
     // MARK: - Settings
@@ -734,7 +734,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsShowsRegionPicker() {
         let app = launchApp(selectMenu: "Settings")
 
-        let regionPicker = app.identifiedElement("settings.regionPicker")
+        let regionPicker = app.identifiedElement(AccessibilityID.Settings.regionPicker)
         XCTAssertTrue(regionPicker.waitForExistence(timeout: timeout))
     }
 
@@ -779,7 +779,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsRegionPickerSelectionTriggersAutoSave() async {
         let app = launchApp(selectMenu: "Settings")
 
-        let regionPicker = app.identifiedElement("settings.regionPicker")
+        let regionPicker = app.identifiedElement(AccessibilityID.Settings.regionPicker)
         XCTAssertTrue(regionPicker.waitForExistence(timeout: timeout),
                       "Region picker should be visible in macOS Settings")
 
@@ -808,11 +808,11 @@ final class MovieSwiftMacUITests: XCTestCase {
         // dispatch loop didn't tear down the Movies surface. If
         // `FetchMoviesMenuList(.popular, page: 1)` crashed the moviesList
         // state, the Popular list would render empty.
-        let popularSidebar = app.identifiedElement("sidebar.Popular")
+        let popularSidebar = app.identifiedElement(AccessibilityID.Sidebar.item("Popular"))
         XCTAssertTrue(popularSidebar.waitForExistence(timeout: timeout))
         popularSidebar.tap()
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
                       "Popular list should still render after a region-change auto-save")
     }
@@ -826,12 +826,12 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsTMDBAPIKeyPasteSaveAndClearRoundTrip() async {
         let app = launchApp(selectMenu: "Settings")
 
-        let apiKeyField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        let apiKeyField = app.secureTextFields[AccessibilityID.Settings.tmdbApiKeyField]
         XCTAssertTrue(apiKeyField.waitForExistence(timeout: timeout),
                       "Expected the TMDB API key SecureField in macOS Settings")
 
         // Self-clean residual state.
-        let preExistingClear = app.buttons["settings.tmdb.clearButton"]
+        let preExistingClear = app.buttons[AccessibilityID.Settings.tmdbClearButton]
         if preExistingClear.waitForExistence(timeout: 1) {
             preExistingClear.tap()
             _ = !preExistingClear.waitForExistence(timeout: 2)
@@ -840,7 +840,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         apiKeyField.click()
         apiKeyField.typeText("UI-TEST-PASTED-KEY-MAC")
 
-        let saveButton = app.buttons["settings.tmdb.saveButton"]
+        let saveButton = app.buttons[AccessibilityID.Settings.tmdbSaveButton]
         XCTAssertTrue(saveButton.waitForExistence(timeout: timeout))
         XCTAssertTrue(saveButton.isEnabled,
                       "Save should enable once the draft differs from the persisted value")
@@ -848,7 +848,7 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout),
                       "After saving, the status row should read 'Using your key'")
-        let clearButton = app.buttons["settings.tmdb.clearButton"]
+        let clearButton = app.buttons[AccessibilityID.Settings.tmdbClearButton]
         XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
 
         clearButton.tap()
@@ -867,10 +867,10 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsTMDBAPIKeySavePersistsAcrossSidebarSwitch() {
         let app = launchApp(selectMenu: "Settings")
 
-        let apiKeyField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        let apiKeyField = app.secureTextFields[AccessibilityID.Settings.tmdbApiKeyField]
         XCTAssertTrue(apiKeyField.waitForExistence(timeout: timeout))
 
-        let preExistingClear = app.buttons["settings.tmdb.clearButton"]
+        let preExistingClear = app.buttons[AccessibilityID.Settings.tmdbClearButton]
         if preExistingClear.waitForExistence(timeout: 1) {
             preExistingClear.tap()
             _ = !preExistingClear.waitForExistence(timeout: 2)
@@ -878,21 +878,21 @@ final class MovieSwiftMacUITests: XCTestCase {
 
         apiKeyField.click()
         apiKeyField.typeText("UI-TEST-PERSISTENCE-KEY-MAC")
-        app.buttons["settings.tmdb.saveButton"].tap()
+        app.buttons[AccessibilityID.Settings.tmdbSaveButton].tap()
         XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout))
 
         // Switch sidebar to Popular and back to Settings.
-        app.identifiedElement("sidebar.Popular").tap()
-        XCTAssertTrue(app.identifiedElement("moviesList.movie.0").waitForExistence(timeout: timeout))
-        app.identifiedElement("sidebar.Settings").tap()
+        app.identifiedElement(AccessibilityID.Sidebar.item("Popular")).tap()
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.MoviesList.movie(0)).waitForExistence(timeout: timeout))
+        app.identifiedElement(AccessibilityID.Sidebar.item("Settings")).tap()
 
-        let reopenedField = app.secureTextFields["settings.tmdb.apiKeyField"]
+        let reopenedField = app.secureTextFields[AccessibilityID.Settings.tmdbApiKeyField]
         XCTAssertTrue(reopenedField.waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["Using your key"].waitForExistence(timeout: timeout),
                       "After switching sidebar away and back, status should still read 'Using your key'")
 
         // Tidy up.
-        let cleanupClear = app.buttons["settings.tmdb.clearButton"]
+        let cleanupClear = app.buttons[AccessibilityID.Settings.tmdbClearButton]
         if cleanupClear.waitForExistence(timeout: 2) {
             cleanupClear.tap()
         }
@@ -907,7 +907,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsClearCachedDataConfirmsAndReturnsToSettings() async {
         let app = launchApp(selectMenu: "Settings")
 
-        let clearButton = app.buttons["settings.clearCachedDataButton"]
+        let clearButton = app.buttons[AccessibilityID.Settings.clearCachedDataButton]
         XCTAssertTrue(clearButton.waitForExistence(timeout: timeout))
         clearButton.tap()
 
@@ -941,29 +941,29 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsImportPreviewsAndMergesData() {
         let app = launchApp(selectMenu: "Settings", environment: [UITestEnv.Variable.importSeed: "1"])
 
-        let importButton = app.identifiedButton("settings.importDataButton")
+        let importButton = app.identifiedButton(AccessibilityID.Settings.importDataButton)
         XCTAssertTrue(importButton.waitForExistence(timeout: timeout))
         importButton.tap()
 
         // The preview confirmation ("Import data?") summarising the merge.
-        let confirmButton = app.identifiedButton("settings.import.confirmButton")
+        let confirmButton = app.identifiedButton(AccessibilityID.Settings.importConfirmButton)
         XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout),
                       "Importing should show the 'Import data?' preview confirmation")
         confirmButton.tap()
 
         // Success alert confirms the merge was applied.
-        let successOk = app.identifiedButton("settings.import.successOkButton")
+        let successOk = app.identifiedButton(AccessibilityID.Settings.importSuccessOkButton)
         XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
                       "Confirming the import should show the success alert")
         successOk.tap()
 
         // The merge actually happened: the imported list is now in My Lists.
-        app.identifiedElement("sidebar.My Lists").tap()
-        let customListsSegment = app.identifiedElement("myLists.section.Custom Lists")
+        app.identifiedElement(AccessibilityID.Sidebar.item("My Lists")).tap()
+        let customListsSegment = app.identifiedElement(AccessibilityID.MyLists.section("Custom Lists"))
         XCTAssertTrue(customListsSegment.waitForExistence(timeout: timeout))
         customListsSegment.tap()
 
-        let importedRow = app.identifiedElement("myLists.customList.99")
+        let importedRow = app.identifiedElement(AccessibilityID.MyLists.customList(99))
         XCTAssertTrue(importedRow.waitForExistence(timeout: timeout),
                       "The imported custom list should appear in My Lists after the merge")
         XCTAssertEqual(importedRow.label, "Imported List",
@@ -982,11 +982,11 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsExportCapturesUserData() {
         let app = launchApp(selectMenu: "Settings", environment: [UITestEnv.Variable.exportVerify: "1"])
 
-        let exportButton = app.identifiedButton("settings.exportDataButton")
+        let exportButton = app.identifiedButton(AccessibilityID.Settings.exportDataButton)
         XCTAssertTrue(exportButton.waitForExistence(timeout: timeout))
         exportButton.tap()
 
-        let result = app.identifiedElement("settings.export.verifyResult")
+        let result = app.identifiedElement(AccessibilityID.Settings.exportVerifyResult)
         XCTAssertTrue(result.waitForExistence(timeout: timeout),
                       "Exporting should surface the round-trip verification result")
 
@@ -1029,11 +1029,11 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsBackupToICloudShowsSuccess() {
         let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
 
-        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        let backupButton = app.identifiedButton(AccessibilityID.Settings.backupToICloudButton)
         XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
         backupButton.tap()
 
-        let successOk = app.identifiedButton("settings.backup.successOkButton")
+        let successOk = app.identifiedButton(AccessibilityID.Settings.backupSuccessOkButton)
         XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
                       "Backing up should write the backup file and show the success alert")
         successOk.tap()
@@ -1047,25 +1047,25 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
 
         // Back up first so a backup exists and Restore becomes enabled.
-        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        let backupButton = app.identifiedButton(AccessibilityID.Settings.backupToICloudButton)
         XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
         backupButton.tap()
-        let backupOk = app.identifiedButton("settings.backup.successOkButton")
+        let backupOk = app.identifiedButton(AccessibilityID.Settings.backupSuccessOkButton)
         XCTAssertTrue(backupOk.waitForExistence(timeout: timeout))
         backupOk.tap()
 
-        let restoreButton = app.identifiedButton("settings.restoreFromICloudButton")
+        let restoreButton = app.identifiedButton(AccessibilityID.Settings.restoreFromICloudButton)
         XCTAssertTrue(restoreButton.waitForExistence(timeout: timeout))
         XCTAssertTrue(restoreButton.isEnabled,
                       "Restore should enable once a backup exists")
         restoreButton.tap()
 
-        let confirmButton = app.identifiedButton("settings.import.confirmButton")
+        let confirmButton = app.identifiedButton(AccessibilityID.Settings.importConfirmButton)
         XCTAssertTrue(confirmButton.waitForExistence(timeout: timeout),
                       "Restoring should show the import preview confirmation")
         confirmButton.tap()
 
-        let successOk = app.identifiedButton("settings.import.successOkButton")
+        let successOk = app.identifiedButton(AccessibilityID.Settings.importSuccessOkButton)
         XCTAssertTrue(successOk.waitForExistence(timeout: timeout),
                       "Confirming the restore should show the import success alert")
         successOk.tap()
@@ -1077,14 +1077,14 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp(selectMenu: "Settings", environment: icloudFakeEnvironment())
 
         // A backup must exist before the "Show previous backups" row appears.
-        let backupButton = app.identifiedButton("settings.backupToICloudButton")
+        let backupButton = app.identifiedButton(AccessibilityID.Settings.backupToICloudButton)
         XCTAssertTrue(backupButton.waitForExistence(timeout: timeout))
         backupButton.tap()
-        let backupOk = app.identifiedButton("settings.backup.successOkButton")
+        let backupOk = app.identifiedButton(AccessibilityID.Settings.backupSuccessOkButton)
         XCTAssertTrue(backupOk.waitForExistence(timeout: timeout))
         backupOk.tap()
 
-        let showPrevious = app.identifiedButton("settings.showPreviousBackupsButton")
+        let showPrevious = app.identifiedButton(AccessibilityID.Settings.showPreviousBackupsButton)
         XCTAssertTrue(showPrevious.waitForExistence(timeout: timeout),
                       "Show previous backups should appear once a backup exists")
         showPrevious.tap()
@@ -1098,7 +1098,7 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(restoreRow.waitForExistence(timeout: timeout),
                       "The previous-backups sheet should list at least the latest version")
 
-        let closeButton = app.identifiedButton("previousBackupsSheet.closeButton")
+        let closeButton = app.identifiedButton(AccessibilityID.PreviousBackupsSheet.closeButton)
         XCTAssertTrue(closeButton.waitForExistence(timeout: timeout))
         closeButton.tap()
         XCTAssertFalse(restoreRow.waitForExistence(timeout: 2),
@@ -1110,7 +1110,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsResetOnboardingCancelDismissesWithoutEffect() async {
         let app = launchApp(selectMenu: "Settings")
 
-        let resetButton = app.buttons["settings.resetOnboardingButton"]
+        let resetButton = app.buttons[AccessibilityID.Settings.resetOnboardingButton]
         XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
         resetButton.tap()
 
@@ -1139,7 +1139,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSettingsResetOnboardingConfirmDismissesDialog() async {
         let app = launchApp(selectMenu: "Settings")
 
-        let resetButton = app.buttons["settings.resetOnboardingButton"]
+        let resetButton = app.buttons[AccessibilityID.Settings.resetOnboardingButton]
         XCTAssertTrue(resetButton.waitForExistence(timeout: timeout))
         resetButton.tap()
 
@@ -1167,7 +1167,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testAppIntentRoutesToMyLists() {
         let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "wishlist"])
 
-        let wishlistSegment = app.identifiedElement("myLists.section.Wishlist")
+        let wishlistSegment = app.identifiedElement(AccessibilityID.MyLists.section("Wishlist"))
         XCTAssertTrue(wishlistSegment.waitForExistence(timeout: timeout),
                       "OpenWishlistIntent should land on the My Lists sidebar menu (its Wishlist segment tab should appear)")
     }
@@ -1176,7 +1176,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testAppIntentRoutesToDiscover() {
         let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "discover"])
 
-        let filterButton = app.buttons["discover.filterButton"]
+        let filterButton = app.buttons[AccessibilityID.Discover.filterButton]
         XCTAssertTrue(filterButton.waitForExistence(timeout: timeout),
                       "OpenDiscoverIntent should land on the Discover sidebar menu")
     }
@@ -1204,7 +1204,7 @@ final class MovieSwiftMacUITests: XCTestCase {
     func testSpotlightDeepLinkOpensMovieDetailSheet() {
         let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.movieswift.movie.0"])
 
-        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        let addToListButton = app.identifiedElement(AccessibilityID.MovieDetail.addToListButton)
         XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout),
                       "Spotlight deep-link should open MovieDetail for the linked movie")
     }
@@ -1214,8 +1214,8 @@ final class MovieSwiftMacUITests: XCTestCase {
         let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.other.app.42"])
 
         // The default sidebar (Popular) loads normally.
-        XCTAssertTrue(app.identifiedElement("sidebar.Popular").waitForExistence(timeout: timeout))
-        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        XCTAssertTrue(app.identifiedElement(AccessibilityID.Sidebar.item("Popular")).waitForExistence(timeout: timeout))
+        let addToListButton = app.identifiedElement(AccessibilityID.MovieDetail.addToListButton)
         XCTAssertFalse(addToListButton.waitForExistence(timeout: 2),
                        "Unknown identifier should not open MovieDetail")
     }
@@ -1238,12 +1238,12 @@ final class MovieSwiftMacUITests: XCTestCase {
         searchField.click()
         searchField.typeText("uitestsearch")
 
-        let movieRow = app.identifiedElement("moviesList.movie.0")
+        let movieRow = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(movieRow.waitForExistence(timeout: timeout),
                       "After typing the seeded query, a matching movie row should appear in the search results")
         movieRow.doubleClick()
 
-        let addToListButton = app.identifiedElement("movieDetail.addToListButton")
+        let addToListButton = app.identifiedElement(AccessibilityID.MovieDetail.addToListButton)
         XCTAssertTrue(addToListButton.waitForExistence(timeout: timeout),
                       "Selecting a search result should open MovieDetail in the detail pane")
     }

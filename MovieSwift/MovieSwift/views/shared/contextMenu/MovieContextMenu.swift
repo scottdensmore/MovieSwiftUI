@@ -33,7 +33,7 @@ struct MovieContextMenu: ConnectedView {
                 }
             }
             .accessibilityLabel(Text(label))
-            .accessibilityIdentifier("movieContextMenu.customList.\(list.id)")
+            .accessibilityIdentifier(AccessibilityID.MovieContextMenu.customList(list.id))
         }
     }
 
@@ -53,7 +53,7 @@ struct MovieContextMenu: ConnectedView {
                 }
             }
             .accessibilityLabel(Text(wishlistLabel))
-            .accessibilityIdentifier("movieContextMenu.wishlistToggle")
+            .accessibilityIdentifier(AccessibilityID.MovieContextMenu.wishlistToggle)
             Button(action: {
                 props.onAddToSeenList()
                 self.onAction?()
@@ -66,7 +66,7 @@ struct MovieContextMenu: ConnectedView {
                 }
             }
             .accessibilityLabel(Text(seenlistLabel))
-            .accessibilityIdentifier("movieContextMenu.seenlistToggle")
+            .accessibilityIdentifier(AccessibilityID.MovieContextMenu.seenlistToggle)
             customListsView(props: props)
         }
     }

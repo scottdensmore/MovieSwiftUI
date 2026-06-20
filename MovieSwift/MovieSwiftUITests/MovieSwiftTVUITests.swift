@@ -52,11 +52,11 @@ final class MovieSwiftTVUITests: XCTestCase {
         // Navigate down from tab bar to content
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
         XCUIRemote.shared.press(.select)
 
-        let movieDetail = app.identifiedElement("movieDetail")
+        let movieDetail = app.identifiedElement(AccessibilityID.MovieDetail.container)
         logHierarchyOnMissing(app, element: movieDetail, named: "movieDetail")
         XCTAssertTrue(movieDetail.waitForExistence(timeout: timeout))
         return movieDetail
@@ -83,7 +83,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         // Navigate down from tab bar to content
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -93,7 +93,7 @@ final class MovieSwiftTVUITests: XCTestCase {
 
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -103,7 +103,7 @@ final class MovieSwiftTVUITests: XCTestCase {
 
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -113,7 +113,7 @@ final class MovieSwiftTVUITests: XCTestCase {
 
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -123,7 +123,7 @@ final class MovieSwiftTVUITests: XCTestCase {
 
         XCUIRemote.shared.press(.down)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -138,7 +138,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let titleElement = app.identifiedElement("movieDetail.title")
+        let titleElement = app.identifiedElement(AccessibilityID.MovieDetail.title)
         XCTAssertTrue(titleElement.waitForExistence(timeout: timeout))
     }
 
@@ -146,7 +146,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let castHeader = app.identifiedElement("movieDetail.castHeader")
+        let castHeader = app.identifiedElement(AccessibilityID.MovieDetail.castHeader)
         // On tvOS, scroll down with remote to find cast section
         for _ in 0..<6 {
             if castHeader.waitForExistence(timeout: 1) { break }
@@ -159,7 +159,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)
 
-        let recommendedHeader = app.identifiedElement("movieDetail.recommendedHeader")
+        let recommendedHeader = app.identifiedElement(AccessibilityID.MovieDetail.recommendedHeader)
         for _ in 0..<8 {
             if recommendedHeader.waitForExistence(timeout: 1) { break }
             XCUIRemote.shared.press(.down)
@@ -174,7 +174,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         // Press Menu to go back
         XCUIRemote.shared.press(.menu)
 
-        let firstMovie = app.identifiedElement("moviesList.movie.0")
+        let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout))
     }
 
@@ -207,10 +207,10 @@ final class MovieSwiftTVUITests: XCTestCase {
         _ = openFirstMovieDetail(in: app)
 
         // Detail title is visible, list is hidden.
-        let detailTitle = app.identifiedElement("movieDetail.title")
+        let detailTitle = app.identifiedElement(AccessibilityID.MovieDetail.title)
         XCTAssertTrue(detailTitle.waitForExistence(timeout: timeout),
                       "MovieDetail should show its title after tapping the first movie")
-        let originatingListCell = app.identifiedElement("moviesList.movie.0")
+        let originatingListCell = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
         XCTAssertFalse(originatingListCell.exists,
                        "Movies list should be hidden under the pushed MovieDetail")
 
@@ -218,7 +218,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         // focus sections (header → cast → recommended) so 8 down-presses is
         // a safe upper bound; the helper short-circuits as soon as the
         // header is visible.
-        let recommendedHeader = app.identifiedElement("movieDetail.recommendedHeader")
+        let recommendedHeader = app.identifiedElement(AccessibilityID.MovieDetail.recommendedHeader)
         for _ in 0..<8 {
             if recommendedHeader.waitForExistence(timeout: 1) { break }
             XCUIRemote.shared.press(.down)
@@ -262,7 +262,7 @@ final class MovieSwiftTVUITests: XCTestCase {
         let app = launchApp()
         selectTab("Search", in: app)
 
-        let emptyState = app.identifiedElement("search.emptyState")
+        let emptyState = app.identifiedElement(AccessibilityID.Search.emptyState)
         XCTAssertTrue(emptyState.waitForExistence(timeout: timeout))
     }
 
@@ -276,7 +276,7 @@ final class MovieSwiftTVUITests: XCTestCase {
             selectTab(tab, in: app)
             // Verify tab is selected by checking content loads
             XCUIRemote.shared.press(.down)
-            let firstMovie = app.identifiedElement("moviesList.movie.0")
+            let firstMovie = app.identifiedElement(AccessibilityID.MoviesList.movie(0))
             XCTAssertTrue(firstMovie.waitForExistence(timeout: timeout),
                           "Expected movies to load for tab '\(tab)'")
         }

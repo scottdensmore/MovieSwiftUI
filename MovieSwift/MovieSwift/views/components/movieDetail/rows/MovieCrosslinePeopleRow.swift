@@ -15,7 +15,7 @@ enum MovieCrosslinePeopleState {
         MovieCrosslinePersonPresentation(name: people.name,
                                          subtitle: people.character ?? people.department,
                                          profilePath: people.profile_path,
-                                         accessibilityIdentifier: "movieDetail.person.\(people.id)")
+                                         accessibilityIdentifier: AccessibilityID.MovieDetail.person(people.id))
     }
 
     static func subtitle(for people: People) -> String {

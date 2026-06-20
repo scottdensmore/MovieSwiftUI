@@ -4,7 +4,7 @@ import MovieSwiftFluxCore
 
 enum PeopleDetailImagesState {
     static func accessibilityIdentifier(for index: Int) -> String {
-        "peopleDetail.image.\(index)"
+        AccessibilityID.PeopleDetail.image(index)
     }
 
     static func accessibilityLabel(for index: Int, total: Int) -> String {

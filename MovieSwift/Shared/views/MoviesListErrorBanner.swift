@@ -43,7 +43,7 @@ struct MoviesListErrorBanner: View {
                     // the system color scheme (light) instead of the actually-dark
                     // background, leaving title text dark-on-dark.
                     .foregroundStyle(.primary)
-                    .accessibilityIdentifier("errorBanner.title")
+                    .accessibilityIdentifier(AccessibilityID.ErrorBanner.title)
                 Text(failure.message)
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -54,7 +54,7 @@ struct MoviesListErrorBanner: View {
                         capsuleLabel(failure.retryActionTitle)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("errorBanner.retryButton")
+                    .accessibilityIdentifier(AccessibilityID.ErrorBanner.retryButton)
 
                     Button(action: copyDiagnostic) {
                         capsuleLabel(didCopyDiagnostic
@@ -64,7 +64,7 @@ struct MoviesListErrorBanner: View {
                                               comment: "Button that copies a sanitized failure-diagnostic blob to the clipboard for pasting into a bug report."))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("errorBanner.copyDiagnosticButton")
+                    .accessibilityIdentifier(AccessibilityID.ErrorBanner.copyDiagnosticButton)
                     // swiftlint:disable:next line_length
                     .accessibilityHint(Text("Copies a sanitized summary of the failure (app version, OS, device, locale, error kind) for pasting into a bug report. Does not include your TMDB key or any saved data."))
                 }
@@ -95,7 +95,7 @@ struct MoviesListErrorBanner: View {
         .padding(.horizontal, 12)
         .padding(.top, 8)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("errorBanner")
+        .accessibilityIdentifier(AccessibilityID.ErrorBanner.root)
     }
 
     /// Short headline above the long-form failure message. The headline

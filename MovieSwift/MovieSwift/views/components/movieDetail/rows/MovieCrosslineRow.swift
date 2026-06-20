@@ -126,7 +126,7 @@ struct MovieDetailRowItem: View {
             .onKeyPress(characters: .init(charactersIn: " ")) { _ in onSelect(); return .handled }
             .contextMenu { MovieContextMenu(movieId: movie.id) }
             .macFocusHighlight(isFocused: focusedItem.wrappedValue == focusTarget)
-            .accessibilityIdentifier("movieDetail.crossline.movie.\(movie.id)")
+            .accessibilityIdentifier(AccessibilityID.MovieDetail.crosslineMovie(movie.id))
             .accessibilityAddTraits(.isButton)
         #else
         Button(action: onSelect) {
@@ -134,7 +134,7 @@ struct MovieDetailRowItem: View {
         }
         .buttonStyle(.plain)
         .contextMenu { MovieContextMenu(movieId: movie.id) }
-        .accessibilityIdentifier("movieDetail.crossline.movie.\(movie.id)")
+        .accessibilityIdentifier(AccessibilityID.MovieDetail.crosslineMovie(movie.id))
         #endif
     }
 
