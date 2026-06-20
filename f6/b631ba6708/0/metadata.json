@@ -1,0 +1,132 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "f6b631ba6708",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-20T20:13:21.462906Z",
+  "branch": "refactor/adopt-flux-drop-swiftuiflux",
+  "checkpoints_count": 4,
+  "save_step_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+    "MovieSwift/MovieSwift/views/components/custom list/CustomListDetail.swift",
+    "MovieSwift/MovieSwift/views/components/custom list/CustomListForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverFilterForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DraggableCover.swift",
+    "MovieSwift/MovieSwift/views/components/fan club/FanClubHome.swift",
+    "MovieSwift/MovieSwift/views/components/genres/GenresList.swift",
+    "MovieSwift/MovieSwift/views/components/home/HomeView.swift",
+    "MovieSwift/MovieSwift/views/components/home/outline/OutlineMenu.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/reviews/MovieReviews.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieButtonsRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCoverRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslinePeopleRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslineRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieInfoRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesGrid/MovieGridRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/MoviesHome.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/grid/MoviesHomeGrid.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/grid/rows/MoviesHomeGridMoviesRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/list/MoviesHomeList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/MovieKeywordList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/MoviesCrewList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/MoviesGenreList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/base/MoviesList.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/rows/MovieRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/rows/PeopleRow.swift",
+    "MovieSwift/MovieSwift/views/components/myLists/MyLists.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailBiographyRow.swift",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsFormLogic.swift",
+    "MovieSwift/MovieSwift/views/shared/contextMenu/MovieContextMenu.swift",
+    "MovieSwift/MovieSwift/views/shared/contextMenu/PeopleContextMenu.swift",
+    "MovieSwift/MovieSwift/views/shared/images/ListImage.swift",
+    "MovieSwift/MovieSwiftMac/MovieSwiftMacApp.swift",
+    "MovieSwift/MovieSwiftTV/MovieSwiftTVApp.swift",
+    "MovieSwift/MovieSwiftTV/views/MoviesView.swift",
+    "MovieSwift/MovieSwiftTV/views/TVMovieDetail.swift",
+    "MovieSwift/MovieSwiftTV/views/TVSearchView.swift",
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/Packages/Backend/Sources/Backend/services/APIService.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Package.resolved",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Package.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/FluxExports.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/actions/MoviesActions.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/actions/PeopleActions.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/extensions/Collection.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/middlewares/LoggingMiddleware.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/AppReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/MoviesReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/PeopleReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/MoviesState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/PeoplesState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift",
+    "MovieSwift/Shared/extensions/ActionSheet.swift",
+    "MovieSwift/Shared/flux/reducers/AppReducer.swift",
+    "MovieSwift/Shared/flux/state/AppEnvironment.swift",
+    "MovieSwift/Shared/flux/state/AppRuntime.swift",
+    "MovieSwift/Shared/flux/state/AppStoreFactory.swift",
+    "MovieSwift/Shared/flux/state/MovieSpotlightIndexer.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "ee1dea71411f",
+  "token_usage": {
+    "input_tokens": 303438,
+    "cache_creation_tokens": 37909606,
+    "cache_read_tokens": 3205517284,
+    "output_tokens": 4916086,
+    "api_call_count": 7187
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "ee1dea71411f",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 49
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
