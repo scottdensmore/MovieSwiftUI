@@ -21,6 +21,7 @@
 		107B30F973A45019AFD6C0DF /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD65F66DBFDFF7A545881FC /* EnvironmentKeys.swift */; };
 		117CCC8A0ED3370ACBF674DE /* MoviesHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D1D76C22BE57390084C692 /* MoviesHome.swift */; };
 		1294C4DF142353860F4F3FA9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22CAD9FAC4374510B243BDA /* Cocoa.framework */; };
+		13BC3D52402E7E262ADDA85C /* MovieSwiftFluxCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D77ED303818712E7F0C471B /* MovieSwiftFluxCore */; };
 		16A21E735978E887F34A4AE2 /* MovieDetailStateLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE849F28B972976B0E24394 /* MovieDetailStateLogic.swift */; };
 		1A68A93234115D88A1D52EA2 /* AppCompositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67E402658E67B5B8A23CB459 /* AppCompositionTests.swift */; };
 		1C6259F355C1AED982395026 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61E322BA217C00CBEEC7 /* DiscoverView.swift */; };
@@ -155,6 +156,7 @@
 		6C19C285136704F2C3625483 /* MovieSwiftMacUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A4E2965DC4DC5E4271E7ADF /* MovieSwiftMacUITests.swift */; };
 		6C916B285A2BAF831049A02B /* UITestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD3C3BBBFE4D2D9F1653B85 /* UITestHelpers.swift */; };
 		6EB0CB21719950152B8776BD /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691E905822BF5AE800AA23FE /* Font.swift */; };
+		6F94ECDC637C121F28E0B496 /* MovieSwiftFluxCore in Frameworks */ = {isa = PBXBuildFile; productRef = 1BCB28DB4F31BBE7E32520A3 /* MovieSwiftFluxCore */; };
 		73937CD0724479D715D93376 /* MovieKeywordList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6902647A22B6D2B400459C2E /* MovieKeywordList.swift */; };
 		73C7F0BEE28F89DA49030228 /* MovieSwiftTVUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBFB49BACC02C9F717BB8B7 /* MovieSwiftTVUITests.swift */; };
 		746C945C77501CD1DDA2B811 /* ReviewRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697C5C2622B647CF00BAE7B5 /* ReviewRow.swift */; };
@@ -278,6 +280,7 @@
 		A3E555D90FCDFB21E4048756 /* PeopleDetailImagesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6920B8F122D0A1B5004C7528 /* PeopleDetailImagesRow.swift */; };
 		A4204A0A2302CC4DE09C04E4 /* MovieRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B2560422A9BDD5009F4413 /* MovieRow.swift */; };
 		A4F66907B3D5DC6AF399C3D6 /* MovieDetailFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49504DE33D2A080CCD3E968 /* MovieDetailFocus.swift */; };
+		A5BD63412E42BBF0F87C1A83 /* MovieSwiftFluxCore in Frameworks */ = {isa = PBXBuildFile; productRef = F60922710E77A47913A2FC3A /* MovieSwiftFluxCore */; };
 		A8DAEDB2A47BCF3730128DCB /* EnvironmentKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD65F66DBFDFF7A545881FC /* EnvironmentKeys.swift */; };
 		AF9AC036F8E4FCA06774294A /* AppBootstrapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000005 /* AppBootstrapTests.swift */; };
 		B3E93AAEF5BE304C2768E49F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22CAD9FAC4374510B243BDA /* Cocoa.framework */; };
@@ -617,6 +620,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				400165BB7930A6A16EA3BDA0 /* Foundation.framework in Frameworks */,
+				13BC3D52402E7E262ADDA85C /* MovieSwiftFluxCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -633,6 +637,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C1D2E3010000000000000002 /* XCTest.framework in Frameworks */,
+				6F94ECDC637C121F28E0B496 /* MovieSwiftFluxCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -641,6 +646,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3E93AAEF5BE304C2768E49F /* Cocoa.framework in Frameworks */,
+				A5BD63412E42BBF0F87C1A83 /* MovieSwiftFluxCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1335,6 +1341,9 @@
 				76BF3F03CE65AF7505AD3F11 /* PBXTargetDependency */,
 			);
 			name = MovieSwiftMacUITests;
+			packageProductDependencies = (
+				F60922710E77A47913A2FC3A /* MovieSwiftFluxCore */,
+			);
 			productName = MovieSwiftMacUITests;
 			productReference = BB5DF2F255EC27E98226FB4C /* MovieSwiftMacUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -1371,6 +1380,9 @@
 				88A51BF9BE0F83F8AC8842F3 /* PBXTargetDependency */,
 			);
 			name = MovieSwiftTVUITests;
+			packageProductDependencies = (
+				0D77ED303818712E7F0C471B /* MovieSwiftFluxCore */,
+			);
 			productName = MovieSwiftTVUITests;
 			productReference = F4A6EF68C17147CEE364678E /* MovieSwiftTVUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -1389,6 +1401,9 @@
 				C1D2E3090000000000000001 /* PBXTargetDependency */,
 			);
 			name = MovieSwiftUITests;
+			packageProductDependencies = (
+				1BCB28DB4F31BBE7E32520A3 /* MovieSwiftFluxCore */,
+			);
 			productName = MovieSwiftUITests;
 			productReference = C1D2E3020000000000000002 /* MovieSwiftUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -2636,6 +2651,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0D77ED303818712E7F0C471B /* MovieSwiftFluxCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MovieSwiftFluxCore;
+		};
+		1BCB28DB4F31BBE7E32520A3 /* MovieSwiftFluxCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MovieSwiftFluxCore;
+		};
 		69414A3F23C35C1D0056FBDF /* SwiftUIFlux */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */;
@@ -2670,6 +2693,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */;
 			productName = SwiftUIFlux;
+		};
+		F60922710E77A47913A2FC3A /* MovieSwiftFluxCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MovieSwiftFluxCore;
 		};
 		FC10000000000000000000D0 /* MovieSwiftFluxCore */ = {
 			isa = XCSwiftPackageProductDependency;

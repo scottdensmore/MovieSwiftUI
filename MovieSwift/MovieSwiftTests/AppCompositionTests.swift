@@ -149,7 +149,7 @@ struct AppCompositionTests {
     }
 
     @Test func appLaunchModeDetectsUISmokeTestsFromArguments() {
-        #expect(AppLaunchMode.from(arguments: ["--ui-smoke-tests"], environment: [:]) == .uiSmokeTests)
+        #expect(AppLaunchMode.from(arguments: [UITestEnv.Argument.smokeTests], environment: [:]) == .uiSmokeTests)
     }
 
     @Test func appLaunchModeDefaultsToNormal() {

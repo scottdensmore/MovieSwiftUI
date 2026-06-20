@@ -24,9 +24,9 @@ final class MovieSwiftUITests: XCTestCase {
         additionalLaunchArguments: [String] = []
     ) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", "--ui-smoke-tests"]
+        app.launchArguments = ["-ApplePersistenceIgnoreState", "YES", UITestEnv.Argument.smokeTests]
             + additionalLaunchArguments
-        app.launchEnvironment["UI_SMOKE_TESTS"] = "1"
+        app.launchEnvironment[UITestEnv.Variable.smokeTests] = "1"
         for (key, value) in environment {
             app.launchEnvironment[key] = value
         }
@@ -213,7 +213,7 @@ final class MovieSwiftUITests: XCTestCase {
     }
 
     func testFanClubShowsRetryStateWhenPopularLoadFails() {
-        let app = launchApp(environment: ["UI_SMOKE_TEST_FAN_CLUB_FAILURE": "1"])
+        let app = launchApp(environment: [UITestEnv.Variable.fanClubFailure: "1"])
         openTab("Fan Club", in: app)
 
         XCTAssertTrue(identifiedElement("fanClub.errorState", in: app).waitForExistence(timeout: uiWaitTimeout))
@@ -1104,7 +1104,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// trying to inspect tab-bar selection state, which XCUITest
     /// surfaces inconsistently.
     func testAppIntentRoutesToWishlist() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "wishlist"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "wishlist"])
 
         let myListsHeader = app.staticTexts.matching(
             NSPredicate(format: "label CONTAINS %@", "movies in wishlist")
@@ -1116,7 +1116,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// `OpenDiscoverIntent` analogue — should select the Discover tab,
     /// which exposes the filter button.
     func testAppIntentRoutesToDiscover() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "discover"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "discover"])
 
         let filterButton = button("discover.filterButton", in: app)
         XCTAssertTrue(filterButton.waitForExistence(timeout: uiWaitTimeout),
@@ -1126,7 +1126,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// `OpenFanClubIntent` analogue — should select the Fan Club tab,
     /// recognized by its empty-state copy.
     func testAppIntentRoutesToFanClub() {
-        let app = launchApp(environment: ["UI_TEST_INTENT_DESTINATION": "fanClub"])
+        let app = launchApp(environment: [UITestEnv.Variable.intentDestination: "fanClub"])
 
         XCTAssertTrue(app.navigationBars["Fan Club"].waitForExistence(timeout: uiWaitTimeout),
                       "OpenFanClubIntent should land the user on the Fan Club tab")
@@ -1145,7 +1145,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// `state.moviesState.movies[0] = sampleMovie` — the sheet has
     /// data to render.
     func testSpotlightDeepLinkOpensMovieDetailSheet() {
-        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.movieswift.movie.0"])
+        let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.movieswift.movie.0"])
 
         let addToListButton = identifiedElement("movieDetail.addToListButton", in: app)
         XCTAssertTrue(addToListButton.waitForExistence(timeout: uiWaitTimeout),
@@ -1156,7 +1156,7 @@ final class MovieSwiftUITests: XCTestCase {
     /// be ignored — the user shouldn't see a stray MovieDetail sheet
     /// for an unrelated app's NSUserActivity.
     func testSpotlightDeepLinkIgnoresUnknownIdentifier() {
-        let app = launchApp(environment: ["UI_TEST_SPOTLIGHT_IDENTIFIER": "com.other.app.42"])
+        let app = launchApp(environment: [UITestEnv.Variable.spotlightIdentifier: "com.other.app.42"])
 
         // Main tab bar visible; no MovieDetail sheet covering it.
         XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: uiWaitTimeout))
@@ -1561,7 +1561,7 @@ final class MovieSwiftUITests: XCTestCase {
         try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .phone,
                           "Onboarding screen-bounds regression is specific to the compact iPhone width")
 
-        let app = launchApp(additionalLaunchArguments: ["--ui-test-force-onboarding"])
+        let app = launchApp(additionalLaunchArguments: [UITestEnv.Argument.forceOnboarding])
 
         let continueButton = identifiedElement("onboarding.continueButton", in: app)
         XCTAssertTrue(continueButton.waitForExistence(timeout: uiWaitTimeout),

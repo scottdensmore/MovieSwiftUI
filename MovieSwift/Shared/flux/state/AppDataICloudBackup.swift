@@ -80,7 +80,7 @@ nonisolated enum AppDataICloudBackup {
         // fresh, isolated container and no stale backup leaks across runs; it
         // only suffixes a path inside the app's own (writable) sandbox temp, so
         // it stays sandbox-safe. No effect in production — unset there.
-        let token = ProcessInfo.processInfo.environment["UI_TEST_ICLOUD_FAKE"] ?? ""
+        let token = ProcessInfo.processInfo.environment[UITestEnv.Variable.iCloudFake] ?? ""
         if !token.isEmpty {
             let url = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
                 .appendingPathComponent("uitest-icloud-container-\(token)", isDirectory: true)

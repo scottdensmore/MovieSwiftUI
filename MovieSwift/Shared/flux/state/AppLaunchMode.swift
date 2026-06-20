@@ -1,4 +1,5 @@
 import Foundation
+import MovieSwiftFluxCore
 
 enum AppLaunchMode {
     case normal
@@ -15,8 +16,8 @@ enum AppLaunchMode {
             return .preview
         }
 
-        if arguments.contains("--ui-smoke-tests")
-            || environment["UI_SMOKE_TESTS"] == "1" {
+        if arguments.contains(UITestEnv.Argument.smokeTests)
+            || environment[UITestEnv.Variable.smokeTests] == "1" {
             return .uiSmokeTests
         }
         #endif

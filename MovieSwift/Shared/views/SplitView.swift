@@ -1,4 +1,5 @@
 import SwiftUI
+import MovieSwiftFluxCore
 #if os(macOS)
 import AppKit
 import CoreSpotlight
@@ -180,7 +181,7 @@ struct SplitView: View {
     /// it via `MovieSpotlightIndexer.movieId(fromIdentifier:)` and present
     /// the MovieDetail sheet exactly as a real Spotlight result tap would.
     private func handleUITestSpotlightEnvironment() {
-        guard let identifier = ProcessInfo.processInfo.environment["UI_TEST_SPOTLIGHT_IDENTIFIER"],
+        guard let identifier = ProcessInfo.processInfo.environment[UITestEnv.Variable.spotlightIdentifier],
               let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
             return
         }
@@ -225,7 +226,7 @@ struct SplitView: View {
     }
 
     private static func initialMenu() -> OutlineMenu {
-        if let menuTitle = ProcessInfo.processInfo.environment["UI_TEST_SELECT_MENU"],
+        if let menuTitle = ProcessInfo.processInfo.environment[UITestEnv.Variable.selectMenu],
            let menu = OutlineMenu.allCases.first(where: { $0.title == menuTitle }) {
             return menu
         }

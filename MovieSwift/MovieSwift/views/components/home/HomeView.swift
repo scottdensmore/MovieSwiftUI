@@ -46,7 +46,7 @@ struct HomeView: App {
         // smoke launch. `--ui-test-force-onboarding` forces it on so the
         // onboarding-layout regression test can drive the wizard. Has no
         // effect in production launches (the arg is never passed).
-        let forceOnboarding = ProcessInfo.processInfo.arguments.contains("--ui-test-force-onboarding")
+        let forceOnboarding = ProcessInfo.processInfo.arguments.contains(UITestEnv.Argument.forceOnboarding)
         _isOnboardingPresented = State(initialValue: forceOnboarding
             || OnboardingFlow.shouldShowFromCurrentState(
                 isRunningUISmokeTests: environment.runtime.isRunningUISmokeTests
@@ -157,7 +157,7 @@ struct TabbarView: View {
     /// Reuses the production identifier parser so the test catches
     /// regressions in either the parser or the sheet-presentation glue.
     private func handleUITestSpotlightEnvironment() {
-        guard let identifier = ProcessInfo.processInfo.environment["UI_TEST_SPOTLIGHT_IDENTIFIER"],
+        guard let identifier = ProcessInfo.processInfo.environment[UITestEnv.Variable.spotlightIdentifier],
               let movieId = MovieSpotlightIndexer.movieId(fromIdentifier: identifier) else {
             return
         }
