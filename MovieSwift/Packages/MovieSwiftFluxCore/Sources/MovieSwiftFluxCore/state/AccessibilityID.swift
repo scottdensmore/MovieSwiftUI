@@ -106,6 +106,7 @@ public enum AccessibilityID {
         }
 
         public static let recommendedHeader = "movieDetail.recommendedHeader"
+        public static let shareButton = "movieDetail.shareButton"
         public static let title = "movieDetail.title"
         public static func topPerson(_ id: Int) -> String {
             "movieDetail.topPerson.\(id)"
@@ -168,6 +169,8 @@ public enum AccessibilityID {
         public static func movie(_ id: Int) -> String {
             "peopleDetail.movie.\(id)"
         }
+
+        public static let shareButton = "peopleDetail.shareButton"
     }
 
     public enum PreviousBackupsSheet {

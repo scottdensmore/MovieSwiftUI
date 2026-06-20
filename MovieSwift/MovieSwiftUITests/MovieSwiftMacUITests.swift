@@ -111,6 +111,17 @@ final class MovieSwiftMacUITests: XCTestCase {
         XCTAssertTrue(genreChip.waitForExistence(timeout: timeout))
     }
 
+    func testMovieDetailShowsShareButton() {
+        let app = launchApp()
+        _ = openFirstMovieDetail(in: app)
+
+        // ShareLink renders as an NSToolbar button on macOS; assert it's present.
+        let shareButton = app.identifiedElement(AccessibilityID.MovieDetail.shareButton)
+        logHierarchyOnMissing(app, element: shareButton, named: AccessibilityID.MovieDetail.shareButton)
+        XCTAssertTrue(shareButton.waitForExistence(timeout: timeout),
+                      "The macOS movie detail toolbar should expose a Share button")
+    }
+
     func testMovieDetailCanNavigateToPersonAndBack() {
         let app = launchApp()
         _ = openFirstMovieDetail(in: app)

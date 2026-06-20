@@ -703,6 +703,22 @@ struct MovieDetail: ConnectedView {
                 ToolbarItem(placement: .automatic) {
                     addButton(props: props)
                 }
+                // tvOS has no share sheet / `ShareLink`; the tvOS app uses
+                // `TVMovieDetail` and never compiles this file, but gate it
+                // anyway so the intent is explicit.
+                #if !os(tvOS)
+                ToolbarItem(placement: .automatic) {
+                    // Use `movieId` (always available) for the link so Share
+                    // works even before the full detail loads; fall back to a
+                    // generic title until `props.movie` is populated.
+                    let shareTitle = props.movie?.userTitle ?? "this movie"
+                    ShareLink(item: TMDBWeb.movieURL(id: movieId),
+                              subject: Text(shareTitle),
+                              message: Text("Check out \(shareTitle) on TMDB"),
+                              preview: SharePreview(shareTitle))
+                        .accessibilityIdentifier(AccessibilityID.MovieDetail.shareButton)
+                }
+                #endif
             }
             .onAppear {
                 self.fetchMovieDetails(props: props)
