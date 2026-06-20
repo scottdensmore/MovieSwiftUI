@@ -1,0 +1,117 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "40aef4925e63",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-20T03:46:19.327626Z",
+  "branch": "refactor/centralize-accessibility-ids",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/custom list/CustomListForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverFilterForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/fan club/FanClubHome.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCoverRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslinePeopleRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslineRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieVideosRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/MoviesHome.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/base/MoviesList.swift",
+    "MovieSwift/MovieSwift/views/components/myLists/MyLists.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailHeaderRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailMovieRow.swift",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwift/views/shared/contextMenu/MovieContextMenu.swift",
+    "MovieSwift/MovieSwiftTV/views/MoviesView.swift",
+    "MovieSwift/MovieSwiftTV/views/TVMovieDetail.swift",
+    "MovieSwift/MovieSwiftTV/views/TVSearchView.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftTVUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AccessibilityID.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/AccessibilityIDTests.swift",
+    "MovieSwift/Shared/views/CrashReportsView.swift",
+    "MovieSwift/Shared/views/MoviesListErrorBanner.swift",
+    "MovieSwift/Shared/views/SplitView.swift",
+    "MovieSwift/Shared/views/onboarding/OnboardingView.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "6694729a734e",
+  "token_usage": {
+    "input_tokens": 243832,
+    "cache_creation_tokens": 37119697,
+    "cache_read_tokens": 3098300093,
+    "output_tokens": 4665639,
+    "api_call_count": 6912
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "6694729a734e",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 41
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-20T03:46:18.445726Z",
+    "agent_lines": 685,
+    "agent_removed": 343,
+    "human_added": 41,
+    "human_modified": 17,
+    "human_removed": 0,
+    "total_committed": 743,
+    "total_lines_changed": 1086,
+    "agent_percentage": 94.65930018416206,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 702,
+      "agent_lines_removed": 343
+    }
+  ]
+}

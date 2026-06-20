@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "40aef4925e63",
+  "strategy": "manual-commit",
+  "branch": "refactor/centralize-accessibility-ids",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/custom list/CustomListForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverFilterForm.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/fan club/FanClubHome.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCoverRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslinePeopleRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslineRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieVideosRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/MoviesHome.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/base/MoviesList.swift",
+    "MovieSwift/MovieSwift/views/components/myLists/MyLists.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailHeaderRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailImagesRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailMovieRow.swift",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwift/views/shared/contextMenu/MovieContextMenu.swift",
+    "MovieSwift/MovieSwiftTV/views/MoviesView.swift",
+    "MovieSwift/MovieSwiftTV/views/TVMovieDetail.swift",
+    "MovieSwift/MovieSwiftTV/views/TVSearchView.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftTVUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AccessibilityID.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/AccessibilityIDTests.swift",
+    "MovieSwift/Shared/views/CrashReportsView.swift",
+    "MovieSwift/Shared/views/MoviesListErrorBanner.swift",
+    "MovieSwift/Shared/views/SplitView.swift",
+    "MovieSwift/Shared/views/onboarding/OnboardingView.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/40/aef4925e63/0/metadata.json",
+      "transcript": "/40/aef4925e63/0/full.jsonl",
+      "content_hash": "/40/aef4925e63/0/content_hash.txt",
+      "prompt": "/40/aef4925e63/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 243832,
+    "cache_creation_tokens": 37119697,
+    "cache_read_tokens": 3098300093,
+    "output_tokens": 4665639,
+    "api_call_count": 6912
+  }
+}
