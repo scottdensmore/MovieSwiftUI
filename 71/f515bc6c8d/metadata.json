@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "71f515bc6c8d",
+  "strategy": "manual-commit",
+  "branch": "feat/sharelink-detail",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/movieDetail/MovieDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/TMDBWeb.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AccessibilityID.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/AccessibilityIDTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/TMDBWebTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/71/f515bc6c8d/0/metadata.json",
+      "transcript": "/71/f515bc6c8d/0/full.jsonl",
+      "content_hash": "/71/f515bc6c8d/0/content_hash.txt",
+      "prompt": "/71/f515bc6c8d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 350034,
+    "cache_creation_tokens": 38171623,
+    "cache_read_tokens": 3312876360,
+    "output_tokens": 5080467,
+    "api_call_count": 7330
+  }
+}
