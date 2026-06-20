@@ -10,17 +10,17 @@ import Backend
             name: "Person",
             character: nil,
             department: nil,
-            profile_path: nil,
-            known_for_department: nil,
-            known_for: [
-                People.KnownFor(id: 100, original_title: "Movie A", poster_path: nil),
-                People.KnownFor(id: 101, original_title: nil, poster_path: nil),
-                People.KnownFor(id: 102, original_title: "Movie B", poster_path: nil),
+            profilePath: nil,
+            knownForDepartment: nil,
+            knownFor: [
+                People.KnownFor(id: 100, originalTitle: "Movie A", posterPath: nil),
+                People.KnownFor(id: 101, originalTitle: nil, posterPath: nil),
+                People.KnownFor(id: 102, originalTitle: "Movie B", posterPath: nil),
             ],
-            also_known_as: nil,
+            alsoKnownAs: nil,
             birthDay: nil,
             deathDay: nil,
-            place_of_birth: nil,
+            placeOfBirth: nil,
             biography: nil,
             popularity: nil,
             images: nil
@@ -210,6 +210,48 @@ import Backend
         #expect(object.keys.count == 4)
         #expect(object.keys.contains("filePath") == false)
         #expect(object.keys.contains("aspectRatio") == false)
+    }
+
+    /// `People` (and its nested `KnownFor`) expose camelCase Swift
+    /// properties but persist/decode snake_case wire keys via `CodingKeys`.
+    /// `birthDay`/`deathDay` were already camelCase, so their wire keys stay
+    /// `birthDay`/`deathDay` (matching the existing fixtures and persisted
+    /// backups). Decode from snake_case, then encode back and pin every key.
+    @Test func peopleRoundTripsSnakeCaseWireKeys() throws {
+        let json = #"""
+        {"id":1,"name":"Jane","profile_path":"/j.jpg","known_for_department":"Acting",\#
+        "known_for":[{"id":9,"original_title":"Film","poster_path":"/f.jpg"}],\#
+        "also_known_as":["JD"],"birthDay":"1990-01-01","deathDay":"2020-01-01",\#
+        "place_of_birth":"NYC","biography":"bio","popularity":1.5}
+        """#
+        let decoded = try JSONDecoder().decode(People.self, from: Data(json.utf8))
+
+        #expect(decoded.profilePath == "/j.jpg")
+        #expect(decoded.knownForDepartment == "Acting")
+        #expect(decoded.knownFor?.first?.originalTitle == "Film")
+        #expect(decoded.knownFor?.first?.posterPath == "/f.jpg")
+        #expect(decoded.alsoKnownAs == ["JD"])
+        #expect(decoded.birthDay == "1990-01-01")
+        #expect(decoded.deathDay == "2020-01-01")
+        #expect(decoded.placeOfBirth == "NYC")
+
+        let object = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(decoded)) as? [String: Any])
+        #expect(object["profile_path"] as? String == "/j.jpg")
+        #expect(object["known_for_department"] as? String == "Acting")
+        #expect(object["also_known_as"] as? [String] == ["JD"])
+        #expect(object["place_of_birth"] as? String == "NYC")
+        // birthDay/deathDay were already camelCase — their wire keys are unchanged.
+        #expect(object["birthDay"] as? String == "1990-01-01")
+        #expect(object["deathDay"] as? String == "2020-01-01")
+        #expect(object.keys.contains("profilePath") == false)
+        #expect(object.keys.contains("knownForDepartment") == false)
+        #expect(object.keys.contains("knownFor") == false)
+        #expect(object.keys.contains("placeOfBirth") == false)
+
+        let nested = try #require((object["known_for"] as? [[String: Any]])?.first)
+        #expect(nested["original_title"] as? String == "Film")
+        #expect(nested["poster_path"] as? String == "/f.jpg")
+        #expect(nested.keys.contains("originalTitle") == false)
     }
 
     @Test func discoverFilterRandomHelpersStayInExpectedDomain() {

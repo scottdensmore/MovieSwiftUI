@@ -137,7 +137,7 @@ import Testing
     }
 
     @Test func peopleReducerSetDetailPreservesExistingMetadataFields() {
-        let knownFor = [People.KnownFor(id: 90, original_title: "Old", poster_path: "/old.jpg")]
+        let knownFor = [People.KnownFor(id: 90, originalTitle: "Old", posterPath: "/old.jpg")]
         let images = [ImageData(aspectRatio: 1.0, filePath: "/img.jpg", height: 10, width: 10)]
 
         var state = PeoplesState()
@@ -151,7 +151,7 @@ import Testing
         // character and department come from the incoming person as-is.
         #expect(reduced.peoples[5]?.character == nil)
         #expect(reduced.peoples[5]?.department == nil)
-        #expect(reduced.peoples[5]?.known_for?.first?.id == 90)
+        #expect(reduced.peoples[5]?.knownFor?.first?.id == 90)
         #expect(reduced.peoples[5]?.images?.first?.filePath == "/img.jpg")
     }
 
@@ -633,13 +633,13 @@ import Testing
             name: name,
             character: character,
             department: department,
-            profile_path: nil,
-            known_for_department: nil,
-            known_for: knownFor,
-            also_known_as: nil,
+            profilePath: nil,
+            knownForDepartment: nil,
+            knownFor: knownFor,
+            alsoKnownAs: nil,
             birthDay: nil,
             deathDay: nil,
-            place_of_birth: nil,
+            placeOfBirth: nil,
             biography: nil,
             popularity: nil,
             images: images

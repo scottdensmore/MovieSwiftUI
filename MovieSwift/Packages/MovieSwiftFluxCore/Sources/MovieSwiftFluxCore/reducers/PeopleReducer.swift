@@ -71,7 +71,7 @@ public func peoplesStateReducer(state: PeoplesState, action: Action) -> PeoplesS
     case let action as PeopleActions.SetDetail:
         if let current = state.peoples[action.person.id] {
             var new = action.person
-            new.known_for = current.known_for
+            new.knownFor = current.knownFor
             new.images = current.images
             state.peoples[action.person.id] = new
         } else {
@@ -121,13 +121,13 @@ private func placeholderPeople(id: Int) -> People {
            name: "Unknown person",
            character: nil,
            department: nil,
-           profile_path: nil,
-           known_for_department: nil,
-           known_for: nil,
-           also_known_as: nil,
+           profilePath: nil,
+           knownForDepartment: nil,
+           knownFor: nil,
+           alsoKnownAs: nil,
            birthDay: nil,
            deathDay: nil,
-           place_of_birth: nil,
+           placeOfBirth: nil,
            biography: nil,
            popularity: nil,
            images: nil)
@@ -140,7 +140,7 @@ private func mergePeople(peoples: [People], state: PeoplesState) -> PeoplesState
             var merged = current
             merged.character = people.character ?? current.character
             merged.department = people.department ?? current.department
-            merged.known_for = people.known_for ?? current.known_for
+            merged.knownFor = people.knownFor ?? current.knownFor
             merged.images = people.images ?? current.images
             state.peoples[people.id] = merged
         } else {
