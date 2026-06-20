@@ -1,0 +1,62 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "92aebb43659e",
+  "strategy": "manual-commit",
+  "branch": "refactor/codingkeys-movie",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/custom list/rows/CustomListCoverRow.swift",
+    "MovieSwift/MovieSwift/views/components/custom list/rows/CustomListHeaderRow.swift",
+    "MovieSwift/MovieSwift/views/components/custom list/rows/CustomListRow.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DraggableCover.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCoverRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieCrosslineRow.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieInfoRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesGrid/MovieGridRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesHome/grid/rows/MoviesHomeGridMoviesRow.swift",
+    "MovieSwift/MovieSwift/views/components/moviesList/rows/MovieRow.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/PeopleDetail.swift",
+    "MovieSwift/MovieSwift/views/components/peopleDetail/rows/PeopleDetailMovieRow.swift",
+    "MovieSwift/MovieSwiftTV/views/MoviesView.swift",
+    "MovieSwift/MovieSwiftTV/views/TVMovieDetail.swift",
+    "MovieSwift/MovieSwiftTV/views/TVSearchView.swift",
+    "MovieSwift/MovieSwiftTests/AppCompositionTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataExportTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataICloudBackupTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataImportTests.swift",
+    "MovieSwift/MovieSwiftTests/AppDataRoundTripTests.swift",
+    "MovieSwift/MovieSwiftTests/AppPersistenceTests.swift",
+    "MovieSwift/MovieSwiftTests/AppStatePersistedFormatTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailStateTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieDetailTests.swift",
+    "MovieSwift/MovieSwiftTests/MovieSpotlightIndexerTests.swift",
+    "MovieSwift/MovieSwiftTests/MoviesListingTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleActionsTests.swift",
+    "MovieSwift/MovieSwiftTests/PeopleAndFanClubTests.swift",
+    "MovieSwift/MovieSwiftTests/SettingsGenresActionSheetTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/extensions/Collection.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/CastResponse.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/models/Movie.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/APIPayloadContractTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ModelUtilityTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/MoviesActionsTests.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift",
+    "MovieSwift/Shared/flux/state/MovieSpotlightIndexer.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/92/aebb43659e/0/metadata.json",
+      "transcript": "/92/aebb43659e/0/full.jsonl",
+      "content_hash": "/92/aebb43659e/0/content_hash.txt",
+      "prompt": "/92/aebb43659e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 275593,
+    "cache_creation_tokens": 37314303,
+    "cache_read_tokens": 3131922070,
+    "output_tokens": 4770155,
+    "api_call_count": 7038
+  }
+}
