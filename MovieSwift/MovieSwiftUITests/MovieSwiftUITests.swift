@@ -212,6 +212,21 @@ final class MovieSwiftUITests: XCTestCase {
         XCTAssertTrue(identifiedElement(AccessibilityID.PeopleDetail.knownFor, in: app).waitForExistence(timeout: uiWaitTimeout))
     }
 
+    func testPeopleDetailShowsShareButton() {
+        let app = launchApp()
+        openTab("Fan Club", in: app)
+
+        let personRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "fanClub.person."))
+            .firstMatch
+        XCTAssertTrue(personRow.waitForExistence(timeout: uiWaitTimeout))
+        personRow.tap()
+
+        XCTAssertTrue(identifiedElement(AccessibilityID.PeopleDetail.shareButton, in: app)
+            .waitForExistence(timeout: uiWaitTimeout),
+            "The person detail toolbar should expose a Share button")
+    }
+
     func testFanClubShowsRetryStateWhenPopularLoadFails() {
         let app = launchApp(environment: [UITestEnv.Variable.fanClubFailure: "1"])
         openTab("Fan Club", in: app)

@@ -78,6 +78,7 @@ import Testing
         #expect(AccessibilityID.MovieDetail.genre(0) == "movieDetail.genre.0")
         #expect(AccessibilityID.MovieDetail.person(9) == "movieDetail.person.9")
         #expect(AccessibilityID.MovieDetail.recommendedHeader == "movieDetail.recommendedHeader")
+        #expect(AccessibilityID.MovieDetail.shareButton == "movieDetail.shareButton")
         #expect(AccessibilityID.MovieDetail.title == "movieDetail.title")
         #expect(AccessibilityID.MovieDetail.topPerson(9) == "movieDetail.topPerson.9")
         #expect(AccessibilityID.MovieDetail.topPersonShortcut == "movieDetail.topPersonShortcut")
@@ -118,6 +119,7 @@ import Testing
         #expect(AccessibilityID.PeopleDetail.image(0) == "peopleDetail.image.0")
         #expect(AccessibilityID.PeopleDetail.knownFor == "peopleDetail.knownFor")
         #expect(AccessibilityID.PeopleDetail.movie(0) == "peopleDetail.movie.0")
+        #expect(AccessibilityID.PeopleDetail.shareButton == "peopleDetail.shareButton")
     }
 
     @Test func previousBackupsIDs() {

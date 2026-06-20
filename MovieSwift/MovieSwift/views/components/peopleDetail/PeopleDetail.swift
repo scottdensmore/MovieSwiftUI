@@ -320,6 +320,17 @@ struct PeopleDetail: ConnectedView {
                 ToolbarItem(placement: .automatic) {
                     barbuttons(props: props)
                 }
+                // tvOS has no share sheet / `ShareLink` (the tvOS app uses its
+                // own people screen); gate it so the intent is explicit.
+                #if !os(tvOS)
+                ToolbarItem(placement: .automatic) {
+                    ShareLink(item: TMDBWeb.personURL(id: props.people.id),
+                              subject: Text(props.people.name),
+                              message: Text("Check out \(props.people.name) on TMDB"),
+                              preview: SharePreview(props.people.name))
+                        .accessibilityIdentifier(AccessibilityID.PeopleDetail.shareButton)
+                }
+                #endif
             }
             .navigationTitle(props.people.name)
             .onAppear {
