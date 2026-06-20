@@ -64,14 +64,14 @@ struct PeopleDetailImagesRow: View {
     private func imageButton(index: Int, image: ImageData) -> some View {
         #if os(macOS)
         if let focusedItem = focusedItem {
-            let isFocused = focusedItem.wrappedValue == .image(image.file_path)
-            MacFocusableLink(id: PeopleDetailFocusTarget.image(image.file_path),
+            let isFocused = focusedItem.wrappedValue == .image(image.filePath)
+            MacFocusableLink(id: PeopleDetailFocusTarget.image(image.filePath),
                              focusedId: focusedItem) {
                 withAnimation {
                     selectedPoster = image
                 }
             } label: {
-                PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.file_path, size: .cast))
+                PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.filePath, size: .cast))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(isFocused ? Color.accentColor : .clear, lineWidth: 3)
@@ -81,7 +81,7 @@ struct PeopleDetailImagesRow: View {
                     .scaleEffect(isFocused ? 1.06 : 1.0)
                     .animation(.easeOut(duration: 0.15), value: isFocused)
             }
-            .id(image.file_path)
+            .id(image.filePath)
             .accessibilityIdentifier(PeopleDetailImagesState.accessibilityIdentifier(for: index))
             .accessibilityLabel(PeopleDetailImagesState.accessibilityLabel(for: index, total: images.count))
         } else {
@@ -98,7 +98,7 @@ struct PeopleDetailImagesRow: View {
                 self.selectedPoster = image
             }
         }) {
-            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.file_path, size: .cast))
+            PeopleImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: image.filePath, size: .cast))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(PeopleDetailImagesState.accessibilityIdentifier(for: index))

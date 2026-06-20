@@ -227,7 +227,7 @@ final class PeopleActionsTests {
         let session = MockNetworkSession()
         let payload = PeopleActions.ImagesResponse(
             id: 7,
-            profiles: [ImageData(aspect_ratio: 0.67, file_path: "/img.jpg", height: 300, width: 200)]
+            profiles: [ImageData(aspectRatio: 0.67, filePath: "/img.jpg", height: 300, width: 200)]
         )
         session.nextData = try JSONEncoder().encode(payload)
 
@@ -244,7 +244,7 @@ final class PeopleActionsTests {
         let dispatchedAction = dispatched.compactMap { $0 as? PeopleActions.SetImages }.first
         #expect(dispatchedAction?.people == 7)
         #expect(dispatchedAction?.images.count == 1)
-        #expect(dispatchedAction?.images.first?.file_path == "/img.jpg")
+        #expect(dispatchedAction?.images.first?.filePath == "/img.jpg")
     }
 
     // MARK: - FetchPeopleCredits

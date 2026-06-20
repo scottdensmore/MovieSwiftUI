@@ -190,6 +190,28 @@ import Backend
         #expect(object.keys.contains("totalPages") == false)
     }
 
+    /// `ImageData` Swift properties are camelCase, but the TMDB/JSON keys —
+    /// and the keys persisted in user backups — must stay snake_case. Decode
+    /// from snake_case into the camelCase properties, then encode back and pin
+    /// the wire keys so old backups keep importing and the API keeps decoding.
+    @Test func imageDataRoundTripsSnakeCaseWireKeys() throws {
+        let json = #"{"aspect_ratio":0.667,"file_path":"/p.jpg","height":1500,"width":1000}"#
+        let decoded = try JSONDecoder().decode(ImageData.self, from: Data(json.utf8))
+
+        #expect(decoded.aspectRatio == Float(0.667))
+        #expect(decoded.filePath == "/p.jpg")
+        #expect(decoded.id == "/p.jpg")
+
+        let object = try #require(try JSONSerialization.jsonObject(with: JSONEncoder().encode(decoded)) as? [String: Any])
+        #expect(try #require(object["file_path"] as? String) == "/p.jpg")
+        #expect(try #require(object["aspect_ratio"] as? Double) == 0.667)
+        #expect(object["height"] as? Int == 1500)
+        #expect(object["width"] as? Int == 1000)
+        #expect(object.keys.count == 4)
+        #expect(object.keys.contains("filePath") == false)
+        #expect(object.keys.contains("aspectRatio") == false)
+    }
+
     @Test func discoverFilterRandomHelpersStayInExpectedDomain() {
         let year = DiscoverFilter.randomYear()
         let currentYear = Calendar.current.component(.year, from: Date())

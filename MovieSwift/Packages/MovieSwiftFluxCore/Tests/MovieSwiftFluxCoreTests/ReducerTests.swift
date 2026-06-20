@@ -138,7 +138,7 @@ import Testing
 
     @Test func peopleReducerSetDetailPreservesExistingMetadataFields() {
         let knownFor = [People.KnownFor(id: 90, original_title: "Old", poster_path: "/old.jpg")]
-        let images = [ImageData(aspect_ratio: 1.0, file_path: "/img.jpg", height: 10, width: 10)]
+        let images = [ImageData(aspectRatio: 1.0, filePath: "/img.jpg", height: 10, width: 10)]
 
         var state = PeoplesState()
         state.peoples[5] = makePeople(id: 5, name: "Old Name", character: "Old Char", department: "Directing", knownFor: knownFor, images: images)
@@ -152,7 +152,7 @@ import Testing
         #expect(reduced.peoples[5]?.character == nil)
         #expect(reduced.peoples[5]?.department == nil)
         #expect(reduced.peoples[5]?.known_for?.first?.id == 90)
-        #expect(reduced.peoples[5]?.images?.first?.file_path == "/img.jpg")
+        #expect(reduced.peoples[5]?.images?.first?.filePath == "/img.jpg")
     }
 
     @Test func peopleReducerSetMovieCastsMergesPeopleAndIndexesMovie() {
@@ -575,10 +575,10 @@ import Testing
     // MARK: - PeopleReducer: SetImages
 
     @Test func peopleReducerSetImagesStoresImagesAndMarksLoaded() {
-        let images = [ImageData(aspect_ratio: 0.67, file_path: "/img.jpg", height: 300, width: 200)]
+        let images = [ImageData(aspectRatio: 0.67, filePath: "/img.jpg", height: 300, width: 200)]
         let reduced = peoplesStateReducer(state: PeoplesState(), action: PeopleActions.SetImages(people: 7, images: images))
 
-        #expect(reduced.peoples[7]?.images?.first?.file_path == "/img.jpg")
+        #expect(reduced.peoples[7]?.images?.first?.filePath == "/img.jpg")
         #expect(reduced.imagesLoaded.contains(7))
     }
 

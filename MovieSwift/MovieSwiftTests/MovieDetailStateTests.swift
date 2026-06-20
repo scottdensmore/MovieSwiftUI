@@ -527,8 +527,8 @@ struct MovieDetailStateTests {
     /// file path.
     @Test func focusModelIncludesPosterAndBackdropTargets() {
         let images = Movie.MovieImages(
-            posters: [ImageData(aspect_ratio: 0.7, file_path: "/p.jpg", height: 1000, width: 700)],
-            backdrops: [ImageData(aspect_ratio: 1.7, file_path: "/b.jpg", height: 1200, width: 1800)]
+            posters: [ImageData(aspectRatio: 0.7, filePath: "/p.jpg", height: 1000, width: 700)],
+            backdrops: [ImageData(aspectRatio: 1.7, filePath: "/b.jpg", height: 1200, width: 1800)]
         )
         let model = MovieDetailFocusModel(movie: makeMovie(id: 1, images: images),
                                           characters: nil, credits: nil,

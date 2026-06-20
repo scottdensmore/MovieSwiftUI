@@ -553,21 +553,21 @@ struct MovieDetailTests {
 
     @Test func moviePostersStateBuildsPresentationsAndSelection() {
         let posters = [
-            ImageData(aspect_ratio: 0.7, file_path: "/poster-a.jpg", height: 1000, width: 700),
-            ImageData(aspect_ratio: 0.7, file_path: "/poster-b.jpg", height: 1000, width: 700),
+            ImageData(aspectRatio: 0.7, filePath: "/poster-a.jpg", height: 1000, width: 700),
+            ImageData(aspectRatio: 0.7, filePath: "/poster-b.jpg", height: 1000, width: 700),
         ]
 
         let presentations = MoviePostersState.presentations(from: posters)
 
         #expect(presentations.map(\.id) == ["/poster-a.jpg", "/poster-b.jpg"])
         #expect(presentations.map(\.path) == ["/poster-a.jpg", "/poster-b.jpg"])
-        #expect(MoviePostersState.selectedPoster(afterSelecting: presentations[1]).file_path == "/poster-b.jpg")
+        #expect(MoviePostersState.selectedPoster(afterSelecting: presentations[1]).filePath == "/poster-b.jpg")
     }
 
     @Test func movieBackdropsStateBuildsPresentations() {
         let backdrops = [
-            ImageData(aspect_ratio: 1.7, file_path: "/backdrop-a.jpg", height: 1200, width: 1800),
-            ImageData(aspect_ratio: 1.7, file_path: "/backdrop-b.jpg", height: 1200, width: 1800),
+            ImageData(aspectRatio: 1.7, filePath: "/backdrop-a.jpg", height: 1200, width: 1800),
+            ImageData(aspectRatio: 1.7, filePath: "/backdrop-b.jpg", height: 1200, width: 1800),
         ]
 
         let presentations = MovieBackdropsState.presentations(from: backdrops)

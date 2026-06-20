@@ -59,7 +59,7 @@ struct ImagesCarouselView: View {
     }
 
     private func posterPage(_ poster: ImageData) -> some View {
-        BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.file_path,
+        BigMoviePosterImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: poster.filePath,
                                                                            size: .medium))
             .tag(poster.id)
             .padding(.horizontal, 24)
@@ -78,7 +78,7 @@ struct ImagesCarouselView: View {
     /// images' aspect ratio so posters (portrait) and backdrops
     /// (landscape) both render correctly.
     private func itemSize(in reader: GeometryProxy) -> CGSize {
-        let aspect = CGFloat(posters.first?.aspect_ratio ?? 0.666666)
+        let aspect = CGFloat(posters.first?.aspectRatio ?? 0.666666)
         let maxHeight = min(reader.size.height * 0.7, 420)
         let maxWidth = reader.size.width * 0.55
         let widthFromHeight = maxHeight * aspect
@@ -114,7 +114,7 @@ struct ImagesCarouselView: View {
         let opacity: Double = max(0.25, 1.0 - Double(absOffset) * 0.3)
         let zIndex: Double = 100 - Double(absOffset)
 
-        return CarouselImageView(path: poster.file_path, size: size)
+        return CarouselImageView(path: poster.filePath, size: size)
             .scaleEffect(scale)
             .rotation3DEffect(
                 .degrees(rotationY),
@@ -308,20 +308,20 @@ struct ImagesCarouselView: View {
 }
 
 #Preview {
-    ImagesCarouselView(posters: [ImageData(aspect_ratio: 0.666666666666667,
-                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+    ImagesCarouselView(posters: [ImageData(aspectRatio: 0.666666666666667,
+                                                  filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                   height: 720,
                                                   width: 1280),
-                                       ImageData(aspect_ratio: 0.666666666666667,
-                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                       ImageData(aspectRatio: 0.666666666666667,
+                                                  filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                   height: 720,
                                                   width: 1280),
-                                       ImageData(aspect_ratio: 0.666666666666667,
-                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                       ImageData(aspectRatio: 0.666666666666667,
+                                                  filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                   height: 720,
                                                   width: 1280),
-                                       ImageData(aspect_ratio: 0.666666666666667,
-                                                  file_path: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
+                                       ImageData(aspectRatio: 0.666666666666667,
+                                                  filePath: "/fpemzjF623QVTe98pCVlwwtFC5N.jpg",
                                                   height: 720,
                                                   width: 1280), ],
                              selectedPoster: .constant(nil))
