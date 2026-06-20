@@ -72,6 +72,8 @@ struct TabbarView: View {
     let isRunningUISmokeTests: Bool
     @State var selectedTab = Tab.movies
     @State private var intentNavigation = IntentNavigationStore.shared
+    @State private var intentAction = IntentActionStore.shared
+    @Environment(Store<AppState>.self) private var store
     @State private var spotlightMovieId: SpotlightMovieID?
 
     /// Identifiable wrapper around a movie id so the Spotlight
@@ -121,6 +123,23 @@ struct TabbarView: View {
             case .wishlist:      selectedTab = .myLists
             }
             intentNavigation.consume()
+        }
+        // Listen for App Intent list mutations (Add to Watchlist / Mark as
+        // Seen). The intent posted the request; dispatch the real Flux action
+        // through the live store here so it persists normally, then land the
+        // user on My Lists to see the result.
+        .onChange(of: intentAction.pendingAction) { _, action in
+            guard let action else { return }
+            switch action {
+            case let .addToWishlist(movie):
+                store.dispatch(MoviesActions.AddToWishlist(movie: movie))
+            case let .markAsSeen(movie):
+                store.dispatch(MoviesActions.AddToSeenList(movie: movie))
+            }
+            intentAction.consume()
+            if selectedTab != .myLists {
+                selectedTab = .myLists
+            }
         }
         // Tapping a Spotlight result for a saved movie opens the
         // app with this user activity. Parse the identifier the

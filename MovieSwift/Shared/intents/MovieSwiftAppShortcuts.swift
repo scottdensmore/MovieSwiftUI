@@ -66,5 +66,23 @@ struct MovieSwiftAppShortcuts: AppShortcutsProvider {
             shortTitle: "Popular",
             systemImageName: "film.fill"
         )
+        AppShortcut(
+            intent: AddToWatchlistIntent(),
+            phrases: [
+                "Add \(\.$movie) to my watchlist in \(.applicationName)",
+                "Add \(\.$movie) to my \(.applicationName) watchlist",
+            ],
+            shortTitle: "Add to Watchlist",
+            systemImageName: "heart.circle"
+        )
+        AppShortcut(
+            intent: MarkAsSeenIntent(),
+            phrases: [
+                "Mark \(\.$movie) as seen in \(.applicationName)",
+                "Mark \(\.$movie) as watched in \(.applicationName)",
+            ],
+            shortTitle: "Mark as Seen",
+            systemImageName: "eye"
+        )
     }
 }

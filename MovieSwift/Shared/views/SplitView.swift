@@ -26,6 +26,8 @@ struct SplitView: View {
     @State private var detailNavigationRoute: MoviesListNavigationRoute?
     @FocusState private var isSidebarFocused: Bool
     @State private var intentNavigation = IntentNavigationStore.shared
+    @State private var intentAction = IntentActionStore.shared
+    @Environment(Store<AppState>.self) private var store
     @State private var spotlightMovieId: SpotlightMovieID?
 
     /// Identifiable wrapper around a movie id so the Spotlight
@@ -152,6 +154,24 @@ struct SplitView: View {
                 selectedMenu = target
             }
             intentNavigation.consume()
+        }
+        // App Intent list mutations (Add to Watchlist / Mark as Seen):
+        // dispatch through the live store, then surface My Lists.
+        .onChange(of: intentAction.pendingAction) { _, action in
+            guard let action else { return }
+            switch action {
+            case let .addToWishlist(movie):
+                store.dispatch(MoviesActions.AddToWishlist(movie: movie))
+            case let .markAsSeen(movie):
+                store.dispatch(MoviesActions.AddToSeenList(movie: movie))
+            }
+            intentAction.consume()
+            if selectedMenu != .myLists {
+                detailNavigationRoute = nil
+                detailRebuildKey = UUID()
+                detailPath = NavigationPath()
+                selectedMenu = .myLists
+            }
         }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
             guard let identifier = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
