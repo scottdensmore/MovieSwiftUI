@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "ae7799be5d65",
+  "strategy": "manual-commit",
+  "branch": "refactor/centralize-test-seams",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/home/HomeView.swift",
+    "MovieSwift/MovieSwift/views/components/settings/SettingsForm.swift",
+    "MovieSwift/MovieSwiftTests/AppBootstrapTests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftMacUITests.swift",
+    "MovieSwift/MovieSwiftUITests/MovieSwiftUITests.swift",
+    "MovieSwift/MovieSwiftUITests/UITestHelpers.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/AppStateFixtures.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/UITestEnv.swift",
+    "MovieSwift/Shared/flux/state/AppDataICloudBackup.swift",
+    "MovieSwift/Shared/flux/state/AppLaunchMode.swift",
+    "MovieSwift/Shared/flux/state/IntentNavigation.swift",
+    "MovieSwift/Shared/views/SplitView.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ae/7799be5d65/0/metadata.json",
+      "transcript": "/ae/7799be5d65/0/full.jsonl",
+      "content_hash": "/ae/7799be5d65/0/content_hash.txt",
+      "prompt": "/ae/7799be5d65/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 211295,
+    "cache_creation_tokens": 36940677,
+    "cache_read_tokens": 3081409574,
+    "output_tokens": 4575631,
+    "api_call_count": 6831
+  }
+}
