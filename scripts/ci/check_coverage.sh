@@ -12,6 +12,7 @@ fi
 REPORT_DIR="${COVERAGE_REPORT_DIR:-$(mktemp -d /tmp/movieswiftui-coverage.XXXXXX)}"
 BACKEND_MIN="${BACKEND_MIN_LINE_COVERAGE:-76.1}"
 FLUX_MIN="${FLUX_MIN_LINE_COVERAGE:-52.2}"
+FLUX_PACKAGE_MIN="${FLUX_PACKAGE_MIN_LINE_COVERAGE:-85.0}"
 
 mkdir -p "$REPORT_DIR"
 SUMMARY_FILE="$REPORT_DIR/summary.txt"
@@ -95,5 +96,12 @@ run_package_coverage \
   "MovieSwiftFluxCorePackageTests" \
   "(Tests|\\.build|Shared/flux/testing|Packages/Backend)" \
   "$FLUX_MIN"
+
+run_package_coverage \
+  "Flux" \
+  "MovieSwift/Packages/Flux" \
+  "FluxPackageTests" \
+  "(Tests|\\.build)" \
+  "$FLUX_PACKAGE_MIN"
 
 printf 'Coverage reports written to %s\n' "$REPORT_DIR" | tee -a "$SUMMARY_FILE"
