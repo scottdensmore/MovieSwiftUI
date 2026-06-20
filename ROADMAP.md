@@ -76,11 +76,14 @@ Make the codebase easier for humans *and* agents before scaling it up.
 
 Adopt current iOS-26 patterns; unblock cleaner code.
 
-- [ ] **Migrate the SwiftUIFlux `Store` to `@Observable`** — it's a
-      Combine `ObservableObject`, the root cause of **33
+- [x] **Removed the SwiftUIFlux dependency — replaced with an in-repo
+      `@Observable` `Flux` package** (PRs #47/#48). Rather than just
+      migrating the vendored store, the third-party dependency was dropped
+      entirely: a new `MovieSwift/Packages/Flux` reimplements its contract
+      with an `@Observable @MainActor Store`. This cleared the **33
       `@preconcurrency import SwiftUIFlux`** workarounds and the
-      `nonisolated(unsafe)` sample-store globals. Vendorable dependency;
-      highest-leverage concurrency cleanup.
+      `nonisolated(unsafe)` sample-store/middleware globals. The Redux
+      architecture (reducers, actions, `ConnectedView`) is unchanged.
 - [ ] **App Intent entities + parameterized Shortcuts** — intents are
       launch-only today. Add a `MovieEntity: AppEntity` +
       `AddToWatchlistIntent(movie:)` / `MarkAsSeenIntent` that dispatch the
