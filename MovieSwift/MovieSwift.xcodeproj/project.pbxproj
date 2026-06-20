@@ -86,7 +86,6 @@
 		69414A1623C33FC10056FBDF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 69414A1523C33FC10056FBDF /* Preview Assets.xcassets */; };
 		69414A1923C33FC10056FBDF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 69414A1723C33FC10056FBDF /* LaunchScreen.storyboard */; };
 		69414A3E23C35C1A0056FBDF /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69414A3D23C35C190056FBDF /* CloudKit.framework */; };
-		69414A4023C35C1D0056FBDF /* SwiftUIFlux in Frameworks */ = {isa = PBXBuildFile; productRef = 69414A3F23C35C1D0056FBDF /* SwiftUIFlux */; };
 		69414A4123C35C320056FBDF /* FjallaOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 69FC640822C3A72F0043AB37 /* FjallaOne-Regular.ttf */; };
 		69414A4223C35C320056FBDF /* American Captain.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6918810022C2949800E2E253 /* American Captain.otf */; };
 		69414A4323C35C320056FBDF /* FHACondFrenchNC.otf in Resources */ = {isa = PBXBuildFile; fileRef = 691E905622BF5A3D00AA23FE /* FHACondFrenchNC.otf */; };
@@ -146,7 +145,6 @@
 		69FB61E622BA245100CBEEC7 /* DraggableCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61E522BA245100CBEEC7 /* DraggableCover.swift */; };
 		69FB61E822BA2A2D00CBEEC7 /* CustomListDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61E722BA2A2D00CBEEC7 /* CustomListDetail.swift */; };
 		69FB61EB22BA2E1900CBEEC7 /* DiscoverCoverImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61EA22BA2E1900CBEEC7 /* DiscoverCoverImage.swift */; };
-		69FB7D7B22E7957200C55F01 /* SwiftUIFlux in Frameworks */ = {isa = PBXBuildFile; productRef = 69FB7D7A22E7957200C55F01 /* SwiftUIFlux */; };
 		69FC640922C3A8620043AB37 /* FjallaOne-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 69FC640822C3A72F0043AB37 /* FjallaOne-Regular.ttf */; };
 		69FD020C22B55268003E529E /* MoviesGenreList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FD020B22B55268003E529E /* MoviesGenreList.swift */; };
 		69FFAF8622A99F1200801F3C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 69FFAF8522A99F1200801F3C /* Assets.xcassets */; };
@@ -314,7 +312,6 @@
 		DD27206B900D6B1D07E21184 /* AppPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000004 /* AppPersistenceTests.swift */; };
 		DDA383059B74F60847991C61 /* MovieButtonsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699179F1257E1A8300D375E7 /* MovieButtonsRow.swift */; };
 		DE8A28E1D3D1C5ED319328EB /* MovieDetailFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49504DE33D2A080CCD3E968 /* MovieDetailFocus.swift */; };
-		DEB381682F7B7C2F001D142A /* SwiftUIFlux in Frameworks */ = {isa = PBXBuildFile; productRef = EF1D22F1373D938504E80A8D /* SwiftUIFlux */; };
 		DEB381692F7B7C2F001D142A /* Backend in Frameworks */ = {isa = PBXBuildFile; productRef = C3740CB86A246DD45B7C9DB0 /* Backend */; };
 		DEB3816A2F7B7C2F001D142A /* UI in Frameworks */ = {isa = PBXBuildFile; productRef = 6B3F5D4A3A37799F0DF07DE6 /* UI */; };
 		DEE3DA9E74D449A20EDAF70D /* MovieVideosRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441F85D8FC51B27D73DBB66E /* MovieVideosRow.swift */; };
@@ -578,7 +575,6 @@
 				FC10000000000000000000E1 /* MovieSwiftFluxCore in Frameworks */,
 				DEB3816A2F7B7C2F001D142A /* UI in Frameworks */,
 				DEB381692F7B7C2F001D142A /* Backend in Frameworks */,
-				DEB381682F7B7C2F001D142A /* SwiftUIFlux in Frameworks */,
 				1294C4DF142353860F4F3FA9 /* Cocoa.framework in Frameworks */,
 				D46A6252DF1366A79FF3E8DE /* CloudKit.framework in Frameworks */,
 			);
@@ -599,7 +595,6 @@
 				FC10000000000000000000E2 /* MovieSwiftFluxCore in Frameworks */,
 				69414A3E23C35C1A0056FBDF /* CloudKit.framework in Frameworks */,
 				69E4D1012B0A111100A1B2C3 /* Backend in Frameworks */,
-				69414A4023C35C1D0056FBDF /* SwiftUIFlux in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -610,7 +605,6 @@
 				FC10000000000000000000E0 /* MovieSwiftFluxCore in Frameworks */,
 				69D3321223ED608400C8A20C /* UI in Frameworks */,
 				69D3321023ED608400C8A20C /* Backend in Frameworks */,
-				69FB7D7B22E7957200C55F01 /* SwiftUIFlux in Frameworks */,
 				69F336CD22EDA77500282CE3 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1296,7 +1290,6 @@
 			name = MovieSwiftTV;
 			packageProductDependencies = (
 				69E4D1022B0A111100A1B2C3 /* Backend */,
-				69414A3F23C35C1D0056FBDF /* SwiftUIFlux */,
 				FC10000000000000000000D2 /* MovieSwiftFluxCore */,
 			);
 			productName = MovieSwiftTV;
@@ -1318,7 +1311,6 @@
 			);
 			name = MovieSwift;
 			packageProductDependencies = (
-				69FB7D7A22E7957200C55F01 /* SwiftUIFlux */,
 				69D3320F23ED608400C8A20C /* Backend */,
 				69D3321123ED608400C8A20C /* UI */,
 				FC10000000000000000000D0 /* MovieSwiftFluxCore */,
@@ -1440,7 +1432,6 @@
 			);
 			name = MovieSwiftMac;
 			packageProductDependencies = (
-				EF1D22F1373D938504E80A8D /* SwiftUIFlux */,
 				C3740CB86A246DD45B7C9DB0 /* Backend */,
 				6B3F5D4A3A37799F0DF07DE6 /* UI */,
 				FC10000000000000000000D1 /* MovieSwiftFluxCore */,
@@ -1497,9 +1488,6 @@
 				Base,
 			);
 			mainGroup = 69FFAF7322A99F1100801F3C;
-			packageReferences = (
-				69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */,
-			);
 			productRefGroup = 69FFAF7D22A99F1100801F3C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -2639,17 +2627,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Dimillian/SwiftUIFlux.git";
-			requirement = {
-				kind = revision;
-				revision = 05e3e07a752a513bc160bcc589004ebf1bc6c1dc;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
 		0D77ED303818712E7F0C471B /* MovieSwiftFluxCore */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2658,11 +2635,6 @@
 		1BCB28DB4F31BBE7E32520A3 /* MovieSwiftFluxCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MovieSwiftFluxCore;
-		};
-		69414A3F23C35C1D0056FBDF /* SwiftUIFlux */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */;
-			productName = SwiftUIFlux;
 		};
 		69D3320F23ED608400C8A20C /* Backend */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2676,11 +2648,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Backend;
 		};
-		69FB7D7A22E7957200C55F01 /* SwiftUIFlux */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */;
-			productName = SwiftUIFlux;
-		};
 		6B3F5D4A3A37799F0DF07DE6 /* UI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = UI;
@@ -2688,11 +2655,6 @@
 		C3740CB86A246DD45B7C9DB0 /* Backend */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Backend;
-		};
-		EF1D22F1373D938504E80A8D /* SwiftUIFlux */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 69FB7D7922E7957200C55F01 /* XCRemoteSwiftPackageReference "SwiftUIFlux" */;
-			productName = SwiftUIFlux;
 		};
 		F60922710E77A47913A2FC3A /* MovieSwiftFluxCore */ = {
 			isa = XCSwiftPackageProductDependency;

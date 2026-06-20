@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MyListsPresentation {
@@ -24,7 +23,7 @@ struct MyLists: ConnectedView {
     // MARK: - Vars
     var embedInNavigationStack = true
     var showNavigationTitle = true
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @State private var selectedList: Int = 0
     @State private var selectedMoviesSort = MoviesSort.byReleaseDate
     @State private var isSortActionSheetPresented = false
@@ -533,11 +532,11 @@ struct MyLists: ConnectedView {
             }
         }
         .sheet(isPresented: $isEditingFormPresented) {
-                CustomListForm(editingListId: nil).environmentObject(self.store)
+                CustomListForm(editingListId: nil).environment(self.store)
         }
     }
 }
 
 #Preview {
-    MyLists().environmentObject(sampleStore)
+    MyLists().environment(sampleStore)
 }

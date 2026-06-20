@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUIFlux
 import MovieSwiftFluxCore
 
 struct AppEnvironment {

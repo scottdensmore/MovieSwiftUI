@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 final class KeywordPageListener: MoviesPagesListener {
@@ -63,5 +62,5 @@ struct MovieKeywordList: ConnectedView {
 
 #Preview {
     MovieKeywordList(keyword: Keyword(id: 0, name: "Test"))
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

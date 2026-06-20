@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import UI
 import MovieSwiftFluxCore
 
@@ -74,7 +73,7 @@ struct CustomListDetail: ConnectedView {
         let movieLookup: [Int: Movie]
     }
 
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @State private var searchTextWrapper = CustomListSearchMovieTextWrapper()
     @State private var isSearching = false
     @State private var selectedMovies = Set<Int>()
@@ -256,7 +255,7 @@ struct CustomListDetail: ConnectedView {
             }
             #endif
         .sheet(isPresented: $isEditingFormPresented,
-                   content: { CustomListForm(editingListId: self.listId).environmentObject(self.store)
+                   content: { CustomListForm(editingListId: self.listId).environment(self.store)
             })
         .onAppear {
             searchTextWrapper.bindDispatchSearches { text, page in
@@ -271,6 +270,6 @@ struct CustomListDetail: ConnectedView {
         // #Preview-only sample fixture; sampleStore customLists is non-empty by construction.
         // swiftlint:disable:next force_unwrapping
         CustomListDetail(listId: sampleStore.state.moviesState.customLists.first!.key)
-            .environmentObject(sampleStore)
+            .environment(sampleStore)
     }
 }

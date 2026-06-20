@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MoviesCrewListState {
@@ -42,5 +41,5 @@ struct MoviesCrewList: ConnectedView {
     // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
     // swiftlint:disable:next force_unwrapping
     MoviesCrewList(crew: sampleCasts.first!)
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

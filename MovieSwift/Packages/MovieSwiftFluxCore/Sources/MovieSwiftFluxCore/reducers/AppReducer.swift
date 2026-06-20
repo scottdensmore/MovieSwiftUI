@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 
 /// Pure composition of the per-state reducers. App-shell concerns
 /// (cache-reset, on-disk import) live in a wrapper reducer in the

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum MoviesSort {
+public enum MoviesSort: Sendable {
     case byReleaseDate, byAddedDate, byScore, byPopularity
 
     public func title() -> String {

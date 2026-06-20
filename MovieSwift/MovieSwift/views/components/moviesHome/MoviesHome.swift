@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MoviesHomeState {
@@ -174,5 +173,5 @@ struct MoviesHome: ConnectedView {
 }
 
 #Preview {
-    MoviesHome(isRunningUISmokeTests: false).environmentObject(sampleStore)
+    MoviesHome(isRunningUISmokeTests: false).environment(sampleStore)
 }

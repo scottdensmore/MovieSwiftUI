@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum MoviesHomeGridFetchPolicy {
@@ -133,5 +132,5 @@ struct MoviesHomeGrid: ConnectedView {
 
 #Preview {
     MoviesHomeGrid(navigationRoute: .constant(nil), isRunningUISmokeTests: false)
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

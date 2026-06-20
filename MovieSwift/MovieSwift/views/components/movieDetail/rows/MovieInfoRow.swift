@@ -78,5 +78,5 @@ struct MovieInfoRow: View {
 }
 
 #Preview {
-    MovieInfoRow(movie: sampleMovie).background(Color.black).environmentObject(sampleStore)
+    MovieInfoRow(movie: sampleMovie).background(Color.black).environment(sampleStore)
 }

@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Combine
 import UI
 import Backend
@@ -385,5 +384,5 @@ struct MoviesList: ConnectedView {
     MoviesList(movies: [sampleMovie.id],
                displaySearch: true,
                navigationRoute: .constant(nil))
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

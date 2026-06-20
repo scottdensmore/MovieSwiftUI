@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 
 public struct MoviesState: FluxState, Codable, Sendable {
     public var movies: [Int: Movie] = [:]

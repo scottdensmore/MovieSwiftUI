@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import UI
 import MovieSwiftFluxCore
@@ -61,6 +60,6 @@ struct MovieRow: ConnectedView {
 
 #Preview {
     List {
-        MovieRow(movieId: sampleMovie.id).environmentObject(sampleStore)
+        MovieRow(movieId: sampleMovie.id).environment(sampleStore)
     }
 }

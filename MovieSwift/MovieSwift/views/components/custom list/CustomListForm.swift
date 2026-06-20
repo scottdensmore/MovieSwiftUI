@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import UI
 import MovieSwiftFluxCore
 
@@ -185,5 +184,5 @@ struct CustomListForm: ConnectedView {
 }
 
 #Preview {
-    CustomListForm(editingListId: nil).environmentObject(sampleStore)
+    CustomListForm(editingListId: nil).environment(sampleStore)
 }

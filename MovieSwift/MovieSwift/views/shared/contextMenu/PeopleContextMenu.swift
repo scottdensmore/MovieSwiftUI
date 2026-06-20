@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 enum PeopleContextMenuFanClubAction: Equatable {
@@ -59,5 +58,5 @@ struct PeopleContextMenu: ConnectedView {
 }
 
 #Preview {
-    PeopleContextMenu(people: 0).environmentObject(sampleStore)
+    PeopleContextMenu(people: 0).environment(sampleStore)
 }

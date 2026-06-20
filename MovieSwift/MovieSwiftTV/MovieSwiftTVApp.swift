@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftUIFlux
 import AppIntents
 import MovieSwiftFluxCore
 
@@ -33,6 +32,8 @@ struct MovieSwiftTVApp: App {
 }
 
 #if DEBUG
-let sampleStore = Store<AppState>(reducer: appReducerWithImports,
-                                  state: makePreviewSampleState())
+// `@MainActor`: the `Store` is main-actor-isolated; this DEBUG-only fixture
+// is constructed and consumed on the main actor (previews / smoke launch).
+@MainActor let sampleStore = Store<AppState>(reducer: appReducerWithImports,
+                                             state: makePreviewSampleState())
 #endif

@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import UI
 import MovieSwiftFluxCore
@@ -163,7 +162,7 @@ private struct MovieCoverRowMacPreviewHost: View {
 
     var body: some View {
         MovieCoverRow(movieId: 0, focusedItem: $focusedItem, onSelectGenre: { _ in })
-            .environmentObject(sampleStore)
+            .environment(sampleStore)
     }
 }
 #endif
@@ -174,6 +173,6 @@ private struct MovieCoverRowMacPreviewHost: View {
     MovieCoverRowMacPreviewHost()
     #else
     MovieCoverRow(movieId: 0)
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
     #endif
 }

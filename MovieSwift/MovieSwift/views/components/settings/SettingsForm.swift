@@ -1,6 +1,5 @@
 import SwiftUI
 import Foundation
-@preconcurrency import SwiftUIFlux
 import Backend
 import MovieSwiftFluxCore
 
@@ -58,7 +57,7 @@ struct SettingsForm: ConnectedView {
     var embedInNavigationStack = true
     var showNavigationTitle = true
     var onClose: (() -> Void)?
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @Environment(\.dismiss) private var dismiss
     @Environment(\.archivedStateSizeDescription) private var archivedStateSizeDescription
 
@@ -1516,5 +1515,5 @@ private struct PreviousICloudBackupsSheet: View {
 
 #Preview {
     SettingsForm()
-        .environmentObject(sampleStore)
+        .environment(sampleStore)
 }

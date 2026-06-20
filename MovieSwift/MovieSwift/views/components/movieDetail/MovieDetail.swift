@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import UI
 import MovieSwiftFluxCore
 
@@ -32,7 +31,7 @@ struct MovieDetail: ConnectedView {
     }
 
     let movieId: Int
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
     // MARK: View States
@@ -745,7 +744,7 @@ struct MovieDetail: ConnectedView {
             #endif
             .sheet(isPresented: $isCreateListFormPresented,
                    content: { CustomListForm(editingListId: nil)
-                    .environmentObject(store) })
+                    .environment(store) })
             .disabled(selectedPoster != nil || selectedBackdrop != nil)
             .blur(radius: (selectedPoster != nil || selectedBackdrop != nil) ? 30 : 0)
             .scaleEffect((selectedPoster != nil || selectedBackdrop != nil) ? 0.8 : 1)
@@ -893,6 +892,6 @@ private struct MoviePeopleListDestination: ConnectedView {
 // MARK: - Preview
 #Preview {
     NavigationStack {
-        MovieDetail(movieId: sampleMovie.id).environmentObject(sampleStore)
+        MovieDetail(movieId: sampleMovie.id).environment(sampleStore)
     }
 }

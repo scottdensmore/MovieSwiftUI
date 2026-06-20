@@ -1,5 +1,5 @@
 import Foundation
-import SwiftUIFlux
+import Flux
 
 // The Redux dispatch switch covers every MoviesActions case in one
 // function — high cyclomatic complexity is intrinsic to the reducer

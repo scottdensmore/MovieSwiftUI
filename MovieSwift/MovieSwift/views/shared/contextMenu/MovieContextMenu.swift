@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import MovieSwiftFluxCore
 
 // MARK: View
@@ -123,5 +122,5 @@ extension MovieContextMenu {
 }
 
 #Preview {
-    MovieContextMenu(movieId: 0).environmentObject(sampleStore)
+    MovieContextMenu(movieId: 0).environment(sampleStore)
 }

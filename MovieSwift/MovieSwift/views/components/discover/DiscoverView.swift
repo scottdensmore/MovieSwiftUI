@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import Backend
 import UI
 import MovieSwiftFluxCore
@@ -93,7 +92,7 @@ enum DiscoverUndoState {
 }
 
 struct DiscoverView: ConnectedView {
-    @EnvironmentObject private var store: Store<AppState>
+    @Environment(Store<AppState>.self) private var store
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
 
     // MARK: - Props
@@ -429,7 +428,7 @@ struct DiscoverView: ConnectedView {
                 NavigationStack {
                     MovieDetail(movieId: movie.id)
                 }
-                .environmentObject(store)
+                .environment(store)
                 .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
                        minHeight: 760, idealHeight: 860, maxHeight: 980)
             }
@@ -441,7 +440,7 @@ struct DiscoverView: ConnectedView {
                 NavigationStack {
                     MovieDetail(movieId: movie.id)
                 }
-                    .environmentObject(store)
+                    .environment(store)
             })
         #endif
     }
@@ -458,7 +457,7 @@ struct DiscoverView: ConnectedView {
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).minY + reader.safeAreaInsets.top + 10)
                     .frame(height: 50)
-                    .sheet(isPresented: self.$isFilterFormPresented, content: { DiscoverFilterForm().environmentObject(store) })
+                    .sheet(isPresented: self.$isFilterFormPresented, content: { DiscoverFilterForm().environment(store) })
                 self.swipeHintView(props: props)
                     .position(x: reader.frame(in: .local).midX,
                               y: reader.frame(in: .local).maxY - reader.safeAreaInsets.bottom - self.bottomSafeInsetFix - 85)
@@ -504,7 +503,7 @@ struct DiscoverView: ConnectedView {
                     HStack {
                         filterView(props: props)
                             .sheet(isPresented: $isFilterFormPresented) {
-                                DiscoverFilterForm().environmentObject(store)
+                                DiscoverFilterForm().environment(store)
                             }
                         Spacer()
                         resetButton(props: props)
@@ -550,7 +549,7 @@ struct DiscoverView: ConnectedView {
                     NavigationStack {
                         MovieDetail(movieId: movie.id)
                     }
-                    .environmentObject(store)
+                    .environment(store)
                     .frame(minWidth: 760, idealWidth: 860, maxWidth: 980,
                            minHeight: 760, idealHeight: 860, maxHeight: 980)
                 }
@@ -717,5 +716,5 @@ struct DiscoverView: ConnectedView {
 }
 
 #Preview {
-    DiscoverView().environmentObject(sampleStore)
+    DiscoverView().environment(sampleStore)
 }

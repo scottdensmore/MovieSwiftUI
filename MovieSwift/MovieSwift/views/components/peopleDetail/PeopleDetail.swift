@@ -1,5 +1,4 @@
 import SwiftUI
-@preconcurrency import SwiftUIFlux
 import UI
 import MovieSwiftFluxCore
 
@@ -578,6 +577,6 @@ extension PeopleDetail {
     NavigationStack {
         // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
         // swiftlint:disable:next force_unwrapping
-        PeopleDetail(peopleId: sampleCasts.first!.id).environmentObject(sampleStore)
+        PeopleDetail(peopleId: sampleCasts.first!.id).environment(sampleStore)
     }
 }
