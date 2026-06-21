@@ -1308,3 +1308,17 @@ Ok let me run it manually and see if there is anything we need to address before
 ---
 
 The app fails on start up (never even see the main screen). How can we debug this?
+
+---
+
+I am running the MacOS version so run that and grab the output
+
+---
+
+<task-notification>
+<task-id>b7x5c20kg</task-id>
+<tool-use-id>toolu_01Rzd6Jcv6xq5oddu3LoJ4Du</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-scottdensmore-Developer-scottdensmore-movieswiftui/2cae28a4-28e8-4bfa-9225-7682543f3664/tasks/b7x5c20kg.output</output-file>
+<status>completed</status>
+<summary>Background command "tvOS build" completed (exit code 0)</summary>
+</task-notification>
