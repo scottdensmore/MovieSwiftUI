@@ -10,6 +10,7 @@
 		02B521135E19FD981D84DD6B /* PeopleAndFanClubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0A35A94144C5ACB45DFA56 /* PeopleAndFanClubTests.swift */; };
 		03B707B45F4E4AC6C91747F4 /* GenresList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691F7A0B22E6D9D800755E44 /* GenresList.swift */; };
 		047EFF57CC9616EFDDDCB54F /* MoviesListingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC076656E83684880A4B5E34 /* MoviesListingTests.swift */; };
+		05C388B9BF50DD244DAA563D /* EnvironmentKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */; };
 		087DF10CBD2FD4AFDA205682 /* MoviePostersRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6918454822BDF2980011E742 /* MoviePostersRow.swift */; };
 		0881352D8637270097D313FC /* DiscoverCoverImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FB61EA22BA2E1900CBEEC7 /* DiscoverCoverImage.swift */; };
 		088E192A677C5094ED9ACB4E /* MovieBackdropImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6953B50822D36B8800859723 /* MovieBackdropImage.swift */; };
@@ -41,6 +42,7 @@
 		39514678BDFCB1D526F3E6E5 /* MoviesHomeGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697033D8234F856000AF5A47 /* MoviesHomeGrid.swift */; };
 		3AACC34FD6890829501E05D1 /* PeopleActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3020000000000000007 /* PeopleActionsTests.swift */; };
 		3B8A226D9D1B01067FDA1198 /* MovieCoverRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69202ACC22F45D6E006DC3B1 /* MovieCoverRow.swift */; };
+		3C5EEAA60122ADC0BDBCE553 /* EnvironmentKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */; };
 		3D18BFC63470DF866834ED02 /* IntentAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97BA2EECDEDF93DD6D8B455C /* IntentAction.swift */; };
 		3ED3157981E0856EF18436FA /* AppPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C4020000000000000001 /* AppPersistence.swift */; };
 		3EEB10C1DF64067CCAC632F2 /* SortMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A37863AE97FB06C0C61DB742 /* SortMenu.swift */; };
@@ -291,6 +293,7 @@
 		B55756B2B8E0A7C9BF226123 /* PeopleDetailMovieRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E3260122D1DE81003749B1 /* PeopleDetailMovieRow.swift */; };
 		B5C83CB3B0649FE17ADC9A45 /* MovieDetailViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1F32A0BF70665ACD0F5E11 /* MovieDetailViewModifiers.swift */; };
 		B6DE2969AA1C1EB2B059F8C7 /* BottomMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 694219F922CF3D3B008004A2 /* BottomMenu.swift */; };
+		BC3A25927C658ECB38439464 /* EnvironmentKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */; };
 		BC6023F42A252352D7E93DAC /* MoviesList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692AA62E22AD3DFA0054DA84 /* MoviesList.swift */; };
 		BCA091BDB16D4EE23D504C6E /* DiscoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139EDFC27BD50F5A9E1F0F7B /* DiscoverTests.swift */; };
 		BD3C1411A568DDF4F14A0628 /* MovieBackdropsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6912B51222BE1DB4005E51D4 /* MovieBackdropsRow.swift */; };
@@ -559,6 +562,7 @@
 		D88D741B4D2967DAD4EA9ABC /* IntentActionStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IntentActionStoreTests.swift; sourceTree = "<group>"; };
 		E02DB6FACAE7772F3ADC0455 /* MovieSwiftTVTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieSwiftTVTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E22CAD9FAC4374510B243BDA /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnvironmentKeysTests.swift; sourceTree = "<group>"; };
 		EB4473284882CE3A82A5206A /* SettingsGenresActionSheetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsGenresActionSheetTests.swift; sourceTree = "<group>"; };
 		F1A2B3C4D5E6F7A8B9C0D1E3 /* TVSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVSearchView.swift; sourceTree = "<group>"; };
 		F4A6EF68C17147CEE364678E /* MovieSwiftTVUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MovieSwiftTVUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1230,6 +1234,7 @@
 				3D0A35A94144C5ACB45DFA56 /* PeopleAndFanClubTests.swift */,
 				EB4473284882CE3A82A5206A /* SettingsGenresActionSheetTests.swift */,
 				D88D741B4D2967DAD4EA9ABC /* IntentActionStoreTests.swift */,
+				E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */,
 			);
 			path = MovieSwiftTests;
 			sourceTree = "<group>";
@@ -1887,6 +1892,7 @@
 				C53E47C635E529FA9CFEB9C5 /* PeopleAndFanClubTests.swift in Sources */,
 				1CAE3B6CBACF5F3BC3A7C827 /* SettingsGenresActionSheetTests.swift in Sources */,
 				4B55B39EE0FC28A57DD2C5BA /* IntentActionStoreTests.swift in Sources */,
+				05C388B9BF50DD244DAA563D /* EnvironmentKeysTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1926,6 +1932,7 @@
 				02B521135E19FD981D84DD6B /* PeopleAndFanClubTests.swift in Sources */,
 				C8C078DEFD38D5A1DF1E56DD /* SettingsGenresActionSheetTests.swift in Sources */,
 				A4BB9E1F0A0EAE20BE0074B4 /* IntentActionStoreTests.swift in Sources */,
+				3C5EEAA60122ADC0BDBCE553 /* EnvironmentKeysTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1955,6 +1962,7 @@
 				AF9AC036F8E4FCA06774294A /* AppBootstrapTests.swift in Sources */,
 				DA81A22952074553E170782F /* ErrorDiagnosticTests.swift in Sources */,
 				B1A13B3325F32D4D38FA4B1B /* IntentActionStoreTests.swift in Sources */,
+				BC3A25927C658ECB38439464 /* EnvironmentKeysTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -94,6 +94,7 @@ enum DiscoverUndoState {
 struct DiscoverView: ConnectedView {
     @Environment(Store<AppState>.self) private var store
     @Environment(\.isRunningUISmokeTests) private var isRunningUISmokeTests
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Props
     struct Props {
@@ -211,6 +212,8 @@ struct DiscoverView: ConnectedView {
                     .foregroundStyle(color)
             }
             .frame(width: 50, height: 50)
+            // Liquid Glass backing for the floating swipe-action button.
+            .glassEffect(.regular.interactive(), in: .circle)
             .padding(12)
             .contentShape(Rectangle())
         })
@@ -224,7 +227,7 @@ struct DiscoverView: ConnectedView {
                             : String(localized: "Add to seenlist", comment: "Accessibility label for the swipe-to-seenlist action on a Discover card"))
         .offset(x: xOffset, y: yOffset)
         .opacity(opacity)
-        .animation(.spring(), value: self.draggedViewState.translation)
+        .animation(reduceMotion ? nil : .spring(), value: self.draggedViewState.translation)
     }
 
     // MARK: Body views
@@ -249,7 +252,7 @@ struct DiscoverView: ConnectedView {
                     .accessibilityIdentifier(AccessibilityID.Discover.currentMovieTitle)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
                     .offset(x: 0, y: -15)
-                    .animation(.easeInOut, value: self.draggedViewState.isDragging)
+                    .animation(reduceMotion ? nil : .easeInOut, value: self.draggedViewState.isDragging)
 
                 primaryActionButton(systemImage: "heart.fill",
                                     color: .pink,
@@ -291,7 +294,7 @@ struct DiscoverView: ConnectedView {
                     .accessibilityLabel("Skip movie")
                     .offset(x: 0, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1)
-                    .animation(.spring(), value: self.draggedViewState.isDragging)
+                    .animation(reduceMotion ? nil : .spring(), value: self.draggedViewState.isDragging)
 
                 Button(action: {
                     props.dispatch(MoviesActions.ResetRandomDiscover())
@@ -305,7 +308,7 @@ struct DiscoverView: ConnectedView {
                     .accessibilityLabel("Reset discover")
                     .offset(x: 60, y: 30)
                     .opacity(self.draggedViewState.isDragging ? 0.0 : 1.0)
-                    .animation(.spring(), value: self.draggedViewState.isDragging)
+                    .animation(reduceMotion ? nil : .spring(), value: self.draggedViewState.isDragging)
             } else if DiscoverEmptyState.shouldShow(currentMovie: props.currentMovie) {
                 let presentation = DiscoverEmptyStateContent.presentation(filter: props.filter,
                                                                          isRunningUISmokeTests: isRunningUISmokeTests)
@@ -348,7 +351,7 @@ struct DiscoverView: ConnectedView {
                 .offset(x: -60, y: 30)
                 .opacity(DiscoverUndoState.canUndo(previousMovie: props.lastDiscarded,
                                                    isDragging: self.draggedViewState.isActive) ? 1 : 0)
-                .animation(.spring(),
+                .animation(reduceMotion ? nil : .spring(),
                            value: DiscoverUndoState.canUndo(previousMovie: props.lastDiscarded,
                                                             isDragging: self.draggedViewState.isActive))
         }
@@ -404,9 +407,9 @@ struct DiscoverView: ConnectedView {
                                                                                       size: .medium))
                         .scaleEffect(1.0 - CGFloat(depth) * 0.03 + CGFloat(self.scaleResistance()))
                         .padding(.bottom, CGFloat(depth * 16) - self.dragResistance())
-                        .animation(self.draggedViewState.isActive ?
+                        .animation(reduceMotion ? nil : (self.draggedViewState.isActive ?
                             .easeIn(duration: 0) :
-                            .spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0),
+                            .spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0)),
                                    value: self.draggedViewState.translation)
                 }
             }
