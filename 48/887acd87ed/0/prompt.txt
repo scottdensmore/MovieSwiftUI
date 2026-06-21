@@ -1268,3 +1268,7 @@ Ok lets finish up Phase 4 work
 <status>completed</status>
 <summary>Background command "Poll PR #52 CI" completed (exit code 0)</summary>
 </task-notification>
+
+---
+
+What do you need my input on?
