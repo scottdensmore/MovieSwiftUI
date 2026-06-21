@@ -167,6 +167,7 @@
 		7CAF8226C325D081C667659B /* MovieDetailFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49504DE33D2A080CCD3E968 /* MovieDetailFocus.swift */; };
 		7FCF51850C70BE392806DEC0 /* MovieDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695882B722AD01C500AFABA9 /* MovieDetail.swift */; };
 		80EB35C8ED8FD0091695F05E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E22CAD9FAC4374510B243BDA /* Cocoa.framework */; };
+		823F2212C411F10795AAAACF /* MetricKitCrashReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDDF26A9C5EE6EDC6F374CA /* MetricKitCrashReporterTests.swift */; };
 		84342E495B744F5C30E6EDC6 /* MovieCrosslineRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6915D63822AD42A900DF0C5F /* MovieCrosslineRow.swift */; };
 		8696CA6066ECC08BAAEBEBD5 /* ErrorDiagnostic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685DABD6CE2035044F06BAFD /* ErrorDiagnostic.swift */; };
 		86F38041838111D126383774 /* CustomListCoverRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6953B50A22D36FF500859723 /* CustomListCoverRow.swift */; };
@@ -306,6 +307,7 @@
 		C2B682BAD8FCEE56179E1734 /* FHACondFrenchNC.otf in Resources */ = {isa = PBXBuildFile; fileRef = 691E905622BF5A3D00AA23FE /* FHACondFrenchNC.otf */; };
 		C4975386DFA3685FB6D57E1A /* AppCompositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67E402658E67B5B8A23CB459 /* AppCompositionTests.swift */; };
 		C53E47C635E529FA9CFEB9C5 /* PeopleAndFanClubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0A35A94144C5ACB45DFA56 /* PeopleAndFanClubTests.swift */; };
+		C750747D0226456374F89480 /* MetricKitCrashReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDDF26A9C5EE6EDC6F374CA /* MetricKitCrashReporterTests.swift */; };
 		C835FFAF4BF5E43B44748988 /* PeopleDetailBiographyRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6920B8EF22D09F8F004C7528 /* PeopleDetailBiographyRow.swift */; };
 		C8C078DEFD38D5A1DF1E56DD /* SettingsGenresActionSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4473284882CE3A82A5206A /* SettingsGenresActionSheetTests.swift */; };
 		CCABF22B7929EE4595C7CEA3 /* MovieDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF48FA94B6407A1A138B63A /* MovieDetailTests.swift */; };
@@ -329,6 +331,7 @@
 		E051BBA48922959E3C5B958E /* PeopleDetailHeaderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CD111E22D09DD900C5D89D /* PeopleDetailHeaderRow.swift */; };
 		E261BDE45B0A30213A3A3BDB /* MoviesGenreList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FD020B22B55268003E529E /* MoviesGenreList.swift */; };
 		E54EFB1ADDB6C7A2143DD04E /* PeopleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69861EF422D074E500F9882E /* PeopleRow.swift */; };
+		E62056245606F07368E66F0D /* MetricKitCrashReporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDDF26A9C5EE6EDC6F374CA /* MetricKitCrashReporterTests.swift */; };
 		E886B3D0EDBD7F1128893A29 /* TVMovieDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5EEEB18CC8FC9A70406B36 /* TVMovieDetail.swift */; };
 		E88E9FCE7C9B1D45FF310AF2 /* FanClubHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6967C88322E8F60300BA49B1 /* FanClubHome.swift */; };
 		EECDAB81598963CD55CE2257 /* MovieInfoRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699179EE257E194100D375E7 /* MovieInfoRow.swift */; };
@@ -506,6 +509,7 @@
 		69FFAF8B22A99F1200801F3C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		69FFAF8D22A99F1200801F3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6A4E2965DC4DC5E4271E7ADF /* MovieSwiftMacUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MovieSwiftMacUITests.swift; sourceTree = "<group>"; };
+		7BDDF26A9C5EE6EDC6F374CA /* MetricKitCrashReporterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricKitCrashReporterTests.swift; sourceTree = "<group>"; };
 		8BD3C3BBBFE4D2D9F1653B85 /* UITestHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestHelpers.swift; sourceTree = "<group>"; };
 		8DD65F66DBFDFF7A545881FC /* EnvironmentKeys.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EnvironmentKeys.swift; sourceTree = "<group>"; };
 		97BA2EECDEDF93DD6D8B455C /* IntentAction.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IntentAction.swift; sourceTree = "<group>"; };
@@ -1235,6 +1239,7 @@
 				EB4473284882CE3A82A5206A /* SettingsGenresActionSheetTests.swift */,
 				D88D741B4D2967DAD4EA9ABC /* IntentActionStoreTests.swift */,
 				E62E23F02DBA92FFE18FD3A6 /* EnvironmentKeysTests.swift */,
+				7BDDF26A9C5EE6EDC6F374CA /* MetricKitCrashReporterTests.swift */,
 			);
 			path = MovieSwiftTests;
 			sourceTree = "<group>";
@@ -1893,6 +1898,7 @@
 				1CAE3B6CBACF5F3BC3A7C827 /* SettingsGenresActionSheetTests.swift in Sources */,
 				4B55B39EE0FC28A57DD2C5BA /* IntentActionStoreTests.swift in Sources */,
 				05C388B9BF50DD244DAA563D /* EnvironmentKeysTests.swift in Sources */,
+				823F2212C411F10795AAAACF /* MetricKitCrashReporterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1933,6 +1939,7 @@
 				C8C078DEFD38D5A1DF1E56DD /* SettingsGenresActionSheetTests.swift in Sources */,
 				A4BB9E1F0A0EAE20BE0074B4 /* IntentActionStoreTests.swift in Sources */,
 				3C5EEAA60122ADC0BDBCE553 /* EnvironmentKeysTests.swift in Sources */,
+				E62056245606F07368E66F0D /* MetricKitCrashReporterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1963,6 +1970,7 @@
 				DA81A22952074553E170782F /* ErrorDiagnosticTests.swift in Sources */,
 				B1A13B3325F32D4D38FA4B1B /* IntentActionStoreTests.swift in Sources */,
 				BC3A25927C658ECB38439464 /* EnvironmentKeysTests.swift in Sources */,
+				C750747D0226456374F89480 /* MetricKitCrashReporterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
