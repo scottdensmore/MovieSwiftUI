@@ -58,6 +58,7 @@ struct DraggableCover: View {
     }
 
     // MARK: - Internal vars
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var predictedEndLocation: CGPoint?
     @State private var hasMoved = false
     @State private var delayedIsActive = false
@@ -156,7 +157,7 @@ struct DraggableCover: View {
         return DiscoverCoverImage(imageLoader: ImageLoaderCache.shared.loaderFor(path: posterPath,
                                                                                  size: .medium))
             .offset(computedOffset())
-            .animation(delayedIsActive ? coverSpringAnimation : nil, value: computedOffset())
+            .animation(reduceMotion ? nil : (delayedIsActive ? coverSpringAnimation : nil), value: computedOffset())
             .opacity(predictedEndLocation != nil ? 0 : 1)
             .rotationEffect(computeAngle())
             .scaleEffect(dragState.isActive ? 1.03: 1)
@@ -164,7 +165,7 @@ struct DraggableCover: View {
                     radius: dragState.isActive ? shadowRadius : 0,
                     x: dragState.isActive ? shadowSize : 0,
                     y: dragState.isActive ? shadowSize : 0)
-            .animation(coverSpringAnimation, value: dragState.translation)
+            .animation(reduceMotion ? nil : coverSpringAnimation, value: dragState.translation)
             .gesture(longPressDrag)
             .simultaneousGesture(TapGesture(count: 1).onEnded({ _ in
                 if !self.hasMoved {

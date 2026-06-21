@@ -24,7 +24,13 @@ public struct BorderedButton: View {
             self.action()
         }, label: {
             HStack(alignment: .center, spacing: 4) {
-                Image(systemName: systemImageName).foregroundStyle(isOn ? .white : color)
+                // The symbol fills + bounces when `isOn` toggles. Callers that
+                // pass a constant `isOn` (e.g. the filter / refill buttons)
+                // never animate, which is the intended no-op.
+                Image(systemName: systemImageName)
+                    .symbolVariant(isOn ? .fill : .none)
+                    .symbolEffect(.bounce, value: isOn)
+                    .foregroundStyle(isOn ? .white : color)
                 Text(text).foregroundStyle(isOn ? .white : color)
             }
             })
