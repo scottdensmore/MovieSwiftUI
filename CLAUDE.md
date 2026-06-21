@@ -11,16 +11,22 @@ directly to `main`, and do not skip steps even for small changes.
 2. **TDD.** Build the change test-first per the red → green →
    refactor cycle below. The test and the code it satisfies land in
    the **same commit**.
-3. **Lint & format.** Run `./scripts/format.sh` (or `swiftformat`
-   on touched files) and `./scripts/lint.sh --fix` before staging —
-   see "Lint & format before every commit".
+3. **Format.** Run `./scripts/format.sh` (or `swiftformat` on the
+   files you touched) before staging — see "Format before every
+   commit". **Linting is not a separate pre-staging step.** The
+   `verifier` subagent (step 4) owns the strict-lint gate, so don't
+   run `./scripts/lint.sh --fix` here; let the verifier surface any
+   violations and fix what it reports.
 4. **Verify with the `verifier` subagent.** After the work is done
    and before the review, run the `verifier` subagent
    (`.claude/agents/verifier.md`) over the pending change. It runs the
-   same gates CI enforces — `SwiftLint`, the relevant build(s), and the
-   `package-tests` / `ios-tests` / `ios-tests-ipad` / `mac-tests` /
-   `tvos-tests` suites that cover the change — and reports any build
-   failures, failing tests, or lint violations. **The main agent must
+   same gates CI enforces — `SwiftLint` (`./scripts/lint.sh`, strict;
+   this is the project's lint gate, not a step-3 pre-pass), the
+   relevant build(s), and the `package-tests` / `ios-tests` /
+   `ios-tests-ipad` / `mac-tests` / `tvos-tests` suites that cover the
+   change — and reports any build failures, failing tests, or lint
+   violations. The verifier is read-only, so it reports violations
+   rather than auto-correcting them. **The main agent must
    fix every issue the verifier reports and re-run the verifier until it
    returns a `PASS` verdict before moving on to the review.** This is a required
    step, not optional — it keeps broken builds and red tests from ever
@@ -116,14 +122,15 @@ relevant accessibility identifier is present) where possible. The
 TDD cycle still applies — the failing test is the structural
 assertion before the visual fix lands.
 
-## Lint & format before every commit
+## Format before every commit; lint is the verifier's gate
 
-Run the project's linter and formatter before staging changes. CI
-runs `./scripts/lint.sh` on every PR (`.github/workflows/lint.yml`),
-which executes `swiftlint lint --strict` — so the canonical way to
-match CI locally is `./scripts/lint.sh` (not bare `swiftlint`).
-Catching violations locally avoids a forced fixup commit + extra CI
-cycle.
+Run the project's formatter on the files you touched before staging
+changes. **Linting is not a separate pre-commit step** — the
+`verifier` subagent (delivery-workflow step 4) runs `./scripts/lint.sh`
+(strict, matching CI's `.github/workflows/lint.yml`) as the lint gate
+and reports any violations for the main agent to fix. CI still runs
+the same `./scripts/lint.sh` on every PR, so the verifier is what
+catches violations locally before they reach CI.
 
 Before `git commit`:
 
@@ -134,30 +141,25 @@ Before `git commit`:
 # preserve`, etc.) precisely so tree-wide runs don't reflow
 # unrelated files.
 swiftformat path/to/ChangedFile.swift path/to/OtherChanged.swift
-
-# Lint the whole repo. `--fix` auto-applies SwiftLint's correctable
-# rules (trailing whitespace, colon/comma spacing, redundant void
-# return, trailing newline) and THEN re-runs `swiftlint lint --strict`
-# to surface anything autocorrect couldn't fix — same exit semantics
-# as CI.
-./scripts/lint.sh --fix
 ```
 
-The scripts do more than just wire in flags, and there is a parallel
-wrapper for SwiftFormat:
+`format.sh` is a thin wrapper around `swiftformat MovieSwift` that
+adds a `--check` mode and an install-guard:
 
 ```bash
 ./scripts/format.sh           # rewrite every file under MovieSwift/ in place
 ./scripts/format.sh --check   # lint-only; non-zero exit if anything would change
-./scripts/lint.sh --fix       # swiftlint --fix, THEN swiftlint lint --strict
 ```
 
-Running bare `swiftlint --fix` only applies auto-corrections; it does
-**not** re-lint, so non-auto-correctable violations — the exact
-failures CI's strict pass will catch — go undetected locally.
-`./scripts/lint.sh --fix` performs that second verification pass for
-you. `format.sh` is a thin wrapper around `swiftformat MovieSwift`
-that adds the `--check` mode and an install-guard.
+When the verifier reports lint violations, fix what it flags. Most are
+hand-fixes; for the mechanically-correctable ones (trailing whitespace,
+colon/comma spacing, redundant void return, trailing newline) you may
+run `./scripts/lint.sh --fix`, which auto-applies SwiftLint's
+correctable rules and THEN re-runs `swiftlint lint --strict` to surface
+anything autocorrect couldn't fix — then re-run the verifier. Running
+bare `swiftlint --fix` only applies auto-corrections and does **not**
+re-lint, so don't rely on it; `./scripts/lint.sh` (no `--fix`) is the
+strict gate the verifier runs.
 
 ### Exemptions: two-tier policy
 

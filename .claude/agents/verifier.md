@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Runs the build/test/lint gates over a pending change before code review. Use proactively after lint/format (workflow step 3) and before the code-reviewer subagent (step 5). Read-only on source — it runs the checks and reports failures back to the main agent to fix; it never edits code.
+description: Runs the build/test/lint gates over a pending change before code review. It owns the strict-lint gate (`./scripts/lint.sh`) — linting is not a separate step-3 pre-pass. Use proactively after formatting (workflow step 3) and before the code-reviewer subagent (step 5). Read-only on source — it runs the checks and reports failures back to the main agent to fix; it never edits code.
 tools: Bash, Read, Grep, Glob
 model: sonnet
 ---
