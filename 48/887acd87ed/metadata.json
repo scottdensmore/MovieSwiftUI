@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "48887acd87ed",
+  "strategy": "manual-commit",
+  "branch": "feat/liquid-glass-polish",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DraggableCover.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieButtonsRow.swift",
+    "MovieSwift/MovieSwiftTests/EnvironmentKeysTests.swift",
+    "MovieSwift/Packages/UI/Sources/UI/buttons/BorderedButton.swift",
+    "MovieSwift/Shared/extensions/EnvironmentKeys.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/48/887acd87ed/0/metadata.json",
+      "transcript": "/48/887acd87ed/0/full.jsonl",
+      "content_hash": "/48/887acd87ed/0/content_hash.txt",
+      "prompt": "/48/887acd87ed/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 369090,
+    "cache_creation_tokens": 39264048,
+    "cache_read_tokens": 3403555186,
+    "output_tokens": 5161255,
+    "api_call_count": 7428
+  }
+}

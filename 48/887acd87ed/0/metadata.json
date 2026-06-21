@@ -1,0 +1,94 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "48887acd87ed",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-21T02:01:45.19699Z",
+  "branch": "feat/liquid-glass-polish",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "MovieSwift/MovieSwift.xcodeproj/project.pbxproj",
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/MovieSwift/views/components/discover/DraggableCover.swift",
+    "MovieSwift/MovieSwift/views/components/movieDetail/rows/MovieButtonsRow.swift",
+    "MovieSwift/MovieSwiftTests/EnvironmentKeysTests.swift",
+    "MovieSwift/Packages/UI/Sources/UI/buttons/BorderedButton.swift",
+    "MovieSwift/Shared/extensions/EnvironmentKeys.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "e5a53ce16209",
+  "token_usage": {
+    "input_tokens": 369090,
+    "cache_creation_tokens": 39264048,
+    "cache_read_tokens": 3403555186,
+    "output_tokens": 5161255,
+    "api_call_count": 7428
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "e5a53ce16209",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 57
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-06-21T02:01:44.0634Z",
+    "agent_lines": 52,
+    "agent_removed": 36,
+    "human_added": 8,
+    "human_modified": 1,
+    "human_removed": 0,
+    "total_committed": 61,
+    "total_lines_changed": 97,
+    "agent_percentage": 90.72164948453609,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 53,
+      "agent_lines_removed": 36
+    }
+  ]
+}
