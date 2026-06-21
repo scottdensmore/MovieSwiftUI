@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "08486740c320",
+  "strategy": "manual-commit",
+  "branch": "docs/lint-owned-by-verifier",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "CLAUDE.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/08/486740c320/0/metadata.json",
+      "transcript": "/08/486740c320/0/full.jsonl",
+      "content_hash": "/08/486740c320/0/content_hash.txt",
+      "prompt": "/08/486740c320/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 385220,
+    "cache_creation_tokens": 39342205,
+    "cache_read_tokens": 3409676508,
+    "output_tokens": 5177729,
+    "api_call_count": 7452
+  }
+}
