@@ -206,4 +206,38 @@ struct CustomListTests {
     @Test func myListsPresentationReturnsEmptySortedMoviesForEmptyInput() {
         #expect(MyListsPresentation.sortedMovies([], by: .byReleaseDate, state: AppState()) == [])
     }
+
+    @Test func myListsDeleteConfirmationMessageNamesTheListAndReassuresAboutMovies() {
+        // The destructive delete confirmation must name the list being deleted
+        // and make clear the list's movies aren't removed from elsewhere.
+        let list = CustomList(id: 7, name: "Sci-Fi Classics", cover: nil, movies: [1, 2])
+
+        let message = MyListsPresentation.deleteConfirmationMessage(for: list)
+
+        #expect(message.contains("Sci-Fi Classics"))
+        #expect(message.localizedCaseInsensitiveContains("won't be removed"))
+    }
+
+    @Test func myListsCustomListToDeleteResolvesOnlyWhenSectionAndHighlightValid() {
+        let a = CustomList(id: 1, name: "A", cover: nil, movies: [])
+        let b = CustomList(id: 2, name: "B", cover: nil, movies: [])
+        let lists = [a, b]
+
+        // Not on the Custom Lists section → no-op.
+        #expect(MyListsPresentation.customListToDelete(highlightedId: 1,
+                                                       isCustomListsSection: false,
+                                                       customLists: lists) == nil)
+        // No row highlighted → no-op.
+        #expect(MyListsPresentation.customListToDelete(highlightedId: nil,
+                                                       isCustomListsSection: true,
+                                                       customLists: lists) == nil)
+        // Highlighted id doesn't resolve to a list → no-op.
+        #expect(MyListsPresentation.customListToDelete(highlightedId: 99,
+                                                       isCustomListsSection: true,
+                                                       customLists: lists) == nil)
+        // Valid section + highlight → the matching list.
+        #expect(MyListsPresentation.customListToDelete(highlightedId: 2,
+                                                       isCustomListsSection: true,
+                                                       customLists: lists)?.id == 2)
+    }
 }
