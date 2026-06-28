@@ -19,17 +19,33 @@ enum MyListsPresentation {
         "“\(list.name)” will be deleted. The movies in it won't be removed from your other lists."
     }
 
-    /// The custom list a macOS Delete-key press should target: the highlighted
-    /// row, but only while the Custom Lists section is showing and the
-    /// highlighted id actually resolves to a list. Returns `nil` (a no-op) in
-    /// every other case so the key press falls through to other handlers.
-    static func customListToDelete(highlightedId: Int?,
-                                   isCustomListsSection: Bool,
-                                   customLists: [CustomList]) -> CustomList? {
-        guard isCustomListsSection, let highlightedId else {
-            return nil
+    /// Which My Lists section is showing — the unit the Delete key acts on.
+    enum SectionKind: Equatable {
+        case wishlist
+        case seenlist
+        case customLists
+    }
+
+    /// What a macOS Delete-key press should do for the highlighted row.
+    enum HighlightedDeletion: Equatable {
+        case removeFromWishlist(movie: Int)
+        case removeFromSeenlist(movie: Int)
+        case deleteCustomList(id: Int)
+        case none
+    }
+
+    /// Routes a Delete-key press by section: movie sections remove the
+    /// highlighted movie immediately (reversible via the heart/eye toggle), the
+    /// Custom Lists section targets the highlighted list for a confirmed delete.
+    /// Returns `.none` (a no-op, so the key falls through) when nothing is
+    /// highlighted.
+    static func highlightedDeletion(section: SectionKind, highlightedId: Int?) -> HighlightedDeletion {
+        guard let id = highlightedId else { return .none }
+        switch section {
+        case .wishlist: return .removeFromWishlist(movie: id)
+        case .seenlist: return .removeFromSeenlist(movie: id)
+        case .customLists: return .deleteCustomList(id: id)
         }
-        return customLists.first { $0.id == highlightedId }
     }
 }
 
@@ -297,6 +313,14 @@ struct MyLists: ConnectedView {
                 }
             }
 
+            var kind: MyListsPresentation.SectionKind {
+                switch self {
+                case .wishlist: return .wishlist
+                case .seenlist: return .seenlist
+                case .customLists: return .customLists
+                }
+            }
+
             var systemImage: String {
                 switch self {
                 case .wishlist: return "heart.fill"
@@ -341,8 +365,9 @@ struct MyLists: ConnectedView {
                     }
                     .onKeyPress(.return) { openHighlighted(props: props) }
                     .onKeyPress(characters: .init(charactersIn: " ")) { _ in openHighlighted(props: props) }
-                    // Delete key removes the highlighted custom list (via confirmation).
-                    .onKeyPress(.delete) { requestDeleteHighlightedCustomList(props: props) }
+                    // Delete key removes the highlighted row: wishlist/seenlist
+                    // movies immediately, custom lists via confirmation.
+                    .onKeyPress(.delete) { requestDeleteHighlighted(props: props) }
                     // Shift+Tab (delivered as the back-tab character U+0019 on macOS)
                     // moves focus back to the currently selected section tab.
                     .onKeyPress(characters: CharacterSet(charactersIn: "\u{19}"), phases: .down) { _ in
@@ -395,18 +420,30 @@ struct MyLists: ConnectedView {
             }
         }
 
-        /// Requests deletion of the currently highlighted custom list (Delete key).
-        /// No-op unless the Custom Lists section is showing and a list is highlighted.
-        private func requestDeleteHighlightedCustomList(props: Props) -> KeyPress.Result {
-            guard let list = MyListsPresentation.customListToDelete(
-                highlightedId: highlightedItemId,
-                isCustomListsSection: MyListsSection(rawValue: selectedList) == .customLists,
-                customLists: props.customLists
-            ) else {
+        /// Handles the Delete key for the highlighted row, routed by section:
+        /// removes the highlighted movie from wishlist/seenlist immediately, or
+        /// targets the highlighted custom list for a confirmed delete. No-op
+        /// (so the key falls through) when nothing is highlighted.
+        private func requestDeleteHighlighted(props: Props) -> KeyPress.Result {
+            let section = (MyListsSection(rawValue: selectedList) ?? .wishlist).kind
+            switch MyListsPresentation.highlightedDeletion(section: section, highlightedId: highlightedItemId) {
+            case let .removeFromWishlist(movie):
+                props.dispatch(MoviesActions.RemoveFromWishlist(movie: movie))
+                clearHighlightIfEquals(movie)
+            case let .removeFromSeenlist(movie):
+                props.dispatch(MoviesActions.RemoveFromSeenList(movie: movie))
+                clearHighlightIfEquals(movie)
+            case let .deleteCustomList(id):
+                guard let list = props.customLists.first(where: { $0.id == id }) else { return .ignored }
+                listPendingDeletion = list
+            case .none:
                 return .ignored
             }
-            listPendingDeletion = list
             return .handled
+        }
+
+        private func clearHighlightIfEquals(_ id: Int) {
+            if highlightedItemId == id { highlightedItemId = nil }
         }
 
         @ViewBuilder
@@ -415,11 +452,13 @@ struct MyLists: ConnectedView {
             case .wishlist:
                 moviesRows(movieIds: props.wishlist,
                            props: props,
+                           section: .wishlist,
                            emptyText: "No movies in your wishlist yet",
                            sectionHeader: "\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")
             case .seenlist:
                 moviesRows(movieIds: props.seenlist,
                            props: props,
+                           section: .seenlist,
                            emptyText: "No movies in your seenlist yet",
                            sectionHeader: "\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")
             case .customLists:
@@ -430,6 +469,7 @@ struct MyLists: ConnectedView {
         @ViewBuilder
         private func moviesRows(movieIds: [Int],
                                 props: Props,
+                                section: MyListsSection,
                                 emptyText: String,
                                 sectionHeader: String) -> some View {
             Text(sectionHeader)
@@ -444,7 +484,7 @@ struct MyLists: ConnectedView {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 40)
             } else {
-                ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
+                ForEach(movieIds, id: \.self) { id in
                     MovieRow(movieId: id, displayListImage: false)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 8)
@@ -473,8 +513,38 @@ struct MyLists: ConnectedView {
                             }
                             .accessibilityIdentifier(AccessibilityID.MyLists.movie(id))
                         }
+                        // macOS has no swipe-to-delete here; right-click and the
+                        // Delete key remove the movie. Removal is immediate (no
+                        // confirmation) since it's reversible via the heart/eye
+                        // toggle, matching iOS swipe behaviour.
+                        .contextMenu {
+                            Button {
+                                selectedMovie = MovieNav(id: id)
+                            } label: {
+                                Label("Open", systemImage: "arrow.up.forward.square")
+                            }
+                            Divider()
+                            Button(role: .destructive) {
+                                removeMovie(id: id, section: section, props: props)
+                            } label: {
+                                Label("Remove from \(section.title)", systemImage: "trash")
+                            }
+                        }
                 }
             }
+        }
+
+        private func removeMovie(id: Int, section: MyListsSection, props: Props) {
+            switch section {
+            case .wishlist: props.dispatch(MoviesActions.RemoveFromWishlist(movie: id))
+            case .seenlist: props.dispatch(MoviesActions.RemoveFromSeenList(movie: id))
+            case .customLists:
+                // `removeMovie` is only for the movie sections; custom-list
+                // deletion goes through `listPendingDeletion` + the confirmation.
+                assertionFailure("removeMovie called for the customLists section")
+                return
+            }
+            clearHighlightIfEquals(id)
         }
 
         @ViewBuilder
