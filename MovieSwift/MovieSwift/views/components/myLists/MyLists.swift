@@ -1,15 +1,39 @@
-import SwiftUI
 import MovieSwiftFluxCore
+import SwiftUI
+
+// MARK: - MyListsPresentation
 
 enum MyListsPresentation {
     static func customLists(from customLists: [Int: CustomList]) -> [CustomList] {
-        customLists.compactMap { $0.value }
+        customLists.compactMap(\.value)
     }
 
     static func sortedMovies(_ movies: [Int], by sort: MoviesSort, state: AppState) -> [Int] {
         movies.sortedMoviesIds(by: sort, state: state)
     }
+
+    /// Confirmation copy for deleting a custom list. Names the list and
+    /// reassures that deleting the grouping doesn't remove the movies
+    /// themselves from the user's other lists.
+    static func deleteConfirmationMessage(for list: CustomList) -> String {
+        "“\(list.name)” will be deleted. The movies in it won't be removed from your other lists."
+    }
+
+    /// The custom list a macOS Delete-key press should target: the highlighted
+    /// row, but only while the Custom Lists section is showing and the
+    /// highlighted id actually resolves to a list. Returns `nil` (a no-op) in
+    /// every other case so the key press falls through to other handlers.
+    static func customListToDelete(highlightedId: Int?,
+                                   isCustomListsSection: Bool,
+                                   customLists: [CustomList]) -> CustomList? {
+        guard isCustomListsSection, let highlightedId else {
+            return nil
+        }
+        return customLists.first { $0.id == highlightedId }
+    }
 }
+
+// MARK: - MyLists
 
 struct MyLists: ConnectedView {
     struct Props {
@@ -29,21 +53,22 @@ struct MyLists: ConnectedView {
     @State private var isSortActionSheetPresented = false
     @State private var isEditingFormPresented = false
     #if os(macOS)
-    private struct MovieNav: Hashable { let id: Int }
-    private struct CustomListNav: Hashable { let id: Int }
-    @State private var selectedMovie: MovieNav?
-    @State private var selectedCustomList: CustomListNav?
-    @State private var highlightedItemId: Int?
-    @FocusState private var isListFocused: Bool
+        private struct MovieNav: Hashable { let id: Int }
+        private struct CustomListNav: Hashable { let id: Int }
+        @State private var selectedMovie: MovieNav?
+        @State private var selectedCustomList: CustomListNav?
+        @State private var highlightedItemId: Int?
+        @State private var listPendingDeletion: CustomList?
+        @FocusState private var isListFocused: Bool
     #endif
 
     func map(state: AppState, dispatch: @escaping DispatchFunction) -> Props {
         Props(dispatch: dispatch,
               customLists: MyListsPresentation.customLists(from: state.moviesState.customLists),
-              wishlist: MyListsPresentation.sortedMovies(state.moviesState.wishlist.map { $0 },
+              wishlist: MyListsPresentation.sortedMovies(Array(state.moviesState.wishlist),
                                                          by: selectedMoviesSort,
                                                          state: state),
-              seenlist: MyListsPresentation.sortedMovies(state.moviesState.seenlist.map { $0 },
+              seenlist: MyListsPresentation.sortedMovies(Array(state.moviesState.seenlist),
                                                          by: selectedMoviesSort,
                                                          state: state),
               movieLookup: state.moviesState.movies)
@@ -54,29 +79,31 @@ struct MyLists: ConnectedView {
     private func customListsSection(props: Props) -> some View {
         Section(header: Text("Custom Lists")) {
             Button(action: {
-                self.isEditingFormPresented = true
+                isEditingFormPresented = true
             }) {
                 Text("Create custom list").foregroundStyle(Color.steam_blue)
             }
             .accessibilityIdentifier(AccessibilityID.MyLists.createCustomListButton)
             ForEach(props.customLists) { list in
                 #if os(macOS)
-                Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
-                    CustomListRow(list: list,
-                                  coverMovie: CustomListPresentation.coverMovie(for: list,
-                                                                               movies: props.movieLookup))
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
-                .focusable()
-                .onKeyPress(.return) { selectedCustomList = CustomListNav(id: list.id); return .handled }
-                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedCustomList = CustomListNav(id: list.id); return .handled }
+                    Button(action: { selectedCustomList = CustomListNav(id: list.id) }) {
+                        CustomListRow(list: list,
+                                      coverMovie: CustomListPresentation.coverMovie(for: list,
+                                                                                    movies: props.movieLookup))
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
+                    .focusable()
+                    .onKeyPress(.return) { selectedCustomList = CustomListNav(id: list.id); return .handled }
+                    .onKeyPress(characters: .init(charactersIn: " ")) { _ in
+                        selectedCustomList = CustomListNav(id: list.id); return .handled
+                    }
                 #else
-                NavigationLink(destination: CustomListDetail(listId: list.id)) {
-                    CustomListRow(list: list,
-                                  coverMovie: CustomListPresentation.coverMovie(for: list,
-                                                                               movies: props.movieLookup))
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
+                    NavigationLink(destination: CustomListDetail(listId: list.id)) {
+                        CustomListRow(list: list,
+                                      coverMovie: CustomListPresentation.coverMovie(for: list,
+                                                                                    movies: props.movieLookup))
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
             .onDelete { index in
@@ -89,22 +116,22 @@ struct MyLists: ConnectedView {
 
     private func wishlistSection(props: Props) -> some View {
         Section(header: Text("\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")) {
-            ForEach(props.wishlist, id: \.self) {id in
+            ForEach(props.wishlist, id: \.self) { id in
                 #if os(macOS)
-                Button(action: { selectedMovie = MovieNav(id: id) }) {
-                    MovieRow(movieId: id, displayListImage: false)
-                        .padding(.horizontal, 6)
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
-                .focusable()
-                .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
-                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
+                    Button(action: { selectedMovie = MovieNav(id: id) }) {
+                        MovieRow(movieId: id, displayListImage: false)
+                            .padding(.horizontal, 6)
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
+                    .focusable()
+                    .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
+                    .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
                 #else
-                NavigationLink(destination: MovieDetail(movieId: id)) {
-                    MovieRow(movieId: id, displayListImage: false)
-                        .padding(.horizontal, 6)
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
+                    NavigationLink(destination: MovieDetail(movieId: id)) {
+                        MovieRow(movieId: id, displayListImage: false)
+                            .padding(.horizontal, 6)
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
             .onDelete { index in
@@ -117,22 +144,22 @@ struct MyLists: ConnectedView {
 
     private func seenSection(props: Props) -> some View {
         Section(header: Text("\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")) {
-            ForEach(props.seenlist, id: \.self) {id in
+            ForEach(props.seenlist, id: \.self) { id in
                 #if os(macOS)
-                Button(action: { selectedMovie = MovieNav(id: id) }) {
-                    MovieRow(movieId: id, displayListImage: false)
-                        .padding(.horizontal, 6)
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
-                .focusable()
-                .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
-                .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
+                    Button(action: { selectedMovie = MovieNav(id: id) }) {
+                        MovieRow(movieId: id, displayListImage: false)
+                            .padding(.horizontal, 6)
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
+                    .focusable()
+                    .onKeyPress(.return) { selectedMovie = MovieNav(id: id); return .handled }
+                    .onKeyPress(characters: .init(charactersIn: " ")) { _ in selectedMovie = MovieNav(id: id); return .handled }
                 #else
-                NavigationLink(destination: MovieDetail(movieId: id)) {
-                    MovieRow(movieId: id, displayListImage: false)
-                        .padding(.horizontal, 6)
-                }
-                .buttonStyle(SoftSelectionButtonStyle())
+                    NavigationLink(destination: MovieDetail(movieId: id)) {
+                        MovieRow(movieId: id, displayListImage: false)
+                            .padding(.horizontal, 6)
+                    }
+                    .buttonStyle(SoftSelectionButtonStyle())
                 #endif
             }
             .onDelete { index in
@@ -146,370 +173,423 @@ struct MyLists: ConnectedView {
     @ViewBuilder
     private func listView(props: Props) -> some View {
         #if os(macOS)
-        macOSListView(props: props)
+            macOSListView(props: props)
         #else
-        List {
-            customListsSection(props: props)
+            List {
+                customListsSection(props: props)
 
-            Picker(selection: $selectedList, label: Text("")) {
-                Text("Wishlist").tag(0)
-                Text("Seenlist").tag(1)
-            }.pickerStyle(.segmented)
+                Picker(selection: $selectedList, label: Text("")) {
+                    Text("Wishlist").tag(0)
+                    Text("Seenlist").tag(1)
+                }.pickerStyle(.segmented)
 
-            if selectedList == 0 {
-                wishlistSection(props: props)
-            } else if selectedList == 1 {
-                seenSection(props: props)
+                if selectedList == 0 {
+                    wishlistSection(props: props)
+                } else if selectedList == 1 {
+                    seenSection(props: props)
+                }
             }
-        }
-        #if os(iOS) || os(tvOS)
-        .listStyle(.grouped)
-        #endif
-        .confirmationDialog("Sort movies by", isPresented: $isSortActionSheetPresented) {
-            sortMenuButtons { self.selectedMoviesSort = $0 }
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: {
-                    self.isSortActionSheetPresented.toggle()
-                }, label: {
-                    Image(systemName: "line.horizontal.3.decrease.circle")
-                        .resizable()
-                        .frame(width: 25, height: 25)
-                })
-                .accessibilityLabel("Sort")
-                .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
+            #if os(iOS) || os(tvOS)
+            .listStyle(.grouped)
+            #endif
+            .confirmationDialog("Sort movies by", isPresented: $isSortActionSheetPresented) {
+                sortMenuButtons { selectedMoviesSort = $0 }
             }
-        }
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button(action: {
+                        isSortActionSheetPresented.toggle()
+                    }, label: {
+                        Image(systemName: "line.horizontal.3.decrease.circle")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                    })
+                    .accessibilityLabel("Sort")
+                    .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
+                }
+            }
         #endif
     }
 
     #if os(macOS)
-    @FocusState private var focusedSection: MyListsSection?
+        @FocusState private var focusedSection: MyListsSection?
 
-    private var sectionSwitcher: some View {
-        HStack(spacing: 6) {
-            ForEach(MyListsSection.allCases) { section in
-                sectionTabButton(section: section)
+        private var sectionSwitcher: some View {
+            HStack(spacing: 6) {
+                ForEach(MyListsSection.allCases) { section in
+                    sectionTabButton(section: section)
+                }
             }
+            .padding(6)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.primary.opacity(0.06))
+            )
         }
-        .padding(6)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
-        )
-    }
 
-    private func sectionTabButton(section: MyListsSection) -> some View {
-        let isSelected = selectedList == section.rawValue
-        return Button {
-            selectedList = section.rawValue
-            focusedSection = section
-        } label: {
-            Label(section.title, systemImage: section.systemImage)
-                .font(.subheadline)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(isSelected ? .white : .primary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 7)
-                .padding(.horizontal, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isSelected ? Color.accentColor : Color.clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(focusedSection == section ? Color.accentColor : .clear,
-                                lineWidth: 2)
-                )
+        private func sectionTabButton(section: MyListsSection) -> some View {
+            let isSelected = selectedList == section.rawValue
+            return Button {
+                selectedList = section.rawValue
+                focusedSection = section
+            } label: {
+                Label(section.title, systemImage: section.systemImage)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundStyle(isSelected ? .white : .primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 7)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(isSelected ? Color.accentColor : Color.clear)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(focusedSection == section ? Color.accentColor : .clear,
+                                    lineWidth: 2)
+                    )
+            }
+            .buttonStyle(.plain)
+            .focusable()
+            .focused($focusedSection, equals: section)
+            .focusEffectDisabled()
+            .accessibilityIdentifier(AccessibilityID.MyLists.section(section.title))
+            // Tab from any section tab moves focus into the movies / lists
+            // below; arrow keys still navigate between the three tabs.
+            .onKeyPress(.tab, phases: .down) { press in
+                guard !press.modifiers.contains(.shift) else { return .ignored }
+                focusedSection = nil
+                isListFocused = true
+                return .handled
+            }
+            .onKeyPress(.rightArrow) { moveSection(offset: 1) }
+            .onKeyPress(.leftArrow) { moveSection(offset: -1) }
         }
-        .buttonStyle(.plain)
-        .focusable()
-        .focused($focusedSection, equals: section)
-        .focusEffectDisabled()
-        .accessibilityIdentifier(AccessibilityID.MyLists.section(section.title))
-        // Tab from any section tab moves focus into the movies / lists
-        // below; arrow keys still navigate between the three tabs.
-        .onKeyPress(.tab, phases: .down) { press in
-            guard !press.modifiers.contains(.shift) else { return .ignored }
-            focusedSection = nil
-            isListFocused = true
+
+        private func moveSection(offset: Int) -> KeyPress.Result {
+            let all = MyListsSection.allCases
+            guard let current = focusedSection,
+                  let idx = all.firstIndex(of: current) else {
+                return .ignored
+            }
+            let nextIdx = idx + offset
+            guard all.indices.contains(nextIdx) else { return .ignored }
+            let next = all[nextIdx]
+            focusedSection = next
+            selectedList = next.rawValue
             return .handled
         }
-        .onKeyPress(.rightArrow) { moveSection(offset: 1) }
-        .onKeyPress(.leftArrow) { moveSection(offset: -1) }
-    }
 
-    private func moveSection(offset: Int) -> KeyPress.Result {
-        let all = MyListsSection.allCases
-        guard let current = focusedSection,
-              let idx = all.firstIndex(of: current) else {
-            return .ignored
-        }
-        let nextIdx = idx + offset
-        guard all.indices.contains(nextIdx) else { return .ignored }
-        let next = all[nextIdx]
-        focusedSection = next
-        selectedList = next.rawValue
-        return .handled
-    }
+        private enum MyListsSection: Int, CaseIterable, Identifiable, Hashable {
+            case wishlist
+            case seenlist
+            case customLists
+            var id: Int {
+                rawValue
+            }
 
-    private enum MyListsSection: Int, CaseIterable, Identifiable, Hashable {
-        case wishlist, seenlist, customLists
-        var id: Int { rawValue }
-        var title: String {
-            switch self {
-            case .wishlist: return "Wishlist"
-            case .seenlist: return "Seenlist"
-            case .customLists: return "Custom Lists"
+            var title: String {
+                switch self {
+                case .wishlist: return "Wishlist"
+                case .seenlist: return "Seenlist"
+                case .customLists: return "Custom Lists"
+                }
+            }
+
+            var systemImage: String {
+                switch self {
+                case .wishlist: return "heart.fill"
+                case .seenlist: return "eye.fill"
+                case .customLists: return "pin.fill"
+                }
             }
         }
-        var systemImage: String {
-            switch self {
-            case .wishlist: return "heart.fill"
-            case .seenlist: return "eye.fill"
-            case .customLists: return "pin.fill"
-            }
-        }
-    }
 
-    private func macOSListView(props: Props) -> some View {
-        VStack(spacing: 0) {
-            sectionSwitcher
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 10)
+        private func macOSListView(props: Props) -> some View {
+            VStack(spacing: 0) {
+                sectionSwitcher
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
 
-            ScrollViewReader { scrollProxy in
-                ScrollView {
-                    // Eager VStack rather than LazyVStack: on macOS a
-                    // LazyVStack's lazily-created rows don't acquire an
-                    // accessibility identity even once they're laid out
-                    // on-screen, so list rows become unreachable by VoiceOver
-                    // and unqueryable in UI tests. My Lists holds user-curated
-                    // collections (dozens of items, not thousands), so eager
-                    // rendering costs little and restores row accessibility.
-                    VStack(alignment: .leading, spacing: 0) {
-                        currentSectionContent(props: props)
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        // Eager VStack rather than LazyVStack: on macOS a
+                        // LazyVStack's lazily-created rows don't acquire an
+                        // accessibility identity even once they're laid out
+                        // on-screen, so list rows become unreachable by VoiceOver
+                        // and unqueryable in UI tests. My Lists holds user-curated
+                        // collections (dozens of items, not thousands), so eager
+                        // rendering costs little and restores row accessibility.
+                        VStack(alignment: .leading, spacing: 0) {
+                            currentSectionContent(props: props)
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.bottom, 24)
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.bottom, 24)
-                }
-                .focusable()
-                .focused($isListFocused)
-                .focusEffectDisabled()
-                .onKeyPress(.downArrow) {
-                    let ids = currentSectionItemIds(props: props)
-                    return moveHighlight(ids: ids, forward: true, scrollProxy: scrollProxy)
-                }
-                .onKeyPress(.upArrow) {
-                    let ids = currentSectionItemIds(props: props)
-                    return moveHighlight(ids: ids, forward: false, scrollProxy: scrollProxy)
-                }
-                .onKeyPress(.return) { openHighlighted(props: props) }
-                .onKeyPress(characters: .init(charactersIn: " ")) { _ in openHighlighted(props: props) }
-                // Shift+Tab (delivered as the back-tab character U+0019 on macOS)
-                // moves focus back to the currently selected section tab.
-                .onKeyPress(characters: CharacterSet(charactersIn: "\u{19}"), phases: .down) { _ in
-                    isListFocused = false
-                    focusedSection = MyListsSection(rawValue: selectedList) ?? .wishlist
-                    return .handled
+                    .focusable()
+                    .focused($isListFocused)
+                    .focusEffectDisabled()
+                    .onKeyPress(.downArrow) {
+                        let ids = currentSectionItemIds(props: props)
+                        return moveHighlight(ids: ids, forward: true, scrollProxy: scrollProxy)
+                    }
+                    .onKeyPress(.upArrow) {
+                        let ids = currentSectionItemIds(props: props)
+                        return moveHighlight(ids: ids, forward: false, scrollProxy: scrollProxy)
+                    }
+                    .onKeyPress(.return) { openHighlighted(props: props) }
+                    .onKeyPress(characters: .init(charactersIn: " ")) { _ in openHighlighted(props: props) }
+                    // Delete key removes the highlighted custom list (via confirmation).
+                    .onKeyPress(.delete) { requestDeleteHighlightedCustomList(props: props) }
+                    // Shift+Tab (delivered as the back-tab character U+0019 on macOS)
+                    // moves focus back to the currently selected section tab.
+                    .onKeyPress(characters: CharacterSet(charactersIn: "\u{19}"), phases: .down) { _ in
+                        isListFocused = false
+                        focusedSection = MyListsSection(rawValue: selectedList) ?? .wishlist
+                        return .handled
+                    }
                 }
             }
-        }
-        .onChange(of: selectedList) { _, _ in
-            // When the user switches section, reset the highlight to the
-            // first item of the new list.
-            highlightedItemId = currentSectionItemIds(props: props).first
-        }
-        .navigationDestination(item: $selectedMovie) { nav in
-            MovieDetail(movieId: nav.id)
-                .macBackKeyboardShortcut()
-        }
-        .navigationDestination(item: $selectedCustomList) { nav in
-            CustomListDetail(listId: nav.id)
-                .macBackKeyboardShortcut()
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Menu {
-                    sortMenuButtons { self.selectedMoviesSort = $0 }
-                } label: {
-                    Image(systemName: "line.horizontal.3.decrease.circle")
-                        .resizable()
-                        .frame(width: 22, height: 22)
+            .onChange(of: selectedList) { _, _ in
+                // When the user switches section, reset the highlight to the
+                // first item of the new list.
+                highlightedItemId = currentSectionItemIds(props: props).first
+            }
+            .navigationDestination(item: $selectedMovie) { nav in
+                MovieDetail(movieId: nav.id)
+                    .macBackKeyboardShortcut()
+            }
+            .navigationDestination(item: $selectedCustomList) { nav in
+                CustomListDetail(listId: nav.id)
+                    .macBackKeyboardShortcut()
+            }
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Menu {
+                        sortMenuButtons { selectedMoviesSort = $0 }
+                    } label: {
+                        Image(systemName: "line.horizontal.3.decrease.circle")
+                            .resizable()
+                            .frame(width: 22, height: 22)
+                    }
+                    .accessibilityLabel("Sort")
+                    .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
                 }
-                .accessibilityLabel("Sort")
-                .accessibilityIdentifier(AccessibilityID.MyLists.sortButton)
+            }
+            .alert("Delete list?",
+                   isPresented: Binding(get: { listPendingDeletion != nil },
+                                        set: { if !$0 { listPendingDeletion = nil } }),
+                   presenting: listPendingDeletion) { list in
+                Button("Delete", role: .destructive) {
+                    props.dispatch(MoviesActions.RemoveCustomList(list: list.id))
+                    if highlightedItemId == list.id { highlightedItemId = nil }
+                    // Pop the detail if the deleted list is the one open, so the
+                    // NavigationStack doesn't resolve to a stale "not found" view.
+                    if selectedCustomList?.id == list.id { selectedCustomList = nil }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { list in
+                Text(MyListsPresentation.deleteConfirmationMessage(for: list))
             }
         }
-    }
 
-    @ViewBuilder
-    private func currentSectionContent(props: Props) -> some View {
-        switch MyListsSection(rawValue: selectedList) ?? .wishlist {
-        case .wishlist:
-            moviesRows(movieIds: props.wishlist,
-                       props: props,
-                       emptyText: "No movies in your wishlist yet",
-                       sectionHeader: "\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")
-        case .seenlist:
-            moviesRows(movieIds: props.seenlist,
-                       props: props,
-                       emptyText: "No movies in your seenlist yet",
-                       sectionHeader: "\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")
-        case .customLists:
-            customListsRows(props: props)
+        /// Requests deletion of the currently highlighted custom list (Delete key).
+        /// No-op unless the Custom Lists section is showing and a list is highlighted.
+        private func requestDeleteHighlightedCustomList(props: Props) -> KeyPress.Result {
+            guard let list = MyListsPresentation.customListToDelete(
+                highlightedId: highlightedItemId,
+                isCustomListsSection: MyListsSection(rawValue: selectedList) == .customLists,
+                customLists: props.customLists
+            ) else {
+                return .ignored
+            }
+            listPendingDeletion = list
+            return .handled
         }
-    }
 
-    @ViewBuilder
-    private func moviesRows(movieIds: [Int],
-                            props: Props,
-                            emptyText: String,
-                            sectionHeader: String) -> some View {
-        Text(sectionHeader)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.bottom, 6)
+        @ViewBuilder
+        private func currentSectionContent(props: Props) -> some View {
+            switch MyListsSection(rawValue: selectedList) ?? .wishlist {
+            case .wishlist:
+                moviesRows(movieIds: props.wishlist,
+                           props: props,
+                           emptyText: "No movies in your wishlist yet",
+                           sectionHeader: "\(props.wishlist.count) movies in wishlist (\(selectedMoviesSort.title()))")
+            case .seenlist:
+                moviesRows(movieIds: props.seenlist,
+                           props: props,
+                           emptyText: "No movies in your seenlist yet",
+                           sectionHeader: "\(props.seenlist.count) movies in seenlist (\(selectedMoviesSort.title()))")
+            case .customLists:
+                customListsRows(props: props)
+            }
+        }
 
-        if movieIds.isEmpty {
-            Text(emptyText)
+        @ViewBuilder
+        private func moviesRows(movieIds: [Int],
+                                props: Props,
+                                emptyText: String,
+                                sectionHeader: String) -> some View {
+            Text(sectionHeader)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-        } else {
-            ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
-                MovieRow(movieId: id, displayListImage: false)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .macFocusHighlight(isFocused: highlightedItemId == id)
-                    .id(id)
-                    .onTapGesture {
-                        highlightedItemId = id
-                        isListFocused = true
-                    }
-                    .onTapGesture(count: 2) {
-                        selectedMovie = MovieNav(id: id)
-                    }
-                    // Same parity fix as the custom-list rows: the row is
-                    // gesture-driven (single = highlight, double = open) rather
-                    // than a Button, so on macOS its accessibility gets merged
-                    // away and isn't queryable. Replace it with a real Button so
-                    // it surfaces as a stable, labelled element (findable as
-                    // `myLists.movie.<id>` in UI tests) while keeping the
-                    // gesture-based visual behaviour. VoiceOver activation goes
-                    // straight to the detail, matching the sighted double-tap.
-                    .accessibilityRepresentation {
-                        Button(props.movieLookup[id]?.userTitle ?? "Movie \(id)") {
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
+
+            if movieIds.isEmpty {
+                Text(emptyText)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(Array(movieIds.enumerated()), id: \.offset) { _, id in
+                    MovieRow(movieId: id, displayListImage: false)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .macFocusHighlight(isFocused: highlightedItemId == id)
+                        .id(id)
+                        .onTapGesture {
+                            highlightedItemId = id
+                            isListFocused = true
+                        }
+                        .onTapGesture(count: 2) {
                             selectedMovie = MovieNav(id: id)
                         }
-                        .accessibilityIdentifier(AccessibilityID.MyLists.movie(id))
-                    }
+                        // Same parity fix as the custom-list rows: the row is
+                        // gesture-driven (single = highlight, double = open) rather
+                        // than a Button, so on macOS its accessibility gets merged
+                        // away and isn't queryable. Replace it with a real Button so
+                        // it surfaces as a stable, labelled element (findable as
+                        // `myLists.movie.<id>` in UI tests) while keeping the
+                        // gesture-based visual behaviour. VoiceOver activation goes
+                        // straight to the detail, matching the sighted double-tap.
+                        .accessibilityRepresentation {
+                            Button(props.movieLookup[id]?.userTitle ?? "Movie \(id)") {
+                                selectedMovie = MovieNav(id: id)
+                            }
+                            .accessibilityIdentifier(AccessibilityID.MyLists.movie(id))
+                        }
+                }
             }
         }
-    }
 
-    @ViewBuilder
-    private func customListsRows(props: Props) -> some View {
-        Button {
-            isEditingFormPresented = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(Color.steam_blue)
-                Text("Create custom list")
-                    .foregroundStyle(Color.steam_blue)
-                    .font(.body)
-                Spacer()
+        @ViewBuilder
+        private func customListsRows(props: Props) -> some View {
+            Button {
+                isEditingFormPresented = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.steam_blue)
+                    Text("Create custom list")
+                        .foregroundStyle(Color.steam_blue)
+                        .font(.body)
+                    Spacer()
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+                .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 10)
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.MyLists.createCustomListButton)
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.MyLists.createCustomListButton)
 
-        if props.customLists.isEmpty {
-            Text("No custom lists yet. Create one to group movies however you like.")
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-        } else {
-            ForEach(props.customLists) { list in
-                CustomListRow(list: list,
-                              coverMovie: CustomListPresentation.coverMovie(for: list,
-                                                                           movies: props.movieLookup))
-                    .macFocusHighlight(isFocused: highlightedItemId == list.id)
-                    .id(list.id)
-                    .onTapGesture {
-                        highlightedItemId = list.id
-                        isListFocused = true
-                    }
-                    .onTapGesture(count: 2) {
-                        selectedCustomList = CustomListNav(id: list.id)
-                    }
-                    // The row is driven by `.onTapGesture` (single = highlight,
-                    // double = open), not a Button, so on macOS its accessibility
-                    // gets merged away and isn't queryable. Replace the row's
-                    // accessibility with a real Button so it surfaces as a stable,
-                    // labelled element (findable as `myLists.customList.<id>` in
-                    // UI tests) while keeping the gesture-based visual behaviour.
-                    // VoiceOver activation intentionally navigates straight to the
-                    // detail (no highlight step), matching the sighted double-tap.
-                    .accessibilityRepresentation {
-                        Button(list.name) {
+            if props.customLists.isEmpty {
+                Text("No custom lists yet. Create one to group movies however you like.")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+            } else {
+                ForEach(props.customLists) { list in
+                    CustomListRow(list: list,
+                                  coverMovie: CustomListPresentation.coverMovie(for: list,
+                                                                                movies: props.movieLookup))
+                        .macFocusHighlight(isFocused: highlightedItemId == list.id)
+                        .id(list.id)
+                        .onTapGesture {
+                            highlightedItemId = list.id
+                            isListFocused = true
+                        }
+                        .onTapGesture(count: 2) {
                             selectedCustomList = CustomListNav(id: list.id)
                         }
-                        .accessibilityIdentifier(AccessibilityID.MyLists.customList(list.id))
-                    }
+                        // The row is driven by `.onTapGesture` (single = highlight,
+                        // double = open), not a Button, so on macOS its accessibility
+                        // gets merged away and isn't queryable. Replace the row's
+                        // accessibility with a real Button so it surfaces as a stable,
+                        // labelled element (findable as `myLists.customList.<id>` in
+                        // UI tests) while keeping the gesture-based visual behaviour.
+                        // VoiceOver activation intentionally navigates straight to the
+                        // detail (no highlight step), matching the sighted double-tap.
+                        .accessibilityRepresentation {
+                            Button(list.name) {
+                                selectedCustomList = CustomListNav(id: list.id)
+                            }
+                            .accessibilityIdentifier(AccessibilityID.MyLists.customList(list.id))
+                        }
+                        // macOS lists have no swipe-to-delete (the iOS `.onDelete`
+                        // doesn't apply here), so right-click and the Delete key are
+                        // the delete affordances. Both route through a confirmation.
+                        .contextMenu {
+                            Button {
+                                selectedCustomList = CustomListNav(id: list.id)
+                            } label: {
+                                Label("Open", systemImage: "arrow.up.forward.square")
+                            }
+                            Divider()
+                            Button(role: .destructive) {
+                                listPendingDeletion = list
+                            } label: {
+                                Label("Delete List", systemImage: "trash")
+                            }
+                        }
+                }
             }
         }
-    }
 
-    private func currentSectionItemIds(props: Props) -> [Int] {
-        switch MyListsSection(rawValue: selectedList) ?? .wishlist {
-        case .wishlist:    return props.wishlist
-        case .seenlist:    return props.seenlist
-        case .customLists: return props.customLists.map { $0.id }
-        }
-    }
-
-    private func moveHighlight(ids: [Int],
-                               forward: Bool,
-                               scrollProxy: ScrollViewProxy) -> KeyPress.Result {
-        guard !ids.isEmpty else { return .ignored }
-        if let current = highlightedItemId,
-           let idx = ids.firstIndex(of: current) {
-            let nextIdx = idx + (forward ? 1 : -1)
-            if ids.indices.contains(nextIdx) {
-                let next = ids[nextIdx]
-                highlightedItemId = next
-                withAnimation { scrollProxy.scrollTo(next, anchor: .center) }
+        private func currentSectionItemIds(props: Props) -> [Int] {
+            switch MyListsSection(rawValue: selectedList) ?? .wishlist {
+            case .wishlist: return props.wishlist
+            case .seenlist: return props.seenlist
+            case .customLists: return props.customLists.map(\.id)
             }
-        } else {
-            let first = ids.first
-            highlightedItemId = first
-            if let first { withAnimation { scrollProxy.scrollTo(first, anchor: .center) } }
         }
-        return .handled
-    }
 
-    private func openHighlighted(props: Props) -> KeyPress.Result {
-        guard let id = highlightedItemId else { return .ignored }
-        let section = MyListsSection(rawValue: selectedList) ?? .wishlist
-        switch section {
-        case .customLists:
-            selectedCustomList = CustomListNav(id: id)
-        case .wishlist, .seenlist:
-            selectedMovie = MovieNav(id: id)
+        private func moveHighlight(ids: [Int],
+                                   forward: Bool,
+                                   scrollProxy: ScrollViewProxy) -> KeyPress.Result {
+            guard !ids.isEmpty else { return .ignored }
+            if let current = highlightedItemId,
+               let idx = ids.firstIndex(of: current) {
+                let nextIdx = idx + (forward ? 1 : -1)
+                if ids.indices.contains(nextIdx) {
+                    let next = ids[nextIdx]
+                    highlightedItemId = next
+                    withAnimation { scrollProxy.scrollTo(next, anchor: .center) }
+                }
+            } else {
+                let first = ids.first
+                highlightedItemId = first
+                if let first { withAnimation { scrollProxy.scrollTo(first, anchor: .center) } }
+            }
+            return .handled
         }
-        return .handled
-    }
+
+        private func openHighlighted(props: Props) -> KeyPress.Result {
+            guard let id = highlightedItemId else { return .ignored }
+            let section = MyListsSection(rawValue: selectedList) ?? .wishlist
+            switch section {
+            case .customLists:
+                selectedCustomList = CustomListNav(id: id)
+            case .wishlist, .seenlist:
+                selectedMovie = MovieNav(id: id)
+            }
+            return .handled
+        }
     #endif
 
     @ViewBuilder
@@ -532,7 +612,7 @@ struct MyLists: ConnectedView {
             }
         }
         .sheet(isPresented: $isEditingFormPresented) {
-                CustomListForm(editingListId: nil).environment(self.store)
+            CustomListForm(editingListId: nil).environment(store)
         }
     }
 }
