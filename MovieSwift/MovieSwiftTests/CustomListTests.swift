@@ -130,6 +130,26 @@ struct CustomListTests {
         #expect(CustomListFormState.editingValues(editingListId: 7, customLists: [:]) == nil)
     }
 
+    @Test func customListFormCanSubmitRequiresANonBlankName() {
+        // The redesigned form disables Create/Save until the name has real
+        // content, so a list can never be created with an empty or
+        // whitespace-only name.
+        #expect(CustomListFormState.canSubmit(name: "") == false)
+        #expect(CustomListFormState.canSubmit(name: "   ") == false)
+        #expect(CustomListFormState.canSubmit(name: "\n\t ") == false)
+        #expect(CustomListFormState.canSubmit(name: "Favorites") == true)
+        #expect(CustomListFormState.canSubmit(name: "  Favorites  ") == true)
+    }
+
+    @Test func customListFormSanitizedNameTrimsSurroundingWhitespace() {
+        // The name that reaches the reducer is the sanitized one, so a list
+        // is never stored with leading/trailing whitespace even though
+        // `canSubmit` accepts a padded name as valid.
+        #expect(CustomListFormState.sanitizedName("  Favorites  ") == "Favorites")
+        #expect(CustomListFormState.sanitizedName("Favorites") == "Favorites")
+        #expect(CustomListFormState.sanitizedName("\n Sci-Fi \t") == "Sci-Fi")
+    }
+
     @Test func customListFormPresentationReturnsCoverMovieWhenPresent() {
         #expect(CustomListFormPresentation.coverMovie(coverId: sampleMovie.id,
                                                              movies: [sampleMovie.id: sampleMovie])?.id ==
