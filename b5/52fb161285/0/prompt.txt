@@ -1414,3 +1414,7 @@ Yes extend that so they have the same delete treatment
 ---
 
 There is only one movie that shows up in now playing. There should be more than that.
+
+---
+
+We should probably display the region somewhere so it is known in this instance. And a link to take you to the settings to change it
