@@ -218,26 +218,21 @@ struct CustomListTests {
         #expect(message.localizedCaseInsensitiveContains("won't be removed"))
     }
 
-    @Test func myListsCustomListToDeleteResolvesOnlyWhenSectionAndHighlightValid() {
-        let a = CustomList(id: 1, name: "A", cover: nil, movies: [])
-        let b = CustomList(id: 2, name: "B", cover: nil, movies: [])
-        let lists = [a, b]
+    @Test func myListsHighlightedDeletionRoutesBySection() {
+        // Movie sections remove the highlighted movie; the Custom Lists section
+        // targets the highlighted list for a confirmed delete.
+        #expect(MyListsPresentation.highlightedDeletion(section: .wishlist, highlightedId: 5) ==
+            .removeFromWishlist(movie: 5))
+        #expect(MyListsPresentation.highlightedDeletion(section: .seenlist, highlightedId: 7) ==
+            .removeFromSeenlist(movie: 7))
+        #expect(MyListsPresentation.highlightedDeletion(section: .customLists, highlightedId: 9) ==
+            .deleteCustomList(id: 9))
+    }
 
-        // Not on the Custom Lists section → no-op.
-        #expect(MyListsPresentation.customListToDelete(highlightedId: 1,
-                                                       isCustomListsSection: false,
-                                                       customLists: lists) == nil)
-        // No row highlighted → no-op.
-        #expect(MyListsPresentation.customListToDelete(highlightedId: nil,
-                                                       isCustomListsSection: true,
-                                                       customLists: lists) == nil)
-        // Highlighted id doesn't resolve to a list → no-op.
-        #expect(MyListsPresentation.customListToDelete(highlightedId: 99,
-                                                       isCustomListsSection: true,
-                                                       customLists: lists) == nil)
-        // Valid section + highlight → the matching list.
-        #expect(MyListsPresentation.customListToDelete(highlightedId: 2,
-                                                       isCustomListsSection: true,
-                                                       customLists: lists)?.id == 2)
+    @Test func myListsHighlightedDeletionIsNoOpWithoutHighlight() {
+        // Nothing highlighted → no-op so the Delete key falls through.
+        #expect(MyListsPresentation.highlightedDeletion(section: .wishlist, highlightedId: nil) == MyListsPresentation.HighlightedDeletion.none)
+        #expect(MyListsPresentation.highlightedDeletion(section: .seenlist, highlightedId: nil) == MyListsPresentation.HighlightedDeletion.none)
+        #expect(MyListsPresentation.highlightedDeletion(section: .customLists, highlightedId: nil) == MyListsPresentation.HighlightedDeletion.none)
     }
 }
