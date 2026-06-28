@@ -75,6 +75,15 @@
     },
     "Random" : {
       "comment" : "Discover filter description shown when no specific year range is set"
+    },
+    "In theaters in %@" : {
+      "comment" : "Region indicator on the Now Playing list; %@ is the country name"
+    },
+    "Upcoming in %@" : {
+      "comment" : "Region indicator on the Upcoming list; %@ is the country name"
+    },
+    "Results for %@" : {
+      "comment" : "Generic region indicator; %@ is the country name"
     }
   },
   "version" : "1.0"

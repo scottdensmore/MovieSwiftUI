@@ -1,8 +1,13 @@
-import Foundation
 import Backend
+import Foundation
 
 public enum MoviesMenu: Int, CaseIterable, Sendable {
-    case nowPlaying, upcoming, trending, popular, topRated, genres
+    case nowPlaying
+    case upcoming
+    case trending
+    case popular
+    case topRated
+    case genres
 
     public func title() -> String {
         // `bundle: .module` is required: this type lives in the
@@ -38,6 +43,34 @@ public enum MoviesMenu: Int, CaseIterable, Sendable {
         case .nowPlaying: return APIService.Endpoint.nowPlaying
         case .trending: return APIService.Endpoint.trending
         case .genres: return APIService.Endpoint.genres
+        }
+    }
+
+    /// Whether TMDB filters this list by the user's region. Only `nowPlaying`
+    /// and `upcoming` are region-scoped (theatrical schedules differ by
+    /// country), so their result counts can look sparse for small markets;
+    /// the other lists are global. Drives the region indicator in the UI.
+    public var isRegionFiltered: Bool {
+        switch self {
+        case .nowPlaying, .upcoming: return true
+        case .popular, .topRated, .trending, .genres: return false
+        }
+    }
+
+    /// One-line caption for the region indicator shown on region-filtered
+    /// lists, e.g. "In theaters in Albania". `regionName` is the localized
+    /// country name (see `RegionPresentation.displayName(forRegionCode:)`).
+    public func regionCaption(regionName: String) -> String {
+        switch self {
+        case .nowPlaying:
+            return String(localized: "In theaters in \(regionName)", bundle: .module,
+                          comment: "Region indicator on the Now Playing list; argument is the country name")
+        case .upcoming:
+            return String(localized: "Upcoming in \(regionName)", bundle: .module,
+                          comment: "Region indicator on the Upcoming list; argument is the country name")
+        case .popular, .topRated, .trending, .genres:
+            return String(localized: "Results for \(regionName)", bundle: .module,
+                          comment: "Generic region indicator; argument is the country name")
         }
     }
 }

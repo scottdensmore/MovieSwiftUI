@@ -11,7 +11,9 @@ import Foundation
 /// the previous `UserDefault` property wrapper exactly. (The wrapper
 /// type itself is kept for instance-property use and is unit-tested.)
 public enum AppUserDefaults {
-    private static let regionKey = "user_region"
+    // `public`: the Movies region indicator binds to this key via `@AppStorage`
+    // so its caption updates the moment the user changes region in Settings.
+    public static let regionKey = "user_region"
     private static let alwaysOriginalTitleKey = "original_title"
     private static let userTMDBAPIKeyKey = "user_tmdb_api_key"
     private static let hasCompletedOnboardingKey = "has_completed_onboarding"
