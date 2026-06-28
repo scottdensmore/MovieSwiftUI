@@ -121,6 +121,7 @@ public enum AccessibilityID {
     public enum MoviesHome {
         public static let settingsButton = "moviesHome.settingsButton"
         public static let toggleLayoutButton = "moviesHome.toggleLayoutButton"
+        public static let regionChangeButton = "moviesHome.regionChangeButton"
     }
 
     public enum MoviesList {
