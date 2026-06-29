@@ -29,6 +29,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the set_build_number build phase's
+          # `git rev-list --count HEAD` yields the real build number; a
+          # default shallow clone would stamp 1.
+          fetch-depth: 0
 
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
@@ -57,6 +62,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the set_build_number build phase's
+          # `git rev-list --count HEAD` yields the real build number; a
+          # default shallow clone would stamp 1.
+          fetch-depth: 0
 
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
@@ -98,6 +108,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the set_build_number build phase's
+          # `git rev-list --count HEAD` yields the real build number; a
+          # default shallow clone would stamp 1.
+          fetch-depth: 0
 
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
@@ -125,6 +140,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the set_build_number build phase's
+          # `git rev-list --count HEAD` yields the real build number; a
+          # default shallow clone would stamp 1.
+          fetch-depth: 0
 
       - name: Prepare macOS for UI testing
         uses: paulz/prepare-macos@v1
@@ -150,6 +170,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the set_build_number build phase's
+          # `git rev-list --count HEAD` yields the real build number; a
+          # default shallow clone would stamp 1.
+          fetch-depth: 0
 
       - name: Xcode version
         run: /usr/bin/xcodebuild -version
