@@ -1,0 +1,94 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "020aa63958e4",
+  "session_id": "2cae28a4-28e8-4bfa-9225-7682543f3664",
+  "strategy": "manual-commit",
+  "created_at": "2026-06-30T05:05:30.286047Z",
+  "branch": "fix/discover-undo-and-refill",
+  "checkpoints_count": 6,
+  "save_step_count": 3,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/actions/MoviesActions.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/MoviesReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/MoviesState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/types/DiscoverSwipe.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "ae721ba40838",
+  "token_usage": {
+    "input_tokens": 528457,
+    "cache_creation_tokens": 44260771,
+    "cache_read_tokens": 3625387130,
+    "output_tokens": 5639526,
+    "api_call_count": 7891
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01QZxn7s1AV3MX2f4JYsPLZ9",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "update-config"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "ae721ba40838",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 2445,
+        "end": 2446,
+        "entry_ids": [
+          "e02f9535-d200-4373-bfa5-761fcefc64c7"
+        ],
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01QZxn7s1AV3MX2f4JYsPLZ9"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: update-config",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 80
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 2,
+      "user_lines_removed": 1,
+      "agent_lines_added": 166,
+      "agent_lines_removed": 89,
+      "user_added_per_file": {
+        "MovieSwift/Shared/Localizable.xcstrings": 2
+      },
+      "user_removed_per_file": {
+        "MovieSwift/Shared/Localizable.xcstrings": 1
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 567,
+      "agent_lines_removed": 414
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 460,
+      "agent_lines_removed": 334
+    }
+  ]
+}

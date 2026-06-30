@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.7.7",
+  "checkpoint_id": "020aa63958e4",
+  "strategy": "manual-commit",
+  "branch": "fix/discover-undo-and-refill",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "MovieSwift/MovieSwift/views/components/discover/DiscoverView.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/actions/MoviesActions.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/reducers/MoviesReducer.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/state/MoviesState.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Sources/MovieSwiftFluxCore/types/DiscoverSwipe.swift",
+    "MovieSwift/Packages/MovieSwiftFluxCore/Tests/MovieSwiftFluxCoreTests/ReducerTests.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/02/0aa63958e4/0/metadata.json",
+      "transcript": "/02/0aa63958e4/0/full.jsonl",
+      "content_hash": "/02/0aa63958e4/0/content_hash.txt",
+      "prompt": "/02/0aa63958e4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 528457,
+    "cache_creation_tokens": 44260771,
+    "cache_read_tokens": 3625387130,
+    "output_tokens": 5639526,
+    "api_call_count": 7891
+  }
+}
