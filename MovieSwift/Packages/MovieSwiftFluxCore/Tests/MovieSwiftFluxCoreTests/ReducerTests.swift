@@ -77,6 +77,24 @@ import Testing
         #expect(reduced.discoverFilter?.year == 1990)
     }
 
+    @Test func moviesReducerSetRandomDiscoverPreservesExistingSwipeRecord() {
+        // Auto-refill fills a just-emptied deck via SetRandomDiscover; the undo
+        // record must survive so the user can still undo their last swipe.
+        var state = MoviesState()
+        state.discover = []
+        state.discoverLastSwipe = DiscoverSwipe(movie: 5, destination: .wishlist)
+        let filter = DiscoverFilter(year: 1990, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
+        let response = paginated([makeMovie(id: 1), makeMovie(id: 2)])
+
+        let reduced = moviesStateReducer(
+            state: state,
+            action: MoviesActions.SetRandomDiscover(filter: filter, response: response)
+        )
+
+        #expect(reduced.discover == [1, 2])
+        #expect(reduced.discoverLastSwipe == DiscoverSwipe(movie: 5, destination: .wishlist))
+    }
+
     @Test func moviesReducerSetActiveDiscoverFilterUpdatesFilterImmediately() {
         var state = MoviesState()
         state.discoverFilter = nil
@@ -413,53 +431,87 @@ import Testing
 
     // MARK: - MoviesReducer: Discover operations
 
-    @Test func moviesReducerPopRandomDiscoverRemovesLastElement() {
+    @Test func moviesReducerPopDiscoverCardRemovesLastElementAndRecordsSwipe() {
         var state = MoviesState()
         state.discover = [1, 2, 3]
 
-        let reduced = moviesStateReducer(state: state, action: MoviesActions.PopRandromDiscover())
+        let reduced = moviesStateReducer(state: state,
+                                         action: MoviesActions.PopDiscoverCard(movie: 3, destination: .seenlist))
 
         #expect(reduced.discover == [1, 2])
-        // Pop records the discarded movie so the Discover view can undo.
-        #expect(reduced.discoverLastDiscarded == 3)
+        // Pop records the movie AND where it went so the view can truly undo.
+        #expect(reduced.discoverLastSwipe == DiscoverSwipe(movie: 3, destination: .seenlist))
+    }
+
+    @Test func moviesReducerPopDiscoverCardRemovesTheSpecifiedMovieByID() {
+        var state = MoviesState()
+        state.discover = [1, 2, 3]
+
+        // Even if the swiped movie isn't the deck's tail, the right card leaves.
+        let reduced = moviesStateReducer(state: state,
+                                         action: MoviesActions.PopDiscoverCard(movie: 2, destination: .wishlist))
+
+        #expect(reduced.discover == [1, 3])
+        #expect(reduced.discoverLastSwipe == DiscoverSwipe(movie: 2, destination: .wishlist))
+    }
+
+    @Test func moviesReducerPopDiscoverCardFallsBackToLastWhenMovieNotInDeck() {
+        var state = MoviesState()
+        state.discover = [1, 2, 3]
+
+        // A movie not in the deck can't pop the wrong card — it falls back to
+        // removing the tail rather than leaving a phantom entry.
+        let reduced = moviesStateReducer(state: state,
+                                         action: MoviesActions.PopDiscoverCard(movie: 99, destination: .skip))
+
+        #expect(reduced.discover == [1, 2])
     }
 
     @Test func moviesReducerPushRandomDiscoverAppendsMovieAndClearsUndo() {
         var state = MoviesState()
         state.discover = [1, 2]
-        state.discoverLastDiscarded = 3
+        state.discoverLastSwipe = DiscoverSwipe(movie: 3, destination: .wishlist)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.PushRandomDiscover(movie: 3))
 
         #expect(reduced.discover == [1, 2, 3])
         // Undoing clears the pending-undo marker.
-        #expect(reduced.discoverLastDiscarded == nil)
+        #expect(reduced.discoverLastSwipe == nil)
     }
 
-    @Test func moviesReducerPopThenPushRoundTripsTheDiscardedMovie() throws {
+    @Test func moviesReducerPopThenPushRoundTripsTheSwipedMovie() throws {
         var state = MoviesState()
         state.discover = [1, 2, 3]
 
-        let popped = moviesStateReducer(state: state, action: MoviesActions.PopRandromDiscover())
+        let popped = moviesStateReducer(state: state,
+                                        action: MoviesActions.PopDiscoverCard(movie: 3, destination: .skip))
         #expect(popped.discover == [1, 2])
-        let discarded = try #require(popped.discoverLastDiscarded)
+        let swipe = try #require(popped.discoverLastSwipe)
+        #expect(swipe.destination == .skip)
 
-        let restored = moviesStateReducer(state: popped, action: MoviesActions.PushRandomDiscover(movie: discarded))
+        let restored = moviesStateReducer(state: popped, action: MoviesActions.PushRandomDiscover(movie: swipe.movie))
         #expect(restored.discover == [1, 2, 3])
-        #expect(restored.discoverLastDiscarded == nil)
+        #expect(restored.discoverLastSwipe == nil)
+    }
+
+    @Test func discoverSwipeUndoRemovalMapsDestinationToListRemoval() {
+        #expect(DiscoverSwipe(movie: 7, destination: .wishlist).undoRemoval == .wishlist(7))
+        #expect(DiscoverSwipe(movie: 7, destination: .seenlist).undoRemoval == .seenlist(7))
+        // Skip added the movie to no list, so undo only re-decks it.
+        #expect(DiscoverSwipe(movie: 7, destination: .skip).undoRemoval == .none)
     }
 
     @Test func moviesReducerResetRandomDiscoverClearsFilterListAndUndo() {
         var state = MoviesState()
         state.discover = [1, 2, 3]
-        state.discoverLastDiscarded = 3
+        state.discoverLastSwipe = DiscoverSwipe(movie: 3, destination: .seenlist)
         state.discoverFilter = DiscoverFilter(year: 2000, startYear: nil, endYear: nil, sort: "popularity.desc", genre: nil, region: nil)
 
         let reduced = moviesStateReducer(state: state, action: MoviesActions.ResetRandomDiscover())
 
         #expect(reduced.discover.isEmpty)
         #expect(reduced.discoverFilter == nil)
-        #expect(reduced.discoverLastDiscarded == nil)
+        #expect(reduced.discoverLastSwipe == nil)
     }
 
     @Test func moviesReducerSaveDiscoverFilterAppendsFilter() {
