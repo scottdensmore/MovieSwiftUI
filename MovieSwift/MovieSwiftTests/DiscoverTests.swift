@@ -55,6 +55,29 @@ struct DiscoverTests {
         #expect(!(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 3,
                                                                   force: false,
                                                                   isRunningUISmokeTests: true)))
+        // The auto-refill path forces a fetch; the smoke-test gate must still win.
+        #expect(!(DiscoverFetchPolicy.shouldFetchRandomMovies(currentMovieCount: 3,
+                                                                  force: true,
+                                                                  isRunningUISmokeTests: true)))
+    }
+
+    @Test func discoverAutoRefillPolicyRefillsOnlyWhenEmptyWithoutFailure() {
+        #expect(DiscoverAutoRefillPolicy.shouldAutoRefill(movies: [],
+                                                          loadingFailure: nil,
+                                                          isRunningUISmokeTests: false))
+        // Not empty → no refill.
+        #expect(!(DiscoverAutoRefillPolicy.shouldAutoRefill(movies: [1],
+                                                            loadingFailure: nil,
+                                                            isRunningUISmokeTests: false)))
+        // A pending failure stops the auto-refetch loop (manual retry instead).
+        let failure = MoviesListLoadFailure(kind: .other, message: "Try again")
+        #expect(!(DiscoverAutoRefillPolicy.shouldAutoRefill(movies: [],
+                                                            loadingFailure: failure,
+                                                            isRunningUISmokeTests: false)))
+        // Disabled under UI smoke tests.
+        #expect(!(DiscoverAutoRefillPolicy.shouldAutoRefill(movies: [],
+                                                            loadingFailure: nil,
+                                                            isRunningUISmokeTests: true)))
     }
 
     @Test func discoverFetchPolicySkipsWhenEnoughCardsRemain() {
@@ -136,9 +159,9 @@ struct DiscoverTests {
     }
 
     @Test func discoverUndoStateOnlyShowsUndoWhenNotDraggingAndMovieExists() {
-        #expect(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: false))
-        #expect(!(DiscoverUndoState.canUndo(previousMovie: nil, isDragging: false)))
-        #expect(!(DiscoverUndoState.canUndo(previousMovie: 7, isDragging: true)))
+        #expect(DiscoverUndoState.canUndo(previousMovie: 7, isGestureActive: false))
+        #expect(!(DiscoverUndoState.canUndo(previousMovie: nil, isGestureActive: false)))
+        #expect(!(DiscoverUndoState.canUndo(previousMovie: 7, isGestureActive: true)))
     }
 
     @Test func discoverFilterFormFetchPolicyFetchesWhenGenresAreMissing() {

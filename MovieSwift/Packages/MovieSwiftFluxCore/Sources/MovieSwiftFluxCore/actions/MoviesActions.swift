@@ -723,11 +723,21 @@ public struct MoviesActions {
         }
     }
 
-    /// Pops the last movie id off the moviesState.discover deck. (Name keeps the legacy "Randrom" spelling for compatibility.)
-    public struct PopRandromDiscover: Action {
+    /// Pops the current card off the moviesState.discover deck and records the
+    /// swipe (movie + destination) into moviesState.discoverLastSwipe so the
+    /// view can offer a true undo. The popped card is the deck's last element,
+    /// which is the movie passed here.
+    public struct PopDiscoverCard: Action {
+        public let movie: Int
+        public let destination: DiscoverSwipe.Destination
 
-        public init() {}
-
+        public init(
+            movie: Int,
+            destination: DiscoverSwipe.Destination
+        ) {
+            self.movie = movie
+            self.destination = destination
+        }
     }
 
     /// Stores a movie's reviews into moviesState.reviews and marks it reviewsLoaded.

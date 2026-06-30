@@ -153,18 +153,25 @@ public func moviesStateReducer(state: MoviesState, action: Action) -> MoviesStat
     case let action as MoviesActions.RemoveCustomList:
         state.customLists[action.list] = nil
 
-    case _ as  MoviesActions.PopRandromDiscover:
-        // Record the discarded movie so the Discover view can offer to undo.
-        state.discoverLastDiscarded = state.discover.last
-        _ = state.discover.popLast()
+    case let action as MoviesActions.PopDiscoverCard:
+        // Remove the swiped card (normally the current/last card) and record the
+        // swipe so the view can offer a true undo. Remove by id — falling back
+        // to the last card — so a caller can never pop the wrong movie even if
+        // `action.movie` ever diverges from the deck's tail.
+        if let index = state.discover.lastIndex(of: action.movie) {
+            state.discover.remove(at: index)
+        } else {
+            _ = state.discover.popLast()
+        }
+        state.discoverLastSwipe = DiscoverSwipe(movie: action.movie, destination: action.destination)
     case let action as  MoviesActions.PushRandomDiscover:
         state.discover.append(action.movie)
-        state.discoverLastDiscarded = nil
+        state.discoverLastSwipe = nil
 
     case _ as  MoviesActions.ResetRandomDiscover:
         state.discoverFilter = nil
         state.discover = []
-        state.discoverLastDiscarded = nil
+        state.discoverLastSwipe = nil
 
     case let action as MoviesActions.SetGenres:
         state.genres = action.genres

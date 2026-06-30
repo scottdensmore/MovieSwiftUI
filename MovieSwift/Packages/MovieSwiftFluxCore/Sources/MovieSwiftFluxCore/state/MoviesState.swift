@@ -87,11 +87,13 @@ public struct MoviesState: FluxState, Codable, Sendable {
     public var discover: [Int] = []
     public var discoverFilter: DiscoverFilter?
     public var savedDiscoverFilters: [DiscoverFilter] = []
-    /// The movie most recently removed from the discover deck (dismiss /
-    /// wishlist / seenlist), or `nil` if there's nothing to undo. Lives in
-    /// the store — not view-local `@State` — so the Discover undo control
-    /// re-renders reliably when the deck empties. Cleared on undo/reset.
-    public var discoverLastDiscarded: Int?
+    /// The most recent Discover card removal (movie + where it went:
+    /// wishlist / seenlist / skip), or `nil` if there's nothing to undo. Lives
+    /// in the store — not view-local `@State` — so the Discover undo control
+    /// re-renders reliably when the deck empties. Recording the destination
+    /// lets undo reverse the whole swipe (remove from the list + re-deck), not
+    /// just put the card back. Cleared on undo/reset.
+    public var discoverLastSwipe: DiscoverSwipe?
 
     public var wishlist: Set<Int> = Set()
     public var seenlist: Set<Int> = Set()
