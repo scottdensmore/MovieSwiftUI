@@ -265,12 +265,19 @@ struct MyLists: ConnectedView {
                             .stroke(focusedSection == section ? Color.accentColor : .clear,
                                     lineWidth: 2)
                     )
+                    // Unselected tabs have a `Color.clear` fill, which isn't
+                    // hit-testable under `.buttonStyle(.plain)` — without this
+                    // the click target is only the label glyphs, not the tab.
+                    .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .buttonStyle(.plain)
             .focusable()
             .focused($focusedSection, equals: section)
             .focusEffectDisabled()
             .accessibilityIdentifier(AccessibilityID.MyLists.section(section.title))
+            // Announce the active tab to VoiceOver (and give UI tests a cheap,
+            // deterministic signal that a tab is selected).
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
             // Tab from any section tab moves focus into the movies / lists
             // below; arrow keys still navigate between the three tabs.
             .onKeyPress(.tab, phases: .down) { press in

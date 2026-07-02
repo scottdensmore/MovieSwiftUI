@@ -494,6 +494,36 @@ final class MovieSwiftMacUITests: XCTestCase {
                       "Row label should be the seeded movie's title, not the 'Movie 0' fallback")
     }
 
+    /// The section tabs must react to clicks anywhere on the tab, not just on
+    /// the label glyphs. An unselected tab's background fill is `Color.clear`,
+    /// so without a full-tab `contentShape` its padding isn't hit-testable and
+    /// clicks near the tab edge silently did nothing. Click the far-left
+    /// padding of the (unselected) Seenlist tab — well away from the centered
+    /// label — and assert the section actually switches.
+    func testMyListsSectionTabWholeAreaIsClickable() {
+        let app = launchApp(selectMenu: "My Lists")
+
+        let seenlistTab = app.identifiedElement(AccessibilityID.MyLists.section("Seenlist"))
+        XCTAssertTrue(seenlistTab.waitForExistence(timeout: timeout),
+                      "My Lists should expose a Seenlist segment")
+        // Wishlist is the default section, so Seenlist starts unselected — the
+        // tap below is what must select it.
+        XCTAssertFalse(seenlistTab.isSelected, "Seenlist tab should start unselected")
+
+        // Leading padding of the tab, far from the centered icon/text glyphs.
+        // dx: 0.06 assumes each of the 3 equal-width tabs is ≥ ~150pt wide, so
+        // 6% from the edge (~9pt+) clears the label's 12pt horizontal padding
+        // yet still lands inside the tab — proving the padding is hit-testable.
+        seenlistTab.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.5)).tap()
+
+        // Clicking the padding must select the tab (it carries the `.isSelected`
+        // trait when active). `isSelected` is a cheap element property — no
+        // whole-tree query — so this is fast and deterministic.
+        let becameSelected = expectation(for: NSPredicate(format: "isSelected == true"),
+                                         evaluatedWith: seenlistTab)
+        wait(for: [becameSelected], timeout: timeout)
+    }
+
     // MARK: - My Lists: create custom list (parity with iOS)
     //
     // iOS covers the full create-custom-list journey (form → type → save →
