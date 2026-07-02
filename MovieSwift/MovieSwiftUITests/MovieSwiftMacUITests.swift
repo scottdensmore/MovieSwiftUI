@@ -506,6 +506,9 @@ final class MovieSwiftMacUITests: XCTestCase {
         let seenlistTab = app.identifiedElement(AccessibilityID.MyLists.section("Seenlist"))
         XCTAssertTrue(seenlistTab.waitForExistence(timeout: timeout),
                       "My Lists should expose a Seenlist segment")
+        // Wishlist is the default section, so Seenlist starts unselected — the
+        // tap below is what must select it.
+        XCTAssertFalse(seenlistTab.isSelected, "Seenlist tab should start unselected")
 
         // Leading padding of the tab, far from the centered icon/text glyphs.
         // dx: 0.06 assumes each of the 3 equal-width tabs is ≥ ~150pt wide, so
@@ -513,15 +516,12 @@ final class MovieSwiftMacUITests: XCTestCase {
         // yet still lands inside the tab — proving the padding is hit-testable.
         seenlistTab.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.5)).tap()
 
-        // Same accessibility quirk as testMyListsShowsContent: on macOS this
-        // section header surfaces on the element's `value`, not `label`, so
-        // match either and search all descendants (not just staticTexts).
-        let seenlistHeader = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@",
-                                  "movies in seenlist", "movies in seenlist"))
-            .firstMatch
-        XCTAssertTrue(seenlistHeader.waitForExistence(timeout: timeout),
-                      "Clicking the tab's padding area should switch to the Seenlist section")
+        // Clicking the padding must select the tab (it carries the `.isSelected`
+        // trait when active). `isSelected` is a cheap element property — no
+        // whole-tree query — so this is fast and deterministic.
+        let becameSelected = expectation(for: NSPredicate(format: "isSelected == true"),
+                                         evaluatedWith: seenlistTab)
+        wait(for: [becameSelected], timeout: timeout)
     }
 
     // MARK: - My Lists: create custom list (parity with iOS)

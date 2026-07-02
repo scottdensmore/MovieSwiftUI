@@ -275,6 +275,9 @@ struct MyLists: ConnectedView {
             .focused($focusedSection, equals: section)
             .focusEffectDisabled()
             .accessibilityIdentifier(AccessibilityID.MyLists.section(section.title))
+            // Announce the active tab to VoiceOver (and give UI tests a cheap,
+            // deterministic signal that a tab is selected).
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
             // Tab from any section tab moves focus into the movies / lists
             // below; arrow keys still navigate between the three tabs.
             .onKeyPress(.tab, phases: .down) { press in
