@@ -265,6 +265,10 @@ struct MyLists: ConnectedView {
                             .stroke(focusedSection == section ? Color.accentColor : .clear,
                                     lineWidth: 2)
                     )
+                    // Unselected tabs have a `Color.clear` fill, which isn't
+                    // hit-testable under `.buttonStyle(.plain)` — without this
+                    // the click target is only the label glyphs, not the tab.
+                    .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
             .buttonStyle(.plain)
             .focusable()
