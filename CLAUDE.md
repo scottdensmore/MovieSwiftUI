@@ -42,22 +42,17 @@ directly to `main`, and do not skip steps even for small changes.
 6. **Open a PR.** Push the branch and open a pull request with `gh`
    (always the GitHub CLI, never the web UI). The PR description
    states what changed, why, and how it was tested.
-7. **Green CI is the merge gate.** The branch-protection–required
-   checks are the `package-tests`, `ios-tests`, `ios-tests-ipad`,
-   `mac-tests`, and `tvos-tests` suites — all must pass. The
-   `SwiftLint` and CodeQL/Analyze scans also run on every PR and
-   should be green before merging. Never merge with a pending or
-   failing required check. **A pending Copilot review (or any other
-   automated reviewer) is not part of the gate — do not wait on it.**
+7. **Verification before merge.** Run local verification gates
+   (`SwiftLint` via `./scripts/lint.sh`, the relevant build(s), and
+   unit/UI test suites) before opening the PR. With GitHub Actions
+   disabled, verification is completed locally before merging.
 8. **Address review feedback as it lands.** If Copilot or a human
    comments before you merge, act on the valid points: push the fix,
-   reply on the thread noting what changed, resolve the thread, and
-   let CI re-run. Automated feedback that arrives after a green merge
-   is handled as a follow-up — it never blocks the merge.
-9. **Merge & clean up.** This is the only step that merges. Once the
-   required CI checks are green, merge with
-   `gh pr merge --merge --delete-branch`, then return to `main`,
-   `git pull --ff-only`, and delete the local branch.
+   reply on the thread noting what changed, and resolve the thread.
+9. **Merge & clean up.** This is the only step that merges. Merge with
+   `gh pr merge --squash --delete-branch`, then return to `main`,
+   `git pull --ff-only`, and delete the local branch. The repository
+   enforces squash merges to maintain a strictly linear commit graph.
 
 One PR per logical unit of work. Keep unrelated changes on separate
 branches/PRs so each diff reviews cleanly.
@@ -127,10 +122,8 @@ assertion before the visual fix lands.
 Run the project's formatter on the files you touched before staging
 changes. **Linting is not a separate pre-commit step** — the
 `verifier` subagent (delivery-workflow step 4) runs `./scripts/lint.sh`
-(strict, matching CI's `.github/workflows/lint.yml`) as the lint gate
-and reports any violations for the main agent to fix. CI still runs
-the same `./scripts/lint.sh` on every PR, so the verifier is what
-catches violations locally before they reach CI.
+(strict mode) as the lint gate and reports any violations for the main
+agent to fix.
 
 Before `git commit`:
 

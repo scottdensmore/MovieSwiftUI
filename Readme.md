@@ -88,8 +88,8 @@ After this, open `MovieSwift/MovieSwift.xcodeproj` and build `MovieSwift`, `Movi
 
 ## Lint & Format
 
-The repo carries a `.swiftlint.yml` and `.swiftformat` at the root. CI runs
-`swiftlint --strict` on every PR (see `.github/workflows/lint.yml`); the
+The repo carries a `.swiftlint.yml` and `.swiftformat` at the root. Code
+can be linted with `swiftlint --strict` (or `./scripts/lint.sh`); the
 formatter is local-only.
 
 Install both via Homebrew (the `setup.sh` script does this automatically if
@@ -179,7 +179,7 @@ iPad smoke + unit suite:
 IOS_SIMULATOR_FAMILY="iPad" IOS_SIMULATOR_NAME="iPad (A16)" XCODE_ONLY_TESTING="MovieSwiftUITests/MovieSwiftUITests/testLaunchShowsMainTabs,MovieSwiftTests" ./scripts/ci/run_ios_tests.sh
 ```
 
-The GitHub Actions CI workflow (`.github/workflows/xcodebuild.yml`) enforces:
+The test scripts in `scripts/ci/` verify:
 - Package tests + coverage thresholds.
 - Package coverage ratchet policy checks.
 - iOS simulator tests for iPhone unit suite and iPad UI smoke coverage.
