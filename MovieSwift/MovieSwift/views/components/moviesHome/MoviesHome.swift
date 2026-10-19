@@ -172,6 +172,8 @@ struct MoviesHome: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MoviesHome(isRunningUISmokeTests: false).environment(sampleStore)
 }
+#endif

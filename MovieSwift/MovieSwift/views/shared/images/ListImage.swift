@@ -45,6 +45,8 @@ struct ListImage: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     ListImage(movieId: 0).environment(sampleStore)
 }
+#endif

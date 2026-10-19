@@ -111,6 +111,8 @@ struct MoviesGenreList: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MoviesGenreList(genre: Genre(id: 0, name: "test")).environment(sampleStore)
 }
+#endif

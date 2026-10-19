@@ -92,6 +92,7 @@ struct MoviesHomeList: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         MoviesHomeList(menu: .constant(.popular),
@@ -100,3 +101,4 @@ struct MoviesHomeList: ConnectedView {
             .environment(sampleStore)
     }
 }
+#endif

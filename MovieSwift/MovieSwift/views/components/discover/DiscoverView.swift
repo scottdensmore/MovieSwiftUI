@@ -792,6 +792,8 @@ struct DiscoverView: ConnectedView {
     #endif
 }
 
+#if DEBUG
 #Preview {
     DiscoverView().environment(sampleStore)
 }
+#endif

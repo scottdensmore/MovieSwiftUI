@@ -303,6 +303,8 @@ struct DiscoverFilterForm: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     DiscoverFilterForm().environment(sampleStore)
 }
+#endif

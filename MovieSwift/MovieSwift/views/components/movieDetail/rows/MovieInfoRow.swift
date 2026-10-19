@@ -77,6 +77,8 @@ struct MovieInfoRow: View {
     }
 }
 
+#if DEBUG
 #Preview {
     MovieInfoRow(movie: sampleMovie).background(Color.black).environment(sampleStore)
 }
+#endif

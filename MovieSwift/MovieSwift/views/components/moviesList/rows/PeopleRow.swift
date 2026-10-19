@@ -65,8 +65,10 @@ struct PeopleRow: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
     // swiftlint:disable:next force_unwrapping
     PeopleRow(peopleId: sampleCasts.first!.id).environment(sampleStore)
 }
+#endif

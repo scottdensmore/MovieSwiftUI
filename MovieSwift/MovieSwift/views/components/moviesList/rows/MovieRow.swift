@@ -58,8 +58,10 @@ struct MovieRow: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     List {
         MovieRow(movieId: sampleMovie.id).environment(sampleStore)
     }
 }
+#endif

@@ -168,6 +168,7 @@ private struct MovieCoverRowMacPreviewHost: View {
 #endif
 #endif
 
+#if DEBUG
 #Preview {
     #if os(macOS)
     MovieCoverRowMacPreviewHost()
@@ -176,3 +177,4 @@ private struct MovieCoverRowMacPreviewHost: View {
         .environment(sampleStore)
     #endif
 }
+#endif

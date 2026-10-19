@@ -584,6 +584,7 @@ extension PeopleDetail {
 
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         // #Preview-only sample fixture; sampleCasts is a non-empty compile-time constant.
@@ -591,3 +592,4 @@ extension PeopleDetail {
         PeopleDetail(peopleId: sampleCasts.first!.id).environment(sampleStore)
     }
 }
+#endif

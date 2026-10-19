@@ -60,7 +60,9 @@ struct MovieKeywordList: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MovieKeywordList(keyword: Keyword(id: 0, name: "Test"))
         .environment(sampleStore)
 }
+#endif

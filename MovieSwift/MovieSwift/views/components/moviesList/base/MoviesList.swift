@@ -380,9 +380,11 @@ struct MoviesList: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MoviesList(movies: [sampleMovie.id],
                displaySearch: true,
                navigationRoute: .constant(nil))
         .environment(sampleStore)
 }
+#endif

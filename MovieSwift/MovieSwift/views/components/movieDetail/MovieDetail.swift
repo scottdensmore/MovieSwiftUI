@@ -906,8 +906,10 @@ private struct MoviePeopleListDestination: ConnectedView {
 }
 
 // MARK: - Preview
+#if DEBUG
 #Preview {
     NavigationStack {
         MovieDetail(movieId: sampleMovie.id).environment(sampleStore)
     }
 }
+#endif

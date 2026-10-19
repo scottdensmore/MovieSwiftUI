@@ -57,6 +57,8 @@ struct PeopleContextMenu: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     PeopleContextMenu(people: 0).environment(sampleStore)
 }
+#endif

@@ -694,6 +694,8 @@ struct MyLists: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MyLists().environment(sampleStore)
 }
+#endif

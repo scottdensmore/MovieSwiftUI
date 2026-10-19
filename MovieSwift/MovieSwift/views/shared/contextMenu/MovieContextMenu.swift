@@ -121,6 +121,8 @@ extension MovieContextMenu {
 
 }
 
+#if DEBUG
 #Preview {
     MovieContextMenu(movieId: 0).environment(sampleStore)
 }
+#endif

@@ -174,6 +174,7 @@ private struct MovieButtonsRowMacPreviewHost: View {
 }
 #endif
 
+#if DEBUG
 #Preview {
     #if os(macOS)
     MovieButtonsRowMacPreviewHost()
@@ -181,3 +182,4 @@ private struct MovieButtonsRowMacPreviewHost: View {
     MovieButtonsRow(movieId: 0, showCustomListSheet: .constant(false)).environment(sampleStore)
     #endif
 }
+#endif

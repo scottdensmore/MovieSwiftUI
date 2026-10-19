@@ -354,6 +354,8 @@ struct CustomListForm: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     CustomListForm(editingListId: nil).environment(sampleStore)
 }
+#endif

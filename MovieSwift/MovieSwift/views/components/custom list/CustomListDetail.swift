@@ -265,6 +265,7 @@ struct CustomListDetail: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     NavigationStack {
         // #Preview-only sample fixture; sampleStore customLists is non-empty by construction.
@@ -273,3 +274,4 @@ struct CustomListDetail: ConnectedView {
             .environment(sampleStore)
     }
 }
+#endif

@@ -284,7 +284,9 @@ struct GenresList: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     GenresList()
         .environment(sampleStore)
 }
+#endif

@@ -1513,7 +1513,9 @@ private struct PreviousICloudBackupsSheet: View {
     }
 }
 
+#if DEBUG
 #Preview {
     SettingsForm()
         .environment(sampleStore)
 }
+#endif

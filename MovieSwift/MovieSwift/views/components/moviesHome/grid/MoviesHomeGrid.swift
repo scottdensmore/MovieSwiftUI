@@ -130,7 +130,9 @@ struct MoviesHomeGrid: ConnectedView {
     }
 }
 
+#if DEBUG
 #Preview {
     MoviesHomeGrid(navigationRoute: .constant(nil), isRunningUISmokeTests: false)
         .environment(sampleStore)
 }
+#endif
