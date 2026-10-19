@@ -25,7 +25,7 @@ struct CarouselImageView: View {
         Group {
             if let data = loader.image {
                 DataImage(data: data, renderingMode: .original)
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
             } else {
                 Rectangle().foregroundStyle(.gray)
             }

@@ -104,7 +104,7 @@ struct MovieVideosRow: View {
                 AsyncImage(url: presentation.thumbnailURL) { image in
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .scaledToFill()
                 } placeholder: {
                     Rectangle().fill(Color.gray.opacity(0.2))
                 }

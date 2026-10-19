@@ -114,7 +114,7 @@ struct TVMovieDetail: ConnectedView {
                                 AsyncImage(url: person.profilePath.flatMap {
                                     ImageService.Size.cast.path(poster: $0)
                                 }) { image in
-                                    image.resizable().aspectRatio(contentMode: .fill)
+                                    image.resizable().scaledToFill()
                                 } placeholder: {
                                     Color.secondary.opacity(0.3)
                                 }

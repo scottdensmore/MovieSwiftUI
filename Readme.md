@@ -122,6 +122,17 @@ Inline rule overrides use the standard SwiftLint comment syntax
 
 ## Testing and Coverage
 
+Hosted CI runs strict lint and the retained package coverage gates, then every
+shared-scheme unit/UI test on iPhone, iPad, macOS, and tvOS. It uses installed
+simulators compatible with the existing SDK; simulator tests are unsigned and
+macOS test bundles use ad-hoc signing. The iOS app coverage gate remains enabled
+with its tracked threshold, and all three app schemes also compile unsigned
+Release builds. No retry flags, test filters, tool/runtime installation, private
+API credentials, macOS preparation/settings action, archive/export, or publishing
+step is used. UI tests retain their seeded state, mocked network, and fake iCloud
+seams; live TMDB/iCloud integration is outside coverage. Failure diagnostics are
+retained for three days. All existing assertions and coverage thresholds remain.
+
 ### Run package tests locally
 
 ```bash

@@ -237,7 +237,7 @@ if [[ -n "$ONLY_TESTING" ]]; then
   done
 fi
 
-XCODEBUILD_CMD+=( test )
+XCODEBUILD_CMD+=( -parallel-testing-enabled NO -jobs 2 CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= -testLanguage en -testRegion US test )
 
 assert_threshold() {
   local label="$1"
