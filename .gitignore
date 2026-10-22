@@ -68,8 +68,3 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
 DeveloperSettings.xcconfig
-
-# Claude Code: track shared config (.claude/settings.json)
-# but keep machine-local + transient files out of git.
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
