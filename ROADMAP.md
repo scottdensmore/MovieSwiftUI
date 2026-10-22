@@ -8,9 +8,8 @@ high-leverage refinement and growth, sequenced so the codebase stays safe
 to change at every step.
 
 **Guiding principle: harden as you build.** Every feature ships with
-unit + UI tests for its journey. Every change goes through the delivery
-workflow in `CLAUDE.md` (branch → TDD → local verification →
-merge).
+unit + UI tests for its journey. Every change goes through the standard delivery
+workflow (branch → TDD → local verification → merge).
 
 Effort key: **S** ≈ days · **M** ≈ 1–2 weeks · **L** ≈ multi-week.
 

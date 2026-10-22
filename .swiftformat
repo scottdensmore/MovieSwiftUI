@@ -62,7 +62,7 @@
 --markextensions if-not-empty
 
 # --- File headers ---------------------------------------------------------
-# Project policy (CLAUDE.md): new .swift files must NOT include the Xcode
+# Project policy: new .swift files must NOT include the Xcode
 # template header block. Empty `--header` strips any existing block on
 # format.
 --header strip
