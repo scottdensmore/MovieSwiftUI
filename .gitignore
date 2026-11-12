@@ -68,3 +68,21 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
 DeveloperSettings.xcconfig
+
+# SwiftPM workspace, editors, OS metadata, and local environment
+.derivedData/
+.swiftpm/configuration/
+.swiftpm/xcode/package.xcworkspace/
+.swiftpm/xcode/xcuserdata/
+*.xcuserstate
+.AppleDouble
+.LSOverride
+._*
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.env
+.env.*
+!.env.example
